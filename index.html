@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>Ratópolis | Teste de Cadastro</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #101827;
+      color: #f1f5f9;
+      font-family: Arial, sans-serif;
+    }
+    main {
+      max-width: 520px;
+      margin: 20px auto;
+      padding: 22px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+    }
+    h1 { color: #7dd3fc; margin-top: 0; }
+    p { line-height: 1.5; color: #cbd5e1; }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 7px;
+      border-radius: 9px;
+      font-size: 16px;
+    }
+    input {
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: white;
+    }
+    button {
+      border: 0;
+      background: #0284c7;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; }
+    .secondary { background: #475569; }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #0f172a;
+      padding: 13px;
+      border-radius: 9px;
+      color: #a7f3d0;
+      min-height: 100px;
+    }
+    .small { font-size: 12px; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🐭 Ratópolis</h1>
+  <h2>Teste de cadastro</h2>
+  <p>Ambiente de desenvolvimento. Este teste não altera os arquivos do jogo publicado.</p>
+
+  <p class="small">
+    <strong>Origem desta página:</strong><br>
+    <span id="origem"></span>
+  </p>
+
+  <label for="nickname">Nickname</label>
+  <input id="nickname" maxlength="20" autocomplete="username">
+
+  <label for="email">E-mail de teste</label>
+  <input id="email" type="email" autocomplete="email">
+
+  <label for="senha">Senha de teste</label>
+  <input id="senha" type="password" minlength="8"
+         autocomplete="new-password" value="Teste12345!">
+
+  <button id="gerar" class="secondary" type="button">
+    Gerar novos dados de teste
+  </button>
+
+  <button id="health" type="button">1. Verificar API</button>
+  <button id="cadastrar" type="button">2. Testar cadastro</button>
+
+  <h3>Resultado técnico</h3>
+  <pre id="resultado">Pronto para testar.</pre>
+
+  <p class="small">
+    API de desenvolvimento:<br>
+    <span id="api"></span>
+  </p>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const API = "https://ratopolis-api-dev-v30.juniorgmj69.workers.dev";
+  const $ = id => document.getElementById(id);
+  const resultado = $("resultado");
+
+  $("origem").textContent = location.origin;
+  $("api").textContent = API;
+
+  function novosDados() {
+    const id = Date.now().toString().slice(-9);
+    $("nickname").value = "TesteRP" + id;
+    $("email").value = "ratopolis." + id + "@example.com";
+    $("senha").value = "Teste12345!";
+  }
+
+  function mostrar(titulo, dados) {
+    resultado.textContent = titulo + "\n\n" +
+      (typeof dados === "string"
+        ? dados
+        : JSON.stringify(dados, null, 2));
+  }
+
+  async function requisicao(caminho, opcoes = {}) {
+    mostrar("Enviando solicitação...", {
+      origem: location.origin,
+      destino: API + caminho,
+      metodo: opcoes.method || "GET"
+    });
+
+    try {
+      const resposta = await fetch(API + caminho, {
+        ...opcoes,
+        cache: "no-store"
+      });
+
+      const texto = await resposta.text();
+      let corpo;
+
+      try {
+        corpo = JSON.parse(texto);
+      } catch {
+        corpo = texto || "(resposta vazia)";
+      }
+
+      mostrar("HTTP " + resposta.status, {
+        sucessoHTTP: resposta.ok,
+        origem: location.origin,
+        destino: API + caminho,
+        resposta: corpo
+      });
+    } catch (erro) {
+      mostrar("FALHA DE REDE OU CORS", {
+        mensagem: erro.message,
+        origemDaPagina: location.origin,
+        destinoDaAPI: API + caminho,
+        orientacao:
+          "Verifique se a origem desta página está autorizada no CORS do Worker. " +
+          "O navegador pode ocultar a resposta real quando o CORS falha."
+      });
+    }
+  }
+
+  $("gerar").addEventListener("click", novosDados);
+
+  $("health").addEventListener("click", () => {
+    requisicao("/health");
+  });
+
+  $("cadastrar").addEventListener("click", () => {
+    const nickname = $("nickname").value.trim();
+    const email = $("email").value.trim();
+    const password = $("senha").value;
+
+    if (!nickname || !email || password.length < 8) {
+      mostrar("Confira os dados", {
+        erro: "Preencha nickname, e-mail e senha com pelo menos 8 caracteres."
+      });
+      return;
+    }
+
+    requisicao("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nickname, email, password })
+    });
+  });
+
+  novosDados();
+})();
+</script>
+</body>
+</html>
