@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#100b20">
+<title>Ratópolis — Portal Oficial</title>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#0c0815;color:#faf6ff;font-family:Arial,sans-serif}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px;border-bottom:1px solid #382950}
+.brand{font-size:19px;font-weight:bold}
+.brand small{display:block;color:#b8adc9;font-size:10px;letter-spacing:2px}
+.logo{font-size:28px}
+button,.btn{display:inline-block;padding:12px 15px;border:1px solid #44315f;border-radius:12px;background:#211633;color:white;font-weight:bold;cursor:pointer}
+.gold{background:linear-gradient(135deg,#ffe18a,#e6a62a);color:#29182e;border:0}
+.purple{background:#7948d5}
+main{max-width:1000px;margin:auto;padding:16px 14px 90px}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center;padding:35px 0}
+.tag{display:inline-block;border:1px solid #70542c;color:#f5c85d;padding:8px 11px;border-radius:20px;font-size:12px}
+h1{font-size:clamp(40px,7vw,66px);line-height:1;margin:18px 0;letter-spacing:-2px}
+h1 span{color:#f5c85d}
+p{color:#b8adc9;line-height:1.6}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+.art{height:260px;border-radius:25px;border:1px solid #382950;background:radial-gradient(circle at 70% 20%,#51326f,#171029 65%);display:grid;place-items:center;font-size:100px;position:relative;overflow:hidden}
+.art:after{content:"";position:absolute;bottom:-65px;width:120%;height:130px;background:#342050;border-radius:50%}
+.art span{z-index:1;filter:drop-shadow(0 10px 10px #000)}
+section{margin-top:26px}
+h2{font-size:23px;margin-bottom:7px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:#171129;border:1px solid #382950;border-radius:17px;padding:17px;min-width:0}
+.card h3{margin:7px 0}
+.ico{font-size:28px}
+.card p{font-size:13px}
+.auth{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin:12px 0}
+label{display:block;color:#b8adc9;font-size:12px;margin-bottom:7px}
+input{width:100%;padding:13px;border:1px solid #44315f;border-radius:10px;background:#0c0815;color:white}
+.result{font-size:12px;color:#b8adc9;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px}
+.note{padding:12px;background:#ffffff08;border:1px solid #ffffff15;border-radius:12px;font-size:12px;color:#b8adc9;line-height:1.6;margin-top:12px}
+.routes{display:flex;gap:7px;flex-wrap:wrap}
+.route{font:11px monospace;background:#0c0815;border:1px solid #44315f;border-radius:7px;padding:7px;color:#dfd1ff}
+footer{text-align:center;padding:20px;color:#b8adc9;font-size:12px;border-top:1px solid #ffffff15}
+nav{display:none}
+@media(max-width:650px){
+ .hero{grid-template-columns:1fr;padding-top:25px}
+ h1{font-size:48px}
+ .art{height:205px}
+ .grid,.auth{grid-template-columns:1fr}
+ header{padding:12px}
+ .topbtn{padding:9px;font-size:12px}
+ nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#100b20f5;border-top:1px solid #382950;justify-content:space-around;padding:12px 4px;z-index:5}
+ nav a{font-size:11px;text-align:center;color:#b8adc9}
+ nav b{display:block;color:#f5c85d;font-size:17px;margin-bottom:4px}
+}
+</style>
+</head>
+<body>
+<header>
+ <a class="brand" href="#inicio"><span class="logo">🐭</span> RATÓPOLIS<small>PORTAL OFICIAL</small></a>
+ <div>
+  <a class="btn topbtn" href="#conta">Entrar</a>
+  <a class="btn gold topbtn" href="#cadastro">Cadastrar</a>
+ </div>
+</header>
+
+<main>
+<section class="hero" id="inicio">
+ <div>
+  <span class="tag">✦ UM MUNDO DE AVENTURAS</span>
+  <h1>Seu lugar é<br>em <span>Ratópolis.</span></h1>
+  <p>Entre na toca, junte sua turma e conquiste seu espaço! Aqui você encontra o acesso ao jogo, sua conta e as novidades da comunidade.</p>
+  <div class="actions">
+   <a class="btn gold" href="https://vt12gt.github.io/ratopolis/" target="_blank" rel="noopener">▶ JOGAR AGORA</a>
+   <a class="btn" href="#conta">♙ Minha conta</a>
+  </div>
+  <p id="status">● Portal pronto. Servidor ainda não verificado.</p>
+ </div>
+ <div class="art"><span>🐭</span></div>
+</section>
+
+<section id="atalhos">
+ <h2>Explore o portal</h2>
+ <p>Os acessos ficam no site, separados do jogo.</p>
+ <div class="grid">
+  <article class="card"><div class="ico">🎮</div><h3>Jogar Ratópolis</h3><p>Abre o jogo já publicado em uma nova aba.</p><a class="btn gold" href="https://vt12gt.github.io/ratopolis/" target="_blank" rel="noopener">Abrir jogo ↗</a></article>
+  <article class="card"><div class="ico">👤</div><h3>Perfil do jogador</h3><p>Apelido, e-mail, ID, nível, XP, VIP e moedas, quando conectados à API.</p><a class="btn" href="#conta">Minha conta</a></article>
+  <article class="card"><div class="ico">🏆</div><h3>Rankings e loja</h3><p>Espaço reservado para rankings, itens cosméticos, moedas e VIP.</p><a class="btn" href="#servidor">Servidor</a></article>
+ </div>
+</section>
+
+<section id="conta">
+ <h2>Conta Ratópolis</h2>
+ <p>Cadastro e login enviados à API. O servidor precisa ter as rotas implementadas.</p>
+ <div class="auth">
+  <article class="card" id="cadastro">
+   <h3>✨ Criar conta</h3>
+   <form id="registerForm">
+    <div class="field"><label for="nickname">Apelido</label><input id="nickname" minlength="3" maxlength="20" required autocomplete="nickname" placeholder="Seu apelido"></div>
+    <div class="field"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="email" placeholder="voce@exemplo.com"></div>
+    <div class="field"><label for="password">Senha (mínimo 8 caracteres)</label><input id="password" type="password" minlength="8" required autocomplete="new-password" placeholder="Crie sua senha"></div>
+    <button class="purple" type="submit">Criar minha conta</button>
+    <div class="result" id="registerResult"></div>
+   </form>
+  </article>
+  <article class="card">
+   <h3>🔐 Entrar na conta</h3>
+   <form id="loginForm">
+    <div class="field"><label for="identity">E-mail ou apelido</label><input id="identity" required autocomplete="username" placeholder="E-mail ou apelido"></div>
+    <div class="field"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Sua senha"></div>
+    <button class="gold" type="submit">Entrar</button>
+    <button type="button" id="logout">Sair</button>
+    <div class="result" id="loginResult"></div>
+   </form>
+  </article>
+ </div>
+ <article class="card" style="margin-top:12px">
+  <h3>🪪 Minha sessão e perfil</h3>
+  <p id="profile">Faça login e consulte sua sessão. O perfil depende da resposta real da API.</p>
+  <button id="me">Verificar minha sessão</button>
+  <div class="result" id="profileResult"></div>
+ </article>
+ <div class="note">Atenção: este é um protótipo. Não inventa contas nem confirma autenticação sem resposta válida do servidor. Antes de usar publicamente, precisamos confirmar as rotas, CORS e o funcionamento da sessão no Worker.</div>
+</section>
+
+<section id="servidor">
+ <h2>Conexão com o servidor</h2>
+ <p>Informe a URL HTTPS do Cloudflare Worker de desenvolvimento.</p>
+ <article class="card">
+  <div class="field"><label for="apiBase">URL base da API</label><input id="apiBase" placeholder="https://nome-do-worker.workers.dev" inputmode="url"></div>
+  <div class="actions">
+   <button class="gold" id="saveApi" type="button">Usar endereço</button>
+   <button id="health" type="button">Testar /health</button>
+   <button id="players" type="button">Testar jogadores</button>
+  </div>
+  <div class="result" id="serverResult">Informe o endereço para testar.</div>
+ </article>
+ <article class="card" style="margin-top:12px">
+  <h3>Entradas previstas para a API</h3>
+  <div class="routes">
+   <span class="route">GET /health</span>
+   <span class="route">GET /db-check</span>
+   <span class="route">GET /api/players</span>
+   <span class="route">POST /api/register</span>
+   <span class="route">POST /api/login</span>
+   <span class="route">POST /api/logout</span>
+   <span class="route">GET /api/me</span>
+   <span class="route">GET /api/profile</span>
+   <span class="route">GET /api/rankings</span>
+   <span class="route">GET /api/shop</span>
+   <span class="route">POST /api/purchase</span>
+   <span class="route">GET /api/guild</span>
+   <span class="route">GET /api/admin/*</span>
+  </div>
+  <div class="note">As rotas /health, /db-check e /api/players já foram mencionadas nos testes anteriores. As demais são planejadas e podem ainda não existir. Não alteramos o banco D1. Compras, VIP e permissões administrativas precisam de validação no servidor.</div>
+ </article>
+</section>
+</main>
+
+<footer>Ratópolis • Portal separado do jogo • Protótipo inicial</footer>
+<nav>
+ <a href="#inicio"><b>⌂</b>Início</a>
+ <a href="https://vt12gt.github.io/ratopolis/" target="_blank" rel="noopener"><b>🎮</b>Jogar</a>
+ <a href="#conta"><b>♙</b>Conta</a>
+ <a href="#servidor"><b>☁</b>Servidor</a>
+</nav>
+
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ let apiBase = '';
+
+ function getBase() { return apiBase.trim().replace(/\/+$/, ''); }
+
+ async function callApi(path, options = {}) {
+  if (!getBase()) throw new Error('Configure primeiro a URL base do Worker.');
+  const headers = Object.assign({'Accept':'application/json'}, options.headers || {});
+  if (options.body) headers['Content-Type'] = 'application/json';
+  const response = await fetch(getBase() + path, {
+   ...options, headers, mode:'cors', credentials:'include'
+  });
+  const raw = await response.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; }
+  catch { data = {mensagem:raw}; }
+  if (!response.ok || data.ok === false)
+   throw new Error(data.erro || data.error || data.mensagem || ('HTTP ' + response.status));
+  return data;
+ }
+
+ $('saveApi').onclick = () => {
+  apiBase = $('apiBase').value.trim();
+  if (!/^https:\/\/[^/]+/i.test(apiBase)) {
+   $('serverResult').textContent = 'Digite uma URL HTTPS completa do Worker, sem /api no final.';
+   return;
+  }
+  apiBase = getBase();
+  $('apiBase').value = apiBase;
+  $('serverResult').textContent = 'URL configurada nesta página. Agora teste a conexão.';
+ };
+
+ $('health').onclick = async () => {
+  $('serverResult').textContent = 'Testando /health…';
+  try {
+   const data = await callApi('/health');
+   $('serverResult').textContent = 'Servidor respondeu:\n' + JSON.stringify(data, null, 2);
+   $('status').textContent = '● Servidor acessível';
+  } catch (error) {
+   $('serverResult').textContent = 'Falha no teste: ' + error.message;
+   $('status').textContent = '● Servidor não confirmado';
+  }
+ };
+
+ $('players').onclick = async () => {
+  $('serverResult').textContent = 'Testando /api/players…';
+  try {
+   const data = await callApi('/api/players');
+   $('serverResult').textContent = 'Resposta dos jogadores:\n' + JSON.stringify(data, null, 2).slice(0, 2500);
+  } catch (error) {
+   $('serverResult').textContent = 'Falha em /api/players: ' + error.message;
+  }
+ };
+
+ $('registerForm').onsubmit = async event => {
+  event.preventDefault();
+  $('registerResult').textContent = 'Enviando cadastro à API…';
+  const body = {
+   nickname: $('nickname').value.trim(),
+   email: $('email').value.trim(),
+   password: $('password').value
+  };
+  try {
+   const data = await callApi('/api/register', {
+    method:'POST', body:JSON.stringify(body)
+   });
+   $('registerResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(data, null, 2);
+  } catch (error) {
+   $('registerResult').textContent = 'Cadastro não confirmado: ' + error.message +
+    '\nA rota e os campos precisam corresponder ao Worker.';
+  }
+ };
+
+ $('loginForm').onsubmit = async event => {
+  event.preventDefault();
+  $('loginResult').textContent = 'Enviando login à API…';
+  const identity = $('identity').value.trim();
+  const body = {
+   identity:identity, email:identity, nickname:identity,
+   password:$('loginPassword').value
+  };
+  try {
+   const data = await callApi('/api/login', {
+    method:'POST', body:JSON.stringify(body)
+   });
+   $('loginResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(data, null, 2);
+   $('profile').textContent = 'Login respondeu. Consulte a sessão para confirmar o perfil.';
+  } catch (error) {
+   $('loginResult').textContent = 'Login não confirmado: ' + error.message;
+  }
+ };
+
+ $('logout').onclick = async () => {
+  $('loginResult').textContent = 'Enviando saída à API…';
+  try {
+   const data = await callApi('/api/logout', {
+    method:'POST', body:JSON.stringify({})
+   });
+   $('loginResult').textContent = 'Resposta de saída:\n' + JSON.stringify(data, null, 2);
+   $('profile').textContent = 'A API respondeu à solicitação de saída.';
+  } catch (error) {
+   $('loginResult').textContent = 'Saída não confirmada: ' + error.message;
+  }
+ };
+
+ $('me').onclick = async () => {
+  $('profileResult').textContent = 'Consultando /api/me…';
+  try {
+   const data = await callApi('/api/me');
+   $('profile').textContent = JSON.stringify(data, null, 2);
+   $('profileResult').textContent = 'A API respondeu à consulta da sessão.';
+  } catch (error) {
+   $('profileResult').textContent = 'Sessão não confirmada: ' + error.message +
+    '\nA rota /api/me pode ainda não existir no Worker.';
+  }
+ };
+})();
+</script>
+</body>
+</html>
