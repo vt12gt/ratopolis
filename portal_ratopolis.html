@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -17,6 +16,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .brand small{display:block;color:#b8adc9;font-size:10px;letter-spacing:2px}
 .logo{font-size:28px}
 button,.btn{display:inline-block;padding:12px 15px;border:1px solid #44315f;border-radius:12px;background:#211633;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
 .gold{background:linear-gradient(135deg,#ffe18a,#e6a62a);color:#29182e;border:0}
 .purple{background:#7948d5}
 main{max-width:1000px;margin:auto;padding:16px 14px 90px}
@@ -78,7 +78,7 @@ nav{display:none}
    <a class="btn gold" href="https://vt12gt.github.io/ratopolis/" target="_blank" rel="noopener">▶ JOGAR AGORA</a>
    <a class="btn" href="#conta">♙ Minha conta</a>
   </div>
-  <p id="status">● Portal pronto. Servidor ainda não verificado.</p>
+  <p id="status" role="status">● Portal pronto. Servidor ainda não verificado.</p>
  </div>
  <div class="art"><span>🐭</span></div>
 </section>
@@ -104,7 +104,7 @@ nav{display:none}
     <div class="field"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="email" placeholder="voce@exemplo.com"></div>
     <div class="field"><label for="password">Senha (mínimo 8 caracteres)</label><input id="password" type="password" minlength="8" required autocomplete="new-password" placeholder="Crie sua senha"></div>
     <button class="purple" type="submit">Criar minha conta</button>
-    <div class="result" id="registerResult"></div>
+    <div class="result" id="registerResult" role="status"></div>
    </form>
   </article>
   <article class="card">
@@ -114,15 +114,15 @@ nav{display:none}
     <div class="field"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Sua senha"></div>
     <button class="gold" type="submit">Entrar</button>
     <button type="button" id="logout">Sair</button>
-    <div class="result" id="loginResult"></div>
+    <div class="result" id="loginResult" role="status"></div>
    </form>
   </article>
  </div>
  <article class="card" style="margin-top:12px">
   <h3>🪪 Minha sessão e perfil</h3>
   <p id="profile">Faça login e consulte sua sessão. O perfil depende da resposta real da API.</p>
-  <button id="me">Verificar minha sessão</button>
-  <div class="result" id="profileResult"></div>
+  <button id="me" type="button">Verificar minha sessão</button>
+  <div class="result" id="profileResult" role="status"></div>
  </article>
  <div class="note">Atenção: este é um protótipo. Não inventa contas nem confirma autenticação sem resposta válida do servidor. Antes de usar publicamente, precisamos confirmar as rotas, CORS e o funcionamento da sessão no Worker.</div>
 </section>
@@ -131,13 +131,13 @@ nav{display:none}
  <h2>Conexão com o servidor</h2>
  <p>Informe a URL HTTPS do Cloudflare Worker de desenvolvimento.</p>
  <article class="card">
-  <div class="field"><label for="apiBase">URL base da API</label><input id="apiBase" placeholder="https://nome-do-worker.workers.dev" inputmode="url"></div>
+  <div class="field"><label for="apiBase">URL base da API</label><input id="apiBase" type="url" value="https://ratopolis-api-dev-v30.juniorgmj69.workers.dev" placeholder="https://nome-do-worker.workers.dev" inputmode="url" autocomplete="url"></div>
   <div class="actions">
    <button class="gold" id="saveApi" type="button">Usar endereço</button>
    <button id="health" type="button">Testar /health</button>
    <button id="players" type="button">Testar jogadores</button>
   </div>
-  <div class="result" id="serverResult">Informe o endereço para testar.</div>
+  <div class="result" id="serverResult" role="status">URL padrão preenchida. Teste /health para verificar a conexão.</div>
  </article>
  <article class="card" style="margin-top:12px">
   <h3>Entradas previstas para a API</h3>
@@ -171,123 +171,336 @@ nav{display:none}
 
 <script>
 (() => {
- const $ = id => document.getElementById(id);
- let apiBase = '';
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const DEFAULT_API_BASE = 'https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+  const TOKEN_KEY = 'ratopolis_session_token';
+  const API_KEY = 'ratopolis_api_base';
+  let apiBase = DEFAULT_API_BASE;
 
- function getBase() { return apiBase.trim().replace(/\/+$/, ''); }
-
- async function callApi(path, options = {}) {
-  if (!getBase()) throw new Error('Configure primeiro a URL base do Worker.');
-  const headers = Object.assign({'Accept':'application/json'}, options.headers || {});
-  if (options.body) headers['Content-Type'] = 'application/json';
-  const response = await fetch(getBase() + path, {
-   ...options, headers, mode:'cors', credentials:'include'
-  });
-  const raw = await response.text();
-  let data = {};
-  try { data = raw ? JSON.parse(raw) : {}; }
-  catch { data = {mensagem:raw}; }
-  if (!response.ok || data.ok === false)
-   throw new Error(data.erro || data.error || data.mensagem || ('HTTP ' + response.status));
-  return data;
- }
-
- $('saveApi').onclick = () => {
-  apiBase = $('apiBase').value.trim();
-  if (!/^https:\/\/[^/]+/i.test(apiBase)) {
-   $('serverResult').textContent = 'Digite uma URL HTTPS completa do Worker, sem /api no final.';
-   return;
+  function normalizeBase(value) {
+    let u;
+    try { u = new URL(value.trim()); }
+    catch (_) { throw new Error('URL inválida. Cole o endereço completo do Worker.'); }
+    if (u.protocol !== 'https:' || u.username || u.password || u.search || u.hash ||
+        (u.pathname !== '/' && u.pathname !== '')) {
+      throw new Error('Use somente a URL HTTPS base do Worker, sem caminhos.');
+    }
+    return u.origin;
   }
-  apiBase = getBase();
+  try {
+    const saved = localStorage.getItem(API_KEY);
+    if (saved) apiBase = normalizeBase(saved);
+  } catch (_) {}
   $('apiBase').value = apiBase;
-  $('serverResult').textContent = 'URL configurada nesta página. Agora teste a conexão.';
- };
 
- $('health').onclick = async () => {
-  $('serverResult').textContent = 'Testando /health…';
-  try {
-   const data = await callApi('/health');
-   $('serverResult').textContent = 'Servidor respondeu:\n' + JSON.stringify(data, null, 2);
-   $('status').textContent = '● Servidor acessível';
-  } catch (error) {
-   $('serverResult').textContent = 'Falha no teste: ' + error.message;
-   $('status').textContent = '● Servidor não confirmado';
+  function getToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (_) { return ''; }
   }
- };
-
- $('players').onclick = async () => {
-  $('serverResult').textContent = 'Testando /api/players…';
-  try {
-   const data = await callApi('/api/players');
-   $('serverResult').textContent = 'Resposta dos jogadores:\n' + JSON.stringify(data, null, 2).slice(0, 2500);
-  } catch (error) {
-   $('serverResult').textContent = 'Falha em /api/players: ' + error.message;
+  function saveToken(data) {
+    const candidates = [data?.token, data?.sessionToken, data?.accessToken,
+      data?.access_token, data?.session?.token, data?.data?.token,
+      data?.data?.sessionToken];
+    const token = candidates.find(v => typeof v === 'string' && v.trim());
+    if (!token) return false;
+    try { localStorage.setItem(TOKEN_KEY, token); } catch (_) {}
+    return true;
   }
- };
+  function clearToken() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
+  }
+  function errorMessage(error) {
+    const m = error?.message || String(error);
+    if (m === 'Failed to fetch' || /networkerror|load failed/i.test(m))
+      return 'Falha de rede ou CORS. Confirme se o Worker permite a origem https://vt12gt.github.io.';
+    return m;
+  }
+  async function callApi(path, options = {}) {
+    if (!apiBase) throw new Error('Configure primeiro a URL base do Worker.');
+    const headers = { Accept: 'application/json', ...(options.headers || {}) };
+    if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+    const token = getToken();
+    if (token && !headers.Authorization) headers.Authorization = 'Bearer ' + token;
+    let response;
+    try {
+      response = await fetch(apiBase.replace(/\/+$/, '') + path, {
+        ...options, headers, mode: 'cors', credentials: 'include'
+      });
+    } catch (e) { throw new Error(errorMessage(e)); }
+    const raw = await response.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch (_) { data = { mensagem: raw }; }
+    if (!response.ok || data.ok === false || data.success === false)
+      throw new Error(data.erro || data.error || data.mensagem || data.message || ('HTTP ' + response.status));
+    return data;
+  }
 
- $('registerForm').onsubmit = async event => {
-  event.preventDefault();
-  $('registerResult').textContent = 'Enviando cadastro à API…';
-  const body = {
-   nickname: $('nickname').value.trim(),
-   email: $('email').value.trim(),
-   password: $('password').value
+  $('saveApi').onclick = () => {
+    try {
+      apiBase = normalizeBase($('apiBase').value);
+      $('apiBase').value = apiBase;
+      try { localStorage.setItem(API_KEY, apiBase); } catch (_) {}
+      $('serverResult').textContent = 'URL salva neste navegador. Teste /health.';
+    } catch (e) { $('serverResult').textContent = errorMessage(e); }
   };
-  try {
-   const data = await callApi('/api/register', {
-    method:'POST', body:JSON.stringify(body)
-   });
-   $('registerResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(data, null, 2);
-  } catch (error) {
-   $('registerResult').textContent = 'Cadastro não confirmado: ' + error.message +
-    '\nA rota e os campos precisam corresponder ao Worker.';
-  }
- };
-
- $('loginForm').onsubmit = async event => {
-  event.preventDefault();
-  $('loginResult').textContent = 'Enviando login à API…';
-  const identity = $('identity').value.trim();
-  const body = {
-   identity:identity, email:identity, nickname:identity,
-   password:$('loginPassword').value
+  $('health').onclick = async () => {
+    $('serverResult').textContent = 'Testando /health…';
+    try {
+      const d = await callApi('/health');
+      $('serverResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(d, null, 2);
+      $('status').textContent = '● Servidor acessível';
+    } catch (e) {
+      $('serverResult').textContent = 'Falha no teste: ' + errorMessage(e);
+      $('status').textContent = '● Servidor não confirmado';
+    }
   };
-  try {
-   const data = await callApi('/api/login', {
-    method:'POST', body:JSON.stringify(body)
-   });
-   $('loginResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(data, null, 2);
-   $('profile').textContent = 'Login respondeu. Consulte a sessão para confirmar o perfil.';
-  } catch (error) {
-   $('loginResult').textContent = 'Login não confirmado: ' + error.message;
-  }
- };
+  $('players').onclick = async () => {
+    $('serverResult').textContent = 'Consultando jogadores…';
+    try {
+      const d = await callApi('/api/players');
+      $('serverResult').textContent = JSON.stringify(d, null, 2).slice(0, 2500);
+    } catch (e) { $('serverResult').textContent = 'Falha em /api/players: ' + errorMessage(e); }
+  };
 
- $('logout').onclick = async () => {
-  $('loginResult').textContent = 'Enviando saída à API…';
-  try {
-   const data = await callApi('/api/logout', {
-    method:'POST', body:JSON.stringify({})
-   });
-   $('loginResult').textContent = 'Resposta de saída:\n' + JSON.stringify(data, null, 2);
-   $('profile').textContent = 'A API respondeu à solicitação de saída.';
-  } catch (error) {
-   $('loginResult').textContent = 'Saída não confirmada: ' + error.message;
-  }
- };
+  $('registerForm').onsubmit = async event => {
+    event.preventDefault();
+    const button = event.submitter;
+    if (button) button.disabled = true;
+    $('registerResult').textContent = 'Enviando cadastro…';
+    const body = {
+      nickname: $('nickname').value.trim(),
+      email: $('email').value.trim(),
+      password: $('password').value
+    };
+    try {
+      const d = await callApi('/api/register', { method: 'POST', body: JSON.stringify(body) });
+      const hasToken = saveToken(d);
+      $('registerResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(d, null, 2) +
+        (hasToken ? '\nToken de sessão salvo neste navegador.' : '\nCadastro respondido; faça login para obter uma sessão.');
+      if (hasToken) $('profile').textContent = 'Cadastro concluído. Toque em “Verificar minha sessão” para confirmar o perfil.';
+    } catch (e) {
+      $('registerResult').textContent = 'Cadastro não confirmado: ' + errorMessage(e) +
+        '\nA rota, os campos e o CORS precisam corresponder ao Worker.';
+    } finally { if (button) button.disabled = false; }
+  };
 
- $('me').onclick = async () => {
-  $('profileResult').textContent = 'Consultando /api/me…';
-  try {
-   const data = await callApi('/api/me');
-   $('profile').textContent = JSON.stringify(data, null, 2);
-   $('profileResult').textContent = 'A API respondeu à consulta da sessão.';
-  } catch (error) {
-   $('profileResult').textContent = 'Sessão não confirmada: ' + error.message +
-    '\nA rota /api/me pode ainda não existir no Worker.';
-  }
- };
+  $('loginForm').onsubmit = async event => {
+    event.preventDefault();
+    const button = event.submitter;
+    if (button) button.disabled = true;
+    $('loginResult').textContent = 'Enviando login…';
+    const identity = $('identity').value.trim();
+    // O Worker atual consulta body.identifier; os aliases mantêm compatibilidade com versões do portal.
+    clearToken();
+    const body = {
+      identifier: identity,
+      identity,
+      email: identity,
+      nickname: identity,
+      password: $('loginPassword').value
+    };
+    try {
+      const d = await callApi('/api/login', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      const hasToken = saveToken(d);
+      $('loginResult').textContent = 'Resposta do servidor:\n' + JSON.stringify(d, null, 2) +
+        (hasToken ? '\nToken de sessão salvo. Agora verifique sua sessão.' :
+        '\nA API respondeu, mas não retornou um token reconhecido; a sessão pode não funcionar.');
+      $('profile').textContent = hasToken ?
+        'Login respondido. Consulte a sessão para confirmar o perfil.' :
+        'Login respondeu, mas não foi possível confirmar um token de sessão.';
+    } catch (e) {
+      $('loginResult').textContent = 'Login não confirmado: ' + errorMessage(e);
+    } finally { if (button) button.disabled = false; }
+  };
+
+  $('logout').onclick = async () => {
+    $('loginResult').textContent = 'Enviando saída à API…';
+    try {
+      const d = await callApi('/api/logout', { method: 'POST', body: JSON.stringify({}) });
+      clearToken();
+      $('loginResult').textContent = 'Resposta de saída:\n' + JSON.stringify(d, null, 2);
+      $('profile').textContent = 'Você saiu da conta.';
+      $('profileResult').textContent = '';
+    } catch (e) { $('loginResult').textContent = 'Saída não confirmada: ' + errorMessage(e); }
+  };
+
+  $('me').onclick = async () => {
+    $('profileResult').textContent = 'Consultando /api/me…';
+    if (!getToken()) {
+      $('profileResult').textContent = 'Nenhum token de sessão salvo. Entre na conta primeiro.';
+      return;
+    }
+    try {
+      const d = await callApi('/api/me');
+      $('profile').textContent = JSON.stringify(d, null, 2);
+      $('profileResult').textContent = 'A API confirmou a consulta da sessão.';
+    } catch (e) {
+      $('profileResult').textContent = 'Sessão não confirmada: ' + errorMessage(e) +
+        '\nO token pode estar inválido/expirado ou a API não o reconheceu.';
+    }
+  };
 })();
+ 
 </script>
-</body>
-</html>
+ 
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  const DEFAULT_API_BASE =
+    'https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+
+  const TOKEN_KEY = 'ratopolis_session_token';
+  const API_KEY = 'ratopolis_api_base';
+
+  let apiBase = DEFAULT_API_BASE;
+
+  try {
+    const saved = localStorage.getItem(API_KEY);
+    if (saved) apiBase = normalizeBase(saved);
+  } catch (_) {}
+
+  $('apiBase').value = apiBase;
+
+  function normalizeBase(value) {
+    let url;
+
+    try {
+      url = new URL(value.trim());
+    } catch (_) {
+      throw new Error('Digite a URL completa do Worker.');
+    }
+
+    if (
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      (url.pathname !== '/' && url.pathname !== '')
+    ) {
+      throw new Error(
+        'Use somente a URL HTTPS base do Worker, sem caminhos.'
+      );
+    }
+
+    return url.origin;
+  }
+
+  function getToken() {
+    try {
+      return localStorage.getItem(TOKEN_KEY) || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function saveToken(data) {
+    // Aceita os formatos comuns de resposta de autenticação.
+    const candidates = [
+      data?.token,
+      data?.sessionToken,
+      data?.accessToken,
+      data?.access_token,
+      data?.session?.token,
+      data?.data?.token,
+      data?.data?.sessionToken
+    ];
+
+    const token = candidates.find(
+      value => typeof value === 'string' && value.trim()
+    );
+
+    try {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      }
+    } catch (_) {}
+
+    return Boolean(token);
+  }
+
+  function clearToken() {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch (_) {}
+  }
+
+  function errorMessage(error) {
+    const message = error?.message || String(error);
+
+    if (
+      message === 'Failed to fetch' ||
+      /networkerror|load failed/i.test(message)
+    ) {
+      return (
+        'Falha de rede ou CORS. Verifique se o Worker permite ' +
+        'a origem https://vt12gt.github.io.'
+      );
+    }
+
+    return message;
+  }
+
+  async function callApi(path, options = {}) {
+    const headers = {
+      Accept: 'application/json',
+      ...(options.headers || {})
+    };
+
+    if (options.body !== undefined) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    // Envia o token, caso o login tenha fornecido um.
+    const token = getToken();
+
+    if (token) {
+      headers.Authorization = 'Bearer ' + token;
+    }
+
+    let response;
+
+    try {
+      response = await fetch(
+        apiBase.replace(/\/+$/, '') + path,
+        {
+          ...options,
+          headers,
+          mode: 'cors',
+          credentials: 'include'
+        }
+      );
+    } catch (error) {
+      throw new Error(errorMessage(error));
+    }
+
+    const raw = await response.text();
+    let data = {};
+
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      data = { mensagem: raw };
+    }
+
+    if (!response.ok || data.ok === false || data.success === false) {
+      throw new Error(
+        data.erro ||
+        data.error ||
+        data.mensagem ||
+        data.message ||
+        ('HTTP ' + response.status)
+      );
+    }
+
+    return data;
+  }
+
+  $('saveApi').onclick = () => {
+ 
