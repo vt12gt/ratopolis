@@ -41,7 +41,7 @@
 <style id="ratopolis-v65-3-css">#ratopolisServerScenarios .actions,#ratopolisServerScenarios .item .actions,#ratopolisServerScenarios td .actions{flex-wrap:wrap}#ratopolisServerScenarios .field textarea,#modalRoot .field textarea{min-height:90px}body.srv-busy #ratopolisServerScenarios .actions button,body.srv-busy #ratopolisServerApprovals .actions button{opacity:.6}#srvSession{flex-wrap:wrap}#srvScUpdated{align-self:center}@media(max-width:650px){.item{flex-wrap:wrap}.item .actions{flex-wrap:wrap}.item>div{min-width:0}#ratopolisServerScenarios .actions button,#ratopolisServerApprovals .actions button{min-height:44px}#ratopolisServerScenarios .filters{grid-template-columns:1fr!important}}</style>
 </head><body><section id="ratopolis-v27-check" style="margin:14px;padding:16px;border:1px solid #6e5ce6;border-radius:14px;background:#121a2e;color:#edf2ff;position:relative;z-index:20">
  <div style="font-weight:900;font-size:18px;color:#ffc857">RATÓPOLIS ADMIN v64 · DIAGNÓSTICO DE AUTENTICAÇÃO</div>
- <p style="margin:6px 0 12px;color:#b8c5df">Verificação somente leitura. Esta área consulta a sessão no Worker administrativo; não altera o banco nem concede permissões.</p><p style="margin:0 0 12px;color:#9ba9c4;font-size:12px;overflow-wrap:anywhere">Worker configurado: <b>https://ratopolis-admin-test.juniorgmj69.workers.dev</b><br>Endpoint consultado: <code>/api/admin/me</code></p>
+ <p style="margin:6px 0 12px;color:#b8c5df">Verificação somente leitura. Esta área consulta a sessão no Worker administrativo; não altera o banco nem concede permissões.</p><p style="margin:0 0 12px;color:#9ba9c4;font-size:12px;overflow-wrap:anywhere">Worker configurado: <b>https://ratopolis-api-dev-v30.juniorgmj69.workers.dev</b><br>Endpoint consultado: <code>/api/admin/me</code></p>
  <div id="r27-status" role="status" style="padding:10px;border-radius:8px;background:#0b1020;margin-bottom:10px">Aguardando verificação…</div>
  <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="r27-check" style="background:#ffc857;color:#251b00;border:0;font-weight:800">Verificar sessão e permissões</button><button type="button" id="r27-clear">Limpar resultado</button></div>
  <pre id="r27-detail" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;color:#b8c5df;font-size:12px"></pre>
@@ -363,7 +363,7 @@ auditLog('Painel v65.3 aberto');render();
 
 <script id="ratopolis-v58-auth-diagnostic">
 (()=>{
- const API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
  const TOKEN_KEY='ratopolis_session_token';
  const status=document.getElementById('r27-status');
  const detail=document.getElementById('r27-detail');
@@ -474,7 +474,7 @@ auditLog('Painel v65.3 aberto');render();
 
 <script id="ratopolis-v62-real-players">
 (()=>{
- const API='https://ratopolis-admin-test.juniorgmj69.workers.dev',TOKEN_KEY='ratopolis_session_token';
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev',TOKEN_KEY='ratopolis_session_token';
  const btn=document.getElementById('v59-load-players'),status=document.getElementById('v59-real-status'),body=document.getElementById('v59-real-players-body');
  const search=document.getElementById('v62-player-search'),roleFilter=document.getElementById('v62-player-role'),statusFilter=document.getElementById('v62-player-status-filter'),clear=document.getElementById('v62-player-clear'),count=document.getElementById('v62-player-count');
  const details=document.getElementById('v62-player-details'),detailFields=document.getElementById('v62-profile-fields'),detailSubtitle=document.getElementById('v62-profile-subtitle'),closeDetails=document.getElementById('v62-profile-close');
@@ -517,15 +517,15 @@ auditLog('Painel v65.3 aberto');render();
   /* Ratópolis Admin v65.3 — integração real de cenários.
      Endpoints usados (todos já presentes na v65.2; método e corpo conferidos no código existente):
        GET  /api/admin/me                       -> identidade da sessão (formato exato não confirmado)
-       GET  /api/admin/scenarios                -> { cenarios: [...] }
-       POST /api/admin/scenarios                -> body { name, description, layout:{schema,schemaVersion,layout}, notes } -> { cenario:{id,...} }
-       GET  /api/admin/scenarios/:id            -> { cenario, versoes:[{version_number,created_at,layout:{layout:[...]}}] }
-       POST /api/admin/scenarios/:id/submit     -> body {}
-       GET  /api/admin/scenario-reviews         -> { fila: [...] }
-       POST /api/admin/scenarios/:id/review     -> body { decision:'approved'|'rejected', reason }
-       POST /api/admin/scenarios/:id/publish    -> body {}
+       GET  /api/editor/scenarios               -> { cenarios: [...] }
+       POST /api/editor/scenarios               -> body { name, description, layout:{schema,schemaVersion,layout}, notes } -> { cenario:{id,...} }
+       GET  /api/editor/scenarios/:id            -> { cenario, versao:{version_number,created_at,layout:{layout:[...]}} }
+       POST /api/editor/scenarios/:id/submit     -> body {}
+       GET  /api/admin/scenarios/review          -> { cenarios: [...] }
+       POST /api/admin/scenarios/review          -> body { scenario_id, decision:'approve'|'reject', reason }
+       POST /api/admin/scenarios/publish         -> body { scenario_id }
      NÃO existe endpoint confirmado para editar/gravar nova versão: EDIT_ENDPOINT fica null até o backend confirmar. */
-  const API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
+  const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
   const TOKEN_KEY='ratopolis_session_token';
   const LINKS_KEY='ratopolis_srv_links_v1';
   const EDIT_ENDPOINT=null;
@@ -632,7 +632,7 @@ auditLog('Painel v65.3 aberto');render();
     const quiet=opts&&opts.quiet;
     if(!quiet)setStatus('srvScStatus','Consultando o Worker administrativo…');
     try{
-      const d=await api('/api/admin/scenarios');
+      const d=await api('/api/editor/scenarios');
       if(!Array.isArray(d.cenarios))throw new ApiError('invalid','Resposta sem a lista "cenarios". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
       state.scenarios=d.cenarios.filter(x=>x&&typeof x==='object');state.listAt=Date.now();
       renderScenarios();refreshLocalSelect();
@@ -667,9 +667,9 @@ auditLog('Painel v65.3 aberto');render();
     if(!quiet){setStatus('srvApStatus','Consultando a fila real de aprovação…');const b=$('srvApRows');if(b)b.innerHTML='<div class="item muted">Carregando fila…</div>'}
     try{
       if(!state.me&&token())await loadMe();
-      const d=await api('/api/admin/scenario-reviews');
-      if(!Array.isArray(d.fila))throw new ApiError('invalid','Resposta sem a lista "fila". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
-      state.queue=d.fila.filter(x=>x&&typeof x==='object');renderQueue();
+      const d=await api('/api/admin/scenarios/review');
+      if(!Array.isArray(d.cenarios))throw new ApiError('invalid','Resposta sem a lista "cenarios". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
+      state.queue=d.cenarios.filter(x=>x&&typeof x==='object'&&statusKey(x.status)==='submitted');renderQueue();
       if(!quiet)setStatus('srvApStatus','Consulta concluída. '+state.queue.length+' cenário(s) aguardando revisão no servidor.','ok');
       return true;
     }catch(e){
@@ -681,9 +681,10 @@ auditLog('Painel v65.3 aberto');render();
 
   /* ---------- detalhe ---------- */
   async function fetchDetail(id){
-    const d=await api('/api/admin/scenarios/'+encodeURIComponent(id));
+    const d=await api('/api/editor/scenarios/'+encodeURIComponent(id));
     if(!d.cenario||typeof d.cenario!=='object')throw new ApiError('invalid','Resposta de detalhe sem o objeto "cenario". Nada foi confirmado.');
-    return {cenario:d.cenario,versoes:Array.isArray(d.versoes)?d.versoes:[]};
+    const versoes=Array.isArray(d.versoes)?d.versoes:(d.versao&&typeof d.versao==='object'?[d.versao]:[]);
+    return {cenario:d.cenario,versoes};
   }
   function latestLayout(versoes){
     let best=null;
@@ -744,13 +745,13 @@ auditLog('Painel v65.3 aberto');render();
       if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')))return;
       try{
         setStatus('srvScStatus','Criando rascunho no servidor…');
-        const created=await api('/api/admin/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
+        const created=await api('/api/editor/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
         const sid=created.cenario&&created.cenario.id;
         if(!sid)throw new ApiError('invalid','O servidor não retornou o ID do cenário criado; não é possível confirmar o envio.');
         writeLink(x.id,String(sid));
         if(submitAfter){
           try{
-            await api('/api/admin/scenarios/'+encodeURIComponent(sid)+'/submit','POST',{});
+            await api('/api/editor/scenarios/'+encodeURIComponent(sid)+'/submit','POST',{});
             reportOutcome('srvScStatus','Cenário '+sid+' enviado e submetido',await confirmStatus(sid,['submitted','in_review']));
           }catch(se){setStatus('srvScStatus','Rascunho salvo no servidor (ID '+sid+'), mas o envio para revisão falhou: '+errText(se),'error')}
         }else{
@@ -764,7 +765,7 @@ auditLog('Painel v65.3 aberto');render();
     await guarded('submit:'+id,async()=>{
       if(!confirm('Enviar este cenário do servidor para revisão?'))return;
       try{
-        await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/submit','POST',{});
+        await api('/api/editor/scenarios/'+encodeURIComponent(id)+'/submit','POST',{});
         reportOutcome('srvScStatus','Cenário '+id+' submetido',await confirmStatus(id,['submitted','in_review']));
       }catch(e){setStatus('srvScStatus','Não foi possível enviar: '+errText(e),'error')}
       await refreshAll();
@@ -777,7 +778,7 @@ auditLog('Painel v65.3 aberto');render();
       if(!pre.ok){setStatus('srvScStatus',pre.status?'Publicação bloqueada: o cenário está “'+statusLabel(pre.status)+'”; só cenários aprovados podem ser publicados.':'Publicação bloqueada: não foi possível confirmar o status atual ('+(pre.error||'sem detalhe')+').','error');await refreshAll();return}
       if(!confirm('Publicar este cenário aprovado no estado do servidor? Isso não garante que o jogo publicado já carregue esse mapa.'))return;
       try{
-        await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/publish','POST',{});
+        await api('/api/admin/scenarios/publish','POST',{scenario_id:id});
         reportOutcome('srvScStatus','Cenário '+id+' publicado',await confirmStatus(id,['published']));
       }catch(e){setStatus('srvScStatus','Não foi possível publicar: '+errText(e),'error')}
       await refreshAll();
@@ -799,7 +800,7 @@ auditLog('Painel v65.3 aberto');render();
         if(!approve&&!reason){errBox.textContent='Informe o motivo da rejeição para orientar o autor.';return}
         if(btn.disabled)return;btn.disabled=true;errBox.textContent='';
         try{
-          await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/review','POST',{decision,reason});
+          await api('/api/admin/scenarios/review','POST',{scenario_id:id,decision:approve?'approve':'reject',reason});
           if(typeof closeModal==='function')closeModal();
           reportOutcome('srvApStatus','Decisão “'+(approve?'aprovado':'rejeitado')+'” registrada',await confirmStatus(id,[approve?'approved':'rejected']));
           await refreshAll();
