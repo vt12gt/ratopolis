@@ -371,6 +371,107 @@ export default {
       }
 
 
+      // Gestao de gifts resgataveis e catalogo real de itens utilizaveis.
+      if (path === "/api/admin/items/catalog" && method === "GET") {
+        etapaAtual = "catalogo administrativo de itens";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!Number.isFinite(ROLE_RANK[actor.role]) || ROLE_RANK[actor.role] < ROLE_RANK.adm) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
+        const result = await env.DB.prepare("SELECT r.code,r.name,r.category,r.item_type,r.source,r.description,r.active,c.price_coins,c.active AS store_active FROM ratopolis_item_registry r LEFT JOIN ratopolis_store_catalog c ON c.code=r.code ORDER BY r.category,r.name").all();
+        return reply({ ok: true, itens: result.results.map(i => ({ ...i, active: !!i.active, store_active: i.store_active == null ? null : !!i.store_active, price_coins: i.price_coins == null ? null : Number(i.price_coins) })) });
+      }
+
+      if (path === "/api/admin/gifts" && (method === "GET" || method === "POST")) {
+        etapaAtual = "gestao administrativa de gifts";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!Number.isFinite(ROLE_RANK[actor.role]) || ROLE_RANK[actor.role] < ROLE_RANK.adm) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
+        if (method === "GET") {
+          const result = await env.DB.prepare("SELECT id,code,title,description,reward_coins,reward_xp,reward_item,reward_quantity,status,max_redemptions,redemption_count,expires_at,created_by,created_by_nickname,created_at,updated_at FROM ratopolis_gifts ORDER BY created_at DESC LIMIT 500").all();
+          return reply({ ok: true, gifts: result.results.map(g => ({ ...g, reward_coins:Number(g.reward_coins), reward_xp:Number(g.reward_xp), reward_quantity:Number(g.reward_quantity), redemption_count:Number(g.redemption_count), max_redemptions:g.max_redemptions==null?null:Number(g.max_redemptions) })) });
+        }
+        let body;
+        try { body = await request.json(); } catch { return reply({ ok:false, erro:"JSON invalido." },400); }
+        const title = typeof body.title === "string" ? body.title.trim().slice(0,100) : "";
+        const code = typeof body.code === "string" ? body.code.trim().toUpperCase().replace(/\\s+/g,"-") : "";
+        const description = typeof body.description === "string" ? body.description.trim().slice(0,1000) : "";
+        const coins = body.reward_coins === undefined ? 0 : body.reward_coins;
+        const xp = body.reward_xp === undefined ? 0 : body.reward_xp;
+        const item = typeof body.reward_item === "string" ? body.reward_item.trim() : "";
+        const quantity = body.reward_quantity === undefined ? 1 : body.reward_quantity;
+        const maxUses = body.max_redemptions === "" || body.max_redemptions == null ? null : Number(body.max_redemptions);
+        const expires = typeof body.expires_at === "string" && body.expires_at.trim() ? body.expires_at.trim() : null;
+        const status = ["Ativo","Pausado","Encerrado"].includes(body.status) ? body.status : "Ativo";
+        if (!title) return reply({ok:false,erro:"O nome do gift e obrigatorio."},400);
+        if (!/^[A-Z0-9][A-Z0-9_-]{2,31}$/.test(code)) return reply({ok:false,erro:"O codigo deve ter de 3 a 32 caracteres: letras, numeros, hifen ou underline."},400);
+        if (!Number.isSafeInteger(coins) || coins < 0 || coins > 1000000 || !Number.isSafeInteger(xp) || xp < 0 || xp > 1000000) return reply({ok:false,erro:"Moedas ou XP invalidos."},400);
+        if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100) return reply({ok:false,erro:"Quantidade do item deve ser de 1 a 100."},400);
+        if (maxUses !== null && (!Number.isSafeInteger(maxUses) || maxUses < 1 || maxUses > 10000000)) return reply({ok:false,erro:"Limite de resgates invalido."},400);
+        if (expires && Number.isNaN(Date.parse(expires))) return reply({ok:false,erro:"Data de expiracao invalida."},400);
+        if (!coins && !xp && !item) return reply({ok:false,erro:"Configure moedas, XP ou um item para o gift."},400);
+        if (item) {
+          const itemRow = await env.DB.prepare("SELECT code FROM ratopolis_item_registry WHERE code=? AND active=1").bind(item).first();
+          if (!itemRow) return reply({ok:false,erro:"O item escolhido nao existe ou esta inativo no catalogo."},400);
+        }
+        const now = new Date().toISOString();
+        const id = typeof body.id === "string" && body.id.trim() ? body.id.trim() : crypto.randomUUID();
+        try {
+          if (body.id) {
+            const old = await env.DB.prepare("SELECT id,redemption_count FROM ratopolis_gifts WHERE id=?").bind(id).first();
+            if (!old) return reply({ok:false,erro:"Gift nao encontrado."},404);
+            await env.DB.prepare("UPDATE ratopolis_gifts SET title=?,description=?,reward_coins=?,reward_xp=?,reward_item=?,reward_quantity=?,status=?,max_redemptions=?,expires_at=?,updated_at=? WHERE id=?")
+              .bind(title,description,coins,xp,item,quantity,status,maxUses,expires,now,id).run();
+          } else {
+            await env.DB.prepare("INSERT INTO ratopolis_gifts (id,code,title,description,reward_coins,reward_xp,reward_item,reward_quantity,status,max_redemptions,redemption_count,expires_at,created_by,created_by_nickname,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?)")
+              .bind(id,code,title,description,coins,xp,item,quantity,status,maxUses,expires,actor.id,actor.nickname||"",now,now).run();
+          }
+          await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,?,?,?,?,?)")
+            .bind(crypto.randomUUID(),actor.id,body.id?"gift_updated":"gift_created",null,JSON.stringify({gift_id:id,code,title,status,reward_coins:coins,reward_xp:xp,reward_item:item||null}),now).run();
+          return reply({ok:true,id,code,mensagem:body.id?"Gift atualizado.":"Gift criado."},body.id?200:201);
+        } catch (err) {
+          if (String(err?.message||err).toLowerCase().includes("unique")) return reply({ok:false,erro:"Esse codigo de gift ja existe. Escolha outro codigo."},409);
+          throw err;
+        }
+      }
+
+      if (path === "/api/gifts/redeem" && method === "POST") {
+        etapaAtual = "resgate de gift";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ok:false,erro:"Entre na sua conta para resgatar um gift."},401);
+        let body;
+        try { body = await request.json(); } catch { return reply({ok:false,erro:"JSON invalido."},400); }
+        const code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+        if (!/^[A-Z0-9][A-Z0-9_-]{2,31}$/.test(code)) return reply({ok:false,erro:"Digite um codigo de gift valido."},400);
+        const gift = await env.DB.prepare("SELECT * FROM ratopolis_gifts WHERE code=? COLLATE NOCASE").bind(code).first();
+        if (!gift) return reply({ok:false,erro:"Gift nao encontrado."},404);
+        if (gift.status !== "Ativo") return reply({ok:false,erro:"Este gift nao esta ativo."},409);
+        const now = new Date().toISOString();
+        if (gift.expires_at && Date.parse(gift.expires_at) < Date.now()) return reply({ok:false,erro:"Este gift expirou."},410);
+        if (gift.max_redemptions != null && Number(gift.redemption_count) >= Number(gift.max_redemptions)) return reply({ok:false,erro:"Este gift ja atingiu o limite de resgates."},409);
+        const profile = await env.DB.prepare("SELECT user_id FROM ratopolis_profiles WHERE user_id=? LIMIT 1").bind(actor.id).first();
+        if (!profile) return reply({ok:false,erro:"Perfil de jogador nao encontrado."},404);
+        const already = await env.DB.prepare("SELECT id FROM ratopolis_gift_redemptions WHERE gift_id=? AND user_id=?").bind(gift.id,actor.id).first();
+        if (already) return reply({ok:false,erro:"Sua conta ja resgatou este gift."},409);
+        const coins = Number(gift.reward_coins)||0, xp = Number(gift.reward_xp)||0, item = gift.reward_item||"", qty = item ? Number(gift.reward_quantity)||1 : 0;
+        if (item && !(await env.DB.prepare("SELECT code FROM ratopolis_item_registry WHERE code=? AND active=1").bind(item).first())) return reply({ok:false,erro:"O item deste gift nao esta disponivel."},409);
+        const redemptionId = crypto.randomUUID();
+        const statements = [
+          env.DB.prepare("INSERT INTO ratopolis_gift_redemptions (id,gift_id,user_id,code,coins_awarded,xp_awarded,item_code,item_quantity,created_at) VALUES (?,?,?,?,?,?,?,?,?)").bind(redemptionId,gift.id,actor.id,code,coins,xp,item,qty,now),
+          env.DB.prepare("UPDATE ratopolis_gifts SET redemption_count=redemption_count+1,updated_at=? WHERE id=?").bind(now,gift.id),
+          env.DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?,coins=coins+?,level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=?").bind(xp,coins,xp,actor.id),
+          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,?,?,?,?,?)").bind(crypto.randomUUID(),actor.id,"gift_redeemed",actor.id,JSON.stringify({gift_id:gift.id,code,coins,xp,item:item||null,quantity:qty}),now)
+        ];
+        if (item) statements.push(env.DB.prepare("INSERT INTO ratopolis_store_inventory (user_id,item_code,quantity,equipped,acquired_at,updated_at) VALUES (?,?,?,0,?,?) ON CONFLICT(user_id,item_code) DO UPDATE SET quantity=ratopolis_store_inventory.quantity+excluded.quantity,updated_at=excluded.updated_at").bind(actor.id,item,qty,now,now));
+        try { await env.DB.batch(statements); }
+        catch (err) {
+          const duplicate = await env.DB.prepare("SELECT id FROM ratopolis_gift_redemptions WHERE gift_id=? AND user_id=?").bind(gift.id,actor.id).first();
+          if (duplicate) return reply({ok:false,erro:"Sua conta ja resgatou este gift."},409);
+          throw err;
+        }
+        const updated = await env.DB.prepare("SELECT level,xp,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
+        return reply({ok:true,mensagem:"Gift resgatado com sucesso!",gift:{title:gift.title,code,coins,xp,item:item||null,quantity:qty},perfil:updated});
+      }
+
       // Eventos publicados e calendario de recompensas diarias.
       if (path === "/api/events" && method === "GET") {
         etapaAtual = "eventos publicados";
