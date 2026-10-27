@@ -3270,7 +3270,6 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  function drawRemoteAvatars(){
   if(!avatarLayer)return;
-  avatarLayer.classList.remove('active');avatarLayer.replaceChildren();return;
   avatarLayer.classList.toggle('active',!!activeRoomCode&&localRoomMatchStarted);
   const scene=$('scene');if(!scene)return;
   const currentIds=new Set();
