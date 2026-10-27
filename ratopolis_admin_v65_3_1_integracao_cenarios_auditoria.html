@@ -41,11 +41,11 @@
 <style id="ratopolis-v65-3-css">#ratopolisServerScenarios .actions,#ratopolisServerScenarios .item .actions,#ratopolisServerScenarios td .actions{flex-wrap:wrap}#ratopolisServerScenarios .field textarea,#modalRoot .field textarea{min-height:90px}body.srv-busy #ratopolisServerScenarios .actions button,body.srv-busy #ratopolisServerApprovals .actions button{opacity:.6}#srvSession{flex-wrap:wrap}#srvScUpdated{align-self:center}@media(max-width:650px){.item{flex-wrap:wrap}.item .actions{flex-wrap:wrap}.item>div{min-width:0}#ratopolisServerScenarios .actions button,#ratopolisServerApprovals .actions button{min-height:44px}#ratopolisServerScenarios .filters{grid-template-columns:1fr!important}}</style>
 </head><body><section id="ratopolis-v27-check" style="margin:14px;padding:16px;border:1px solid #6e5ce6;border-radius:14px;background:#121a2e;color:#edf2ff;position:relative;z-index:20">
  <div style="font-weight:900;font-size:18px;color:#ffc857">RATÓPOLIS ADMIN v64 · DIAGNÓSTICO DE AUTENTICAÇÃO</div>
- <p style="margin:6px 0 12px;color:#b8c5df">Verificação somente leitura. Esta área consulta a sessão no Worker administrativo; não altera o banco nem concede permissões.</p><p style="margin:0 0 12px;color:#9ba9c4;font-size:12px;overflow-wrap:anywhere">Worker configurado: <b>https://ratopolis-admin-test.juniorgmj69.workers.dev</b><br>Endpoint consultado: <code>/api/admin/me</code></p>
+ <p style="margin:6px 0 12px;color:#b8c5df">Verificação somente leitura. Esta área consulta a sessão no Worker administrativo; não altera o banco nem concede permissões.</p><p style="margin:0 0 12px;color:#9ba9c4;font-size:12px;overflow-wrap:anywhere">Worker configurado: <b>https://ratopolis-api-dev-v30.juniorgmj69.workers.dev</b><br>Endpoint consultado: <code>/api/admin/me</code></p>
  <div id="r27-status" role="status" style="padding:10px;border-radius:8px;background:#0b1020;margin-bottom:10px">Aguardando verificação…</div>
  <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="r27-check" style="background:#ffc857;color:#251b00;border:0;font-weight:800">Verificar sessão e permissões</button><button type="button" id="r27-clear">Limpar resultado</button></div>
  <pre id="r27-detail" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;color:#b8c5df;font-size:12px"></pre>
- <p style="margin:8px 0 0;color:#ffcf8a;font-size:12px"><b>Aviso:</b> as telas administrativas abaixo continuam demonstração local. Somente o botão acima consulta o Worker; as demais ações não são operações reais do servidor.</p>
+ <p style="margin:8px 0 0;color:#ffcf8a;font-size:12px"><b>Aviso:</b> este bloco verifica apenas a sessão e as permissões. O módulo de cenários/fila de aprovação e a consulta de jogadores reais têm integrações específicas com o Worker; as demais áreas continuam em demonstração local e não alteram o servidor.</p>
 </section>
 <div id="mobileMenuBackdrop" aria-hidden="true"></div><div class="app"><aside class="side" id="side" aria-label="Menu principal"><div class="brand">🐭 RATO<span>POLIS</span></div><div class="muted tiny" style="margin:0 8px">PAINEL ADMINISTRATIVO · v65.3</div><div class="group">Visão geral</div><button class="nav active" data-page="overview">◈ Visão geral</button><button class="nav" data-page="players">♙ Jogadores</button><button class="nav" data-page="moderation">⚑ Moderação</button><div class="group">Jogo</div><button class="nav" data-page="phases">▤ Fases e salas</button><button class="nav" data-page="scenarios">🧱 Criar e editar cenários</button><button class="nav" data-page="approvals">✓ Aprovação de projetos <span id="approvalBadge" class="pill goldpill">0</span></button><button class="nav" data-page="economy">✦ XP, economia e loja</button><button class="nav" data-page="catalog">▣ Catálogo da loja</button><button class="nav" data-page="inventory">📦 Inventário e entregas</button><button class="nav" data-page="missions">🎯 Missões e recompensas</button><button class="nav" data-page="guilds">🏆 Guildas e ranking</button><button class="nav" data-page="competitions">🥇 Desafios competitivos</button><button class="nav" data-page="seasons">🗓️ Temporadas e passe</button><button class="nav" data-page="feedback">💬 Feedback e sugestões</button><button class="nav" data-page="rules">⚙️ Regras e balanceamento</button><button class="nav" data-page="events">⚑ Eventos</button><button class="nav" data-page="announcements">▣ Avisos</button><button class="nav" data-page="notifications">♧ Notificações <span id="notificationBadge" class="pill goldpill">0</span></button><div class="group">Gestão</div><button class="nav" data-page="payments">＄ Compras e pagamentos <span id="pendingBadge" class="pill goldpill">0</span></button><button class="nav" data-page="staff">♜ Equipe e permissões</button><button class="nav" data-page="reports">▥ Relatórios e estatísticas</button><button class="nav" data-page="audit">◷ Auditoria</button><button class="nav" data-page="portal">🌐 Integração com o portal</button><button class="nav" data-page="settings">⚙ Configurações</button><p class="foot">Dados locais de demonstração. Não conectado ao jogo.</p></aside><main class="main"><header class="top"><div><button class="mobile" id="menuBtn">☰</button> <span class="eyebrow">RATÓPOLIS CONTROL CENTER</span><h1 id="pageTitle" class="title">Visão geral</h1><div id="pageSub" class="muted">Resumo operacional do painel independente.</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="roleBadge" class="pill goldpill">Sessão: SpAdmin</span><select id="roleSelect" style="width:auto"><option>SpAdmin</option><option>ADM</option><option>GM</option><option>Mod</option><option>Editor</option></select><button id="exportBtn">Exportar backup</button></div></header><div class="notice"><b>v65.3 · Integração real de cenários com o Worker (consulta, rascunho, revisão, aprovação e publicação) + correção de erro que interrompia o script principal:</b>  pedidos, pagamentos e entregas são fictícios e ficam neste navegador. Nenhum pagamento real é processado ou confirmado. Em produção, pagamentos devem ser validados no servidor com o provedor antes de liberar VIP, moedas ou itens.</div>
 <section id="page-overview" class="page"><div class="grid"><div class="stat"><div class="label">Pedidos pendentes / análise</div><div id="statPending" class="value">0</div></div><div class="stat"><div class="label">Total marcado como pago</div><div id="statPaid" class="value">R$ 0,00</div></div><div class="stat"><div class="label">Aguardando entrega</div><div id="statDelivery" class="value">0</div></div><div class="stat"><div class="label">Jogadores demo</div><div id="statPlayers" class="value">0</div></div></div><div class="two"><div class="card"><h3>Atividade recente</h3><div id="recent" class="list"></div></div><div class="card"><h3>Atalhos</h3><div class="list"><button data-goto="payments">＋ Registrar compra demo</button><button data-goto="events">⚑ Gerenciar eventos</button><button data-goto="players">♙ Consultar jogadores</button><button data-goto="staff">♜ Cargos e permissões</button></div><p class="foot">Painel independente: não altera o HTML do jogo principal.</p></div></div></section>
@@ -74,8 +74,8 @@
 <div id="srvScStatus" class="notice" role="status">Aguardando consulta. Abra o painel no mesmo domínio do portal e entre na conta primeiro.</div>
 <h3 style="margin:14px 0 6px">Enviar um cenário local ao servidor</h3>
 <div class="filters"><div class="field"><label for="srvScLocalId">Cenário local</label><select id="srvScLocalId"><option value="">Escolha um cenário local</option></select></div><div class="field"><label for="srvScName">Nome no servidor</label><input id="srvScName" maxlength="80" placeholder="Nome do cenário"></div><div class="field"><label for="srvScDescription">Descrição</label><input id="srvScDescription" maxlength="500" placeholder="Objetivo ou observações"></div></div>
-<div class="actions" style="margin:4px 0 10px"><button type="button" id="srvScSendDraft">Enviar como rascunho</button><button type="button" class="gold" id="srvScSendLocal">Enviar e submeter à revisão</button><button type="button" id="srvScOpenEditor">＋ Novo no editor visual</button></div>
-<p class="tiny muted" style="margin:0 0 12px">“Enviar como rascunho” cria o cenário no servidor sem entrar na fila. “Enviar e submeter” cria o rascunho e em seguida o submete à revisão. O editor visual salva localmente; depois escolha o cenário na lista acima.</p>
+<div class="actions" style="margin:4px 0 10px"><button type="button" id="srvScSendDraft">Enviar como rascunho</button><button type="button" class="gold" id="srvScSendLocal">Enviar e submeter à revisão</button><button type="button" id="srvScSaveVersion" class="gold" style="display:none">Salvar nova versão no servidor</button><button type="button" id="srvScOpenEditor">＋ Novo no editor visual</button></div>
+<p class="tiny muted" style="margin:0 0 12px">“Enviar como rascunho” cria um cenário novo. “Enviar e submeter” cria e envia para revisão. Ao editar uma cópia de cenário do servidor, selecione-a aqui e use “Salvar nova versão no servidor” para atualizar o cenário original; a nova versão volta para rascunho.</p>
 <h3 style="margin:14px 0 6px">Cenários no servidor</h3>
 <div class="filters" style="grid-template-columns:2fr 1fr"><div class="field"><label for="srvScSearch">Buscar</label><input id="srvScSearch" placeholder="Nome, ID ou autor"></div><div class="field"><label for="srvScFilter">Status</label><select id="srvScFilter"><option value="">Todos</option><option value="draft">Rascunho</option><option value="submitted">Aguardando revisão</option><option value="in_review">Em revisão</option><option value="approved">Aprovado</option><option value="rejected">Rejeitado</option><option value="published">Publicado</option></select></div></div>
 <div class="tablewrap"><table style="min-width:760px"><thead><tr><th>Nome</th><th>Autor</th><th>Status real</th><th>Versão</th><th>Atualizado</th><th>Ações</th></tr></thead><tbody id="srvScRows"><tr><td colspan="6">Nenhuma consulta realizada.</td></tr></tbody></table></div>
@@ -363,7 +363,7 @@ auditLog('Painel v65.3 aberto');render();
 
 <script id="ratopolis-v58-auth-diagnostic">
 (()=>{
- const API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
  const TOKEN_KEY='ratopolis_session_token';
  const status=document.getElementById('r27-status');
  const detail=document.getElementById('r27-detail');
@@ -474,7 +474,7 @@ auditLog('Painel v65.3 aberto');render();
 
 <script id="ratopolis-v62-real-players">
 (()=>{
- const API='https://ratopolis-admin-test.juniorgmj69.workers.dev',TOKEN_KEY='ratopolis_session_token';
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev',TOKEN_KEY='ratopolis_session_token';
  const btn=document.getElementById('v59-load-players'),status=document.getElementById('v59-real-status'),body=document.getElementById('v59-real-players-body');
  const search=document.getElementById('v62-player-search'),roleFilter=document.getElementById('v62-player-role'),statusFilter=document.getElementById('v62-player-status-filter'),clear=document.getElementById('v62-player-clear'),count=document.getElementById('v62-player-count');
  const details=document.getElementById('v62-player-details'),detailFields=document.getElementById('v62-profile-fields'),detailSubtitle=document.getElementById('v62-profile-subtitle'),closeDetails=document.getElementById('v62-profile-close');
@@ -517,18 +517,19 @@ auditLog('Painel v65.3 aberto');render();
   /* Ratópolis Admin v65.3 — integração real de cenários.
      Endpoints usados (todos já presentes na v65.2; método e corpo conferidos no código existente):
        GET  /api/admin/me                       -> identidade da sessão (formato exato não confirmado)
-       GET  /api/admin/scenarios                -> { cenarios: [...] }
-       POST /api/admin/scenarios                -> body { name, description, layout:{schema,schemaVersion,layout}, notes } -> { cenario:{id,...} }
-       GET  /api/admin/scenarios/:id            -> { cenario, versoes:[{version_number,created_at,layout:{layout:[...]}}] }
-       POST /api/admin/scenarios/:id/submit     -> body {}
-       GET  /api/admin/scenario-reviews         -> { fila: [...] }
-       POST /api/admin/scenarios/:id/review     -> body { decision:'approved'|'rejected', reason }
-       POST /api/admin/scenarios/:id/publish    -> body {}
-     NÃO existe endpoint confirmado para editar/gravar nova versão: EDIT_ENDPOINT fica null até o backend confirmar. */
-  const API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
+       GET  /api/editor/scenarios               -> { cenarios: [...] }
+       POST /api/editor/scenarios               -> body { name, description, layout:{schema,schemaVersion,layout}, notes } -> { cenario:{id,...} }
+       GET  /api/editor/scenarios/:id            -> { cenario, versao:{version_number,created_at,layout:{layout:[...]}} }
+       POST /api/editor/scenarios/:id/save       -> body { name, description, layout, notes } e cria nova versão em rascunho
+       POST /api/editor/scenarios/:id/submit     -> body {}
+       GET  /api/admin/scenarios/review          -> { cenarios: [...] }
+       POST /api/admin/scenarios/review          -> body { scenario_id, decision:'approve'|'reject', reason }
+       POST /api/admin/scenarios/publish         -> body { scenario_id }
+     O endpoint /save permite criar uma nova versão; o Worker valida propriedade e permissões. */
+  const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
   const TOKEN_KEY='ratopolis_session_token';
   const LINKS_KEY='ratopolis_srv_links_v1';
-  const EDIT_ENDPOINT=null;
+  const EDIT_ENDPOINT='/save';
   const REVIEW_BLOCKED_ROLES=['editor','gm','mod','jogador','player','user'];
   const $=id=>document.getElementById(id);
   const state={scenarios:[],queue:[],me:null,meError:'',busy:new Set(),listAt:0};
@@ -577,14 +578,14 @@ auditLog('Painel v65.3 aberto');render();
     const m=state.me;if(!m)return {id:'',nick:'',role:''};
     const u=(m.user&&typeof m.user==='object'&&m.user)||(m.admin&&typeof m.admin==='object'&&m.admin)||(m.jogador&&typeof m.jogador==='object'&&m.jogador)||(m.perfil&&typeof m.perfil==='object'&&m.perfil)||m;
     const pick=(o,ks)=>{for(const k of ks){if(o&&o[k]!=null&&o[k]!=='')return String(o[k])}return ''};
-    return {id:pick(u,['id','user_id','userId'])||pick(m,['id','user_id','userId']),nick:pick(u,['nickname','nick','username','nome','name']),role:(pick(u,['role','papel','cargo'])||pick(m,['role','papel','cargo'])).toLowerCase()};
+    return {id:pick(u,['id','user_id','userId'])||pick(m,['id','user_id','userId']),nick:pick(u,['nickname','nick','username','nome','name'])||pick(m,['nickname','nick','username','nome','name']),role:(pick(m,['role','papel','cargo'])||pick(u,['role','papel','cargo'])).toLowerCase()};
   }
   function canReview(){const r=identity().role;return ['spadm','spadmin','superadmin','adm','admin'].includes(r)}
   function selfState(creatorId){const me=identity();if(!me.id||creatorId==null||String(creatorId).trim()==='')return {known:false,self:false};return {known:true,self:String(creatorId)===String(me.id)}}
   async function loadMe(){
     const box=$('srvSession');
     try{
-      state.me=await api('/api/admin/me');state.meError='';
+      const adminMe=await api('/api/admin/me');const userMe=await api('/api/me');state.me={...adminMe,jogador:userMe.jogador};state.meError='';
       const i=identity();
       box.innerHTML='<span>Sessão do servidor: <b>'+esc(i.nick||'conta autenticada')+'</b> · cargo: <b>'+esc(i.role||'não informado pelo servidor')+'</b></span>'+(i.id?'':'<span class="pill goldpill">ID da conta não identificado: aprovação/rejeição bloqueadas nesta tela</span>');
     }catch(e){
@@ -606,8 +607,10 @@ auditLog('Painel v65.3 aberto');render();
   function refreshLocalSelect(){
     const sel=$('srvScLocalId');if(!sel)return;
     const old=sel.value,local=localList(),links=readLinks();
-    sel.innerHTML='<option value="">Escolha um cenário local</option>'+local.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name||'Sem nome')+' · '+esc(x.status||'local')+(links[x.id]?' · já enviado':'')+'</option>').join('');
+    sel.innerHTML='<option value="">Escolha um cenário local</option>'+local.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name||'Sem nome')+' · '+esc(x.status||'local')+(links[x.id]?' · já enviado':'')+(x.serverSource&&x.serverSource.id?' · cópia do servidor':'')+'</option>').join('');
     if(local.some(x=>String(x.id)===old))sel.value=old;
+    const selected=local.find(x=>String(x.id)===String(sel.value));const saveVersionBtn=$('srvScSaveVersion');
+    if(saveVersionBtn)saveVersionBtn.style.display=selected&&selected.serverSource&&selected.serverSource.id?'':'none';
   }
 
   /* ---------- lista de cenários reais ---------- */
@@ -632,7 +635,7 @@ auditLog('Painel v65.3 aberto');render();
     const quiet=opts&&opts.quiet;
     if(!quiet)setStatus('srvScStatus','Consultando o Worker administrativo…');
     try{
-      const d=await api('/api/admin/scenarios');
+      const d=await api('/api/editor/scenarios');
       if(!Array.isArray(d.cenarios))throw new ApiError('invalid','Resposta sem a lista "cenarios". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
       state.scenarios=d.cenarios.filter(x=>x&&typeof x==='object');state.listAt=Date.now();
       renderScenarios();refreshLocalSelect();
@@ -667,9 +670,9 @@ auditLog('Painel v65.3 aberto');render();
     if(!quiet){setStatus('srvApStatus','Consultando a fila real de aprovação…');const b=$('srvApRows');if(b)b.innerHTML='<div class="item muted">Carregando fila…</div>'}
     try{
       if(!state.me&&token())await loadMe();
-      const d=await api('/api/admin/scenario-reviews');
-      if(!Array.isArray(d.fila))throw new ApiError('invalid','Resposta sem a lista "fila". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
-      state.queue=d.fila.filter(x=>x&&typeof x==='object');renderQueue();
+      const d=await api('/api/admin/scenarios/review');
+      if(!Array.isArray(d.cenarios))throw new ApiError('invalid','Resposta sem a lista "cenarios". O formato do servidor mudou ou a rota é outra; nada foi exibido.');
+      state.queue=d.cenarios.filter(x=>x&&typeof x==='object'&&statusKey(x.status)==='submitted');renderQueue();
       if(!quiet)setStatus('srvApStatus','Consulta concluída. '+state.queue.length+' cenário(s) aguardando revisão no servidor.','ok');
       return true;
     }catch(e){
@@ -681,9 +684,10 @@ auditLog('Painel v65.3 aberto');render();
 
   /* ---------- detalhe ---------- */
   async function fetchDetail(id){
-    const d=await api('/api/admin/scenarios/'+encodeURIComponent(id));
+    const d=await api('/api/editor/scenarios/'+encodeURIComponent(id));
     if(!d.cenario||typeof d.cenario!=='object')throw new ApiError('invalid','Resposta de detalhe sem o objeto "cenario". Nada foi confirmado.');
-    return {cenario:d.cenario,versoes:Array.isArray(d.versoes)?d.versoes:[]};
+    const versoes=Array.isArray(d.versoes)?d.versoes:(d.versao&&typeof d.versao==='object'?[d.versao]:[]);
+    return {cenario:d.cenario,versoes};
   }
   function latestLayout(versoes){
     let best=null;
@@ -710,7 +714,7 @@ auditLog('Painel v65.3 aberto');render();
           '<div class="list">'+rows.map(([a,b])=>'<div class="item"><span>'+esc(a)+'</span><b style="text-align:right;overflow-wrap:anywhere">'+esc(b==null||b===''?'—':b)+'</b></div>').join('')+'</div>'+
           '<h3 style="margin:14px 0 6px">Versões no servidor ('+versoes.length+')</h3>'+vers+
           '<div class="actions" style="margin-top:12px">'+((k==='draft'||k==='rejected')?'<button type="button" data-srv-submit="'+esc(id)+'">Enviar para revisão</button>':'')+(k==='approved'?'<button type="button" class="gold" data-srv-publish="'+esc(id)+'">Publicar</button>':'')+'<button type="button" data-srv-copy="'+esc(id)+'">Editar em cópia local</button></div>'+
-          '<p class="foot">'+(EDIT_ENDPOINT?'':'Salvar nova versão no mesmo cenário depende de um endpoint de edição que ainda não está confirmado no Worker (veja a lista de backend). “Editar em cópia local” abre o mapa no editor visual; depois use “Enviar como rascunho”, que cria um novo cenário no servidor.')+'</p>'+
+          '<p class="foot">Edite a cópia no editor visual. Para gravar no cenário original, selecione essa cópia no campo “Cenário local” e use “Salvar nova versão no servidor”. Isso cria uma nova versão e reinicia o status para rascunho.</p>'+
           '<details><summary class="tiny muted">Dados brutos retornados pelo servidor</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:220px;overflow:auto">'+esc(JSON.stringify(s,null,2))+'</pre></details>';
         showModal('Cenário real · '+esc(s.name||id),body,'Fechar');
       }catch(e){setStatus('srvScStatus','Não foi possível consultar o detalhe: '+errText(e),'error')}
@@ -741,16 +745,16 @@ auditLog('Painel v65.3 aberto');render();
       const links=readLinks();
       if(links[x.id]&&!confirm('Este cenário local já foi enviado antes (ID no servidor: '+links[x.id]+'). Enviar de novo cria OUTRO cenário no servidor. Continuar?'))return;
       if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(c=>!c.ok).map(c=>'• '+c.label).join('\n')+'\n\nEnviar mesmo assim?'))return}
-      if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')))return;
+      if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')+(x.serverSource&&x.serverSource.id?' Esta é uma cópia do cenário '+x.serverSource.id+'; esta ação cria um NOVO cenário e não altera o original. Para atualizar o original, use “Salvar nova versão no servidor”.':'')))return;
       try{
         setStatus('srvScStatus','Criando rascunho no servidor…');
-        const created=await api('/api/admin/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
+        const created=await api('/api/editor/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
         const sid=created.cenario&&created.cenario.id;
         if(!sid)throw new ApiError('invalid','O servidor não retornou o ID do cenário criado; não é possível confirmar o envio.');
         writeLink(x.id,String(sid));
         if(submitAfter){
           try{
-            await api('/api/admin/scenarios/'+encodeURIComponent(sid)+'/submit','POST',{});
+            await api('/api/editor/scenarios/'+encodeURIComponent(sid)+'/submit','POST',{});
             reportOutcome('srvScStatus','Cenário '+sid+' enviado e submetido',await confirmStatus(sid,['submitted','in_review']));
           }catch(se){setStatus('srvScStatus','Rascunho salvo no servidor (ID '+sid+'), mas o envio para revisão falhou: '+errText(se),'error')}
         }else{
@@ -760,11 +764,36 @@ auditLog('Painel v65.3 aberto');render();
       await refreshAll();
     });
   }
+  async function saveServerVersion(){
+    await guarded('save-version',async()=>{
+      const localId=$('srvScLocalId')?.value,x=localList().find(a=>String(a.id)===String(localId));
+      const serverId=x&&x.serverSource&&x.serverSource.id;
+      if(!x||!serverId){setStatus('srvScStatus','Escolha a cópia local de um cenário do servidor antes de salvar uma nova versão.','error');return}
+      const layout=layoutForLocal(x);
+      const name=String($('srvScName')?.value||x.name||'').trim().slice(0,80);
+      const description=String($('srvScDescription')?.value||x.description||'').trim().slice(0,500);
+      if(!name){setStatus('srvScStatus','Informe o nome do cenário.','error');return}
+      if(!layout.length){setStatus('srvScStatus','Esta cópia não tem peças compatíveis para salvar. Abra o editor, salve o mapa e tente novamente.','error');return}
+      if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(q=>!q.ok).map(q=>'• '+q.label).join('\n')+'\n\nSalvar mesmo assim?'))return}
+      if(!confirm('Salvar uma nova versão no cenário original '+serverId+'?\n\nO Worker criará uma nova versão e voltará o cenário para RASCUNHO, removendo a aprovação/publicação atual.'))return;
+      try{
+        setStatus('srvScStatus','Salvando nova versão no cenário '+serverId+'…');
+        const saved=await api('/api/editor/scenarios/'+encodeURIComponent(serverId)+'/save','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Nova versão enviada do painel v65.3'});
+        const updated=saved.cenario;
+        if(!updated||String(updated.id)!==String(serverId))throw new ApiError('invalid','O Worker não confirmou o ID do cenário original. Confira a lista antes de tentar novamente.');
+        x.serverSource.version=Number(updated.current_version)||Number(x.serverSource.version||1)+1;
+        x.serverSource.status='draft';x.name=name;x.description=description;x.status='Rascunho';
+        save();refreshLocalSelect();
+        reportOutcome('srvScStatus','Nova versão do cenário '+serverId+' salva',await confirmStatus(serverId,['draft']));
+        await refreshAll();
+      }catch(e){setStatus('srvScStatus','Não foi possível salvar a nova versão: '+errText(e),'error')}
+    });
+  }
   async function submitScenario(id){
     await guarded('submit:'+id,async()=>{
       if(!confirm('Enviar este cenário do servidor para revisão?'))return;
       try{
-        await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/submit','POST',{});
+        await api('/api/editor/scenarios/'+encodeURIComponent(id)+'/submit','POST',{});
         reportOutcome('srvScStatus','Cenário '+id+' submetido',await confirmStatus(id,['submitted','in_review']));
       }catch(e){setStatus('srvScStatus','Não foi possível enviar: '+errText(e),'error')}
       await refreshAll();
@@ -777,7 +806,7 @@ auditLog('Painel v65.3 aberto');render();
       if(!pre.ok){setStatus('srvScStatus',pre.status?'Publicação bloqueada: o cenário está “'+statusLabel(pre.status)+'”; só cenários aprovados podem ser publicados.':'Publicação bloqueada: não foi possível confirmar o status atual ('+(pre.error||'sem detalhe')+').','error');await refreshAll();return}
       if(!confirm('Publicar este cenário aprovado no estado do servidor? Isso não garante que o jogo publicado já carregue esse mapa.'))return;
       try{
-        await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/publish','POST',{});
+        await api('/api/admin/scenarios/publish','POST',{scenario_id:id});
         reportOutcome('srvScStatus','Cenário '+id+' publicado',await confirmStatus(id,['published']));
       }catch(e){setStatus('srvScStatus','Não foi possível publicar: '+errText(e),'error')}
       await refreshAll();
@@ -799,7 +828,7 @@ auditLog('Painel v65.3 aberto');render();
         if(!approve&&!reason){errBox.textContent='Informe o motivo da rejeição para orientar o autor.';return}
         if(btn.disabled)return;btn.disabled=true;errBox.textContent='';
         try{
-          await api('/api/admin/scenarios/'+encodeURIComponent(id)+'/review','POST',{decision,reason});
+          await api('/api/admin/scenarios/review','POST',{scenario_id:id,decision:approve?'approve':'reject',reason});
           if(typeof closeModal==='function')closeModal();
           reportOutcome('srvApStatus','Decisão “'+(approve?'aprovado':'rejeitado')+'” registrada',await confirmStatus(id,[approve?'approved':'rejected']));
           await refreshAll();
@@ -815,10 +844,10 @@ auditLog('Painel v65.3 aberto');render();
         if(typeof data==='undefined'||typeof save!=='function'||typeof scenarioSnapshot!=='function'){setStatus('srvScStatus','O módulo local do editor não está disponível.','error');return}
         const labels=[['terra','Terra/blocos'],['queijo','Queijos'],['bolota','Bolotas'],['toca','Tocas'],['palito','Palitos']];
         const counts=labels.map(([t,l])=>{const n=layout.filter(p=>p.type===t).length;return n?l+': '+n:null}).filter(Boolean);
-        const created={id:'MAP-'+Date.now().toString().slice(-7),name:String(s.name||'Cenário do servidor').slice(0,50)+' (cópia)',author:role==='SpAdmin'?'SpAdmin (SuperAdmin + Editor)':'Editor',status:'Rascunho',pieces:counts.join(', '),layout,description:String(s.description||'').slice(0,2000),created:new Date().toISOString().slice(0,10),reviewer:'',reviewNote:'',reviewed:'',history:[],version:1,versions:[],serverSource:{id:String(s.id||id),version:Number(s.current_version)||1}};
+        const created={id:'MAP-'+Date.now().toString().slice(-7),name:String(s.name||'Cenário do servidor').slice(0,50)+' (cópia)',author:role==='SpAdmin'?'SpAdmin (SuperAdmin + Editor)':'Editor',status:'Rascunho',pieces:counts.join(', '),layout,description:String(s.description||'').slice(0,2000),created:new Date().toISOString().slice(0,10),reviewer:'',reviewNote:'',reviewed:'',history:[],version:1,versions:[],serverSource:{id:String(s.id||id),version:Number(s.current_version)||1,status:String(s.status||'draft')}};
         created.versions.push(scenarioSnapshot(created,1));
         if(typeof scenarioHistoryEntry==='function')scenarioHistoryEntry(created,'Cópia local criada a partir do servidor','Origem: '+(s.id||id)+'. Não herda aprovação nem publicação.');
-        data.scenarios.unshift(created);
+        data.scenarios.unshift(created);refreshLocalSelect();if($('srvScLocalId'))$('srvScLocalId').value=created.id;if($('srvScName'))$('srvScName').value=created.name;if($('srvScDescription'))$('srvScDescription').value=created.description||'';refreshLocalSelect();
         if(typeof auditLog==='function')auditLog('Cópia local criada a partir do cenário do servidor '+(s.id||id));
         save();if(typeof closeModal==='function')closeModal();
         setStatus('srvScStatus','Cópia local criada ('+created.id+'). Edite no editor visual e depois use “Enviar como rascunho”.','ok');
@@ -834,6 +863,7 @@ auditLog('Painel v65.3 aberto');render();
     if(t.id==='srvScRefresh'){guarded('refresh',async()=>{await loadMe();await loadScenarios()})}
     else if(t.id==='srvApRefresh'){guarded('refresh-q',()=>loadQueue())}
     else if(t.id==='srvScSendLocal'){sendLocal(true)}
+    else if(t.id==='srvScSaveVersion'){saveServerVersion()}
     else if(t.id==='srvScSendDraft'){sendLocal(false)}
     else if(t.id==='srvScOpenEditor'){if(typeof createScenario==='function')createScenario(null);else setStatus('srvScStatus','O editor visual não está disponível.','error')}
     else if(t.dataset.srvSubmit){if(t.closest('.modal')&&typeof closeModal==='function')closeModal();submitScenario(t.dataset.srvSubmit)}
@@ -845,7 +875,7 @@ auditLog('Painel v65.3 aberto');render();
   document.addEventListener('change',function(ev){
     if(ev.target&&ev.target.id==='srvScLocalId'){
       const x=localList().find(a=>String(a.id)===String(ev.target.value));
-      if(x){if($('srvScName'))$('srvScName').value=x.name||'';if($('srvScDescription'))$('srvScDescription').value=x.description||''}
+      if(x){if($('srvScName'))$('srvScName').value=x.name||'';if($('srvScDescription'))$('srvScDescription').value=x.description||''}refreshLocalSelect();
     }
   });
   ['srvScSearch','srvScFilter'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',renderScenarios)});
