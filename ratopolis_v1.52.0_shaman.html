@@ -2097,7 +2097,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
   if(normalized==='/sala aleatoria'||normalized==='/sala aleatória'||normalized==='/sala random'){const room=chooseLeastPopulatedRoom();selectedLocalRoom=room;renderCommunityParticipants();addChatLine('Sistema: sorteio local escolheu a sala '+(room+1)+' — '+scenarioName(room)+'. Iniciando em 5 segundos.','system');closeCommunity();switchToTestRoom(room);return;}
   if(normalized.startsWith('/sala')){addChatLine('Sistema: comando não reconhecido. Tente /sala 5, /sala aleatoria ou /salas.','system');return;}
   if(value.startsWith('/')){addChatLine('Sistema: comando desconhecido. Digite /ajuda para ver os comandos.','system');return;}
-  addChatLine((playerNickname||'Você')+': '+value,'');
+  if(window.RatopolisWorldChat&&window.RatopolisWorldChat.send(value)){}else{addChatLine('Sistema: Chat Mundo conectando ou indisponível. Tente novamente em instantes.','system');}
  }
  document.getElementById('chatToggle').addEventListener('click',()=>openChat(document.getElementById('chatPanel').classList.contains('hidden')));document.getElementById('chatClose').addEventListener('click',()=>openChat(false));document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('chatInput');handleChatSubmit(input.value);input.value='';input.focus({preventScroll:true});});
  document.getElementById('communityBtn').addEventListener('click',openCommunity);document.getElementById('communityCloseBtn').addEventListener('click',closeCommunity);document.getElementById('communityRoomsBtn').addEventListener('click',()=>{closeCommunity();openRooms();});document.getElementById('communityOverlay').addEventListener('click',e=>{if(e.target.id==='communityOverlay')closeCommunity();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommunity();});
@@ -3879,17 +3879,65 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
 </style>
 
 <script id="rm-global-chat-menu">
+/* Ratópolis Chat Mundo 1.0 — um canal WebSocket para o menu e para o chat da partida. */
 (function(){
- var api=window.RatopolisChatOnline, nodes=[];
- function addNode(log,m,mine){var who=String(m.nickname||m.nick||m.username||'Jogador').slice(0,24),txt=String(m.message||m.text||'').slice(0,500),d=document.createElement('div');d.className='rm-gmsg'+(mine?' mine':'');var b=document.createElement('b');b.textContent=who;d.appendChild(b);d.appendChild(document.createTextNode(' '));var t=document.createElement('span');t.textContent=txt;d.appendChild(t);log.appendChild(d);while(log.children.length>50)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight}
- function setup(logId,formId,inputId,stateId){var log=document.getElementById(logId),form=document.getElementById(formId),inp=document.getElementById(inputId),state=stateId&&document.getElementById(stateId);if(!log||!form||!inp)return;var seen=new Set(),busy=false;
-  function status(t){if(state)state.textContent=t}
-  async function refresh(){if(busy)return;busy=true;try{var list=await api.list();list.slice().reverse().forEach(function(m){var id=String(m.id||[m.created_at,m.user_id,m.message].join('|'));if(seen.has(id))return;seen.add(id);addNode(log,m,String(m.user_id||'')===String(window.RatopolisUserId||''));});status('online · mensagens sincronizadas');}catch(e){status('offline · '+String(e.message||e).slice(0,45));}finally{busy=false}}
-  form.addEventListener('submit',async function(e){e.preventDefault();var v=inp.value.trim();if(!v)return;inp.disabled=true;try{await api.send(v);inp.value='';await refresh();}catch(err){status(String(err.message||err).slice(0,60));}finally{inp.disabled=false;inp.focus({preventScroll:true})}});
-  refresh();setInterval(refresh,3500);
+ const API='https://ratopolis-chat-world-v1.juniorgmj69.workers.dev';
+ const TOKEN_KEY='ratopolis_session_token';
+ const menuLog=document.getElementById('rmGChatLog'), menuForm=document.getElementById('rmGChatForm'), menuInput=document.getElementById('rmGChatInput'), state=document.getElementById('rmGChatState');
+ const gameLog=document.getElementById('chatLog');
+ let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, lastOnline=0;
+ function setState(s){if(state)state.textContent=s;}
+ function append(log,cls,txt){
+  if(!log)return;
+  const d=document.createElement('div');d.className=cls;d.textContent=txt;log.appendChild(d);
+  while(log.children.length>60)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight;
  }
- if(!api||!api.messagesEnabled)return;
- setup('rmGChatLog','rmGChatForm','rmGChatInput','rmGChatState');
- setup('fmGlobalLog','fmGlobalForm','fmGlobalInput',null);
+ function render(m){
+  if(!m||typeof (m.text||m.message)!=='string')return;
+  const nick=String(m.nickname||m.nick||'Jogador').slice(0,40), body=String(m.text||m.message).slice(0,300);
+  let time='';try{time=new Date(Number(m.createdAt||m.created_at)||Date.now()).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(_){}
+  const line=(time?'['+time+'] ':'')+nick+': '+body;
+  append(menuLog,'rm-gmsg',line);append(gameLog,'chat-line',line);
+ }
+ function sys(msg){append(menuLog,'rm-gmsg sys',msg);append(gameLog,'chat-line system',msg);}
+ async function connect(){
+  if(connecting||(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)))return;
+  connecting=true;
+  let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  if(!token){online=false;setState('entre no portal');connecting=false;retry=setTimeout(connect,5000);return;}
+  setState('conectando…');
+  try{
+   const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json'}});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok||!d.ok||!d.ticket){online=false;setState(r.status===401?'sessão expirada':'indisponível');connecting=false;retry=setTimeout(connect,5000);return;}
+   const u=new URL(d.websocket||'wss://ratopolis-chat-world-v1.juniorgmj69.workers.dev/ws');u.searchParams.set('ticket',d.ticket);
+   ws=new WebSocket(u.toString());
+   ws.onopen=()=>{online=true;lastOnline=Date.now();setState('conectado · Mundo');};
+   ws.onmessage=e=>{
+    let d;try{d=JSON.parse(e.data);}catch(_){return;}
+    if(d.type==='ready'){online=true;lastOnline=Date.now();setState('Mundo online');if(!loadedHistory&&Array.isArray(d.history)){d.history.forEach(render);loadedHistory=true;}return;}
+    if(d.type==='chat_message'){render(d.message);return;}
+    if(d.type==='presence'){setState('Mundo online · '+Math.max(0,Number(d.online)||0));return;}
+    if(d.type==='error'&&d.message)sys(d.message);
+   };
+   ws.onerror=()=>setState('reconectando…');
+   ws.onclose=()=>{online=false;connecting=false;ws=null;setState('reconectando…');clearTimeout(retry);retry=setTimeout(connect,2500);};
+   connecting=false;
+  }catch(_){online=false;connecting=false;setState('sem conexão');retry=setTimeout(connect,5000);}
+ }
+ function send(text){
+  const value=String(text||'').trim();if(!value)return true;
+  if(!ws||ws.readyState!==WebSocket.OPEN||!online)return false;
+  ws.send(JSON.stringify({type:'chat_message',text:value.slice(0,300)}));return true;
+ }
+ window.RatopolisWorldChat={send,isOnline:()=>online,reconnect:()=>{if(ws)try{ws.close();}catch(_){}connect();}};
+ if(menuForm&&menuInput)menuForm.addEventListener('submit',e=>{
+  e.preventDefault();const value=menuInput.value.trim();if(!value)return;
+  if(send(value))menuInput.value='';else{setState('aguarde conexão');sys('Chat Mundo desconectado. Aguarde a reconexão e tente novamente.');}
+  menuInput.focus({preventScroll:true});
+ });
+ window.addEventListener('online',()=>{clearTimeout(retry);connect();});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(!ws||ws.readyState===WebSocket.CLOSED)){clearTimeout(retry);connect();}});
+ connect();
 })();
 </script>
