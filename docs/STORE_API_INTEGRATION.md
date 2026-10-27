@@ -1,6 +1,6 @@
 # RATÓPOLIS Store API integration contract
 
-Status (2026-10-27): migration applied to the development D1 database; 15 catalog items seeded; store API routes deployed to `ratopolis-api-dev-v30`; the game HTML now calls catalog, purchase, inventory, and equip routes. Authenticated end-to-end purchase tests are still pending.
+Status (2026-10-27): migration applied to the development D1 database; 15 catalog items seeded; store API routes deployed to `ratopolis-api-dev-v30`; the game HTML now calls catalog, purchase, inventory, and equip routes. Authenticated end-to-end purchase tests are still pending. Worker source is versioned at [`workers/ratopolis-api-dev-v30.js`](../workers/ratopolis-api-dev-v30.js).
 
 ## Required routes
 
