@@ -745,7 +745,7 @@ auditLog('Painel v65.3 aberto');render();
       const links=readLinks();
       if(links[x.id]&&!confirm('Este cenário local já foi enviado antes (ID no servidor: '+links[x.id]+'). Enviar de novo cria OUTRO cenário no servidor. Continuar?'))return;
       if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(c=>!c.ok).map(c=>'• '+c.label).join('\n')+'\n\nEnviar mesmo assim?'))return}
-      if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')))return;
+      if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')+(x.serverSource&&x.serverSource.id?' Esta é uma cópia do cenário '+x.serverSource.id+'; esta ação cria um NOVO cenário e não altera o original. Para atualizar o original, use “Salvar nova versão no servidor”.':'')))return;
       try{
         setStatus('srvScStatus','Criando rascunho no servidor…');
         const created=await api('/api/editor/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
