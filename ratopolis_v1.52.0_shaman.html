@@ -2525,6 +2525,20 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
       if(screen.orientation && typeof screen.orientation.lock==='function') await screen.orientation.lock('landscape');
     }catch(_e){}
   }
+  // Ponte de estado multiplayer: a integração de salas roda em outro escopo JS.
+  // Exponha somente o estado necessário para sincronizar o rato, sem alterar a lógica das fases.
+  window.__ratopolisGetMultiplayerState=function(){
+    const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
+      facing:Number(player.facing)||1,phase:Number(level)||0,active:!!playing,
+      started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
+      finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
+      nickname:String(playerNickname||'Jogador').slice(0,18)};
+    if(state.role==='shaman')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({
+      type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,
+      falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring
+    }));
+    return state;
+  };
   menu.addEventListener('pointerdown',requestMenuLandscape,{once:true,passive:true});
   menu.addEventListener('touchstart',requestMenuLandscape,{once:true,passive:true});
   window.addEventListener('orientationchange',()=>{
@@ -3246,8 +3260,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  function sendLocalPlayerState(){
   const ws=roomSocket;if(!ws||ws.readyState!==WebSocket.OPEN||!activeRoomCode)return;
-  const pl=typeof player!=='undefined'?player:null;if(!pl)return;
-  const role=String(typeof activeMatchRole!=='undefined'?activeMatchRole:'mouse');const state={x:Number(pl.x)||0,y:Number(pl.y)||0,facing:Number(pl.facing)||1,phase:Number(typeof level!=='undefined'?level:0),active:!!(typeof playing!=='undefined'&&playing),started:!!((typeof playing!=='undefined'&&playing)||(typeof raceHumanFinished!=='undefined'&&raceHumanFinished)||(typeof phaseElapsed!=='undefined'&&phaseElapsed>0)),role,finished:!!(typeof raceHumanFinished!=='undefined'&&raceHumanFinished),finishTime:Number(typeof raceHumanFinishTime!=='undefined'?raceHumanFinishTime:0)||0,nickname:String(typeof playerNickname!=='undefined'?playerNickname:'Jogador').slice(0,18)};if(role==='shaman'&&typeof obstacles!=='undefined')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring}));
+  const state=typeof window.__ratopolisGetMultiplayerState==='function'?window.__ratopolisGetMultiplayerState():null;
+  if(!state)return;
   try{ws.send(JSON.stringify({type:'player_state',playerId:getLocalPlayerId(),state}));}catch(_){}
   drawRemoteAvatars();
  }
