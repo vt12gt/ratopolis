@@ -985,7 +985,20 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #controls{z-index:5!important}
 #phaseStartCount{font-size:clamp(40px,9vh,78px)!important;line-height:1!important}
 </style>
-</head>
+<style id="ratopolis-1534-engine-menu-fix">
+#start:not(.hidden){z-index:30000!important}
+#start:not(.hidden)~#controls,#start:not(.hidden) #controls,#start:not(.hidden) .joystick,#start:not(.hidden) .game-controls{visibility:hidden!important;pointer-events:none!important}
+#start.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#game #controls,#game #joystick{z-index:120!important;pointer-events:auto!important}
+#phaseStart.overlay:not(.hidden){background:rgba(8,35,24,.18)!important;pointer-events:none!important;z-index:110!important}
+#phaseStart .modal{pointer-events:none!important}
+#roomsOverlay.overlay:not(.hidden){position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:3px!important}
+#roomsOverlay .rooms-modal{width:98vw!important;max-height:calc(100dvh - 6px)!important;overflow:hidden!important;padding:6px!important;box-sizing:border-box!important}
+#roomsOverlay #onlineDirectoryList{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important;max-height:30dvh!important;overflow:hidden!important}
+#roomsOverlay .online-room-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:3px 0!important}
+#roomsOverlay button{min-height:28px!important;padding:3px 6px!important;font-size:11px!important}
+@media(max-height:520px){#roomsOverlay h2{font-size:15px!important;margin:1px 0!important}#roomsOverlay .room-note{font-size:10px!important;margin:2px 0!important}}
+</style></head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
  <div style="width:min(520px,100%);padding:26px;border:2px solid #d7b84d;border-radius:22px;background:#09251c;box-shadow:0 15px 60px #0009">
@@ -2204,8 +2217,9 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
 }
 async function switchToTestRoom(roomIndex,skipCountdown=false){
  document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}clearPhaseTimers();document.getElementById('finish').classList.add('hidden');document.getElementById('phaseStart').classList.add('hidden');document.getElementById('death').classList.add('hidden');
- level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();
- const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;
+ level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();physicsAccumulator=0;clearTouchMovement();
+ /* Timeout evita que uma API de permissões lenta deixe o motor parado aguardando resposta. */
+ const staffRole=await Promise.race([getVerifiedStaffRole(),new Promise(resolve=>setTimeout(()=>resolve(''),1800))]);verifiedStaffRole=staffRole;
  if(staffRole==='SpAdmin'||staffRole==='Admin'){addChatLine('Sistema: acesso imediato confirmado ('+staffRole+'). A partida começa sem contagem.','system');showPhaseCountdown(0,true);}
  else{addChatLine('Sistema: sala '+(level+1)+' preparada. Escolha automática do Shaman em 5 segundos.','system');showPhaseCountdown(5,false);}
 }
