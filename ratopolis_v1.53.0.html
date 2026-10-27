@@ -974,6 +974,17 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #roomsOverlay button{min-height:28px!important;padding:4px 6px!important;font-size:11px!important}
 @media(max-height:520px){#roomsOverlay .rooms-modal{max-height:calc(100dvh - 6px)!important;padding:4px!important}#roomsOverlay h2,#roomsOverlay h3{margin:2px 0!important;font-size:14px!important}#roomsOverlay .online-rooms-directory{max-height:34dvh!important}#roomsOverlay #onlineDirectoryList{max-height:24dvh!important}}
 </style>
+<style id="ratopolis-1534-live-scene-fix">
+/* A contagem nunca pode cobrir o canvas inteiro nem receber os comandos. */
+#phaseStart.overlay:not(.hidden){position:fixed!important;inset:0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;background:transparent!important;background-color:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none!important;z-index:12!important}
+#phaseStart.overlay:not(.hidden)::before,#phaseStart.overlay:not(.hidden)::after{display:none!important;content:none!important}
+#phaseStart.overlay:not(.hidden) .modal{margin-top:12px!important;width:auto!important;min-width:0!important;max-width:90vw!important;background:rgba(8,35,24,.55)!important;border:1px solid rgba(255,224,138,.55)!important;border-radius:14px!important;padding:8px 18px!important;box-shadow:0 4px 16px rgba(0,0,0,.18)!important;pointer-events:none!important}
+#game canvas{visibility:visible!important;opacity:1!important}
+#start:not(.hidden){z-index:20000!important}
+#start.hidden{display:none!important;pointer-events:none!important}
+#controls{z-index:5!important}
+#phaseStartCount{font-size:clamp(40px,9vh,78px)!important;line-height:1!important}
+</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -2035,7 +2046,7 @@ function finalizeRaceResults(){if(raceResultsShown)return;if(editorTestActive){r
 // v1.27.0 — Física em passo fixo para reduzir variações de colisão entre celulares.
 // O desenho continua a cada frame; a simulação usa passos curtos e consistentes.
 const PHYSICS_STEP=1/120;let physicsAccumulator=0;
-function loop(t){const elapsed=Math.min(Math.max(0,(t-last)/1000||0),.1);last=t;physicsAccumulator=Math.min(physicsAccumulator+elapsed,.1);let safetySteps=0;while(physicsAccumulator>=PHYSICS_STEP&&safetySteps<12){update(PHYSICS_STEP);physicsAccumulator-=PHYSICS_STEP;safetySteps++;}if(safetySteps>=12)physicsAccumulator=0;draw();requestAnimationFrame(loop)}
+function loop(t){try{const elapsed=Math.min(Math.max(0,(t-last)/1000||0),.1);last=t;physicsAccumulator=Math.min(physicsAccumulator+elapsed,.1);let safetySteps=0;while(physicsAccumulator>=PHYSICS_STEP&&safetySteps<12){update(PHYSICS_STEP);physicsAccumulator-=PHYSICS_STEP;safetySteps++;}if(safetySteps>=12)physicsAccumulator=0;draw();}catch(err){console.error('[Ratópolis] erro no ciclo do jogo:',err);try{draw();}catch(drawErr){console.error('[Ratópolis] erro ao desenhar cenário:',drawErr);}}finally{requestAnimationFrame(loop)}}
 function resetPhaseStartTexts(){const l=document.querySelector('#phaseStart .phase-label'),p=document.querySelector('#phaseStart .modal p:nth-of-type(2)');if(l&&!document.getElementById('phaseStartNumber'))l.innerHTML='FASE <span id="phaseStartNumber">1</span>';if(p&&p.textContent!=='Prepare-se!')p.textContent='Prepare-se!';}
 function clearPhaseTimers(){resetPhaseStartTexts();if(finishTimer){clearInterval(finishTimer);finishTimer=null;}if(finishTick){clearInterval(finishTick);finishTick=null;}if(phaseStartTimer){clearInterval(phaseStartTimer);phaseStartTimer=null;}if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}}
 function xpResultSafeLevelText(text){return text&&text.includes('SUBIU DE NÍVEL')?' · 🎉 Novo nível!':'';}
