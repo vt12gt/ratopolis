@@ -900,7 +900,7 @@ canvas{image-rendering:auto;touch-action:none}
   <button id="rmFullscreen" class="rm-pill rm-iconbtn" type="button" aria-label="Ativar ou sair da tela cheia" title="Tela cheia">⛶</button>
  </div>
  <section class="rm-gchat" id="rmGlobalChat" aria-label="Chat global">
-  <div class="rm-gchat-head"><b>💬 CHAT GLOBAL</b><span id="rmGChatState">modo local</span></div>
+  <div class="rm-gchat-head"><b>💬 CHAT GLOBAL</b><span id="rmGChatRole" class="rm-gchat-role" title="Cargo verificado">Visitante</span><span id="rmGChatState">modo local</span></div>
   <div class="rm-gchat-log" id="rmGChatLog" role="log" aria-live="polite"><div class="rm-gmsg sys">Chat global online ainda não está conectado: mensagens aqui ficam apenas neste aparelho.</div></div>
   <form class="rm-gchat-form" id="rmGChatForm" autocomplete="off"><input id="rmGChatInput" maxlength="160" placeholder="Digite uma mensagem…" enterkeyhint="send" aria-label="Mensagem do chat global"><button type="submit">ENVIAR</button></form>
  </section>
@@ -3883,6 +3883,7 @@ body:has(#game.shaman-on) #game #communityDock{width:min(700px,calc(var(--gw) - 
 body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
 #chatPanel #chatLog{font-size:12px!important}
 @media(max-width:700px){#chatPanel:not(.hidden){width:min(340px,56vw)!important;height:min(220px,52dvh)!important}#communityDock:not(.hidden){width:min(92%,520px)!important}}
+.rm-gchat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rm-gchat-role{display:inline-flex;align-items:center;border:1px solid rgba(255,221,120,.55);border-radius:999px;padding:2px 7px;font-size:10px;font-weight:800;color:#ffe7a1;background:rgba(22,48,34,.75)}
 </style>
 
 <script id="rm-global-chat-menu">
@@ -3892,6 +3893,26 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  const API='https://ratopolis-chat-world-v1.juniorgmj69.workers.dev';
  const TOKEN_KEY='ratopolis_session_token';
  const menuLog=document.getElementById('rmGChatLog'), menuForm=document.getElementById('rmGChatForm'), menuInput=document.getElementById('rmGChatInput'), state=document.getElementById('rmGChatState');
+ const roleBadge=document.getElementById('rmGChatRole');
+ async function refreshChatRole(){
+  if(!roleBadge)return;
+  let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  if(!token){roleBadge.textContent='Visitante';roleBadge.title='Entre no portal para verificar sua conta.';return;}
+  roleBadge.textContent='Player';roleBadge.title='Cargo padrão; verificando permissões da equipe.';
+  try{
+   const r=await fetch('https://ratopolis-admin-test.juniorgmj69.workers.dev/api/admin/me',{method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store'});
+   const d=await r.json().catch(()=>({}));if(!r.ok||d.autorizado!==true)return;
+   const raw=String(d.role||d.papel||d.user?.role||d.usuario?.role||d.perfil?.role||'').trim().toLowerCase().replace(/[\\s_-]/g,'');
+   let label='Player';
+   if(['spadm','superadmin','superadministrator','superadministrador','adm','admin','administrator','administrador'].includes(raw))label='ADM';
+   else if(['gm','gamemaster','gamemestre','gamemasterratopolis'].includes(raw))label='GM';
+   else if(['mod','moderator','moderador'].includes(raw))label='Mod';
+   else return;
+   roleBadge.textContent=label;roleBadge.title='Cargo confirmado pela API administrativa do Ratópolis.';
+  }catch(_){roleBadge.title='Não foi possível verificar o cargo; nenhuma permissão administrativa foi concedida.';}
+ }
+ refreshChatRole();
+ window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY)refreshChatRole();});
  const gameLog=document.getElementById('chatLog');
  let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0;
  const seen=new Set();
