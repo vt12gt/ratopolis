@@ -39,7 +39,39 @@
 @media(max-width:650px){#v62-player-tools{grid-template-columns:1fr}#v62-player-details dl{grid-template-columns:1fr}#v62-player-tools button{width:100%}}
 </style>
 <style id="ratopolis-v65-3-css">#ratopolisServerScenarios .actions,#ratopolisServerScenarios .item .actions,#ratopolisServerScenarios td .actions{flex-wrap:wrap}#ratopolisServerScenarios .field textarea,#modalRoot .field textarea{min-height:90px}body.srv-busy #ratopolisServerScenarios .actions button,body.srv-busy #ratopolisServerApprovals .actions button{opacity:.6}#srvSession{flex-wrap:wrap}#srvScUpdated{align-self:center}@media(max-width:650px){.item{flex-wrap:wrap}.item .actions{flex-wrap:wrap}.item>div{min-width:0}#ratopolisServerScenarios .actions button,#ratopolisServerApprovals .actions button{min-height:44px}#ratopolisServerScenarios .filters{grid-template-columns:1fr!important}}</style>
-</head><body><section id="ratopolis-v27-check" style="margin:14px;padding:16px;border:1px solid #6e5ce6;border-radius:14px;background:#121a2e;color:#edf2ff;position:relative;z-index:20">
+
+<style id="ratopolis-admin-access-lock">
+html.ratopolis-admin-lock body{overflow:hidden!important}
+html.ratopolis-admin-lock body>:not(#ratopolisAdminGate){visibility:hidden!important;pointer-events:none!important}
+#ratopolisAdminGate{display:none;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;padding:22px;background:#070b16;color:#eef3ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+html.ratopolis-admin-lock #ratopolisAdminGate{display:flex!important}
+#ratopolisAdminGate .rag-card{width:min(100%,480px);padding:26px;border:1px solid #34415d;border-radius:18px;background:#111a2c;box-shadow:0 24px 90px #0009}
+#ratopolisAdminGate .rag-mark{font-size:12px;letter-spacing:.16em;color:#ffc857;font-weight:900}
+#ratopolisAdminGate h1{margin:10px 0;font-size:25px;line-height:1.2}
+#ratopolisAdminGate p{color:#b9c6df;line-height:1.55}
+#ratopolisAdminGate .rag-status{margin:18px 0;padding:12px;border-radius:10px;background:#0a1020;border-left:4px solid #ffc857;overflow-wrap:anywhere}
+#ratopolisAdminGate .rag-actions{display:flex;gap:10px;flex-wrap:wrap}
+#ratopolisAdminGate button,#ratopolisAdminGate a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border:0;border-radius:9px;background:#ffc857;color:#171b25;font-weight:800;text-decoration:none;cursor:pointer}
+#ratopolisAdminGate a{background:#27344e;color:#eef3ff}
+#ratopolisAdminGate button:disabled{opacity:.65;cursor:wait}
+</style>
+<script id="ratopolis-admin-lock-init">document.documentElement.classList.add('ratopolis-admin-lock');</script>
+
+</head><body>
+
+<section id="ratopolisAdminGate" role="dialog" aria-modal="true" aria-labelledby="rag-title">
+ <div class="rag-card">
+  <div class="rag-mark">RATÓPOLIS · ÁREA RESTRITA</div>
+  <h1 id="rag-title">Painel administrativo</h1>
+  <p>Este painel é exclusivo para contas autorizadas pela administração. Contas de jogadores não têm acesso.</p>
+  <div id="rag-status" class="rag-status" role="status" aria-live="polite">Verificando a sessão e as permissões da conta…</div>
+  <div class="rag-actions">
+   <button id="rag-retry" type="button">Verificar novamente</button>
+   <a href="https://vt12gt.github.io/ratopolis/portal_ratopolis.html">Voltar ao portal</a>
+  </div>
+ </div>
+</section>
+<section id="ratopolis-v27-check" style="margin:14px;padding:16px;border:1px solid #6e5ce6;border-radius:14px;background:#121a2e;color:#edf2ff;position:relative;z-index:20">
  <div style="font-weight:900;font-size:18px;color:#ffc857">RATÓPOLIS ADMIN v64 · DIAGNÓSTICO DE AUTENTICAÇÃO</div>
  <p style="margin:6px 0 12px;color:#b8c5df">Verificação somente leitura. Esta área consulta a sessão no Worker administrativo; não altera o banco nem concede permissões.</p><p style="margin:0 0 12px;color:#9ba9c4;font-size:12px;overflow-wrap:anywhere">Worker configurado: <b>https://ratopolis-api-dev-v30.juniorgmj69.workers.dev</b><br>Endpoint consultado: <code>/api/admin/me</code></p>
  <div id="r27-status" role="status" style="padding:10px;border-radius:8px;background:#0b1020;margin-bottom:10px">Aguardando verificação…</div>
@@ -895,6 +927,71 @@ auditLog('Painel v65.3 aberto');render();
     await Promise.all([loadScenarios(),loadQueue()]);
   });
   window.__ratopolisSrv={state,api,identity,canReview,latestLayout};
+})();
+</script>
+
+
+<script id="ratopolis-admin-access-guard">
+(()=>{
+ 'use strict';
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+ const TOKEN_KEY='ratopolis_session_token';
+ const gate=document.getElementById('ratopolisAdminGate');
+ const status=document.getElementById('rag-status');
+ const retry=document.getElementById('rag-retry');
+ let checking=false,granted=false;
+ const setStatus=(message,color='#ffc857')=>{if(status){status.textContent=message;status.style.borderLeftColor=color;}};
+ const normalizedRole=value=>String(value||'').trim().toLowerCase().replace(/[\s_-]/g,'');
+ function deny(message){
+  granted=false;
+  document.documentElement.classList.add('ratopolis-admin-lock');
+  document.documentElement.classList.remove('ratopolis-admin-authorized');
+  setStatus(message,'#ff7185');
+ }
+ async function verify(){
+  if(checking||granted)return;
+  checking=true;
+  if(retry){retry.disabled=true;retry.textContent='Verificando…';}
+  setStatus('Verificando a sessão e as permissões diretamente no servidor…');
+  try{
+   let token='';
+   try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+   if(!token){deny('Nenhuma sessão encontrada. Entre no portal com sua conta administrativa e abra o painel novamente.');return;}
+   const response=await fetch(API+'/api/admin/me',{
+    method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},
+    cache:'no-store',credentials:'omit'
+   });
+   let payload={};
+   try{payload=await response.json();}catch(_){}
+   const auth=payload&&payload.data&&typeof payload.data==='object'?{...payload,...payload.data}:payload;
+   const user=auth.user||auth.usuario||auth.perfil||auth.admin||{};
+   const role=normalizedRole(auth.role||auth.papel||auth.cargo||user.role||user.papel||user.cargo);
+   const permissions=auth.permissoes||auth.permissions||user.permissoes||user.permissions||{};
+   const authorizedFlag=auth.autorizado===true||auth.authorized===true;
+   const canOpen=permissions.viewAdminPanel===true;
+   const playerRoles=['player','jogador','user','usuario','guest','visitante',''];
+   if(response.status===401){deny('Sua sessão está inválida ou expirou. Entre novamente no portal com a conta autorizada.');return;}
+   if(response.status===403||!response.ok||auth.ok===false){deny('Acesso negado pelo servidor. Esta conta não tem autorização para abrir o painel.');return;}
+   if(playerRoles.includes(role)||!authorizedFlag||!canOpen){
+    deny('Acesso negado: somente contas administrativas autorizadas pelo servidor podem entrar. Contas de jogadores não têm acesso ao painel.');return;
+   }
+   granted=true;
+   document.documentElement.classList.remove('ratopolis-admin-lock');
+   document.documentElement.classList.add('ratopolis-admin-authorized');
+   if(gate)gate.style.display='none';
+  }catch(_){
+   deny('Não foi possível confirmar a autorização no servidor. Por segurança, o painel permanece bloqueado. Verifique a conexão e tente novamente.');
+  }finally{
+   checking=false;
+   if(retry){retry.disabled=false;retry.textContent='Verificar novamente';}
+  }
+ }
+ if(retry)retry.addEventListener('click',verify);
+ window.addEventListener('storage',event=>{
+  if(event.key===TOKEN_KEY){granted=false;document.documentElement.classList.add('ratopolis-admin-lock');verify();}
+ });
+ window.addEventListener('pageshow',()=>{if(!granted)verify();});
+ verify();
 })();
 </script>
 
