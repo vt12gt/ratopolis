@@ -843,6 +843,25 @@ canvas{image-rendering:auto;touch-action:none}
 @media(max-width:560px){.online-room-actions{grid-template-columns:1fr}.online-code-row{grid-template-columns:minmax(0,1fr) auto}#ratopolisOnlineRooms{padding:9px}.online-room-details{padding:8px}}
 </style>
 
+
+<style id="rm-private-chat-v21">
+#rmGChatPrivate{margin-left:auto;border:1px solid #d8c36e;border-radius:7px;background:#234e38;color:#fff6dc;padding:4px 8px;font-size:10px;font-weight:900;cursor:pointer}
+#rmPrivateOverlay{position:fixed;inset:0;z-index:25000;background:#071a13d9;display:flex;align-items:center;justify-content:center;padding:12px}
+#rmPrivateOverlay[hidden]{display:none!important}
+#rmPrivateBox{width:min(560px,96vw);max-height:88dvh;display:grid;grid-template-rows:auto minmax(90px,1fr) minmax(90px,1fr) auto;gap:8px;padding:12px;border:1px solid #8ac4a5;border-radius:15px;background:#102b25;color:#fff6dc;box-shadow:0 15px 55px #0009}
+#rmPrivateTop{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900}
+#rmPrivateClose{border:0;border-radius:8px;padding:7px 10px;background:#365b43;color:white;font-weight:900}
+#rmPrivatePlayers{display:flex;flex-wrap:wrap;gap:6px;align-content:start;overflow:auto;padding:5px;border:1px solid #456e58;border-radius:8px}
+#rmPrivatePlayers button{border:1px solid #789d7e;border-radius:8px;background:#214a34;color:#fff6dc;padding:7px 9px;font-weight:800}
+#rmPrivatePlayers button[aria-pressed=true]{background:#b78a2e;color:#172d20}
+#rmPrivateLog{overflow:auto;min-height:90px;padding:8px;border-radius:8px;background:#081d15;overflow-wrap:anywhere}
+#rmPrivateForm{display:flex;gap:6px}
+#rmPrivateInput{min-width:0;flex:1;border:1px solid #789d7e;border-radius:8px;background:#f7f0d8;color:#173526;padding:9px;font-size:14px}
+#rmPrivateForm button{border:0;border-radius:8px;background:#ffcf55;color:#173526;font-weight:900;padding:8px 12px}
+.rm-private-line{margin:0 0 6px;padding:5px 7px;border-radius:6px;background:#214332;font-size:12px;white-space:pre-wrap}
+.rm-private-line.sys{color:#ffe08a;background:transparent}
+@media(max-width:520px){#rmPrivateBox{width:96vw;padding:8px;max-height:92dvh}#rmPrivatePlayers button{font-size:11px;padding:6px}#rmPrivateForm button{padding:7px}}
+</style>
 </head>
 <body>\n<div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
  <div style="width:min(520px,100%);padding:26px;border:2px solid #d7b84d;border-radius:22px;background:#09251c;box-shadow:0 15px 60px #0009">
@@ -904,6 +923,15 @@ canvas{image-rendering:auto;touch-action:none}
   <div class="rm-gchat-log" id="rmGChatLog" role="log" aria-live="polite"><div class="rm-gmsg sys">Chat global online ainda não está conectado: mensagens aqui ficam apenas neste aparelho.</div></div>
   <form class="rm-gchat-form" id="rmGChatForm" autocomplete="off"><input id="rmGChatInput" maxlength="160" placeholder="Digite uma mensagem…" enterkeyhint="send" aria-label="Mensagem do chat global"><button type="submit">ENVIAR</button></form>
  </section>
+ 
+<div id="rmPrivateOverlay" hidden>
+ <section id="rmPrivateBox" role="dialog" aria-modal="true" aria-labelledby="rmPrivateTitle">
+  <div id="rmPrivateTop"><span id="rmPrivateTitle">✉️ Chat privado</span><button id="rmPrivateClose" type="button">FECHAR</button></div>
+  <div><b style="font-size:12px">Jogadores online — selecione uma conta</b><div id="rmPrivatePlayers"></div></div>
+  <div id="rmPrivateLog" aria-live="polite"><div class="rm-private-line sys">Escolha um jogador online para iniciar uma conversa privada.</div></div>
+  <form id="rmPrivateForm"><input id="rmPrivateInput" maxlength="300" autocomplete="off" placeholder="Mensagem privada…" aria-label="Mensagem privada"><button type="submit">ENVIAR</button></form>
+ </section>
+</div>
  <div class="rm-bottom">
   <section class="rm-card rm-account" id="rmAccountCard" data-state="guest" aria-live="polite">
    <div class="rm-card-title">🔐 CONTA DO RATÓPOLIS</div>
@@ -3948,7 +3976,16 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  refreshChatRole();
  window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY)refreshChatRole();});
  const gameLog=document.getElementById('chatLog');
- let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0;
+ let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0, selfPlayerId='', selectedPrivateId='';
+ const onlinePlayers=new Map(), privateThreads=new Map();
+ const privateOverlay=document.getElementById('rmPrivateOverlay'), privatePlayers=document.getElementById('rmPrivatePlayers'), privateLog=document.getElementById('rmPrivateLog'), privateInput=document.getElementById('rmPrivateInput');
+ const privateButton=document.createElement('button');privateButton.type='button';privateButton.id='rmGChatPrivate';privateButton.textContent='✉️ PRIVADO';privateButton.addEventListener('click',()=>{privateOverlay.hidden=false;renderOnlinePlayers();renderPrivateThread();});
+ const head=document.querySelector('#rmGlobalChat .rm-gchat-head');if(head)head.appendChild(privateButton);
+ function privateLine(text,sys=false){if(!privateLog)return;const d=document.createElement('div');d.className='rm-private-line'+(sys?' sys':'');d.textContent=String(text);privateLog.appendChild(d);while(privateLog.children.length>80)privateLog.removeChild(privateLog.firstChild);privateLog.scrollTop=privateLog.scrollHeight;}
+ function renderPrivateThread(){if(!privateLog)return;privateLog.replaceChildren();if(!selectedPrivateId){privateLine('Escolha um jogador online para iniciar uma conversa privada.',true);return;}const target=onlinePlayers.get(selectedPrivateId);privateLine('Conversa privada com '+(target?.nickname||'jogador')+'. As mensagens não ficam salvas após a sessão.',true);for(const m of privateThreads.get(selectedPrivateId)||[])privateLine((m.mine?'Você':m.nickname)+': '+m.text);}
+ function renderOnlinePlayers(){if(!privatePlayers)return;privatePlayers.replaceChildren();const rows=[...onlinePlayers.values()].filter(p=>p.playerId!==selfPlayerId);if(!rows.length){const e=document.createElement('div');e.textContent='Nenhum outro jogador conectado agora.';privatePlayers.appendChild(e);return;}for(const p of rows){const b=document.createElement('button');b.type='button';b.textContent=(p.nickname||'Jogador')+(p.role&&p.role!=='Player'?' · '+p.role:'');b.setAttribute('aria-pressed',String(selectedPrivateId===p.playerId));b.addEventListener('click',()=>{selectedPrivateId=p.playerId;renderOnlinePlayers();renderPrivateThread();privateInput?.focus({preventScroll:true});});privatePlayers.appendChild(b);}}
+ function updateOnlinePlayers(rows){onlinePlayers.clear();if(Array.isArray(rows))for(const p of rows){if(p&&p.playerId)onlinePlayers.set(String(p.playerId),{...p,playerId:String(p.playerId)});}renderOnlinePlayers();if(selectedPrivateId&&!onlinePlayers.has(selectedPrivateId)){privateLine('O jogador selecionado saiu do Chat Mundo.',true);}}
+ function sendPrivate(text){const value=String(text||'').trim();if(!selectedPrivateId)return privateLine('Selecione primeiro um jogador online.',true);if(!value)return;if(value.length>300)return privateLine('A mensagem deve ter até 300 caracteres.',true);if(!ws||ws.readyState!==WebSocket.OPEN||!online)return privateLine('Chat Mundo desconectado. Tente novamente.',true);try{ws.send(JSON.stringify({type:'private_message',targetPlayerId:selectedPrivateId,text:value}));const thread=privateThreads.get(selectedPrivateId)||[];thread.push({mine:true,nickname:'Você',text:value});privateThreads.set(selectedPrivateId,thread.slice(-80));renderPrivateThread();}catch(_){privateLine('Falha ao enviar a mensagem privada.',true);}}
  const seen=new Set();
  function setState(s){if(state)state.textContent=s;}
  function append(log,cls,txt){
@@ -3994,12 +4031,14 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
    socket.onmessage=e=>{
     let d;try{d=JSON.parse(e.data);}catch(_){return;}
     if(d.type==='ready'){
-     online=true;setState('Mundo online');
+     online=true;selfPlayerId=String(d.playerId||'');updateOnlinePlayers(d.players||[]);setState('Mundo online');
      if(!loadedHistory&&Array.isArray(d.history)){d.history.forEach(render);loadedHistory=true;}
      return;
     }
     if(d.type==='chat_message'){render(d.message);return;}
-    if(d.type==='presence'){setState('Mundo online · '+Math.max(0,Number(d.online)||0));return;}
+    if(d.type==='presence'){updateOnlinePlayers(d.players||[]);setState('Mundo online · '+Math.max(0,Number(d.online)||0));return;}
+    if(d.type==='private_message'){const id=String(d.fromPlayerId||'');if(!id)return;const thread=privateThreads.get(id)||[];thread.push({mine:false,nickname:String(d.fromNickname||'Jogador'),text:String(d.text||'').slice(0,300)});privateThreads.set(id,thread.slice(-80));if(!privateOverlay.hidden&&selectedPrivateId===id)renderPrivateThread();else sys('✉️ Mensagem privada recebida de '+String(d.fromNickname||'Jogador')+'.');return;}
+    if(d.type==='private_result'){if(d.ok===false)privateLine(String(d.message||'Jogador offline.'),true);return;}
     if(d.type==='error'&&d.message)sys(String(d.message).slice(0,200));
    };
    socket.onerror=()=>setState('conexão instável…');
@@ -4022,7 +4061,10 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   try{ws.send(JSON.stringify({type:'chat_message',text:value}));lastSentAt=now;return {ok:true};}
   catch(_){return {ok:false,reason:'offline'};}
  }
- window.RatopolisWorldChat={send:text=>{const r=send(text);return r.ok;},isOnline:()=>online,reconnect:()=>{if(retry){clearTimeout(retry);retry=null;}if(ws)try{ws.close();}catch(_){}else connect();}};
+ window.RatopolisWorldChat={send:text=>{const r=send(text);return r.ok;},sendPrivate:(id,text)=>{selectedPrivateId=String(id||'');sendPrivate(text);},getPlayers:()=>[...onlinePlayers.values()],isOnline:()=>online,reconnect:()=>{if(retry){clearTimeout(retry);retry=null;}if(ws)try{ws.close();}catch(_){}else connect();}};
+ document.getElementById('rmPrivateClose')?.addEventListener('click',()=>{privateOverlay.hidden=true;});privateOverlay?.addEventListener('click',e=>{if(e.target===privateOverlay)privateOverlay.hidden=true;});document.getElementById('rmPrivateForm')?.addEventListener('submit',e=>{e.preventDefault();const value=privateInput.value.trim();if(!value)return;sendPrivate(value);privateInput.value='';privateInput.focus({preventScroll:true});});
+ window.addEventListener('pagehide',()=>{online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(ws){try{ws.close(1000,'pagehide');}catch(_){}}});
+ window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY&&!e.newValue){online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(ws){try{ws.close(1000,'logout');}catch(_){}}if(menuLog)menuLog.replaceChildren();if(gameLog)gameLog.replaceChildren();privateLog?.replaceChildren();}});
  if(menuForm&&menuInput)menuForm.addEventListener('submit',e=>{
   e.preventDefault();const value=menuInput.value.trim();if(!value)return;
   const result=send(value);
