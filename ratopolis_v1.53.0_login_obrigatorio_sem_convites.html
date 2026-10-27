@@ -1181,7 +1181,7 @@ async function startPaidVIPCheckout(){
   const data=await response.json().catch(()=>({}));
   if(!response.ok||data.ok!==true||!data.checkoutUrl)throw new Error(data.erro||'Não foi possível iniciar o pagamento.');
   const checkout=new URL(data.checkoutUrl);
-  if(checkout.protocol!=='https:'||!/(^|\\.)mercadopago\\.com(\\.br)?$/i.test(checkout.hostname))throw new Error('O endereço de pagamento retornado não passou na validação de segurança.');
+  if(checkout.protocol!=='https:'||!/(^|\.)mercadopago\.com(\.br)?$/i.test(checkout.hostname))throw new Error('O endereço de pagamento retornado não passou na validação de segurança.');
   window.location.assign(checkout.href);
  }catch(err){showMessage(err.message||'Erro ao iniciar o pagamento VIP.');}
  finally{if(button&&button.isConnected){button.disabled=!!paidVIPState.active;button.textContent=paidVIPState.active?'👑 VIP já ativo':'👑 Ativar VIP por 30 dias · R$ 4,99';}}
