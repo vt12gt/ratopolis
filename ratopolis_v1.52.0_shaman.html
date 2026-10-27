@@ -2529,7 +2529,7 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
   // Exponha somente o estado necessário para sincronizar o rato, sem alterar a lógica das fases.
   window.__ratopolisGetMultiplayerState=function(){
     const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
-      facing:Number(player.facing)||1,phase:Number(level)||0,active:!!playing,
+      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!playing,
       started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
       finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
       nickname:String(playerNickname||'Jogador').slice(0,18)};
@@ -3211,11 +3211,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   avatarLayer.classList.toggle('active',!!activeRoomCode&&localRoomMatchStarted);
   const scene=$('scene');if(!scene)return;
   const currentIds=new Set();
-  const logicalW=(typeof W!=='undefined'&&Number(W))||scene.clientWidth||1;
-  const logicalH=(typeof H!=='undefined'&&Number(H))||scene.clientHeight||1;
-  const camera=(typeof cam!=='undefined'&&Number(cam))||0;
+  const localState=typeof window.__ratopolisGetMultiplayerState==='function'?window.__ratopolisGetMultiplayerState():null;
+  const logicalW=(localState&&Number(localState.logicalW))||scene.clientWidth||1;
+  const logicalH=(localState&&Number(localState.logicalH))||scene.clientHeight||1;
+  const camera=(localState&&Number(localState.camera))||0;
+  const localPhase=localState&&Number.isFinite(Number(localState.phase))?Number(localState.phase):null;
   for(const [id,p] of remotePlayers){
-   if(!p||p.id===getLocalPlayerId()||p.phase!==undefined&&Number(p.phase)!==Number(typeof level!=='undefined'?level:0))continue;
+   if(!p||String(p.id)===getLocalPlayerId()||(localPhase!==null&&p.phase!==undefined&&Number(p.phase)!==localPhase))continue;
    currentIds.add(id);let node=avatarLayer.querySelector('[data-player-id="'+CSS.escape(String(id))+'"]');
    if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';rat.textContent='🐭';const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
    node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
