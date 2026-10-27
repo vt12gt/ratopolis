@@ -845,7 +845,7 @@ canvas{image-rendering:auto;touch-action:none}
 
 </head>
 <body>
-<div id="game"><header><div class="topbar"><div class="brand" id="gamePlayerBrand">🐭 <span id="hudNickname">Convidado</span> <small id="hudVip" style="font-size:10px;color:#f3d879;white-space:nowrap">VIP · INATIVO</small></div><div class="top-actions"><button id="wardrobeBtn" type="button" aria-label="Abrir guarda-roupa" title="Guarda-roupa">🎩</button><button id="gameVIPBtn" type="button" aria-label="Abrir painel VIP" title="Painel VIP">👑 VIP</button><button id="fullscreenBtn" type="button" aria-label="Entrar ou sair da tela cheia">⛶ TELA CHEIA</button><button id="achievementBtn" type="button" aria-label="Abrir conquistas" title="Conquistas">🏅</button><button id="soundBtn" type="button" aria-label="Desativar efeitos sonoros" title="Efeitos sonoros">🔊</button><button id="musicBtn" type="button" aria-label="Desligar música de fundo" title="Música de fundo">🎵</button><button id="settingsBtn" type="button" aria-label="Abrir configurações" title="Configurações">⚙️</button></div></div><div id="stats"><span>🌲 Fase <b id="levelLabel">1</b></span><span id="xpStat" title="Nível do jogador e experiência acumulada">⭐ Nv. <b id="playerLevel">1</b> <small id="xpProgress">0/50 XP</small><span id="xpBar" aria-label="Progresso de experiência"><i id="xpBarFill"></i></span></span><span>⏱️ <b id="phaseTimer">00:00</b></span><span>🧀 <b id="cheeseCount">0/4</b></span><span>❤️ <b id="lives">3</b></span><span>🌰 <b id="acornCount">0</b></span><span>🪙 <b id="coinCount">0</b></span><span>🏆 <b id="wins">0</b></span></div></header><section id="shamanTools" class="hidden" aria-label="Habilidades do Shaman"><div id="shamanMana" title="Mana do Shaman"><i id="shamanManaFill"></i><b id="shamanManaText">100</b><span>MANA</span></div><div class="sh-grid"><button type="button" data-skill="plank" title="Tábua — 12 mana (tecla 1)" aria-label="Tábua, 12 de mana">🪵<span class="shaman-charge">12</span><i class="sk-key">1</i></button><button type="button" data-skill="box" title="Caixa — 15 mana (tecla 2)" aria-label="Caixa, 15 de mana">📦<span class="shaman-charge">15</span><i class="sk-key">2</i></button><button type="button" data-skill="anvil" title="Bigorna — 25 mana (tecla 3)" aria-label="Bigorna, 25 de mana">⚒️<span class="shaman-charge">25</span><i class="sk-key">3</i></button><button type="button" data-skill="cannon" title="Bola de canhão — 25 mana (tecla 4)" aria-label="Bola de canhão, 25 de mana">⚫<span class="shaman-charge">25</span><i class="sk-key">4</i></button><button type="button" data-skill="balloon" title="Balão — 30 mana (tecla 5)" aria-label="Balão, 30 de mana">🎈<span class="shaman-charge">30</span><i class="sk-key">5</i></button><button type="button" data-skill="spring" title="Mola — 18 mana (tecla 6)" aria-label="Mola, 18 de mana">〰️<span class="shaman-charge">18</span><i class="sk-key">6</i></button><button type="button" data-skill="trampoline" title="Trampolim — 22 mana (tecla 7)" aria-label="Trampolim, 22 de mana">🟠<span class="shaman-charge">22</span><i class="sk-key">7</i></button><button type="button" id="shamanUndo" title="Desfazer o último objeto (devolve metade da mana)" aria-label="Desfazer último objeto">↶</button></div><small id="shamanToolsStatus" role="status" aria-live="polite"></small></section><div id="scene"><canvas id="world" aria-label="Jogo de plataforma Ratópolis"></canvas><div id="shamanPlacementGhost" aria-hidden="true"></div><div id="message">Pegue a bolota 🌰 e entre na toca!</div><button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatPanel">💬 CHAT</button><section id="chatPanel" class="hidden" aria-label="Chat local de teste"><div id="chatHead"><span>💬 CHAT DA SALA <small id="chatRoomBadge">· LOCAL</small></span><div class="chat-head-actions"><button id="communityBtn" type="button" aria-label="Ver participantes da sala" title="Participantes">👥 <span id="chatPeopleCount">1</span></button><button id="chatClose" type="button" aria-label="Fechar chat">✕</button></div></div><div id="chatLog" role="log" aria-live="polite"><div class="chat-line system">Bem-vindo! Use /ajuda para ver comandos. Chat local: outros aparelhos ainda não estão conectados.</div></div><form id="chatForm"><input id="chatInput" type="text" maxlength="120" autocomplete="off" placeholder="Digite um comando…" aria-label="Mensagem ou comando do chat"><button id="chatSend" type="submit">ENVIAR</button></form></section></div><div id="controls"><div class="cluster movement-cluster"><div id="joystick" role="application" aria-label="Joystick de movimento horizontal. Arraste para os lados para andar; movimento para cima ou para baixo não altera a direção." tabindex="0"><div class="joystick-ring"><div id="joystickKnob"></div></div><span class="joystick-label">MOVER</span></div><button class="visually-hidden" id="left" aria-label="Mover para esquerda" tabindex="-1">◀</button><button class="visually-hidden" id="right" aria-label="Mover para direita" tabindex="-1">▶</button></div><div class="phase-test" aria-label="Seletor temporário de fases"><div class="phase-test-controls"><label for="testPhase" class="visually-hidden">Escolher fase</label><select id="testPhase" aria-label="Escolher fase para testar"><option value="1">Fase 1</option><option value="2">Fase 2</option><option value="3" selected>Fase 3</option><option value="4">Fase 4</option><option value="5">Fase 5</option><option value="6">Fase 6</option><option value="7">Fase 7</option><option value="8">Fase 8</option><option value="9">Fase 9</option><option value="10">Fase 10</option><option value="11">Fase 11</option><option value="12">Fase 12</option></select><button id="testPhaseBtn" type="button">IR TESTAR</button></div></div><div class="cluster"><button class="ctl small" id="build">🪵<br>PONTE</button><button class="ctl small" id="restart">↻<br>REINICIAR</button><button class="ctl small dash" id="dash" aria-label="Impulso rápido">⚡<br>IMPULSO</button><button class="ctl jump" id="jump">PULAR ↑</button></div></div>
+<div id="game"><header><div class="topbar"><div class="brand" id="gamePlayerBrand">🐭 <span id="hudNickname">Convidado</span> <small id="hudVip" style="font-size:10px;color:#f3d879;white-space:nowrap">VIP · INATIVO</small></div><div class="top-actions"><button id="wardrobeBtn" type="button" aria-label="Abrir guarda-roupa" title="Guarda-roupa">🎩</button><button id="gameVIPBtn" type="button" aria-label="Abrir painel VIP" title="Painel VIP">👑 VIP</button><button id="fullscreenBtn" type="button" aria-label="Entrar ou sair da tela cheia">⛶ TELA CHEIA</button><button id="achievementBtn" type="button" aria-label="Abrir conquistas" title="Conquistas">🏅</button><button id="soundBtn" type="button" aria-label="Desativar efeitos sonoros" title="Efeitos sonoros">🔊</button><button id="musicBtn" type="button" aria-label="Desligar música de fundo" title="Música de fundo">🎵</button><button id="settingsBtn" type="button" aria-label="Abrir configurações" title="Configurações">⚙️</button></div></div><div id="stats"><span>🌲 Fase <b id="levelLabel">1</b></span><span id="xpStat" title="Nível do jogador e experiência acumulada">⭐ Nv. <b id="playerLevel">1</b> <small id="xpProgress">0/50 XP</small><span id="xpBar" aria-label="Progresso de experiência"><i id="xpBarFill"></i></span></span><span>⏱️ <b id="phaseTimer">00:00</b></span><span>🧀 <b id="cheeseCount">0/4</b></span><span>❤️ <b id="lives">3</b></span><span>🌰 <b id="acornCount">0</b></span><span>🪙 <b id="coinCount">0</b></span><span>🏆 <b id="wins">0</b></span></div></header><section id="shamanTools" class="hidden" aria-label="Habilidades do Shaman"><div id="shamanMana" title="Mana do Shaman"><i id="shamanManaFill"></i><b id="shamanManaText">100</b><span>MANA</span></div><div class="sh-grid"><button type="button" data-skill="plank" title="Tábua — 12 mana (tecla 1)" aria-label="Tábua, 12 de mana">🪵<span class="shaman-charge">12</span><i class="sk-key">1</i></button><button type="button" data-skill="box" title="Caixa — 15 mana (tecla 2)" aria-label="Caixa, 15 de mana">📦<span class="shaman-charge">15</span><i class="sk-key">2</i></button><button type="button" data-skill="anvil" title="Bigorna — 25 mana (tecla 3)" aria-label="Bigorna, 25 de mana">⚒️<span class="shaman-charge">25</span><i class="sk-key">3</i></button><button type="button" data-skill="cannon" title="Bola de canhão — 25 mana (tecla 4)" aria-label="Bola de canhão, 25 de mana">⚫<span class="shaman-charge">25</span><i class="sk-key">4</i></button><button type="button" data-skill="balloon" title="Balão — 30 mana (tecla 5)" aria-label="Balão, 30 de mana">🎈<span class="shaman-charge">30</span><i class="sk-key">5</i></button><button type="button" data-skill="spring" title="Mola — 18 mana (tecla 6)" aria-label="Mola, 18 de mana">〰️<span class="shaman-charge">18</span><i class="sk-key">6</i></button><button type="button" data-skill="trampoline" title="Trampolim — 22 mana (tecla 7)" aria-label="Trampolim, 22 de mana">🟠<span class="shaman-charge">22</span><i class="sk-key">7</i></button><button type="button" id="shamanUndo" title="Desfazer o último objeto (devolve metade da mana)" aria-label="Desfazer último objeto">↶</button></div><small id="shamanToolsStatus" role="status" aria-live="polite"></small></section><div id="scene"><canvas id="world" aria-label="Jogo de plataforma Ratópolis"></canvas><div id="onlineAvatars" aria-hidden="true"></div><div id="shamanPlacementGhost" aria-hidden="true"></div><div id="message">Pegue a bolota 🌰 e entre na toca!</div><button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatPanel">💬 CHAT</button><section id="chatPanel" class="hidden" aria-label="Chat local de teste"><div id="chatHead"><span>💬 CHAT DA SALA <small id="chatRoomBadge">· LOCAL</small></span><div class="chat-head-actions"><button id="communityBtn" type="button" aria-label="Ver participantes da sala" title="Participantes">👥 <span id="chatPeopleCount">1</span></button><button id="chatClose" type="button" aria-label="Fechar chat">✕</button></div></div><div id="chatLog" role="log" aria-live="polite"><div class="chat-line system">Bem-vindo! Use /ajuda para ver comandos. Chat local: outros aparelhos ainda não estão conectados.</div></div><form id="chatForm"><input id="chatInput" type="text" maxlength="120" autocomplete="off" placeholder="Digite um comando…" aria-label="Mensagem ou comando do chat"><button id="chatSend" type="submit">ENVIAR</button></form></section></div><div id="controls"><div class="cluster movement-cluster"><div id="joystick" role="application" aria-label="Joystick de movimento horizontal. Arraste para os lados para andar; movimento para cima ou para baixo não altera a direção." tabindex="0"><div class="joystick-ring"><div id="joystickKnob"></div></div><span class="joystick-label">MOVER</span></div><button class="visually-hidden" id="left" aria-label="Mover para esquerda" tabindex="-1">◀</button><button class="visually-hidden" id="right" aria-label="Mover para direita" tabindex="-1">▶</button></div><div class="phase-test" aria-label="Seletor temporário de fases"><div class="phase-test-controls"><label for="testPhase" class="visually-hidden">Escolher fase</label><select id="testPhase" aria-label="Escolher fase para testar"><option value="1">Fase 1</option><option value="2">Fase 2</option><option value="3" selected>Fase 3</option><option value="4">Fase 4</option><option value="5">Fase 5</option><option value="6">Fase 6</option><option value="7">Fase 7</option><option value="8">Fase 8</option><option value="9">Fase 9</option><option value="10">Fase 10</option><option value="11">Fase 11</option><option value="12">Fase 12</option></select><button id="testPhaseBtn" type="button">IR TESTAR</button></div></div><div class="cluster"><button class="ctl small" id="build">🪵<br>PONTE</button><button class="ctl small" id="restart">↻<br>REINICIAR</button><button class="ctl small dash" id="dash" aria-label="Impulso rápido">⚡<br>IMPULSO</button><button class="ctl jump" id="jump">PULAR ↑</button></div></div>
 <div class="overlay hidden" id="start"><div class="rm-shell"><div class="rm-grid">
 <aside class="rm-side">
  <div class="rm-logo" aria-label="Ratópolis"><span class="rm-logo-text">RATÓPOLIS</span><span class="rm-logo-cheese" aria-hidden="true">🧀</span></div>
@@ -901,10 +901,10 @@ canvas{image-rendering:auto;touch-action:none}
  </div>
 </main>
 </div></div></div>
-<div class="overlay hidden" id="roomsOverlay" role="dialog" aria-modal="true" aria-labelledby="roomsTitle"><div class="modal rooms-modal"><h2 id="roomsTitle">🚪 Salas do Ratópolis</h2><p class="room-note">Escolha entre salas locais de prática ou conecte-se a uma sala online. São modos separados; entrar em uma sala online não inicia automaticamente uma partida multiplayer em tempo real.</p>
+<div class="overlay hidden" id="roomsOverlay" role="dialog" aria-modal="true" aria-labelledby="roomsTitle"><div class="modal rooms-modal"><h2 id="roomsTitle">🚪 Salas do Ratópolis</h2><p class="room-note">Entre em uma sala oficial ou crie uma sala online para jogar com outras contas conectadas.</p>
 <section id="ratopolisOnlineRooms" aria-label="Salas online">
   <h3>🌐 Salas online</h3>
-  <p class="room-note">Use sua conta do portal para criar uma sala ou entrar com um código de 6 caracteres.</p>
+  <p class="room-note">Use sua conta do portal para entrar em uma das quatro salas oficiais ou criar uma sala própria com código de acesso.</p>
   <div id="onlineRoomsDirectory" class="online-rooms-directory" aria-live="polite"><div class="online-directory-head"><strong>🏠 Salas disponíveis</strong><button type="button" id="onlineRefreshRoomsBtn">ATUALIZAR</button></div><div id="onlineDirectoryList">Carregando salas do servidor…</div></div>
   <div class="online-room-actions">
     <button type="button" id="onlineCreateRoomBtn">＋ CRIAR SALA ONLINE</button>
@@ -914,13 +914,13 @@ canvas{image-rendering:auto;touch-action:none}
       <button type="button" id="onlineJoinRoomBtn">ENTRAR PELO CÓDIGO</button>
     </div>
   </div>
-  <p id="onlineRoomHint" class="room-note">Quatro salas oficiais ficam disponíveis no servidor. Salas criadas por jogadores também aparecem aqui. A sincronização de movimento e resultados ainda precisa ser concluída antes de partidas competitivas.</p>
+  <p id="onlineRoomHint" class="room-note">As posições dos jogadores conectados aparecem durante a partida. As recompensas competitivas finais ainda dependem da validação do resultado pelo servidor.</p>
   <div id="onlineRoomDetails" class="online-room-details hidden">
     <div class="online-code-row"><span>Código da sala online</span><strong id="onlineRoomCodeDisplay" tabindex="0">------</strong><button type="button" id="onlineCopyRoomCodeBtn">COPIAR CÓDIGO</button></div>
     <p id="onlineRoomStatus" role="status" aria-live="polite">Pronto.</p>
     <strong>👥 Participantes online</strong>
     <div id="onlineParticipantsList" class="online-participants-list"></div>
-    <button type="button" id="onlineLeaveRoomBtn" class="online-leave-btn">SAIR DA SALA ONLINE</button>
+    <button type="button" id="onlineStartMatchBtn" class="online-leave-btn">▶ JOGAR NESTA SALA</button><button type="button" id="onlineLeaveRoomBtn" class="online-leave-btn">SAIR DA SALA ONLINE</button>
   </div>
   <p id="onlineRoomMessage" role="status" aria-live="polite" class="online-room-message">Modo online não conectado.</p>
 </section>
@@ -968,7 +968,7 @@ function musicTick(){if(!musicEnabled)return;const melody=[523.25,659.25,783.99,
 function startMusic(){if(!musicEnabled||musicTimer!==null)return;getAudioContext();musicTick();}
 function stopMusic(){if(musicTimer!==null)clearTimeout(musicTimer);musicTimer=null;}
 function playSfx(kind){if(!soundEnabled)return;try{const ac=getAudioContext();if(!ac)return;const now=ac.currentTime;const notes={jump:[390,520],cheese:[660,880,1100],acorn:[520,740,980],shield:[440,660],bridge:[180,130],dash:[260,620],death:[330,245,165],win:[523,659,784,1046],revive:[392,587,784]};const seq=notes[kind]||[440];seq.forEach((freq,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type=kind==='bridge'?'triangle':'sine';osc.frequency.setValueAtTime(freq,now+i*.075);gain.gain.setValueAtTime(.0001,now+i*.075);gain.gain.exponentialRampToValueAtTime(.075,now+i*.075+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.075+.105);osc.connect(gain);gain.connect(ac.destination);osc.start(now+i*.075);osc.stop(now+i*.075+.12);});}catch(_e){}}
-let keepFullscreenOnNextStart=true;
+let keepFullscreenOnNextStart=true,verifiedStaffRole='';
 const SAVE_KEY='ratopolis_progress_v1950';
 let lifetimeCheeses=0,completedLevels=[],unlockedAchievements=[],ownedHats=['none'],equippedHat='none';
 let selectedTitleId='',unlockedTitleIds=[],claimedChallengeIds=[];
@@ -1866,7 +1866,7 @@ const hitHazard=invulnerable<=0&&obstacles.some(o=>(o.type==='spikes'||o.type===
 if(player.y>H+100){returnAcornToOrigin();player.vx=0;player.vy=0;dashTimer=0;dashCooldown=0;player.x=checkpointActive?checkpointX:45;player.y=platforms[0].y-player.h;player.onGround=true;player.supportId='solid:0';cheeses.forEach((c,i)=>c.got=!!checkpointCheeses[i]);invulnerable=1.0;showMessage('Você voltou ao chão firme. Nenhuma vida foi perdida. 🐭');updateStats();}
 if(player.x+player.w>goal.x-48&&player.x<goal.x+38&&player.y+player.h>goal.y-24&&player.y<goal.y+70){if(personalCheeseCollected&&acorns.every(a=>a.got)){if(!raceHumanFinished){raceHumanFinished=true;raceHumanFinishTime=phaseElapsed;raceFinishDeadline=phaseElapsed+12;player.x=goal.x-player.w-4;player.vx=0;player.vy=0;keys.left=false;keys.right=false;clearTouchMovement();playSfx('win');showMessage(practiceBots.length?'Bolota entregue! Aguarde os outros ratinhos chegarem à toca. 🐭':'Bolota entregue! Corrida concluída. 🌰');}}else message.textContent=!personalCheeseCollected?'Pegue seu queijo antes de entrar na toca! 🧀': 'Pegue a bolota dourada antes de entrar na toca! 🌰'}
 updatePracticeBots(dt);if(raceHumanFinished&&(practiceBots.every(b=>b.finished)||phaseElapsed>=raceFinishDeadline)){practiceBots.forEach(b=>{if(!b.finished){b.finished=true;b.finishTime=phaseElapsed;b.x=Math.min(b.x,goal.x-b.w-4);}});finalizeRaceResults();}const groundEnd=platforms[0].x+platforms[0].w;const cameraTarget=Math.max(0,Math.min(player.x-W*.34,groundEnd-W));const cameraEase=1-Math.exp(-Math.max(0,dt)*7);cam+=(cameraTarget-cam)*cameraEase;player.x=Math.max(0,Math.min(player.x,groundEnd-player.w));}
-function finalizeRaceResults(){if(raceResultsShown)return;if(editorTestActive){raceResultsShown=true;playing=false;clearTouchMovement();document.getElementById('finish').classList.add('hidden');message.textContent='🏁 Teste do cenário concluído! Nenhuma recompensa foi concedida. Toque em “Voltar ao editor” para continuar editando.';return;}raceResultsShown=true;playing=false;clearTouchMovement();playSfx('win');let reward=0;const finishedSeconds=raceHumanFinishTime;const phaseKey=String(level+1);const previousRecord=Number(phaseRecords[phaseKey])||0;let recordMessage='Tempo: '+formatTime(finishedSeconds)+'.';let xpReward=0,levelUpText='',xpBefore=playerXP,rankingSummary='';if(!testMode){rankingSummary=recordPhaseRanking(level+1,finishedSeconds);if(!previousRecord||finishedSeconds<previousRecord){phaseRecords[phaseKey]=Math.floor(finishedSeconds);recordMessage+=' NOVO RECORDE! 🏅';}else{recordMessage+=' Melhor: '+formatTime(previousRecord)+'.';}wins++;addGuildMissionXP(10);matchStats.acornsDelivered+=acorns.filter(a=>a.got).length;completedLevels=Array.from(new Set([...completedLevels,level+1])).sort((a,b)=>a-b);reward=10+Math.min(cheesesCollectedThisRun,4)*2+acorns.filter(a=>a.got).length*3+lives*2;phaseRewardCoinChange=true;coins+=reward;bestPhase=Math.max(bestPhase,Math.min(12,level+2));xpReward=22+Math.min(cheesesCollectedThisRun,4)*5+acorns.filter(a=>a.got).length*8+lives*3;const xpResult=addPlayerXP(xpReward);if(xpResult.levelsGained>0){const xpStatEl=document.getElementById('xpStat');if(xpStatEl){xpStatEl.classList.remove('level-up');void xpStatEl.offsetWidth;xpStatEl.classList.add('level-up');setTimeout(()=>xpStatEl.classList.remove('level-up'),1500);}}if(xpResult.levelsGained>0)levelUpText=' 🎉 SUBIU DE NÍVEL! Agora nível '+xpResult.after+'.';if(xpResult.rewards.length)levelUpText+=' 🎁 Recompensa: '+xpResult.rewards.map(r=>r.name+' '+r.icon).join(', ')+'.';saveProgress();checkAchievements(true);refreshTitleChallenges(true);recordProgressionReward({phase:level+1,cheeses:Math.min(4,cheesesCollectedThisRun),acorns:acorns.filter(a=>a.got).length,lives:Math.max(0,Math.min(3,lives))});}winsEl.textContent=wins;document.getElementById('resultCheeses').textContent=cheesesCollectedThisRun+'/4';document.getElementById('resultAcorns').textContent=acorns.filter(a=>a.got).length+'/'+acorns.length;document.getElementById('resultLives').textContent=String(lives);document.getElementById('resultTime').textContent=formatTime(finishedSeconds);const raceEntries=[{name:playerNickname||'Convidado',time:raceHumanFinishTime,isPlayer:true},...practiceBots.filter(b=>b.finished).map(b=>({name:b.name,time:b.finishTime,isPlayer:false}))].sort((a,b)=>a.time-b.time);const raceRank=raceEntries.findIndex(e=>e.isPlayer)+1;document.getElementById('finishText').textContent=testMode?'Fase de teste concluída!':'🌰 Bolota entregue! Corrida concluída.';const compactRank=document.getElementById('quickResultRank');if(compactRank){compactRank.closest('.quick-result-item, .quick-stat, .result-stat')?.classList.add('hidden');}renderPhaseRanking(level+1,finishedSeconds,testMode);updateFinishQuickStats(level+1,finishedSeconds,cheesesCollectedThisRun,testMode,previousRecord);document.getElementById('finishXp').textContent=testMode?'Teste · sem recompensas':'⭐ +'+xpReward+' XP · 🪙 +'+reward+(xpResultSafeLevelText(levelUpText));document.getElementById('finishXpFill').style.width='0%';document.getElementById('finishCountdown').textContent='Próxima fase em 5 segundos…';queuedNextLevel=chooseNextRoom(level);document.getElementById('nextScenarioName').textContent='Próxima sala: '+scenarioName(queuedNextLevel)+' · sala '+(queuedNextLevel+1);document.getElementById('nextBtn').textContent='IR AGORA';document.getElementById('finish').classList.remove('hidden');updateStats();runFinishCountdown(xpBefore,playerXP);}
+function finalizeRaceResults(){if(raceResultsShown)return;if(editorTestActive){raceResultsShown=true;playing=false;clearTouchMovement();document.getElementById('finish').classList.add('hidden');message.textContent='🏁 Teste do cenário concluído! Nenhuma recompensa foi concedida. Toque em “Voltar ao editor” para continuar editando.';return;}raceResultsShown=true;playing=false;clearTouchMovement();playSfx('win');if(window.RatopolisOnlineRooms&&window.RatopolisOnlineRooms.isActive&&window.RatopolisOnlineRooms.isActive()){const completedPhase=level+1;window.RatopolisOnlineRooms.submitFinish(completedPhase).then(result=>{if(completedPhase===12&&result&&result.rank<=3){const rankText=result.rank===1?'1º lugar':result.rank===2?'2º lugar':'3º lugar';showMessage('🏆 '+rankText+' na última rodada! Bônus: '+(result.bonus&&result.bonus.recompensa?(result.bonus.recompensa.xp+' XP e '+result.bonus.recompensa.coins+' moedas'):'recompensa sendo sincronizada')+'.');if(result.bonus&&result.bonus.ok&&typeof syncProgressionStartup==='function')syncProgressionStartup();}else if(completedPhase===12&&result){showMessage('🏁 Última rodada concluída. Sua posição: '+result.rank+'.');}}).catch(err=>{showMessage('Fase concluída. Não consegui confirmar a classificação online: '+(err.message||'tente novamente mais tarde'));});}let reward=0;const finishedSeconds=raceHumanFinishTime;const phaseKey=String(level+1);const previousRecord=Number(phaseRecords[phaseKey])||0;let recordMessage='Tempo: '+formatTime(finishedSeconds)+'.';let xpReward=0,levelUpText='',xpBefore=playerXP,rankingSummary='';if(!testMode){rankingSummary=recordPhaseRanking(level+1,finishedSeconds);if(!previousRecord||finishedSeconds<previousRecord){phaseRecords[phaseKey]=Math.floor(finishedSeconds);recordMessage+=' NOVO RECORDE! 🏅';}else{recordMessage+=' Melhor: '+formatTime(previousRecord)+'.';}wins++;addGuildMissionXP(10);matchStats.acornsDelivered+=acorns.filter(a=>a.got).length;completedLevels=Array.from(new Set([...completedLevels,level+1])).sort((a,b)=>a-b);reward=10+Math.min(cheesesCollectedThisRun,4)*2+acorns.filter(a=>a.got).length*3+lives*2;phaseRewardCoinChange=true;coins+=reward;bestPhase=Math.max(bestPhase,Math.min(12,level+2));xpReward=22+Math.min(cheesesCollectedThisRun,4)*5+acorns.filter(a=>a.got).length*8+lives*3;const xpResult=addPlayerXP(xpReward);if(xpResult.levelsGained>0){const xpStatEl=document.getElementById('xpStat');if(xpStatEl){xpStatEl.classList.remove('level-up');void xpStatEl.offsetWidth;xpStatEl.classList.add('level-up');setTimeout(()=>xpStatEl.classList.remove('level-up'),1500);}}if(xpResult.levelsGained>0)levelUpText=' 🎉 SUBIU DE NÍVEL! Agora nível '+xpResult.after+'.';if(xpResult.rewards.length)levelUpText+=' 🎁 Recompensa: '+xpResult.rewards.map(r=>r.name+' '+r.icon).join(', ')+'.';saveProgress();checkAchievements(true);refreshTitleChallenges(true);recordProgressionReward({phase:level+1,cheeses:Math.min(4,cheesesCollectedThisRun),acorns:acorns.filter(a=>a.got).length,lives:Math.max(0,Math.min(3,lives))});}winsEl.textContent=wins;document.getElementById('resultCheeses').textContent=cheesesCollectedThisRun+'/4';document.getElementById('resultAcorns').textContent=acorns.filter(a=>a.got).length+'/'+acorns.length;document.getElementById('resultLives').textContent=String(lives);document.getElementById('resultTime').textContent=formatTime(finishedSeconds);const raceEntries=[{name:playerNickname||'Convidado',time:raceHumanFinishTime,isPlayer:true},...practiceBots.filter(b=>b.finished).map(b=>({name:b.name,time:b.finishTime,isPlayer:false}))].sort((a,b)=>a.time-b.time);const raceRank=raceEntries.findIndex(e=>e.isPlayer)+1;document.getElementById('finishText').textContent=testMode?'Fase de teste concluída!':'🌰 Bolota entregue! Corrida concluída.';const compactRank=document.getElementById('quickResultRank');if(compactRank){compactRank.closest('.quick-result-item, .quick-stat, .result-stat')?.classList.add('hidden');}renderPhaseRanking(level+1,finishedSeconds,testMode);updateFinishQuickStats(level+1,finishedSeconds,cheesesCollectedThisRun,testMode,previousRecord);document.getElementById('finishXp').textContent=testMode?'Teste · sem recompensas':'⭐ +'+xpReward+' XP · 🪙 +'+reward+(xpResultSafeLevelText(levelUpText));document.getElementById('finishXpFill').style.width='0%';document.getElementById('finishCountdown').textContent='Próxima fase em 5 segundos…';queuedNextLevel=chooseNextRoom(level);document.getElementById('nextScenarioName').textContent='Próxima sala: '+scenarioName(queuedNextLevel)+' · sala '+(queuedNextLevel+1);document.getElementById('nextBtn').textContent='IR AGORA';document.getElementById('finish').classList.remove('hidden');updateStats();runFinishCountdown(xpBefore,playerXP);}
 // v1.27.0 — Física em passo fixo para reduzir variações de colisão entre celulares.
 // O desenho continua a cada frame; a simulação usa passos curtos e consistentes.
 const PHYSICS_STEP=1/120;let physicsAccumulator=0;
@@ -1874,11 +1874,19 @@ function loop(t){const elapsed=Math.min(Math.max(0,(t-last)/1000||0),.1);last=t;
 function resetPhaseStartTexts(){const l=document.querySelector('#phaseStart .phase-label'),p=document.querySelector('#phaseStart .modal p:nth-of-type(2)');if(l&&!document.getElementById('phaseStartNumber'))l.innerHTML='FASE <span id="phaseStartNumber">1</span>';if(p&&p.textContent!=='Prepare-se!')p.textContent='Prepare-se!';}
 function clearPhaseTimers(){resetPhaseStartTexts();if(finishTimer){clearInterval(finishTimer);finishTimer=null;}if(finishTick){clearInterval(finishTick);finishTick=null;}if(phaseStartTimer){clearInterval(phaseStartTimer);phaseStartTimer=null;}if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}}
 function xpResultSafeLevelText(text){return text&&text.includes('SUBIU DE NÍVEL')?' · 🎉 Novo nível!':'';}
-function runFinishCountdown(xpBefore,xpAfter){clearPhaseTimers();let remaining=5;const fill=document.getElementById('finishXpFill');const count=document.getElementById('finishCountdown');const began=performance.now();const total=Math.max(0,xpAfter-xpBefore);finishTick=setInterval(()=>{const elapsed=Math.min(1,(performance.now()-began)/5000);if(fill)fill.style.width=(elapsed*100)+'%';if(count)count.textContent='Próxima fase em '+Math.max(0,Math.ceil(5-elapsed*5))+' segundos…';if(elapsed>=1){clearInterval(finishTick);finishTick=null;}},100);finishTimer=setTimeout(()=>{finishTimer=null;goNextPhase();},5000);}
-function showPhaseCountdown(seconds=5,skip=false){
- const panel=document.getElementById('shamanLoadout');if(panel)panel.classList.add('hidden');
- const overlay=document.getElementById('phaseStart');document.getElementById('phaseStartName').textContent=scenarioName(level);document.getElementById('phaseStartNumber').textContent=level+1;
- selectShamanForRound();
+function runFinishCountdown(xpBefore,xpAfter){clearPhaseTimers();if(verifiedStaffRole==='SpAdmin'||verifiedStaffRole==='Admin'){const count=document.getElementById('finishCountdown');if(count)count.textContent='Próxima fase imediatamente…';finishTimer=setTimeout(()=>{finishTimer=null;goNextPhase();},0);return;}const online=window.RatopolisOnlineRooms&&window.RatopolisOnlineRooms.isActive&&window.RatopolisOnlineRooms.isActive();if(online){const count=document.getElementById('finishCountdown'),fill=document.getElementById('finishXpFill'),began=performance.now();finishTick=setInterval(()=>{const elapsed=(performance.now()-began)/1000;const status=window.RatopolisOnlineRooms.roundStatus();if(count)count.textContent=status.allFinished?'Todos concluíram! Próxima fase…':'Aguardando jogadores: '+status.finishedCount+'/'+status.activeCount+' · limite 30s';if(fill)fill.style.width=Math.min(100,elapsed/30*100)+'%';if(status.allFinished||elapsed>=30){clearInterval(finishTick);finishTick=null;if(finishTimer){clearTimeout(finishTimer);finishTimer=null;}goNextPhase();}},250);return;}let remaining=5;const fill=document.getElementById('finishXpFill');const count=document.getElementById('finishCountdown');const began=performance.now();const total=Math.max(0,xpAfter-xpBefore);finishTick=setInterval(()=>{const elapsed=Math.min(1,(performance.now()-began)/5000);if(fill)fill.style.width=(elapsed*100)+'%';if(count)count.textContent='Próxima fase em '+Math.max(0,Math.ceil(5-elapsed*5))+' segundos…';if(elapsed>=1){clearInterval(finishTick);finishTick=null;}},100);finishTimer=setTimeout(()=>{finishTimer=null;goNextPhase();},5000);}
+function rebuildLevelFromServerSeed(seed){const n=Number(seed);if(!Number.isFinite(n)||n<=0)return;const originalRandom=Math.random;let state=(Math.floor(n)>>>0)||1;Math.random=()=>{state=(state+0x6D2B79F5)>>>0;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};try{makeLevel();}finally{Math.random=originalRandom;}}
+function showPhaseCountdown(seconds=5,skip=false,serverAssigned=false){
+ const panel=document.getElementById('shamanLoadout');
+ const overlay=document.getElementById('phaseStart');
+ if(!serverAssigned&&window.RatopolisOnlineRooms&&window.RatopolisOnlineRooms.isActive&&window.RatopolisOnlineRooms.isActive()&&window.RatopolisOnlineRooms.assignShaman){
+  document.getElementById('phaseStartName').textContent=scenarioName(level)+' · escolhendo Shaman…';document.getElementById('phaseStartNumber').textContent=level+1;document.getElementById('phaseStartCount').textContent='…';overlay.classList.remove('hidden');playing=false;
+  window.RatopolisOnlineRooms.assignShaman(level+1).then(result=>{rebuildLevelFromServerSeed(result.mapSeed);activeShamanName=String(result.shamanNickname||'Shaman');activeMatchRole=String(result.shamanId)===String(window.ratopolisPlayerId||'')?'shaman':'mouse';shamanMana=shamanManaMax;shamanPlacementMode=null;updateShamanTools();showPhaseCountdown(seconds,skip,true);}).catch(()=>{selectShamanForRound();showPhaseCountdown(seconds,skip,true);});
+  return;
+ }
+ if(panel)panel.classList.add('hidden');
+ document.getElementById('phaseStartName').textContent=scenarioName(level);document.getElementById('phaseStartNumber').textContent=level+1;
+ if(!serverAssigned)selectShamanForRound();else{const name=document.getElementById('phaseStartName');if(name)name.textContent=activeMatchRole==='shaman'?scenarioName(level)+' · Você é o Shaman! Use 1–7 para criar objetos':scenarioName(level)+' · Shaman: '+activeShamanName;}
  const begin=()=>{if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}if(phaseStartTimer){clearTimeout(phaseStartTimer);phaseStartTimer=null;}overlay.classList.add('hidden');if(panel)panel.classList.add('hidden');
  /* Ao zerar, reposiciona o jogador no começo antes de liberar a corrida. */
  if(Array.isArray(platforms)&&platforms.length&&player){const spawn=platforms[0];player.x=spawn.x+28;player.y=spawn.y-player.h;player.vx=0;player.vy=0;player.onGround=true;player.supportId='solid:0';player.crouchTimer=0;player.facing=1;airJumpsRemaining=2;dashTimer=0;dashCooldown=0;}
@@ -1905,8 +1913,8 @@ async function getVerifiedStaffRole(){
   if(['editor','cenarioeditor','editordecenarios','scenarioeditor'].includes(raw))return 'Editor';
  }catch(_e){}return '';
 } 
-function chooseNextRoom(current){const options=Array.from({length:scenarioNames.length},(_,i)=>i).filter(i=>i!==current);return options[Math.floor(Math.random()*options.length)];}
-async function goNextPhase(){clearPhaseTimers();document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();showPhaseCountdown();}
+function chooseNextRoom(current){const total=Math.min(12,scenarioNames.length);return (Math.max(0,Number(current)||0)+1)%Math.max(1,total);}
+async function goNextPhase(){clearPhaseTimers();document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;if(staffRole==='SpAdmin'||staffRole==='Admin')showPhaseCountdown(0,true);else showPhaseCountdown(5,false);}
 function start(){document.getElementById('start').classList.add('hidden');document.getElementById('finish').classList.add('hidden');registerMatchParticipation();makeLevel();showPhaseCountdown();last=performance.now()}
 async function requestLandscape(){
   try{
@@ -2011,16 +2019,16 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
  async function startRandomRoomCountdown(){
  clearPhaseTimers();const startOverlay=document.getElementById('start');startOverlay.classList.add('hidden');document.getElementById('roomsOverlay').classList.add('hidden');
  const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}requestLandscape();
- const room=chooseLeastPopulatedRoom();addChatLine('Sistema: preparando a sala aleatória '+(room+1)+' — '+scenarioName(room)+'. Contagem única de 15 segundos.','system');
+ const room=chooseLeastPopulatedRoom();addChatLine('Sistema: preparando a sala aleatória '+(room+1)+' — '+scenarioName(room)+'. Contagem de 5 segundos.','system');
  await switchToTestRoom(room,true);
  resize();setTimeout(resize,250);
 }
 async function switchToTestRoom(roomIndex,skipCountdown=false){
  document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}clearPhaseTimers();document.getElementById('finish').classList.add('hidden');document.getElementById('phaseStart').classList.add('hidden');document.getElementById('death').classList.add('hidden');
  level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();
- const staffRole=await getVerifiedStaffRole();
+ const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;
  if(staffRole==='SpAdmin'||staffRole==='Admin'){addChatLine('Sistema: acesso imediato confirmado ('+staffRole+'). A partida começa sem contagem.','system');showPhaseCountdown(0,true);}
- else{addChatLine('Sistema: sala '+(level+1)+' preparada. Você pode se mover durante a contagem de 15 segundos; ao zerar, todos voltam ao início.','system');showPhaseCountdown(15,false);}
+ else{addChatLine('Sistema: sala '+(level+1)+' preparada. Escolha automática do Shaman em 5 segundos.','system');showPhaseCountdown(5,false);}
 }
 
  function renderCommunityParticipants(){
@@ -2074,7 +2082,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
 if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err){console.warn('Perfil do menu:',err);}document.getElementById('start').classList.remove('hidden');
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
- document.getElementById('menuPlay').addEventListener('click',startRandomRoomCountdown);
+ document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3023,6 +3031,16 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 <style id="ratopolis-online-directory-style">
 .online-rooms-directory{margin:8px 0;padding:9px;border:1px solid #567b5e;border-radius:12px;background:rgba(8,35,24,.42);text-align:left}.online-directory-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.online-directory-head strong{font-size:13px}.online-directory-head button,.online-directory-room button{border:1px solid #d6c06d;border-radius:8px;background:#254f36;color:#fff6dc;font-size:10px;font-weight:900;padding:6px 8px;touch-action:manipulation}.online-directory-list{display:grid;gap:5px}.online-directory-room{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border:1px solid rgba(255,246,220,.18);border-radius:9px;background:rgba(10,30,22,.45)}.online-directory-room span{display:block;font-size:12px;font-weight:800}.online-directory-room small{display:block;font-size:10px;opacity:.8;margin-top:2px}.online-directory-room button{flex-shrink:0}.online-directory-empty{font-size:11px;opacity:.8;padding:5px}
 </style>
+<style id="ratopolis-online-avatar-style">
+#roomsOverlay .rooms-layout,#roomsOverlay .shaman-role-picker{display:none!important}
+#roomsOverlay #roomStartBtn,#roomsOverlay #roomRandomBtn{display:none!important}
+#onlineAvatars{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;display:none}
+#onlineAvatars.active{display:block}
+.online-avatar{position:absolute;transform:translate(-50%,-100%);min-width:28px;text-align:center;color:#fff7dc;font:900 10px system-ui;white-space:nowrap;text-shadow:0 1px 3px #10271b,1px 0 2px #10271b,-1px 0 2px #10271b;will-change:left,top}
+.online-avatar .rat{display:block;font-size:27px;line-height:1;filter:drop-shadow(0 2px 2px #10271b)}
+.online-avatar .tag{display:inline-block;max-width:100px;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;border:1px solid #f1d777;border-radius:7px;background:#143525e8}
+.online-avatar.shaman .tag{background:#704b13ed;border-color:#ffe28b}
+</style>
 <script id="ratopolis-online-rooms-integration">
 (function(){
  'use strict';
@@ -3035,11 +3053,12 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const directoryList=$('onlineDirectoryList'),refreshRoomsBtn=$('onlineRefreshRoomsBtn');
  const details=$('onlineRoomDetails'),codeDisplay=$('onlineRoomCodeDisplay'),statusEl=$('onlineRoomStatus');
  const participantsEl=$('onlineParticipantsList'),messageEl=$('onlineRoomMessage');
- const copyBtn=$('onlineCopyRoomCodeBtn'),leaveBtn=$('onlineLeaveRoomBtn');
+ const copyBtn=$('onlineCopyRoomCodeBtn'),leaveBtn=$('onlineLeaveRoomBtn'),startMatchBtn=$('onlineStartMatchBtn');
  if(!overlay||!createBtn||!joinBtn||!codeInput||!details||!messageEl)return;
 
- let activeRoomCode='', pollTimer=null, requestInFlight=false, pollInFlight=false;
- let roomState=null, connectionLost=false, generation=0, lastSuccessfulStateAt=0;
+ let activeRoomCode='', pollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null;
+ let roomState=null, connectionLost=false, generation=0, lastSuccessfulStateAt=0, remotePlayers=new Map(), localRoomMatchStarted=false;
+ const avatarLayer=$('onlineAvatars');
 
  function getToken(){
   try{return localStorage.getItem(TOKEN_KEY)||'';}catch(_){return '';}
@@ -3120,6 +3139,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const response=await fetch(ACCOUNT_API+'/api/me',{method:'GET',mode:'cors',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json','Authorization':'Bearer '+token}});
    let data={};try{data=await response.json();}catch(_){}
    if(!response.ok||data.ok===false)throw new Error('Sua sessão não foi validada. Entre novamente pelo portal e tente outra vez.');
+   const me=data.jogador||data.user||data.profile||{};if(me.id!==undefined)window.ratopolisPlayerId=String(me.id);
    return token;
   }catch(err){
    if(err&&err.name==='AbortError')throw new Error('A validação da conta demorou demais. Verifique a conexão.');
@@ -3142,21 +3162,88 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(id){const small=document.createElement('small');small.textContent='Participante online';row.appendChild(small);}
    participantsEl.appendChild(row);
   });
-  const title=$('participantsTitle');if(title)title.textContent='👥 Participantes locais (separados do online)';
+  const title=$('participantsTitle');if(title)title.textContent='👥 Participantes online';
+ }
+ function drawRemoteAvatars(){
+  if(!avatarLayer)return;
+  avatarLayer.classList.toggle('active',!!activeRoomCode&&localRoomMatchStarted);
+  const scene=$('scene');if(!scene)return;
+  const currentIds=new Set();
+  const logicalW=(typeof W!=='undefined'&&Number(W))||scene.clientWidth||1;
+  const logicalH=(typeof H!=='undefined'&&Number(H))||scene.clientHeight||1;
+  const camera=(typeof cam!=='undefined'&&Number(cam))||0;
+  for(const [id,p] of remotePlayers){
+   if(!p||p.id===getLocalPlayerId()||p.phase!==undefined&&Number(p.phase)!==Number(typeof level!=='undefined'?level:0))continue;
+   currentIds.add(id);let node=avatarLayer.querySelector('[data-player-id="'+CSS.escape(String(id))+'"]');
+   if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';rat.textContent='🐭';const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
+   node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
+   const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y)){node.style.display='none';continue;}
+   node.style.display=(p.active===false?'none':'block');node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
+  }
+  avatarLayer.querySelectorAll('.online-avatar').forEach(n=>{if(!currentIds.has(n.dataset.playerId))n.remove();});
+ }
+ function getLocalPlayerId(){return String(window.ratopolisPlayerId||window.playerId||'');}
+ function applyRoomState(data){
+  roomState=data||roomState||{};
+  const players=extractPlayers(roomState);const seen=new Set();
+  for(const p of players){if(!p||typeof p!=='object')continue;const id=String(p.id||p.playerId||'');if(!id)continue;seen.add(id);if(p.state&&typeof p.state==='object')remotePlayers.set(id,{...p,...p.state,id,nickname:p.nickname||p.state.nickname});}
+  for(const id of Array.from(remotePlayers.keys()))if(!seen.has(id))remotePlayers.delete(id);
+  renderPlayers(roomState);drawRemoteAvatars();
+ }
+ function applySyncedShamanObjects(state){
+  if(!state||!Array.isArray(state.shamanObjects)||typeof obstacles==='undefined')return;
+  const safe=state.shamanObjects.filter(o=>o&&typeof o==='object'&&Number.isFinite(Number(o.x))&&Number.isFinite(Number(o.y))&&Number.isFinite(Number(o.w))&&Number.isFinite(Number(o.h))).slice(0,80).map(o=>({...o,shamanPlaced:true}));
+  obstacles=obstacles.filter(o=>!o.shamanPlaced).concat(safe);
+ }
+ async function connectRoomSocket(code){
+  if(!activeRoomCode||activeRoomCode!==code)return;
+  if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
+  if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}
+  try{
+   const token=getToken();if(!token)throw new Error('Sessão ausente.');
+   const ticketData=await api('/api/rooms/ws-ticket',{room:code},token);
+   if(activeRoomCode!==code)return;
+   const wsUrl=ROOMS_API.replace(/^https:/,'wss:').replace(/^http:/,'ws:')+'/ws?room='+encodeURIComponent(code)+'&ticket='+encodeURIComponent(ticketData.ticket||'');
+   const ws=new WebSocket(wsUrl);roomSocket=ws;
+   ws.addEventListener('open',()=>{if(roomSocket!==ws)return;connectionLost=false;setOnlineStatus('Sala online · movimento conectado');setMessage('Conectado à sala '+code+'. Os ratos conectados aparecem no cenário.','success');
+    if(stateSendTimer)clearInterval(stateSendTimer);stateSendTimer=setInterval(sendLocalPlayerState,100);
+   });
+   ws.addEventListener('message',ev=>{if(roomSocket!==ws)return;let data;try{data=JSON.parse(ev.data)}catch(_){return;}
+    if(data.type==='room_state'){roomState={...roomState,room:data.room,players:data.players||[]};applyRoomState(roomState);}
+    else if(data.type==='player_state'&&data.player){const p=data.player;remotePlayers.set(String(p.id),{...p,...(p.state||{}),id:p.id,nickname:p.nickname});if(p.state&&p.state.role==='shaman')applySyncedShamanObjects(p.state);if(roomState&&Array.isArray(roomState.players)){const i=roomState.players.findIndex(x=>String(x.id)===String(p.id));if(i>=0)roomState.players[i]=p;else roomState.players.push(p);}drawRemoteAvatars();}
+   });
+   ws.addEventListener('close',()=>{if(roomSocket!==ws)return;roomSocket=null;if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(activeRoomCode===code){setOnlineStatus('Reconectando ao jogo…');socketRetryTimer=setTimeout(()=>connectRoomSocket(code),2500);}});
+   ws.addEventListener('error',()=>{if(activeRoomCode===code)setOnlineStatus('Conexão instável · tentando reconectar');});
+  }catch(err){setOnlineStatus('Sala conectada; sincronização tentando reconectar');if(activeRoomCode===code)socketRetryTimer=setTimeout(()=>connectRoomSocket(code),3500);}
+ }
+ function sendLocalPlayerState(){
+  const ws=roomSocket;if(!ws||ws.readyState!==WebSocket.OPEN||!activeRoomCode)return;
+  const pl=typeof player!=='undefined'?player:null;if(!pl)return;
+  const role=String(typeof activeMatchRole!=='undefined'?activeMatchRole:'mouse');const state={x:Number(pl.x)||0,y:Number(pl.y)||0,facing:Number(pl.facing)||1,phase:Number(typeof level!=='undefined'?level:0),active:!!(typeof playing!=='undefined'&&playing),started:!!((typeof playing!=='undefined'&&playing)||(typeof raceHumanFinished!=='undefined'&&raceHumanFinished)||(typeof phaseElapsed!=='undefined'&&phaseElapsed>0)),role,finished:!!(typeof raceHumanFinished!=='undefined'&&raceHumanFinished),finishTime:Number(typeof raceHumanFinishTime!=='undefined'?raceHumanFinishTime:0)||0,nickname:String(typeof playerNickname!=='undefined'?playerNickname:'Jogador').slice(0,18)};if(role==='shaman'&&typeof obstacles!=='undefined')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring}));
+  try{ws.send(JSON.stringify({type:'player_state',playerId:getLocalPlayerId(),state}));}catch(_){}
+  drawRemoteAvatars();
+ }
+ function startOnlineMatch(){
+  if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
+  localRoomMatchStarted=true;drawRemoteAvatars();
+  overlay.classList.add('hidden');
+  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(0,false);
+  else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
+  connectRoomSocket(activeRoomCode);
  }
  function showRoom(code,data){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();
   details.classList.remove('hidden');codeDisplay.textContent=code;
-  renderPlayers(roomState);
+  applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
-  setMessage('Você entrou na sala online '+code+'. A lista de participantes está conectada; movimento e resultados ainda não estão prontos para competição.','success');
-  startPollingIfVisible();loadDirectory();
+  setMessage('Você entrou na sala online '+code+'. Toque em JOGAR NESTA SALA para iniciar.','success');
+  connectRoomSocket(code);startPollingIfVisible();loadDirectory();
  }
  function stopPolling(){
   if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}
  }
  function clearOnlineState(){
-  stopPolling();activeRoomCode='';roomState=null;connectionLost=false;requestInFlight=false;pollInFlight=false;lastSuccessfulStateAt=0;
+  stopPolling();if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}remotePlayers.clear();localRoomMatchStarted=false;if(avatarLayer){avatarLayer.classList.remove('active');avatarLayer.replaceChildren();}activeRoomCode='';roomState=null;connectionLost=false;requestInFlight=false;pollInFlight=false;lastSuccessfulStateAt=0;
   details.classList.add('hidden');codeDisplay.textContent='------';participantsEl.replaceChildren();
  }
  function visibleOverlay(){return !overlay.classList.contains('hidden')&&document.visibilityState!=='hidden';}
@@ -3175,7 +3262,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(thisGeneration!==generation||activeRoomCode!==code)return;
    const returned=roomCodeFrom(data);
    if(returned&&returned!==code)throw new Error('O servidor retornou dados de outra sala; atualização interrompida por segurança.');
-   roomState=data;renderPlayers(data);connectionLost=false;lastSuccessfulStateAt=Date.now();
+   roomState=data;applyRoomState(data);connectionLost=false;lastSuccessfulStateAt=Date.now();
    setOnlineStatus('Sala online · participantes atualizados');
    setMessage('Sala '+code+' conectada. Participantes atualizados.','success');
   }catch(err){
@@ -3249,13 +3336,24 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    setMessage('Não consegui copiar automaticamente. O código está selecionado: toque em Copiar no menu do navegador.','error');
   }catch(_){setMessage('Código da sala: '+code+'. Selecione o código exibido e copie manualmente.','error');}
  }
+ async function joinRandomAndStart(){
+  try{
+   const token=await validateSession();
+   const data=await api('/api/rooms/list',{},token);
+   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20));
+   if(!rooms.length){setMessage('Não há salas disponíveis agora. Crie uma sala ou tente atualizar a lista.','error');overlay.classList.remove('hidden');return;}
+   const pick=rooms[Math.floor(Math.random()*rooms.length)];codeInput.value=String(pick.code);overlay.classList.remove('hidden');await runRoomAction('join');
+   if(activeRoomCode&&activeRoomCode===String(pick.code))startOnlineMatch();
+  }catch(err){overlay.classList.remove('hidden');setMessage(err.message||'Não foi possível encontrar uma sala online.','error');}
+ }
+ window.RatopolisOnlineRooms={joinRandom:joinRandomAndStart,open:()=>{overlay.classList.remove('hidden');loadDirectory();},assignShaman:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},await validateSession());},submitFinish:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/finish',{room:activeRoomCode,phase:Number(phase)},await validateSession());},isActive:()=>!!(activeRoomCode&&localRoomMatchStarted),roundStatus:()=>{const phase=Number(typeof level!=='undefined'?level:0);const ps=roomState&&Array.isArray(roomState.players)?roomState.players:[];const participants=ps.filter(p=>p&&p.state&&Number(p.state.phase)===phase&&(p.state.started||p.state.active||p.state.finished));const finished=participants.filter(p=>p.state.finished);return {activeCount:participants.length,finishedCount:finished.length,allFinished:participants.length>0&&finished.length>=participants.length};}};
  createBtn.addEventListener('click',()=>runRoomAction('create'));
  if(refreshRoomsBtn)refreshRoomsBtn.addEventListener('click',loadDirectory);
  joinBtn.addEventListener('click',()=>runRoomAction('join'));
  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
  codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runRoomAction('join');}});
  copyBtn.addEventListener('click',copyRoomCode);
- leaveBtn.addEventListener('click',leaveOnlineRoom);
+ leaveBtn.addEventListener('click',leaveOnlineRoom);if(startMatchBtn)startMatchBtn.addEventListener('click',startOnlineMatch);
 
  // Closing the overlay stops polling, but keeps the online membership selected.
  const closeBtn=$('roomCloseBtn');
