@@ -456,18 +456,20 @@ export default {
         if (item && !(await env.DB.prepare("SELECT code FROM ratopolis_item_registry WHERE code=? AND active=1").bind(item).first())) return reply({ok:false,erro:"O item deste gift nao esta disponivel."},409);
         const redemptionId = crypto.randomUUID();
         const statements = [
-          env.DB.prepare("INSERT INTO ratopolis_gift_redemptions (id,gift_id,user_id,code,coins_awarded,xp_awarded,item_code,item_quantity,created_at) VALUES (?,?,?,?,?,?,?,?,?)").bind(redemptionId,gift.id,actor.id,code,coins,xp,item,qty,now),
-          env.DB.prepare("UPDATE ratopolis_gifts SET redemption_count=redemption_count+1,updated_at=? WHERE id=?").bind(now,gift.id),
-          env.DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?,coins=coins+?,level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=?").bind(xp,coins,xp,actor.id),
-          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,?,?,?,?,?)").bind(crypto.randomUUID(),actor.id,"gift_redeemed",actor.id,JSON.stringify({gift_id:gift.id,code,coins,xp,item:item||null,quantity:qty}),now)
+          env.DB.prepare("UPDATE ratopolis_gifts SET redemption_count=redemption_count+1,updated_at=? WHERE id=? AND status='Ativo' AND (max_redemptions IS NULL OR redemption_count < max_redemptions) AND (expires_at IS NULL OR expires_at >= ?) AND NOT EXISTS (SELECT 1 FROM ratopolis_gift_redemptions WHERE gift_id=? AND user_id=?)").bind(now,gift.id,now,gift.id,actor.id),
+          env.DB.prepare("INSERT INTO ratopolis_gift_redemptions (id,gift_id,user_id,code,coins_awarded,xp_awarded,item_code,item_quantity,created_at) SELECT ?,?,?,?,?,?,?,?,? WHERE changes() > 0").bind(redemptionId,gift.id,actor.id,code,coins,xp,item,qty,now),
+          env.DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?,coins=coins+?,level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=? AND changes() > 0").bind(xp,coins,xp,actor.id)
         ];
-        if (item) statements.push(env.DB.prepare("INSERT INTO ratopolis_store_inventory (user_id,item_code,quantity,equipped,acquired_at,updated_at) VALUES (?,?,?,0,?,?) ON CONFLICT(user_id,item_code) DO UPDATE SET quantity=ratopolis_store_inventory.quantity+excluded.quantity,updated_at=excluded.updated_at").bind(actor.id,item,qty,now,now));
+        if (item) statements.push(env.DB.prepare("INSERT INTO ratopolis_store_inventory (user_id,item_code,quantity,equipped,acquired_at,updated_at) SELECT ?,?,?,0,?,? WHERE changes() > 0 ON CONFLICT(user_id,item_code) DO UPDATE SET quantity=ratopolis_store_inventory.quantity+excluded.quantity,updated_at=excluded.updated_at").bind(actor.id,item,qty,now,now));
+        statements.push(env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) SELECT ?,?,?,?,?,? WHERE changes() > 0").bind(crypto.randomUUID(),actor.id,"gift_redeemed",actor.id,JSON.stringify({gift_id:gift.id,code,coins,xp,item:item||null,quantity:qty}),now));
         try { await env.DB.batch(statements); }
         catch (err) {
           const duplicate = await env.DB.prepare("SELECT id FROM ratopolis_gift_redemptions WHERE gift_id=? AND user_id=?").bind(gift.id,actor.id).first();
           if (duplicate) return reply({ok:false,erro:"Sua conta ja resgatou este gift."},409);
           throw err;
         }
+        const confirmed = await env.DB.prepare("SELECT id FROM ratopolis_gift_redemptions WHERE gift_id=? AND user_id=?").bind(gift.id,actor.id).first();
+        if (!confirmed) return reply({ok:false,erro:"O gift acabou de atingir o limite ou foi desativado. Atualize e tente outro codigo."},409);
         const updated = await env.DB.prepare("SELECT level,xp,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
         return reply({ok:true,mensagem:"Gift resgatado com sucesso!",gift:{title:gift.title,code,coins,xp,item:item||null,quantity:qty},perfil:updated});
       }
