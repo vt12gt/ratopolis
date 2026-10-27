@@ -920,7 +920,7 @@ canvas{image-rendering:auto;touch-action:none}
  </div>
  <section class="rm-gchat" id="rmGlobalChat" aria-label="Chat global">
   <div class="rm-gchat-head"><b>💬 CHAT GLOBAL</b><span id="rmGChatRole" class="rm-gchat-role" title="Cargo verificado">Visitante</span><span id="rmGChatState">modo local</span></div>
-  <div class="rm-gchat-log" id="rmGChatLog" role="log" aria-live="polite"><div class="rm-gmsg sys">Chat global online ainda não está conectado: mensagens aqui ficam apenas neste aparelho.</div></div>
+  <div class="rm-gchat-log" id="rmGChatLog" role="log" aria-live="polite"><div class="rm-gmsg sys">Conectando ao chat online…</div></div>
   <form class="rm-gchat-form" id="rmGChatForm" autocomplete="off"><input id="rmGChatInput" maxlength="160" placeholder="Digite uma mensagem…" enterkeyhint="send" aria-label="Mensagem do chat global"><button type="submit">ENVIAR</button></form>
  </section>
  
@@ -4031,6 +4031,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
     let d;try{d=JSON.parse(e.data);}catch(_){return;}
     if(d.type==='ready'){
      online=true;selfPlayerId=String(d.playerId||'');updateOnlinePlayers(d.players||[]);setState('Mundo online');
+     /* Remove o aviso inicial de modo local quando o servidor confirma a conexão. */
+     if(menuLog){menuLog.querySelectorAll('.rm-gmsg.sys').forEach(n=>{if(/^(Conectando ao chat online…|Chat global online ainda não está conectado: mensagens aqui ficam apenas neste aparelho\.)$/.test(n.textContent.trim()))n.remove();});}
+     if(gameLog){gameLog.querySelectorAll('.chat-line.system').forEach(n=>{if(/^(Conectando ao chat online…|Chat global online ainda não está conectado: mensagens aqui ficam apenas neste aparelho\.)$/.test(n.textContent.trim()))n.remove();});}
      if(!loadedHistory&&Array.isArray(d.history)){d.history.forEach(render);loadedHistory=true;}
      return;
     }
