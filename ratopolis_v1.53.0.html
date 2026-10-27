@@ -815,7 +815,7 @@ canvas{image-rendering:auto;touch-action:none}
 #portalAccountCard[data-state="error"]{border-color:#d7a0a0;background:#fff0ed}
 #portalAccountAction:disabled{opacity:.7}
 </style>
-<meta name="ratopolis-test-version" content="1.52.6-chat-glass-contagem-movimento-staff"><!-- Teste 1.50.4: contagem unificada, chat durante contagem e bypass de equipe validado pela API. -->
+<meta name="ratopolis-test-version" content="1.53.1-countdown-movement-room-mobile"><!-- Teste 1.50.4: contagem unificada, chat durante contagem e bypass de equipe validado pela API. -->
 
 <style id="ratopolis-online-rooms-css">
 #ratopolisOnlineRooms{margin:10px 0 14px;padding:12px;border:1px solid #45654b;border-radius:14px;background:rgba(9,31,23,.56);color:#f5f5df;text-align:left}
@@ -861,6 +861,16 @@ canvas{image-rendering:auto;touch-action:none}
 .rm-private-line{margin:0 0 6px;padding:5px 7px;border-radius:6px;background:#214332;font-size:12px;white-space:pre-wrap}
 .rm-private-line.sys{color:#ffe08a;background:transparent}
 @media(max-width:520px){#rmPrivateBox{width:96vw;padding:8px;max-height:92dvh}#rmPrivatePlayers button{font-size:11px;padding:6px}#rmPrivateForm button{padding:7px}}
+</style>
+<style id="ratopolis-1531-room-mobile-fix">
+/* Contagem/seleção do Shaman: o overlay é visual e não captura toques. */
+#phaseStart.overlay{pointer-events:none!important;background:transparent!important}
+#phaseStart .modal{pointer-events:none!important}
+#controls{z-index:22010!important}
+#controls>.cluster,#controls>.phase-test,#joystick,#controls button{pointer-events:auto!important;touch-action:none}
+#roomsOverlay.overlay{overflow:hidden!important;padding:max(6px,env(safe-area-inset-top)) 6px max(6px,env(safe-area-inset-bottom))!important}
+#roomsOverlay .rooms-modal{width:min(760px,96vw)!important;max-height:94dvh!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain}
+@media(max-width:560px){#roomsOverlay .rooms-modal{width:96vw!important;max-height:94dvh!important;padding:10px!important}#roomsOverlay .rooms-layout{gap:6px!important}#roomsOverlay .room-people{max-height:120px;overflow:auto}#roomsOverlay .room-actions{gap:5px!important}#roomsOverlay .room-actions button{min-height:38px!important;padding:6px 8px!important}}
 </style>
 </head>
 <body>
@@ -1934,7 +1944,7 @@ function showPhaseCountdown(seconds=5,skip=false,serverAssigned=false){
  const panel=document.getElementById('shamanLoadout');
  const overlay=document.getElementById('phaseStart');
  if(!serverAssigned&&window.RatopolisOnlineRooms&&window.RatopolisOnlineRooms.isActive&&window.RatopolisOnlineRooms.isActive()&&window.RatopolisOnlineRooms.assignShaman){
-  document.getElementById('phaseStartName').textContent=scenarioName(level)+' · escolhendo Shaman…';document.getElementById('phaseStartNumber').textContent=level+1;document.getElementById('phaseStartCount').textContent='…';overlay.classList.remove('hidden');playing=false;
+  document.getElementById('phaseStartName').textContent=scenarioName(level)+' · escolhendo Shaman…';document.getElementById('phaseStartNumber').textContent=level+1;document.getElementById('phaseStartCount').textContent='…';overlay.classList.remove('hidden');/* Durante a seleção assíncrona do Shaman, o loop de física continua ativo. */playing=true;last=performance.now();
   window.RatopolisOnlineRooms.assignShaman(level+1).then(result=>{rebuildLevelFromServerSeed(result.mapSeed);activeShamanName=String(result.shamanNickname||'Shaman');activeMatchRole=String(result.shamanId)===String(window.ratopolisPlayerId||'')?'shaman':'mouse';shamanMana=shamanManaMax;shamanPlacementMode=null;updateShamanTools();showPhaseCountdown(seconds,skip,true);}).catch(()=>{selectShamanForRound();showPhaseCountdown(seconds,skip,true);});
   return;
  }
