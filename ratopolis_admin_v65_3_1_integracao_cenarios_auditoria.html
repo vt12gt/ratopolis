@@ -99,17 +99,17 @@ html.ratopolis-admin-lock #ratopolisAdminGate{display:flex!important}
 <div class="stat"><div class="label">API de progresso</div><div class="value" id="storeActProgress">Não verificado</div><div class="tiny muted">GET /api/progression/me</div></div>
 <div class="stat"><div class="label">Saldo de bolotas</div><div class="value" id="storeActCoins">—</div><div class="tiny muted">Valor devolvido pelo servidor</div></div>
 <div class="stat"><div class="label">VIP pago</div><div class="value" id="storeActVip">Não verificado</div><div class="tiny muted">GET /api/store/me</div></div>
-<div class="stat"><div class="label">Catálogo e compras com moedas</div><div class="value" id="storeActCatalog">Pendente</div><div class="tiny muted">API administrativa ainda necessária</div></div>
+<div class="stat"><div class="label">Catálogo e compras com moedas</div><div class="value" id="storeActCatalog">Pendente</div><div class="tiny muted">GET /api/store/catalog · POST /api/store/purchase</div></div>
 </div>
 <div class="two">
 <div class="card"><h3>Diagnóstico do servidor</h3><p class="muted">Use a sessão autenticada deste navegador. O painel consulta os endpoints do jogo e mostra a resposta real. Se a sessão não estiver válida, o resultado será exibido como erro.</p><div id="storeActStatus" class="item" role="status">Aguardando verificação.</div><pre id="storeActDetails" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto">Nenhuma consulta realizada.</pre></div>
 <div class="card"><h3>Etapas para ativar completamente</h3><div class="list">
 <div class="item"><span>1. Saldo e progresso persistidos no D1</span><b>API existente</b></div>
 <div class="item"><span>2. VIP e confirmação de pagamento</span><b>API existente · testar</b></div>
-<div class="item"><span>3. Catálogo oficial compartilhado</span><b>Pendente</b></div>
-<div class="item"><span>4. Compra de itens com desconto atômico de moedas</span><b>Pendente</b></div>
-<div class="item"><span>5. Inventário permanente e proteção contra duplicidade</span><b>Pendente</b></div>
-</div><p class="foot">O catálogo local de demonstração não é tratado como loja real. Nenhuma compra é liberada por esta tela.</p></div>
+<div class="item"><span>3. Catálogo oficial compartilhado</span><b>API publicada · 15 itens</b></div>
+<div class="item"><span>4. Compra de itens com desconto atômico de moedas</span><b>API publicada · requer teste com conta</b></div>
+<div class="item"><span>5. Inventário permanente e proteção contra duplicidade</span><b>API publicada · requer teste com conta</b></div>
+</div><p class="foot">O catálogo, as compras, o inventário e o equipamento agora têm rotas no servidor. A interface da loja no jogo ainda precisa ser ligada e testada com uma conta real.</p></div>
 </div>
 </section>
 <section id="page-economy" class="page hidden"><div class="sectionhead"><h2>XP, economia, loja e VIP</h2></div><div class="grid"><div class="stat"><div class="label">XP por vitória (demo)</div><div class="value">+25</div></div><div class="stat"><div class="label">Moeda do jogo</div><div class="value">Bolotas</div></div><div class="stat"><div class="label">VIP</div><div class="value">Planos demo</div></div><div class="stat"><div class="label">Pagamento real</div><div class="value">Inativo</div></div></div><div class="card"><h3>Produtos de exemplo</h3><div class="list"><div class="item"><span>Chapéu de explorador</span><b>350 bolotas</b></div><div class="item"><span>Skin raposa</span><b>900 bolotas</b></div><div class="item"><span>VIP 30 dias</span><b>R$ 9,90 · demo</b></div><div class="item"><span>100 diamantes</span><b>R$ 4,90 · demo</b></div></div></div></section>
@@ -1057,19 +1057,21 @@ auditLog('Painel v65.3 aberto');render();
  async function checkStoreActivation(){
    const btn=$sa('storeActivationCheck'), status=$sa('storeActStatus'), details=$sa('storeActDetails');
    if(btn){btn.disabled=true;btn.textContent='Verificando…';}
-   setText('storeActProgress','Consultando…');setText('storeActCoins','—');setText('storeActVip','Consultando…');setText('storeActCatalog','Pendente');
+   setText('storeActProgress','Consultando…');setText('storeActCoins','—');setText('storeActVip','Consultando…');setText('storeActCatalog','Consultando…');
    if(status)status.textContent='Consultando endpoints reais do Worker…';
    const token=localStorage.getItem('ratopolis_session_token')||'';
-   if(!token){setText('storeActProgress','Sem sessão');setText('storeActVip','Sem sessão');if(status)status.textContent='Sessão não encontrada. Entre no jogo com uma conta válida neste navegador e tente novamente.';if(details)details.textContent='Não foi enviada nenhuma credencial. Consulte /api/progression/me e /api/store/me após autenticar.';if(btn){btn.disabled=false;btn.textContent='↻ Verificar servidor';}return;}
+   if(!token){setText('storeActProgress','Sem sessão');setText('storeActVip','Sem sessão');setText('storeActCatalog','API publicada · inventário exige sessão');if(status)status.textContent='Catálogo de cosméticos publicado no servidor. Para validar saldo, inventário e VIP, entre com uma conta válida neste navegador.';if(details)details.textContent='Não foi enviada nenhuma credencial. O catálogo público pode ser consultado em /api/store/catalog; inventário e progresso exigem sessão.';if(btn){btn.disabled=false;btn.textContent='↻ Verificar servidor';}return;}
    const results={};
    async function get(path){try{const r=await fetch(base+path,{headers:{Authorization:'Bearer '+token,Accept:'application/json'}});let data;try{data=await r.json()}catch{data={erro:'Resposta não JSON'}};return {http:r.status,ok:r.ok,data};}catch(e){return {http:0,ok:false,data:{erro:String(e&&e.message||e)}};}}
-   const [progress,vip]=await Promise.all([get('/api/progression/me'),get('/api/store/me')]);
-   results.progress=progress;results.vip=vip;
+   const [progress,vip,catalog,inventory]=await Promise.all([get('/api/progression/me'),get('/api/store/me'),get('/api/store/catalog'),get('/api/store/inventory')]);
+   results.progress=progress;results.vip=vip;results.catalog=catalog;results.inventory=inventory;
+   if(catalog.ok&&catalog.data&&catalog.data.ok&&Array.isArray(catalog.data.catalogo)){setText('storeActCatalog',catalog.data.catalogo.length+' itens · API ativa');}
+   else setText('storeActCatalog',catalog.http===0?'Sem conexão':'Falha HTTP '+catalog.http);
    if(progress.ok&&progress.data&&progress.data.ok&&progress.data.progresso){setText('storeActProgress','Conectado');setText('storeActCoins',String(progress.data.progresso.coins??0)+' 🪙');}
    else {setText('storeActProgress',progress.http===401?'Sessão inválida':'Indisponível');setText('storeActCoins','—');}
    if(vip.ok&&vip.data&&vip.data.ok&&vip.data.vip){setText('storeActVip',vip.data.vip.active?'Ativo':'Sem VIP ativo');}
    else setText('storeActVip',vip.http===401?'Sessão inválida':'Indisponível');
-   if(status){status.textContent=(progress.ok&&progress.data?.ok?'Progresso e saldo consultados no servidor. ':'Falha ao consultar progresso. ')+(vip.ok&&vip.data?.ok?'Consulta VIP respondida.':'Consulta VIP falhou.')+' Catálogo e compras com moedas permanecem pendentes.';}
+   if(status){status.textContent=(progress.ok&&progress.data?.ok?'Progresso e saldo consultados no servidor. ':'Falha ao consultar progresso. ')+(vip.ok&&vip.data?.ok?'Consulta VIP respondida. ':'Consulta VIP falhou. ')+(catalog.ok&&catalog.data?.ok?'Catálogo de '+(catalog.data.catalogo||[]).length+' itens confirmado. ':'Catálogo indisponível. ')+(inventory.ok&&inventory.data?.ok?'Inventário autenticado consultado.':'Inventário não validado.');}
    if(details)details.textContent=JSON.stringify(results,null,2);
    if(btn){btn.disabled=false;btn.textContent='↻ Verificar servidor';}
  }
