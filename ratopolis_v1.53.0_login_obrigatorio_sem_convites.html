@@ -3539,7 +3539,16 @@ document.getElementById('rmRedeemGift')?.addEventListener('click',async()=>{
   const data=await res.json().catch(()=>({}));
   if(!res.ok||data.ok!==true)throw new Error(data.erro||'Não foi possível resgatar o gift.');
   const g=data.gift||{};
-  alert('Presente resgatado: '+(g.title||g.code)+'\n+'+Number(g.coins||0)+' moedas\n+'+Number(g.xp||0)+' XP'+(g.item?'\nItem: '+g.item+' × '+Number(g.quantity||1):''));
+  if(g.item){
+   const hats=['leaf','crown','wizard','starhalo','royalwings','guardianCape','levelLeaf','goldEars','crystalAura','auroraWings','ratopolisCrown','shopGlasses','shopScarf','shopBackpack','shopHelmet','teamBrazil','teamPortugal','teamArgentina','teamFrance','teamJapan','teamMexico','teamGermany','teamUSA'];
+   const titles=['burrow_runner','cheese_hunter_title','acorn_guardian','explorer_title','speedy_mouse','ratopolis_legend'];
+   try{
+    if(hats.includes(g.item)&&Array.isArray(ownedHats)&&!ownedHats.includes(g.item))ownedHats.push(g.item);
+    if(titles.includes(g.item)&&Array.isArray(unlockedTitleIds)&&!unlockedTitleIds.includes(g.item))unlockedTitleIds.push(g.item);
+    if(typeof saveProgress==='function')saveProgress();
+   }catch(_){}
+  }
+  alert('Presente resgatado: '+(g.title||g.code)+'\n+'+Number(g.coins||0)+' moedas\n+'+Number(g.xp||0)+' XP'+(g.item?'\nItem: '+g.item+' × '+Number(g.quantity||1)+' (salvo no progresso do jogo)':''));
   if(typeof window.fetchServerProgression==='function')await window.fetchServerProgression();
  }catch(e){alert(e.message)}
 });
