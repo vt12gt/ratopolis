@@ -2131,6 +2131,7 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
       // Evita que a sincronização derrube a partida se o motor ainda não criou o jogador.
       if(typeof player==='undefined'||!player||typeof player!=='object')return null;
       const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
+        vx:Number(player.vx)||0,vy:Number(player.vy)||0,onGround:!!player.onGround,crouching:Number(player.h)<25,dashing:Number(dashTimer)>0,
         facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
         started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
         finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
@@ -3245,9 +3246,11 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(!p||String(p.id)===getLocalPlayerId()||(localPhase!==null&&p.phase!==undefined&&Number(p.phase)!==localPhase))continue;
    currentIds.add(id);let node=avatarLayer.querySelector('[data-player-id="'+CSS.escape(String(id))+'"]');
    if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';const face=document.createElement('span');face.className='rat-face';face.innerHTML='<i class="rat-tail"></i><i class="rat-ear left"></i><i class="rat-ear right"></i><i class="rat-body"></i><i class="rat-belly"></i><i class="rat-eye"></i><i class="rat-nose"></i><i class="rat-feet"></i><i class="rat-feet second"></i>';rat.appendChild(face);const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
-   node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
+   node.classList.toggle('shaman',p.role==='shaman');
+   const vx=Number(p.vx)||0,vy=Number(p.vy)||0,grounded=p.onGround===true;
+   const crouching=p.crouching===true,dashing=p.dashing===true;
    const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y)){node.style.display='none';continue;}
-   node.style.display='block';const prevX=Number(node.dataset.lastX),prevY=Number(node.dataset.lastY);const moving=Number.isFinite(prevX)&&Number.isFinite(prevY)&&(Math.abs(x-prevX)+Math.abs(y-prevY)>.7);node.classList.toggle('moving',moving);node.dataset.lastX=String(x);node.dataset.lastY=String(y);const face=node.querySelector('.rat');if(face)face.style.transform='scaleX('+(Number(p.facing)<0?-1:1)+')';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
+   node.style.display='block';const prevX=Number(node.dataset.lastX),prevY=Number(node.dataset.lastY);const moving=Math.abs(vx)>8||(Number.isFinite(prevX)&&Number.isFinite(prevY)&&(Math.abs(x-prevX)+Math.abs(y-prevY)>.7));node.classList.toggle('moving',moving||dashing);node.classList.toggle('airborne',p.onGround===false||Math.abs(vy)>90);node.classList.toggle('crouching',crouching);node.classList.toggle('dashing',dashing);node.classList.toggle('idle',grounded&&!moving&&!crouching&&!dashing);node.dataset.lastX=String(x);node.dataset.lastY=String(y);node.style.setProperty('--remote-fur',p.role==='shaman'?'#d7c49a':'#aeb5ad');const face=node.querySelector('.rat');if(face)face.style.transform='scaleX('+(Number(p.facing)<0?-1:1)+')';node.style.left=(((x-camera+(Number(p.w)||28)/2)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
   }
   avatarLayer.querySelectorAll('.online-avatar').forEach(n=>{if(!currentIds.has(n.dataset.playerId))n.remove();});
  }
