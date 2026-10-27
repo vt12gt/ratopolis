@@ -2127,16 +2127,23 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
 
   // Multiplayer state bridge must live in the same closure as the game engine's player.
   window.__ratopolisGetMultiplayerState=function(){
-    const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
-      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
-      started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
-      finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
-      nickname:String(playerNickname||'Jogador').slice(0,18)};
-    if(state.role==='shaman')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({
-      type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,
-      falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring
-    }));
-    return state;
+    try{
+      // Evita que a sincronização derrube a partida se o motor ainda não criou o jogador.
+      if(typeof player==='undefined'||!player||typeof player!=='object')return null;
+      const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
+        facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
+        started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
+        finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
+        nickname:String(playerNickname||'Jogador').slice(0,18)};
+      if(state.role==='shaman'&&Array.isArray(obstacles))state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({
+        type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,
+        falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring
+      }));
+      return state;
+    }catch(err){
+      console.warn('[Ratópolis] estado multiplayer temporariamente indisponível:',err);
+      return null;
+    }
   };
 })();
 
