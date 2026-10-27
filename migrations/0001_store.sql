@@ -65,3 +65,24 @@ CREATE TABLE IF NOT EXISTS ratopolis_coin_ledger (
 
 CREATE INDEX IF NOT EXISTS idx_coin_ledger_user
   ON ratopolis_coin_ledger(user_id, created_at DESC);
+
+-- Initial server catalog mirrors currently purchasable, non-exclusive cosmetics.
+-- Prices are authoritative on the server; the client must never submit a price.
+INSERT OR IGNORE INTO ratopolis_store_catalog
+  (code, name, description, category, price_coins, item_payload, active, sort_order)
+VALUES
+  ('leaf', 'Folha da floresta', 'Um acessório natural para exploradores.', 'cosmetic', 20, '{"type":"hat","hatId":"leaf","icon":"🍃"}', 1, 10),
+  ('shopGlasses', 'Óculos de explorador', 'Óculos estilosos para encarar qualquer fase.', 'cosmetic', 35, '{"type":"hat","hatId":"shopGlasses","icon":"🥽"}', 1, 20),
+  ('shopScarf', 'Lenço aventureiro', 'Um lenço colorido para o seu ratinho.', 'cosmetic', 45, '{"type":"hat","hatId":"shopScarf","icon":"🧣"}', 1, 30),
+  ('shopBackpack', 'Mochila de explorador', 'Leve seu espírito aventureiro para cada toca.', 'cosmetic', 55, '{"type":"hat","hatId":"shopBackpack","icon":"🎒"}', 1, 40),
+  ('crown', 'Coroa dourada', 'Para quem quer correr como realeza.', 'cosmetic', 60, '{"type":"hat","hatId":"crown","icon":"👑"}', 1, 50),
+  ('shopHelmet', 'Capacete de madeira', 'Proteção cosmética para quem não teme obstáculos.', 'cosmetic', 70, '{"type":"hat","hatId":"shopHelmet","icon":"⛑️"}', 1, 60),
+  ('teamBrazil', 'Seleção Canarinho', 'Skin de time verde, amarela e azul.', 'cosmetic', 90, '{"type":"hat","hatId":"teamBrazil","icon":"🇧🇷"}', 1, 70),
+  ('teamPortugal', 'Seleção das Quinas', 'Skin de time verde e vermelha.', 'cosmetic', 90, '{"type":"hat","hatId":"teamPortugal","icon":"🇵🇹"}', 1, 80),
+  ('teamArgentina', 'Seleção Albiceleste', 'Skin de time azul-celeste e branca.', 'cosmetic', 90, '{"type":"hat","hatId":"teamArgentina","icon":"🇦🇷"}', 1, 90),
+  ('teamFrance', 'Seleção Tricolor', 'Skin de time azul, branca e vermelha.', 'cosmetic', 90, '{"type":"hat","hatId":"teamFrance","icon":"🇫🇷"}', 1, 100),
+  ('teamJapan', 'Seleção Samurai', 'Skin de time branca e vermelha.', 'cosmetic', 90, '{"type":"hat","hatId":"teamJapan","icon":"🇯🇵"}', 1, 110),
+  ('teamMexico', 'Seleção Verde', 'Skin de time verde, branca e vermelha.', 'cosmetic', 90, '{"type":"hat","hatId":"teamMexico","icon":"🇲🇽"}', 1, 120),
+  ('teamGermany', 'Seleção Germânica', 'Skin de time preta, vermelha e dourada.', 'cosmetic', 90, '{"type":"hat","hatId":"teamGermany","icon":"🇩🇪"}', 1, 130),
+  ('teamUSA', 'Seleção Estrelada', 'Skin de time azul, branca e vermelha.', 'cosmetic', 90, '{"type":"hat","hatId":"teamUSA","icon":"🇺🇸"}', 1, 140),
+  ('wizard', 'Chapéu mágico', 'Um toque de magia na aventura.', 'cosmetic', 100, '{"type":"hat","hatId":"wizard","icon":"🧙"}', 1, 150);
