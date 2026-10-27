@@ -3904,7 +3904,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
    const d=await r.json().catch(()=>({}));if(!r.ok||d.autorizado!==true)return;
    const raw=String(d.role||d.papel||d.user?.role||d.usuario?.role||d.perfil?.role||'').trim().toLowerCase().replace(/[\s_-]/g,'');
    let label='Player';
-   if(['spadm','superadmin','superadministrator','superadministrador','adm','admin','administrator','administrador'].includes(raw))label='ADM';
+   if(['spadm','superadmin','superadministrator','superadministrador'].includes(raw))label='SpAdmin';
+   else if(['adm','admin','administrator','administrador'].includes(raw))label='ADM';
    else if(['gm','gamemaster','gamemestre','gamemasterratopolis'].includes(raw))label='GM';
    else if(['mod','moderator','moderador'].includes(raw))label='Mod';
    else return;
