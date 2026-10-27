@@ -99,6 +99,17 @@ button:disabled{opacity:.55;cursor:wait}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:34px}.page{padding-top:26px}.bottomnav{left:50%;right:auto;transform:translateX(-50%);width:min(560px,94vw);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0}.news-art{height:125px}}
 @media(max-width:600px){body{padding-bottom:72px;font-size:14px}.shell{padding:0 12px}.topinner{padding:9px 12px;gap:7px}.logo{width:34px;height:34px;border-radius:11px;font-size:19px}.brand{gap:7px;font-size:13px}.brand small{font-size:9px;letter-spacing:1.4px}.top-actions{gap:5px}.pill{font-size:9px;padding:6px 7px}.top-actions .ghost{padding:8px 10px;font-size:12px}.hero{margin:12px 0;padding:19px 16px;border-radius:18px}.hero:after{font-size:84px;right:0;bottom:-8px}.hero h1{font-size:clamp(27px,8vw,36px);margin:8px 0}.hero p{font-size:13px;margin:9px 0 13px}.section-head{margin:17px 0 9px;gap:8px}.section-head h2{font-size:18px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:11px;border-radius:14px}.news-art{height:62px;padding:8px;margin-bottom:8px;font-size:24px}.card h3{font-size:13px;margin:7px 0 4px}.card p{font-size:11px;margin-bottom:8px}.feature-list{gap:6px}.feature{padding:9px 5px;border-radius:11px}.feature strong{font-size:13px}.feature span{font-size:10px}.page{padding-top:9px}.profile-head{gap:10px}.avatar{width:52px;height:52px;border-radius:15px;font-size:28px}.statgrid{gap:6px;margin-top:10px}.stat{padding:9px 4px}.stat strong{font-size:18px}.stat span{font-size:9px}.rowitem{padding:10px 0}.formcard{margin:10px auto;padding:13px}.field{margin:10px 0}.field input{padding:11px}.notice{padding:9px;font-size:11px;margin-top:10px}.bottomnav{padding:6px 5px calc(6px + env(safe-area-inset-bottom))}.navbtn{font-size:9px;gap:3px}.navicon{font-size:18px}.footer{padding:18px 0 6px}}
 @media(max-width:380px){.shell{padding:0 9px}.topinner{padding-left:9px;padding-right:9px}.connection-pill{display:none}.grid{gap:6px}.card{padding:9px}.feature-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Toca Chat — integrado ao perfil */
+.chat-card{margin-top:14px;overflow:hidden;border:1px solid #3a2854}
+.chat-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.chat-title h3{margin:0;font-size:18px}.chat-subtitle{color:var(--muted);font-size:12px;margin-top:4px}
+.chat-messages{height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px;background:rgba(5,3,12,.36);border:1px solid rgba(255,255,255,.07);border-radius:12px}
+.chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;padding:18px}
+.chat-message{max-width:92%;padding:9px 11px;border-radius:12px;background:#25183b;overflow-wrap:anywhere;align-self:flex-start}
+.chat-message.mine{align-self:flex-end;background:#4b2f75}.chat-message strong{display:block;font-size:12px;color:#f4cf75;margin-bottom:4px}.chat-message p{margin:0;white-space:pre-wrap;font-size:13px}.chat-message small{display:block;margin-top:5px;font-size:10px;opacity:.65}
+.chat-compose{display:flex;gap:8px;margin-top:10px}.chat-compose input{min-width:0;flex:1;border:1px solid #47325f;border-radius:11px;background:#100b1c;color:var(--text);padding:12px;font:inherit}.chat-compose button{white-space:nowrap}.chat-status{font-size:12px;margin-top:8px;color:var(--muted)}.chat-status.bad{color:#ff9b9b}.chat-status.good{color:#8de5b3}
+
 </style>
 </head>
 <body>
@@ -112,203 +123,23 @@ button:disabled{opacity:.55;cursor:wait}
  <div class="notice">🔐 Cadastro e login usam a API de desenvolvimento. A loja e os rankings ainda não fazem compras ou alterações reais de progresso.</div>
 </section>
 <section id="profile" class="page"><div class="section-head"><div><h2>Meu perfil</h2><p>Dados retornados pela API após entrar</p></div><span class="tag" id="profileStatus">Visitante</span></div><div class="card"><div class="profile-head"><div class="avatar">🐭</div><div class="grow"><h2 id="profileNick" style="margin:0 0 3px">Visitante</h2><div class="smallmeta" id="profileId">Entre para carregar seus dados.</div><div style="margin-top:7px"><span class="tag" id="profileRole">Sem sessão</span></div></div></div><div style="margin-top:18px;display:flex;justify-content:space-between;gap:8px"><b>Experiência</b><small class="smallmeta" id="profileXp">0 XP</small></div><div class="progress"><span id="xpBar"></span></div><div class="statgrid"><div class="stat"><strong id="profileCoins">0</strong><span>MOEDAS</span></div><div class="stat"><strong id="profileVip">0</strong><span>NÍVEL VIP</span></div><div class="stat"><strong id="profileLevel">1</strong><span>NÍVEL</span></div></div><div class="rowitem"><div class="grow"><small>E-mail</small><b id="profileEmail">—</b></div><span>✉️</span></div><div class="actions" style="margin-top:14px"><button class="primary" onclick="go('account')" id="profileLoginBtn">Entrar / criar conta</button><button class="goldbtn play-cta hidden" onclick="playGame()" id="profilePlayBtn">▶ JOGAR</button><button class="primary hidden" onclick="openAdminPanel()" id="adminPanelBtn">🛡️ Painel administrativo</button>
-<button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div><div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div></div></section>
-  
-<div class="card rat-chat-card" id="ratChatCard" style="margin-top:14px">
-  <div class="section-head rat-chat-head" style="margin-top:0">
-    <div>
-      <h2>💬 Toca Chat</h2>
-      <p>Converse com a comunidade mesmo fora do jogo</p>
-    </div>
-    <span class="tag goldtag">GLOBAL</span>
-  </div>
-
-  <div class="rat-chat-banner">
-    <span class="rat-chat-mouse" aria-hidden="true">🐭</span>
-    <div>
-      <b>Chat da comunidade</b>
-      <small>Mensagens globais do Ratópolis. Respeite os outros jogadores.</small>
-    </div>
-  </div>
-
-  <div id="ratChatMessages" class="rat-chat-messages"
-       role="log" aria-live="polite" aria-label="Mensagens do chat">
-    <div class="rat-chat-empty">Entre na sua conta para conversar na toca.</div>
-  </div>
-
-  <form id="ratChatForm" class="rat-chat-form">
-    <input id="ratChatInput" maxlength="500" autocomplete="off"
-           placeholder="Escreva uma mensagem…"
-           aria-label="Mensagem do chat" required>
-    <button class="primary" id="ratChatSend" type="submit">Enviar ➤</button>
-  </form>
-
-  <div id="ratChatStatus" class="status rat-chat-status" role="status">
-    O chat exige uma sessão válida do Ratópolis.
-  </div>
-</div>
-
+<button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div><div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div></div>
+<div class="card chat-card"><div class="chat-title"><div><h3>🐭 Toca Chat</h3><div class="chat-subtitle">Converse com a comunidade Ratópolis</div></div><span class="tag" id="chatOnlineTag">GLOBAL</span></div>
+<div id="chatMessages" class="chat-messages" aria-live="polite"><div class="chat-empty">Entre na sua conta para carregar o chat.</div></div>
+<form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="500" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem do chat" required><button class="primary" id="chatSend" type="submit">Enviar</button></form>
+<div id="chatStatus" class="chat-status" role="status">O chat aparece depois do login.</div></div></section>
 <section id="shop" class="page"><div class="section-head"><div><h2>Loja da toca</h2><p>Prévia visual — compras reais desativadas</p></div><span class="coins">🪙 Loja demo</span></div><div class="grid"><article class="card product"><div class="itememoji">🧢</div><span class="tag">Visual</span><h3>Boné neon</h3><p>Um estilo para se destacar na toca.</p><div class="coins" style="margin-bottom:10px">🪙 500</div><button class="primary" onclick="showToast('A loja ainda não está ligada à economia real.')">Em breve</button></article><article class="card product"><div class="itememoji">🪽</div><span class="tag goldtag">Raro</span><h3>Asas douradas</h3><p>Um item especial para o seu ratinho.</p><div class="coins" style="margin-bottom:10px">🪙 1.200</div><button class="primary" onclick="showToast('A loja ainda não está ligada à economia real.')">Em breve</button></article><article class="card product"><div class="itememoji">✨</div><span class="tag">Efeito</span><h3>Rastro mágico</h3><p>Deixe um brilho pelo caminho.</p><div class="coins" style="margin-bottom:10px">🪙 800</div><button class="primary" onclick="showToast('A loja ainda não está ligada à economia real.')">Em breve</button></article><article class="card product"><div class="itememoji">👑</div><span class="tag goldtag">Épico</span><h3>Coroa da toca</h3><p>Um visual especial da comunidade.</p><div class="coins" style="margin-bottom:10px">🪙 2.000</div><button class="primary" onclick="showToast('A loja ainda não está ligada à economia real.')">Em breve</button></article></div><div class="notice">As compras, moedas e pagamentos não são processados nesta versão.</div></section>
 <section id="ranking" class="page"><div class="section-head"><div><h2>Jogadores</h2><p>Lista carregada pela API do Ratópolis</p></div><button class="ghost" onclick="loadPlayers()">↻ Atualizar</button></div><div class="card" id="playerList"><p>Toque em atualizar para consultar os jogadores.</p></div><div id="rankingStatus" class="status"></div></section>
 <section id="account" class="page"><div class="section-head"><div><h2>Conta Ratópolis</h2><p id="formdesc">Entre ou crie sua conta na API de desenvolvimento.</p></div></div><div class="card formcard"><div style="text-align:center;font-size:38px">🔐</div><div class="actions"><button class="primary" style="flex:1" id="loginTab" type="button" onclick="setForm('login')">Entrar</button><button class="ghost" style="flex:1" id="registerTab" type="button" onclick="setForm('register')">Criar conta</button></div><form id="accountform"><label class="field hidden" id="nickfield"><span>Nickname</span><input id="nick" maxlength="20" autocomplete="nickname" placeholder="Seu nickname"></label><label class="field"><span id="identifierLabel">Nickname ou e-mail</span><input id="identifier" autocomplete="username" required placeholder="Nickname ou e-mail"></label><label class="field hidden" id="emailfield"><span>E-mail</span><input id="email" type="email" autocomplete="email" placeholder="voce@exemplo.com"></label><label class="field" id="passfield"><span>Senha</span><input id="password" type="password" autocomplete="current-password" required minlength="8" placeholder="Mínimo de 8 caracteres"></label><button class="primary" id="formsubmit" type="submit">Entrar</button></form><div class="formlinks"><button class="linkbtn" type="button" onclick="toggleRecovery(true)">Esqueci a senha</button><button class="linkbtn" onclick="go('profile')">Ver perfil</button></div><div id="recoveryPanel" class="recovery-panel hidden"><h3>🔑 Recuperar acesso</h3><p>Informe o e-mail cadastrado. A solicitação depende de um endpoint de recuperação ativo no servidor; o portal não altera sua senha por conta própria.</p><form id="recoveryForm"><label class="field"><span>E-mail cadastrado</span><input id="recoveryEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><button class="primary" id="recoverySubmit" type="submit">Solicitar recuperação</button></form><button class="linkbtn" type="button" onclick="toggleRecovery(false)">Voltar para entrar</button><div id="recoveryStatus" class="status" role="status">A recuperação ainda precisa ser confirmada no servidor.</div></div><div id="authStatus" class="status" role="status">Use a conta criada no teste ou cadastre uma nova.</div><div class="notice">A senha é enviada por HTTPS à API para autenticação. Nunca compartilhe sua senha ou token. Esta é uma API de desenvolvimento.</div></div></section>
 <div class="footer">RATÓPOLIS · PORTAL EM INTEGRAÇÃO · JOGO E PAINEL ADMINISTRATIVO NÃO ALTERADOS</div>
 </main>
 <nav class="bottomnav" aria-label="Navegação principal"><button class="navbtn active" data-page="home" onclick="go('home')"><span class="navicon">⌂</span>Início</button><button class="navbtn hidden" data-page="profile" id="profileNav" onclick="go('profile')"><span class="navicon">♙</span>Perfil</button><button class="navbtn" data-page="shop" onclick="go('shop')"><span class="navicon">🛍</span>Loja</button><button class="navbtn" data-page="ranking" onclick="go('ranking');loadPlayers()"><span class="navicon">🏆</span>Jogadores</button><button class="navbtn" data-page="account" onclick="go('account')"><span class="navicon">☻</span>Conta</button></nav><div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-/* Toca Chat — Ratópolis */
-.rat-chat-card {
-  border: 1px solid #5b3d7a;
-  background: linear-gradient(155deg, #1c142b, #100d18);
-  border-radius: 16px;
-  padding: 16px;
-  margin-top: 14px;
-}
-
-.rat-chat-banner {
-  background: #241735;
-  border: 1px solid #4c3564;
-  border-radius: 12px;
-  padding: 12px;
-  margin: 10px 0;
-  color: #f1e9ff;
-}
-
-.rat-chat-messages {
-  height: 300px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 12px;
-  margin: 10px 0;
-  background: #0c0912;
-  border: 1px solid #342442;
-  border-radius: 12px;
-}
-
-.rat-chat-empty {
-  margin: auto;
-  padding: 20px 10px;
-  text-align: center;
-  color: #b7a9c9;
-  font-size: 12px;
-}
-
-.rat-chat-msg {
-  align-self: flex-start;
-  max-width: 92%;
-  padding: 9px 11px;
-  background: #21192d;
-  border: 1px solid #3c2c4d;
-  border-radius: 12px 12px 12px 4px;
-  overflow-wrap: anywhere;
-}
-
-.rat-chat-msg.mine {
-  align-self: flex-end;
-  background: #302044;
-  border-color: #725096;
-  border-radius: 12px 12px 4px 12px;
-}
-
-.rat-chat-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-  font-size: 11px;
-  color: #c9b9dc;
-}
-
-.rat-chat-name {
-  color: #f1e9ff;
-  font-weight: 800;
-}
-
-.rat-chat-text {
-  color: white;
-  font-size: 13px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.rat-chat-badge {
-  padding: 3px 6px;
-  border-radius: 5px;
-  font-size: 10px;
-  font-weight: 900;
-  background: #38224d;
-  color: #eadbff;
-}
-
-.rat-chat-badge.spadmin {
-  background: #4a3810;
-  color: #fff0a6;
-}
-
-.rat-chat-badge.admin {
-  background: #3c2814;
-  color: #ffe0a6;
-}
-
-.rat-chat-badge.gm {
-  background: #12303d;
-  color: #b9f3ff;
-}
-
-.rat-chat-badge.mod {
-  background: #18321d;
-  color: #c7ffc7;
-}
-
-.rat-chat-badge.editor {
-  background: #3b1c38;
-  color: #ffc7ed;
-}
-
-.rat-chat-form {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.rat-chat-form input {
-  flex: 1;
-  min-width: 0;
-  padding: 12px;
-  background: #100c17;
-  color: white;
-  border: 1px solid #49345d;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-.rat-chat-form button {
-  white-space: nowrap;
-}
-
-.rat-chat-status {
-  font-size: 11px;
-}
-
-@media (max-width: 380px) {
-  .rat-chat-messages {
-    height: 250px;
-  }
-
-  .rat-chat-card {
-    padding: 12px;
-  }
-}
-  <script>
+<script>
 'use strict';
 const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const ADMIN_API = 'https://ratopolis-admin-test.juniorgmj69.workers.dev';
 const ADMIN_PANEL_URL = 'https://vt12gt.github.io/ratopolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html';
 const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.52.0_shaman.html';
-    
 let formMode='login';
 let sessionToken='';
 try{sessionToken=localStorage.getItem('ratopolis_session_token')||''}catch(e){}
@@ -326,7 +157,7 @@ async function refreshAdminAccess(){const button=$('adminPanelBtn');if(button)bu
 async function openAdminPanel(){if(!sessionToken||!currentPlayer){showToast('Entre na sua conta primeiro.');go('account');return}const authorized=await refreshAdminAccess();if(!authorized){showToast('O servidor não confirmou permissão para abrir o painel.');return}window.location.href='https://vt12gt.github.io/ratopolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html'}
 function unwrapPlayer(data){return data.player||data.jogador||data.user||data.usuario||data.perfil||data.data||data}
 function val(obj,...keys){for(const k of keys){if(obj&&obj[k]!==undefined&&obj[k]!==null)return obj[k]}return ''}
-function renderPlayer(raw,emailFallback=''){const p=unwrapPlayer(raw)||{};currentPlayer=p;const nickname=val(p,'nickname','apelido','nick','name')||'Jogador';const role=val(p,'role','papel','funcao','função')||'jogador';const level=Number(val(p,'level','nivel','nível')||1);const xp=Number(val(p,'xp','experience')||0);const vip=Number(val(p,'vip_level','vipLevel','nivel_vip','nível_vip')||0);const coins=Number(val(p,'coins','moedas')||0);const id=val(p,'id','user_id','userId')||'ID não retornado';const email=val(p,'email')||emailFallback||'Não retornado pela API';$('profileNick').textContent=nickname;$('profileId').textContent='ID: '+id;$('profileRole').textContent=String(role).toUpperCase();$('profileStatus').textContent='Conectado';$('profileXp').textContent=xp+' XP';$('xpBar').style.width=Math.max(0,Math.min(100,xp%1000/10))+'%';$('profileCoins').textContent=coins.toLocaleString('pt-BR');$('profileVip').textContent=vip;$('profileLevel').textContent=level;$('profileEmail').textContent=email;$('profileLoginBtn').classList.add('hidden');$('profilePlayBtn').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');$('profileNav').classList.remove('hidden');$('topAccount').textContent=nickname;setStatus('profileMessage','Perfil carregado pela API do Ratópolis.','good');refreshAdminAccess();}
+function renderPlayer(raw,emailFallback=''){const p=unwrapPlayer(raw)||{};currentPlayer=p;const nickname=val(p,'nickname','apelido','nick','name')||'Jogador';const role=val(p,'role','papel','funcao','função')||'jogador';const level=Number(val(p,'level','nivel','nível')||1);const xp=Number(val(p,'xp','experience')||0);const vip=Number(val(p,'vip_level','vipLevel','nivel_vip','nível_vip')||0);const coins=Number(val(p,'coins','moedas')||0);const id=val(p,'id','user_id','userId')||'ID não retornado';const email=val(p,'email')||emailFallback||'Não retornado pela API';$('profileNick').textContent=nickname;$('profileId').textContent='ID: '+id;$('profileRole').textContent=String(role).toUpperCase();$('profileStatus').textContent='Conectado';$('profileXp').textContent=xp+' XP';$('xpBar').style.width=Math.max(0,Math.min(100,xp%1000/10))+'%';$('profileCoins').textContent=coins.toLocaleString('pt-BR');$('profileVip').textContent=vip;$('profileLevel').textContent=level;$('profileEmail').textContent=email;$('profileLoginBtn').classList.add('hidden');$('profilePlayBtn').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');$('profileNav').classList.remove('hidden');$('topAccount').textContent=nickname;setStatus('profileMessage','Perfil carregado pela API do Ratópolis.','good');refreshAdminAccess();loadRatChat(true);}
 $('accountform').addEventListener('submit',async event=>{event.preventDefault();const submit=$('formsubmit');submit.disabled=true;setStatus('authStatus',formMode==='register'?'Enviando cadastro...':'Autenticando...');try{if(formMode==='register'){const nickname=$('nick').value.trim();const email=$('email').value.trim().toLowerCase();const password=$('password').value;const registered=await api('/api/register',{method:'POST',body:JSON.stringify({nickname,email,password})});setStatus('authStatus','Cadastro criado na API! Agora entre usando seu nickname ou e-mail e a senha.','good');$('identifier').value=nickname;$('password').value='';setForm('login');$('identifier').value=nickname;setStatus('authStatus','Cadastro enviado com sucesso. Entre para carregar seu perfil.','good');if(registered.player||registered.jogador||registered.user||registered.usuario){renderPlayer(registered,email)} }else{const identifier=$('identifier').value.trim();const password=$('password').value;const data=await api('/api/login',{method:'POST',body:JSON.stringify({identifier,password})});const tokenSource=data.data&&typeof data.data==='object'?{...data,...data.data}:data;sessionToken=val(tokenSource,'token','session_token','sessionToken','access_token','accessToken');if(sessionToken){try{localStorage.setItem('ratopolis_session_token',sessionToken)}catch(e){}}if(!sessionToken)throw new Error('Login respondeu sem token de sessão. Confira a resposta do Worker.');let player=unwrapPlayer(data);try{const me=await api('/api/me',{method:'GET',token:sessionToken});player=unwrapPlayer(me)||player}catch(e){console.warn('A sessão autenticou, mas /api/me não carregou:',e.message)}renderPlayer(player,identifier.includes('@')?identifier:'');$('password').value='';setStatus('authStatus','Login concluído e perfil carregado.','good');showToast('Bem-vindo a Ratópolis!');go('profile')}}catch(error){setStatus('authStatus','Não foi possível concluir: '+error.message+(location.protocol==='file:'?' Abra o arquivo por um servidor local autorizado, não pelo endereço file://.':''),'bad')}finally{submit.disabled=false}});
 async function logout(){if(!sessionToken){showToast('Nenhuma sessão ativa nesta página.');return}try{await api('/api/logout',{method:'POST',body:JSON.stringify({}),token:sessionToken});setStatus('profileMessage','Sessão encerrada no servidor.','good')}catch(e){setStatus('profileMessage','O logout no servidor retornou: '+e.message,'bad')}finally{sessionToken='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}currentPlayer=null;$('profileNav').classList.add('hidden');$('profilePlayBtn').classList.add('hidden');$('profileNick').textContent='Visitante';$('profileId').textContent='Entre para carregar seus dados.';$('profileRole').textContent='Sem sessão';$('profileStatus').textContent='Visitante';$('profileXp').textContent='0 XP';$('xpBar').style.width='0%';$('profileCoins').textContent='0';$('profileVip').textContent='0';$('profileLevel').textContent='1';$('profileEmail').textContent='—';$('profileLoginBtn').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('adminPanelBtn').classList.add('hidden');$('topAccount').textContent='Entrar';showToast('Você saiu da conta.')}}
 async function loadPlayers(){const list=$('playerList');list.innerHTML='<p>Consultando API...</p>';setStatus('rankingStatus','');try{const data=await api('/api/players');const players=data.players||data.jogadores||data.users||data.usuarios||[];if(!players.length){list.textContent='A API respondeu, mas não retornou jogadores.';return}list.innerHTML='';players.forEach((p,i)=>{const nick=val(p,'nickname','apelido','nick')||'Jogador';const level=val(p,'level','nivel','nível')||1;const xp=val(p,'xp')||0;const role=val(p,'role','papel','funcao','função')||'jogador';const row=document.createElement('div');row.className='rowitem';const num=document.createElement('div');num.className='ranknum';num.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':String(i+1);const avatar=document.createElement('div');avatar.className='avatar';avatar.style.cssText='width:43px;height:43px;font-size:23px;border-radius:13px';avatar.textContent='🐭';const info=document.createElement('div');info.className='grow';const b=document.createElement('b');b.textContent=nick;const small=document.createElement('small');small.textContent='Nível '+level+' · '+xp+' XP · '+role;info.append(b,small);row.append(num,avatar,info);list.append(row)});setStatus('rankingStatus',players.length+' jogador(es) carregado(s) da API.','good')}catch(error){list.textContent='Não foi possível carregar os jogadores.';setStatus('rankingStatus',error.message,'bad')}}
@@ -334,113 +165,39 @@ async function loadPlayers(){const list=$('playerList');list.innerHTML='<p>Consu
 function toggleRecovery(show){$('recoveryPanel').classList.toggle('hidden',!show);if(show){$('recoveryEmail').value=$('email').value.trim();$('recoveryStatus').textContent='Informe o e-mail cadastrado e solicite a recuperação.';$('recoveryStatus').className='status';}}
 $('recoveryForm').addEventListener('submit',async event=>{event.preventDefault();const button=$('recoverySubmit');button.disabled=true;setStatus('recoveryStatus','Verificando suporte de recuperação no servidor...');try{const result=await api('/api/forgot-password',{method:'POST',body:JSON.stringify({email:$('recoveryEmail').value.trim().toLowerCase()})});setStatus('recoveryStatus',result.message||result.mensagem||'O servidor aceitou a solicitação. Siga apenas as instruções realmente enviadas pelo servidor.','good');}catch(error){setStatus('recoveryStatus','O servidor não confirmou a recuperação ('+error.message+'). Nenhuma senha foi alterada. O endpoint precisa ser implementado/testado no Worker.','bad');}finally{button.disabled=false;}});
 
-setForm('login');
 
-const RAT_CHAT_API = 'https://ratopolis-chat-api-v1.juniorgmj69.workers.dev';
-
-async function ratChatLoad() {
-  const box = $('ratChatMessages');
-  if (!box) return;
-
-  if (!sessionToken || !currentPlayer) {
-    box.textContent = 'Entre na sua conta para conversar na toca.';
-    return;
+// Toca Chat autenticado: usa o mesmo token salvo pelo login do portal.
+const RAT_CHAT_API='https://ratopolis-chat-api-v1.juniorgmj69.workers.dev';
+let ratChatLoading=false;
+let ratChatLastSignature='';
+function chatStatus(message,type=''){const el=$('chatStatus');if(!el)return;el.textContent=message;el.className='chat-status'+(type?' '+type:'');}
+function chatField(item,...keys){for(const key of keys){if(item&&item[key]!==undefined&&item[key]!==null&&item[key]!=='')return item[key]}return '';}
+function chatTime(value){if(!value)return '';let d=new Date(value);if(Number.isNaN(d.getTime())&&typeof value==='number')d=new Date(value*1000);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});}
+async function loadRatChat(quiet=false){
+ const box=$('chatMessages');if(!box)return;
+ if(!sessionToken||!currentPlayer){box.innerHTML='<div class="chat-empty">🔒 Entre na sua conta para acessar o Toca Chat.</div>';chatStatus('Faça login no Ratópolis para carregar as mensagens.');return;}
+ if(ratChatLoading)return;ratChatLoading=true;
+ try{
+  const response=await fetch(RAT_CHAT_API+'/api/chat/messages?channel=global',{headers:{Authorization:'Bearer '+sessionToken,Accept:'application/json'}});
+  const raw=await response.text();let data={};try{data=JSON.parse(raw)}catch{data={message:raw}}
+  if(!response.ok||data.ok===false)throw new Error(data.error||data.erro||data.message||('Erro HTTP '+response.status));
+  const messages=Array.isArray(data.messages)?data.messages:(Array.isArray(data.data)?data.data:[]);
+  const signature=JSON.stringify(messages);
+  if(signature!==ratChatLastSignature){ratChatLastSignature=signature;box.replaceChildren();
+   if(!messages.length){const empty=document.createElement('div');empty.className='chat-empty';empty.textContent='A toca está quietinha por enquanto. Envie a primeira mensagem!';box.append(empty)}
+   messages.forEach(m=>{const row=document.createElement('div');row.className='chat-message';const nick=String(chatField(m,'nickname','nick','username','user_name','author')||'Ratinho');const body=String(chatField(m,'message','content','text','body')||'');const mine=nick.toLowerCase()===String(chatField(currentPlayer,'nickname','nick','name')||'').toLowerCase();if(mine)row.classList.add('mine');const who=document.createElement('strong');who.textContent=nick;const p=document.createElement('p');p.textContent=body;row.append(who,p);const timestamp=chatTime(chatField(m,'created_at','createdAt','timestamp','sent_at'));if(timestamp){const small=document.createElement('small');small.textContent=timestamp;row.append(small)}box.append(row)});
+   box.scrollTop=box.scrollHeight;
   }
-
-  try {
-    const response = await fetch(
-      RAT_CHAT_API + '/api/chat/messages?channel=global'
-    );
-
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-
-    const data = await response.json();
-    const messages = Array.isArray(data)
-      ? data
-      : (data.messages || data.items ||
-         (Array.isArray(data.data) ? data.data : []));
-
-    box.replaceChildren();
-
-    if (!messages.length) {
-      box.textContent = 'A toca está tranquila. Envie a primeira mensagem!';
-      return;
-    }
-
-    messages.forEach(msg => {
-      const row = document.createElement('div');
-      row.className = 'rat-chat-message';
-
-      const nick = document.createElement('b');
-      nick.textContent = msg.nickname || 'Ratinho';
-
-      const body = document.createElement('div');
-      body.textContent = msg.message || '';
-
-      row.append(nick, body);
-      box.append(row);
-    });
-
-    box.scrollTop = box.scrollHeight;
-    $('ratChatStatus').textContent = 'Chat conectado.';
-  } catch (error) {
-    $('ratChatStatus').textContent =
-      'Não foi possível carregar as mensagens. Verifique a API do chat.';
-  }
+  chatStatus('Conectado ao chat global · '+messages.length+' mensagem(ns).','good');
+ }catch(error){chatStatus('Não foi possível carregar: '+error.message,'bad');if(!quiet&&!box.children.length){box.innerHTML='<div class="chat-empty">O servidor não conseguiu carregar as mensagens. Confira se sua sessão ainda está válida.</div>'}}
+ finally{ratChatLoading=false}
 }
+$('chatForm').addEventListener('submit',async event=>{event.preventDefault();const input=$('chatInput');const button=$('chatSend');const message=input.value.trim();if(!message)return;if(!sessionToken||!currentPlayer){chatStatus('Entre na conta antes de enviar mensagem.','bad');return}button.disabled=true;chatStatus('Enviando mensagem...');try{const response=await fetch(RAT_CHAT_API+'/api/chat/messages',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+sessionToken,Accept:'application/json'},body:JSON.stringify({channel:'global',message})});const raw=await response.text();let data={};try{data=JSON.parse(raw)}catch{data={message:raw}}if(!response.ok||data.ok===false)throw new Error(data.error||data.erro||data.message||('Erro HTTP '+response.status));input.value='';ratChatLastSignature='';await loadRatChat();chatStatus('Mensagem enviada.','good')}catch(error){chatStatus('Não foi possível enviar: '+error.message,'bad')}finally{button.disabled=false}});
 
-$('ratChatForm').addEventListener('submit', async event => {
-  event.preventDefault();
-
-  const input = $('ratChatInput');
-  const button = $('ratChatSend');
-  const message = input.value.trim();
-
-  if (!sessionToken || !currentPlayer) {
-    $('ratChatStatus').textContent = 'Entre na sua conta primeiro.';
-    return;
-  }
-
-  if (!message) return;
-
-  button.disabled = true;
-
-  try {
-    const response = await fetch(
-      RAT_CHAT_API + '/api/chat/messages',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionToken
-        },
-        body: JSON.stringify({
-          channel: 'global',
-          message: message
-        })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('HTTP ' + response.status);
-    }
-
-    input.value = '';
-    $('ratChatStatus').textContent = 'Mensagem enviada!';
-    await ratChatLoad();
-  } catch (error) {
-    $('ratChatStatus').textContent =
-      'Falha ao enviar. Confira a sessão e a API do chat.';
-  } finally {
-    button.disabled = false;
-  }
-});
-
-ratChatLoad();
-setInterval(ratChatLoad, 5000);
-
+setForm('login');
 async function restoreSession(){if(!sessionToken){return;}try{const me=await api('/api/me',{method:'GET',token:sessionToken});const player=unwrapPlayer(me);if(!player)throw new Error('Perfil não retornado');renderPlayer(player);setStatus('authStatus','Sessão restaurada e perfil confirmado.','good');}catch(error){sessionToken='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}currentPlayer=null;$('profileNav').classList.add('hidden');$('profilePlayBtn').classList.add('hidden');$('adminPanelBtn').classList.add('hidden');}}
 restoreSession();
+setInterval(()=>{if(sessionToken&&currentPlayer)loadRatChat(true)},5000);
 </script>
 </body>
 </html>
