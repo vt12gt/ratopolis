@@ -1014,6 +1014,7 @@ async function refreshStoreCatalog(silent=true){
   const data=await response.json().catch(()=>({}));
   if(!response.ok||data.ok!==true||!Array.isArray(data.catalogo))throw new Error(data.erro||'Catálogo indisponível.');
   storeCatalogCache=data.catalogo.filter(x=>x&&typeof x.code==='string'&&Number.isFinite(Number(x.price_coins)));
+  for(const item of storeCatalogCache){const p=item.payload||{};if(p.type==='hat'&&typeof p.hatId==='string'&&!hatDefs.some(h=>h.id===item.code)){hatDefs.push({id:item.code,name:item.name||item.code,icon:p.icon||'✨',cost:Number(item.price_coins),desc:item.description||'Cosmético da loja',wardrobeCategory:p.wardrobeCategory||'Acessórios',rarity:p.rarity||'',skinColor:p.skinColor||''});}}
   return true;
  }catch(error){if(!silent&&typeof showMessage==='function')showMessage(error.message||'Não foi possível carregar a loja.');return false;}
 }
@@ -1307,7 +1308,7 @@ function renderWardrobe(){const list=document.getElementById('wardrobeItems'),ta
  if(wardrobeMode==='shop'&&wardrobeCategory==='Skins')renderVIPSkins(extras);
  if(wardrobeMode==='shop'&&(wardrobeCategory==='Todos'||wardrobeCategory==='Diamantes')){const dia=document.createElement('div');dia.className='shop-note';dia.innerHTML='<strong>💎 Diamantes</strong><br>Futuramente haverá pacotes de diamantes comprados com dinheiro real. Nenhuma cobrança ou compra está ativa nesta versão.';extras.appendChild(dia)}
  let items=[];
- const hatCat=h=>h.id==='none'||h.id.startsWith('team')?'Skins':(/^shopBackpack$/.test(h.id)?'Mochilas':(/^shopScarf$/.test(h.id)?'Roupas':(/shopGlasses|cape|wings|leaf|aura|halo|brooch|levelLeaf|crystal/i.test(h.id+' '+h.name)?'Acessórios':(/crown|wizard|goldEars|ratopolisCrown|shopHelmet/i.test(h.id+' '+h.name)?'Chapéus':'Chapéus'))));
+ const hatCat=h=>h.wardrobeCategory|| (h.id==='none'||h.id.startsWith('team')||h.id.startsWith('skin')?'Skins':(/^shopBackpack$|Backpack$/.test(h.id)?'Mochilas':(/^shopScarf$|Scarf$|Jacket$|Cape$/.test(h.id)?'Roupas':(/shopGlasses|cape|wings|leaf|aura|halo|brooch|levelLeaf|crystal|supremeHalo|supremeAura|supremeFlame/i.test(h.id+' '+h.name)?'Acessórios':(/crown|wizard|goldEars|ratopolisCrown|shopHelmet|Helmet|Horns/i.test(h.id+' '+h.name)?'Chapéus':'Chapéus'))));
  if(['Todos','Skins','Chapéus','Acessórios','Roupas','Mochilas'].includes(wardrobeCategory)){items=hatDefs.filter(h=>wardrobeCategory==='Todos'||hatCat(h)===wardrobeCategory).map(h=>({...h,category:hatCat(h),existing:true}));}
  if(['Roupas','Mochilas','Skins','Acessórios','Todos'].includes(wardrobeCategory)){for(const f of futureCosmetics){if(wardrobeCategory==='Todos'||wardrobeCategory===f.cat)items.push({...f,id:'future_'+f.name,category:f.cat,future:true})}}
  if(wardrobeCategory==='VIP'||wardrobeCategory==='Diamantes')items=[];
@@ -1672,7 +1673,7 @@ ctx.strokeStyle='#777f79';ctx.lineWidth=2.8;ctx.beginPath();
 if(airborne){ctx.moveTo(-6,7);ctx.lineTo(-9,11);ctx.moveTo(5,7);ctx.lineTo(8,10)}
 else{ctx.moveTo(-6,7);ctx.lineTo(-8-stride,12);ctx.moveTo(5,7);ctx.lineTo(7+stride,12)}ctx.stroke();
 // Corpo com sombra, barriga clara e contorno suave.
-const skinColors={classic:'#aeb5ad',caramel:'#c88b52',snow:'#f0eee5',midnight:'#656b9b',rose:'#d99baa',golden:'#e7bd42',teamBrazil:'#f2d447',teamPortugal:'#d84a43',teamArgentina:'#a9dcf3',teamFrance:'#4b72c8',teamJapan:'#f4f0e8',teamMexico:'#32945c',teamGermany:'#292929',teamUSA:'#4569a9'};const teamSkin=equippedHat.startsWith('team')?equippedHat:null;const furColor=teamSkin?(skinColors[teamSkin]||skinColors.classic):(skinColors[equippedVipSkin]||skinColors.classic);
+const skinColors={classic:'#aeb5ad',caramel:'#c88b52',snow:'#f0eee5',midnight:'#656b9b',rose:'#d99baa',golden:'#e7bd42',teamBrazil:'#f2d447',teamPortugal:'#d84a43',teamArgentina:'#a9dcf3',teamFrance:'#4b72c8',teamJapan:'#f4f0e8',teamMexico:'#32945c',teamGermany:'#292929',teamUSA:'#4569a9',skinCaramelSupremo:'#c88b52',skinMidnightSupremo:'#55506f',skinSnowSupremo:'#f0eee5',skinAuroraSupremo:'#cf8acb'};const teamSkin=equippedHat.startsWith('team')?equippedHat:null;const customSkin=equippedHat.startsWith('skin')?skinColors[equippedHat]:null;const furColor=teamSkin?(skinColors[teamSkin]||skinColors.classic):(customSkin||skinColors[equippedVipSkin]||skinColors.classic);
 ctx.fillStyle='rgba(28,45,34,.15)';ctx.beginPath();ctx.ellipse(0,10,11,3,0,0,Math.PI*2);ctx.fill();
 ctx.fillStyle=furColor;ctx.strokeStyle='#747d75';ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(-2,1,12,10,-.12,0,Math.PI*2);ctx.fill();ctx.stroke();
 ctx.fillStyle='#e4dfca';ctx.beginPath();ctx.ellipse(4,3,7,5,-.15,0,Math.PI*2);ctx.fill();
@@ -1701,6 +1702,9 @@ if(['shopGlasses','shopScarf','shopBackpack','shopHelmet'].includes(equippedHat)
   if(equippedHat==='shopHelmet')ctx.fillText('⛑️',1,-25);
   ctx.restore();
 }
+// Linha SUPREMO: itens visuais adicionados ao catálogo oficial do D1.
+const supremeIcons={supremeJacket:'🧥',supremeScarf:'🧣',supremeCape:'🦸',supremeBackpack:'🎒',supremeHelmet:'🪖',supremeCrown:'👑',supremeWizard:'🧙',supremeHorns:'😈',supremeHalo:'🌟',supremeWings:'🪽',supremeAura:'💎',supremeFlame:'🔥'};
+if(supremeIcons[equippedHat]){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='17px system-ui';const y=['supremeCrown','supremeWizard','supremeHelmet','supremeHorns','supremeHalo'].includes(equippedHat)?-28:(['supremeJacket','supremeScarf','supremeCape','supremeBackpack'].includes(equippedHat)?1:-13);ctx.fillText(supremeIcons[equippedHat],equippedHat==='supremeBackpack'?-12:1,y);ctx.restore();}
 // Focinho, nariz, olho com brilho e bigodes.
 ctx.fillStyle='#eee9d9';ctx.beginPath();ctx.ellipse(10,-4,7,4.5,0,0,Math.PI*2);ctx.fill();
 ctx.fillStyle='#d98288';ctx.beginPath();ctx.arc(16,-5,2.1,0,Math.PI*2);ctx.fill();
