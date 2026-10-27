@@ -3078,25 +3078,28 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 <style id="ratopolis-online-avatar-style">
 #roomsOverlay .rooms-layout,#roomsOverlay .shaman-role-picker{display:none!important}
 #roomsOverlay #roomStartBtn,#roomsOverlay #roomRandomBtn{display:none!important}
-#onlineAvatars{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;display:none}
+#onlineAvatars{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:8;display:none;isolation:isolate}
 #onlineAvatars.active{display:block}
-.online-avatar{position:absolute;transform:translate(-50%,-100%);min-width:28px;text-align:center;color:#fff7dc;font:900 10px system-ui;white-space:nowrap;text-shadow:0 1px 3px #10271b,1px 0 2px #10271b,-1px 0 2px #10271b;will-change:left,top}
-.online-avatar .rat{display:block;position:relative;width:36px;height:34px;margin:0 auto 2px;filter:drop-shadow(0 2px 2px #10271b);transform-origin:center bottom}
-.online-avatar .rat-face{display:block;position:relative;width:36px;height:31px;transform-origin:center bottom;animation:ratopolisRemoteRun .22s ease-in-out infinite alternate;animation-play-state:paused}.online-avatar.moving .rat-face{animation-play-state:running}
-.online-avatar .rat-body{position:absolute;left:7px;top:10px;width:23px;height:17px;border:1.5px solid #747d75;border-radius:48% 52% 48% 48%;background:var(--remote-fur,#aeb5ad);box-shadow:inset 0 -3px 0 rgba(45,50,43,.12)}
-.online-avatar .rat-belly{position:absolute;left:18px;top:17px;width:11px;height:8px;border-radius:50%;background:#e4dfca;transform:rotate(-12deg)}
-.online-avatar .rat-ear{position:absolute;top:1px;width:10px;height:13px;border:1.5px solid #747d75;border-radius:65% 65% 45% 45%;background:var(--remote-fur,#aeb5ad)}
+.online-avatar{position:absolute;transform:translate(-50%,-100%);min-width:32px;text-align:center;color:#fff7dc;font:900 10px system-ui;white-space:nowrap;text-shadow:0 1px 3px #10271b,1px 0 2px #10271b,-1px 0 2px #10271b;will-change:left,top;contain:layout style}
+.online-avatar .rat{display:block;position:relative;width:40px;height:38px;margin:0 auto 2px;filter:drop-shadow(0 2px 2px #10271b);transform-origin:center bottom;animation:ratopolisRemoteBody .24s ease-in-out infinite alternate}
+.online-avatar .rat-face{display:block;position:relative;width:40px;height:35px;transform-origin:center bottom;animation:ratopolisRemoteRun .24s ease-in-out infinite alternate}
+.online-avatar .rat-body{position:absolute;left:8px;top:11px;width:25px;height:18px;border:1.5px solid #626e64;border-radius:48% 52% 48% 48%;background:var(--remote-fur,#aeb5ad);box-shadow:inset 0 -3px 0 rgba(45,50,43,.12)}
+.online-avatar .rat-belly{position:absolute;left:20px;top:18px;width:12px;height:9px;border-radius:50%;background:#e4dfca;transform:rotate(-12deg)}
+.online-avatar .rat-ear{position:absolute;top:1px;width:11px;height:14px;border:1.5px solid #626e64;border-radius:65% 65% 45% 45%;background:var(--remote-fur,#aeb5ad);transform-origin:bottom center}
 .online-avatar .rat-ear:after{content:"";position:absolute;inset:3px 2px 2px;border-radius:inherit;background:#e6aab3}
-.online-avatar .rat-ear.left{left:9px;transform:rotate(-18deg)}.online-avatar .rat-ear.right{left:22px;transform:rotate(15deg)}
-.online-avatar .rat-eye{position:absolute;left:25px;top:12px;width:3px;height:4px;border-radius:50%;background:#17271b}
-.online-avatar .rat-nose{position:absolute;left:30px;top:17px;width:4px;height:3px;border-radius:60%;background:#e69aa6}
-.online-avatar .rat-tail{position:absolute;left:0;top:23px;width:12px;height:9px;border:2px solid #a8aaa4;border-right:0;border-top:0;border-radius:0 0 0 90%;transform:rotate(-12deg)}
-.online-avatar .rat-feet{position:absolute;left:13px;top:25px;width:5px;height:7px;border-radius:2px;background:#777f79;transform-origin:top;animation:ratopolisRemoteFeet .22s ease-in-out infinite alternate;animation-play-state:paused}.online-avatar.moving .rat-feet{animation-play-state:running}
-.online-avatar .rat-feet.second{left:25px;animation-delay:-.11s}
-@keyframes ratopolisRemoteRun{from{translate:0 0;rotate:-3deg;scale:1 1}to{translate:0 -2px;rotate:3deg;scale:1.03 .97}}
-@keyframes ratopolisRemoteFeet{from{rotate:-25deg}to{rotate:25deg}}
-.online-avatar.shaman .rat-face{animation-duration:.32s}.online-avatar.shaman .rat-body{background:#d7c49a}
-@media(prefers-reduced-motion:reduce){.online-avatar .rat-face,.online-avatar .rat-feet{animation:none}}
+.online-avatar .rat-ear.left{left:10px;transform:rotate(-18deg);animation:ratopolisRemoteEar .32s ease-in-out infinite alternate}.online-avatar .rat-ear.right{left:24px;transform:rotate(15deg);animation:ratopolisRemoteEar .32s ease-in-out -.16s infinite alternate}
+.online-avatar .rat-eye{position:absolute;left:28px;top:13px;width:3px;height:4px;border-radius:50%;background:#17271b}
+.online-avatar .rat-nose{position:absolute;left:34px;top:18px;width:4px;height:3px;border-radius:60%;background:#e69aa6}
+.online-avatar .rat-tail{position:absolute;left:1px;top:25px;width:13px;height:9px;border:2px solid #a8aaa4;border-right:0;border-top:0;border-radius:0 0 0 90%;transform-origin:right top;animation:ratopolisRemoteTail .3s ease-in-out infinite alternate}
+.online-avatar .rat-feet{position:absolute;left:15px;top:28px;width:5px;height:7px;border-radius:2px;background:#777f79;transform-origin:top center;animation:ratopolisRemoteFeet .16s ease-in-out infinite alternate}
+.online-avatar .rat-feet.second{left:28px;animation-delay:-.08s}
+@keyframes ratopolisRemoteRun{from{transform:translateY(1px) rotate(-4deg) scale(1,1)}to{transform:translateY(-2px) rotate(4deg) scale(1.03,.96)}}
+@keyframes ratopolisRemoteBody{from{transform:translateY(0) scaleX(1)}to{transform:translateY(-1px) scaleX(1.02)}}
+@keyframes ratopolisRemoteFeet{from{transform:rotate(-28deg) translateY(-1px)}to{transform:rotate(28deg) translateY(1px)}}
+@keyframes ratopolisRemoteEar{from{translate:0 0}to{translate:0 -1px}}
+@keyframes ratopolisRemoteTail{from{rotate:-10deg}to{rotate:12deg}}
+.online-avatar.shaman .rat-face,.online-avatar.shaman .rat{animation-duration:.32s}.online-avatar.shaman .rat-body{background:#d7c49a}
+@media(prefers-reduced-motion:reduce){.online-avatar .rat-face,.online-avatar .rat,.online-avatar .rat-feet,.online-avatar .rat-ear,.online-avatar .rat-tail{animation-duration:.5s;animation-iteration-count:infinite}}
 .online-avatar .tag{display:inline-block;max-width:100px;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;border:1px solid #f1d777;border-radius:7px;background:#143525e8}
 .online-avatar.shaman .tag{background:#704b13ed;border-color:#ffe28b}
 </style>
