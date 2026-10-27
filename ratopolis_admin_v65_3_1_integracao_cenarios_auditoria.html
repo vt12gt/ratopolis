@@ -577,7 +577,7 @@ auditLog('Painel v65.3 aberto');render();
     const m=state.me;if(!m)return {id:'',nick:'',role:''};
     const u=(m.user&&typeof m.user==='object'&&m.user)||(m.admin&&typeof m.admin==='object'&&m.admin)||(m.jogador&&typeof m.jogador==='object'&&m.jogador)||(m.perfil&&typeof m.perfil==='object'&&m.perfil)||m;
     const pick=(o,ks)=>{for(const k of ks){if(o&&o[k]!=null&&o[k]!=='')return String(o[k])}return ''};
-    return {id:pick(u,['id','user_id','userId'])||pick(m,['id','user_id','userId']),nick:pick(u,['nickname','nick','username','nome','name']),role:(pick(u,['role','papel','cargo'])||pick(m,['role','papel','cargo'])).toLowerCase()};
+    return {id:pick(u,['id','user_id','userId'])||pick(m,['id','user_id','userId']),nick:pick(u,['nickname','nick','username','nome','name'])||pick(m,['nickname','nick','username','nome','name']),role:(pick(m,['role','papel','cargo'])||pick(u,['role','papel','cargo'])).toLowerCase()};
   }
   function canReview(){const r=identity().role;return ['spadm','spadmin','superadmin','adm','admin'].includes(r)}
   function selfState(creatorId){const me=identity();if(!me.id||creatorId==null||String(creatorId).trim()==='')return {known:false,self:false};return {known:true,self:String(creatorId)===String(me.id)}}
