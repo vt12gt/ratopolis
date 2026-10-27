@@ -951,6 +951,29 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #roomsOverlay .room-note{margin:2px 0!important;font-size:10px!important;line-height:1.15!important}
 @media(max-height:500px){#roomsOverlay .online-rooms-directory{max-height:32dvh!important}#roomsOverlay #onlineDirectoryList{max-height:22dvh!important}}
 </style>
+<style id="ratopolis-1534-layer-countdown-fix">
+/* Correção estrutural: controles nunca podem ficar por cima dos menus; durante o jogo ficam acima do cenário. */
+#start.overlay:not(.hidden){z-index:30000!important}
+#roomsOverlay.overlay:not(.hidden){z-index:31000!important}
+#phaseStart.overlay:not(.hidden){z-index:40!important;position:fixed!important;inset:0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;padding:12px!important;background:rgba(8,35,24,.12)!important;pointer-events:none!important}
+#phaseStart.overlay:not(.hidden) .modal{width:auto!important;max-width:92vw!important;min-height:0!important;margin-top:5vh!important;padding:6px 14px!important;background:rgba(8,35,24,.22)!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none!important}
+#phaseStartCount{font-size:clamp(42px,10vh,78px)!important;line-height:1!important}
+#controls{z-index:30!important;pointer-events:none!important}
+#controls button,#controls #joystick,#controls>.cluster,#controls>.phase-test{pointer-events:auto!important;touch-action:none}
+#start:not(.hidden)~#controls,#start:not(.hidden) #controls{visibility:hidden!important;pointer-events:none!important}
+#start.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#roomsOverlay.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#roomsOverlay.overlay:not(.hidden){z-index:31000!important;overflow:hidden!important;padding:4px!important}
+#roomsOverlay .rooms-modal{width:min(980px,98vw)!important;max-height:calc(100dvh - 8px)!important;overflow:hidden!important;padding:6px!important}
+#roomsOverlay #ratopolisOnlineRooms{gap:3px!important}
+#roomsOverlay #onlineDirectoryList{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;max-height:30dvh!important;overflow:hidden!important}
+#roomsOverlay .online-rooms-directory{max-height:40dvh!important;overflow:hidden!important;padding:4px!important}
+#roomsOverlay .online-room-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:3px 0!important}
+#roomsOverlay .online-room-join{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:3px!important}
+#roomsOverlay .online-room-join label{grid-column:1/-1!important;font-size:10px!important}
+#roomsOverlay button{min-height:28px!important;padding:4px 6px!important;font-size:11px!important}
+@media(max-height:520px){#roomsOverlay .rooms-modal{max-height:calc(100dvh - 6px)!important;padding:4px!important}#roomsOverlay h2,#roomsOverlay h3{margin:2px 0!important;font-size:14px!important}#roomsOverlay .online-rooms-directory{max-height:34dvh!important}#roomsOverlay #onlineDirectoryList{max-height:24dvh!important}}
+</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -2170,7 +2193,7 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
 }
 async function switchToTestRoom(roomIndex,skipCountdown=false){
  document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}clearPhaseTimers();document.getElementById('finish').classList.add('hidden');document.getElementById('phaseStart').classList.add('hidden');document.getElementById('death').classList.add('hidden');
- level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();
+ level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();
  const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;
  if(staffRole==='SpAdmin'||staffRole==='Admin'){addChatLine('Sistema: acesso imediato confirmado ('+staffRole+'). A partida começa sem contagem.','system');showPhaseCountdown(0,true);}
  else{addChatLine('Sistema: sala '+(level+1)+' preparada. Escolha automática do Shaman em 5 segundos.','system');showPhaseCountdown(5,false);}
