@@ -872,6 +872,25 @@ canvas{image-rendering:auto;touch-action:none}
 #roomsOverlay .rooms-modal{width:min(760px,96vw)!important;max-height:94dvh!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain}
 @media(max-width:560px){#roomsOverlay .rooms-modal{width:96vw!important;max-height:94dvh!important;padding:10px!important}#roomsOverlay .rooms-layout{gap:6px!important}#roomsOverlay .room-people{max-height:120px;overflow:auto}#roomsOverlay .room-actions{gap:5px!important}#roomsOverlay .room-actions button{min-height:38px!important;padding:6px 8px!important}}
 </style>
+<style id="ratopolis-1532-menu-room-fix">
+/* O menu inicial precisa realmente sair da tela ao entrar na sala. */
+#start.hidden,#roomsOverlay.hidden,#phaseStart.hidden,#chatPanel.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#start:not(.hidden){z-index:20000!important}
+#start:not(.hidden) #joystick,#start:not(.hidden) #controls{pointer-events:none!important}
+#game #controls{z-index:22010!important}
+#game #controls>.cluster,#game #controls>.phase-test,#game #joystick,#game #controls button{pointer-events:auto!important;touch-action:none}
+#roomsOverlay{position:fixed!important;inset:0!important;display:flex;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden!important;padding:4px!important}
+#roomsOverlay.hidden{display:none!important}
+#roomsOverlay .rooms-modal{box-sizing:border-box!important;width:min(680px,96vw)!important;max-height:calc(100dvh - 8px)!important;overflow:hidden!important;padding:clamp(6px,1.2vw,12px)!important}
+#roomsOverlay .rooms-layout{gap:6px!important;min-height:0!important}
+#roomsOverlay .rooms-list{min-height:0!important;overflow:hidden!important;padding:5px!important}
+#roomsOverlay .room-card{padding:4px 6px!important;margin:2px 0!important;min-height:28px!important}
+#roomsOverlay .room-card small{font-size:10px!important}
+#roomsOverlay .room-people{max-height:calc(100dvh - 170px)!important;overflow:hidden!important;padding:5px!important}
+#roomsOverlay .room-actions{margin-top:4px!important;gap:5px!important}
+#roomsOverlay .room-actions button{min-height:30px!important;padding:4px 7px!important}
+@media(max-width:700px){#roomsOverlay .rooms-modal{width:96vw!important;max-height:calc(100dvh - 8px)!important}#roomsOverlay .rooms-layout{grid-template-columns:1fr 1fr!important}}
+</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -2063,7 +2082,7 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
  function chooseLeastPopulatedRoom(){const counts=Array.from({length:scenarioNames.length},(_,i)=>i===level?(1+practiceBots.length):0);const min=Math.min(...counts);const candidates=counts.map((n,i)=>({n,i})).filter(x=>x.n===min).map(x=>x.i);return candidates[Math.floor(Math.random()*candidates.length)];}
  function openRooms(){selectedLocalRoom=Math.max(0,Math.min(scenarioNames.length-1,level||0));renderLocalRooms();document.getElementById('roomsOverlay').classList.remove('hidden');}
  function closeRooms(){document.getElementById('roomsOverlay').classList.add('hidden');}
- async function joinSelectedRoom(random=false){if(random)selectedLocalRoom=chooseLeastPopulatedRoom();const room=selectedLocalRoom;activeMatchRole=selectedLocalRole;shamanCharges={spring:3,pillar:3};await requestLandscape();document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');addChatLine('Sistema: sala '+(room+1)+' selecionada. A partida começa em 5 segundos.','system');switchToTestRoom(room);updateShamanTools();if(musicEnabled)startMusic();resize();setTimeout(resize,250);}
+ async function joinSelectedRoom(random=false){if(random)selectedLocalRoom=chooseLeastPopulatedRoom();const room=selectedLocalRoom;activeMatchRole=selectedLocalRole;shamanCharges={spring:3,pillar:3};await requestLandscape();document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');document.getElementById('start').style.display='none';addChatLine('Sistema: sala '+(room+1)+' selecionada. A partida começa em 5 segundos.','system');switchToTestRoom(room);updateShamanTools();if(musicEnabled)startMusic();resize();setTimeout(resize,250);}
  function addChatLine(text,kind=''){const log=document.getElementById('chatLog');const line=document.createElement('div');line.className='chat-line'+(kind?' '+kind:'');const vipInfo=getVIPInfo();if(vipInfo.level>=15&&String(text).startsWith((playerNickname||'Convidado')+':'))line.classList.add('vip-chat-15');line.textContent=text;log.appendChild(line);while(log.children.length>30)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight;}
  function openChat(open,focusInput=true){const panel=document.getElementById('chatPanel'),toggle=document.getElementById('chatToggle');panel.classList.toggle('hidden',!open);toggle.setAttribute('aria-expanded',String(open));if(open){const vi=getVIPInfo();if(vi.level>=15){addChatLine('👑 '+(playerNickname||'Convidado')+' entrou online · VIP 15','vip-chat-15');}if(focusInput)document.getElementById('chatInput').focus({preventScroll:true});}}
  function placeChatInMenu(){
@@ -2083,7 +2102,7 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
   const close=document.getElementById('chatClose');if(close)close.classList.remove('menu-chat-close-hidden');
  }
  async function startRandomRoomCountdown(){
- clearPhaseTimers();const startOverlay=document.getElementById('start');startOverlay.classList.add('hidden');document.getElementById('roomsOverlay').classList.add('hidden');
+ clearPhaseTimers();const startOverlay=document.getElementById('start');startOverlay.classList.add('hidden');startOverlay.style.display='none';document.getElementById('roomsOverlay').classList.add('hidden');
  const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}requestLandscape();
  const room=chooseLeastPopulatedRoom();addChatLine('Sistema: preparando a sala aleatória '+(room+1)+' — '+scenarioName(room)+'. Contagem de 5 segundos.','system');
  await switchToTestRoom(room,true);
