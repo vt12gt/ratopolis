@@ -371,6 +371,137 @@ export default {
       }
 
 
+      // Eventos publicados e calendario de recompensas diarias.
+      if (path === "/api/events" && method === "GET") {
+        etapaAtual = "eventos publicados";
+        const result = await env.DB.prepare("SELECT id, title, description, start_at, end_at, reward_coins, reward_xp, reward_item, rules, status, created_at, updated_at FROM ratopolis_events WHERE status = 'Publicado' ORDER BY start_at ASC, created_at DESC").all();
+        return reply({ ok: true, eventos: result.results });
+      }
+
+      if (path === "/api/admin/events" && (method === "GET" || method === "POST")) {
+        etapaAtual = "gestao administrativa de eventos";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!Number.isFinite(ROLE_RANK[actor.role]) || ROLE_RANK[actor.role] < ROLE_RANK.gm) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
+        if (method === "GET") {
+          const result = await env.DB.prepare("SELECT id, title, description, start_at, end_at, reward_coins, reward_xp, reward_item, rules, status, created_at, updated_at FROM ratopolis_events ORDER BY updated_at DESC, created_at DESC LIMIT 200").all();
+          return reply({ ok: true, eventos: result.results });
+        }
+        let body;
+        try { body = await request.json(); } catch { return reply({ ok: false, erro: "JSON invalido." }, 400); }
+        const title = typeof body.title === "string" ? body.title.trim().slice(0, 100) : "";
+        const description = typeof body.description === "string" ? body.description.trim().slice(0, 1500) : "";
+        const startAt = typeof body.start_at === "string" ? body.start_at.trim().slice(0, 40) : "";
+        const endAt = typeof body.end_at === "string" ? body.end_at.trim().slice(0, 40) : "";
+        const rules = typeof body.rules === "string" ? body.rules.trim().slice(0, 4000) : "";
+        const rewardItem = typeof body.reward_item === "string" ? body.reward_item.trim().slice(0, 100) : "";
+        const rewardCoins = body.reward_coins === undefined ? 0 : body.reward_coins;
+        const rewardXp = body.reward_xp === undefined ? 0 : body.reward_xp;
+        const status = ["Rascunho","Publicado","Encerrado","Cancelado"].includes(body.status) ? body.status : "Rascunho";
+        if (!title) return reply({ ok: false, erro: "O titulo do evento e obrigatorio." }, 400);
+        if (!Number.isSafeInteger(rewardCoins) || rewardCoins < 0 || rewardCoins > 100000 || !Number.isSafeInteger(rewardXp) || rewardXp < 0 || rewardXp > 100000) return reply({ ok: false, erro: "Recompensas invalidas." }, 400);
+        if (startAt && endAt && startAt > endAt) return reply({ ok: false, erro: "A data final deve ser posterior a inicial." }, 400);
+        const now = new Date().toISOString();
+        const suppliedId = typeof body.id === "string" ? body.id.trim() : "";
+        if (suppliedId) {
+          const existing = await env.DB.prepare("SELECT id FROM ratopolis_events WHERE id = ?").bind(suppliedId).first();
+          if (!existing) return reply({ ok: false, erro: "Evento nao encontrado." }, 404);
+          await env.DB.prepare("UPDATE ratopolis_events SET title=?, description=?, start_at=?, end_at=?, reward_coins=?, reward_xp=?, reward_item=?, rules=?, status=?, updated_at=? WHERE id=?")
+            .bind(title, description, startAt, endAt, rewardCoins, rewardXp, rewardItem, rules, status, now, suppliedId).run();
+          await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, NULL, ?, ?)")
+            .bind(crypto.randomUUID(), actor.id, "event_updated", JSON.stringify({ event_id: suppliedId, title, status }), now).run();
+          return reply({ ok: true, id: suppliedId, mensagem: "Evento atualizado." });
+        }
+        const id = crypto.randomUUID();
+        await env.DB.prepare("INSERT INTO ratopolis_events (id,title,description,start_at,end_at,reward_coins,reward_xp,reward_item,rules,status,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(id, title, description, startAt, endAt, rewardCoins, rewardXp, rewardItem, rules, status, actor.id, now, now).run();
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, NULL, ?, ?)")
+          .bind(crypto.randomUUID(), actor.id, "event_created", JSON.stringify({ event_id: id, title, status }), now).run();
+        return reply({ ok: true, id, mensagem: "Evento criado." }, 201);
+      }
+
+      if (path === "/api/daily-rewards/config" && method === "GET") {
+        etapaAtual = "configuracao publica de recompensas diarias";
+        const config = await env.DB.prepare("SELECT active, start_date, duration_days, rewards_json, updated_at FROM ratopolis_daily_reward_config WHERE id = 1").first();
+        return reply({ ok: true, calendario: config ? { active: !!config.active, start_date: config.start_date, duration_days: Number(config.duration_days), rewards: safeJson(config.rewards_json, []), updated_at: config.updated_at } : { active: false, start_date: "", duration_days: 7, rewards: [] } });
+      }
+
+      if (path === "/api/admin/daily-rewards/config" && method === "POST") {
+        etapaAtual = "configuracao administrativa de recompensas diarias";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!Number.isFinite(ROLE_RANK[actor.role]) || ROLE_RANK[actor.role] < ROLE_RANK.adm) return reply({ ok: false, erro: "Somente ADM ou SpAdmin pode configurar recompensas diarias." }, 403);
+        let body;
+        try { body = await request.json(); } catch { return reply({ ok: false, erro: "JSON invalido." }, 400); }
+        const duration = Number(body.duration_days);
+        const startDate = typeof body.start_date === "string" ? body.start_date.trim() : "";
+        const active = body.active === true;
+        const rewards = Array.isArray(body.rewards) ? body.rewards : [];
+        if (![7,14,30].includes(duration) || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || rewards.length !== duration) return reply({ ok: false, erro: "Informe inicio valido e uma recompensa para cada dia do calendario." }, 400);
+        const normalized = [];
+        for (let i=0;i<rewards.length;i++) {
+          const r = rewards[i] || {};
+          const coins = r.coins === undefined ? 0 : r.coins;
+          const xp = r.xp === undefined ? 0 : r.xp;
+          const item = typeof r.item === "string" ? r.item.trim().slice(0,100) : "";
+          if (!Number.isSafeInteger(coins) || coins < 0 || coins > 100000 || !Number.isSafeInteger(xp) || xp < 0 || xp > 100000 || (coins === 0 && xp === 0 && !item)) return reply({ ok: false, erro: "Cada dia precisa ter moedas, XP ou um item como recompensa." }, 400);
+          normalized.push({ day: i+1, coins, xp, item });
+        }
+        const now = new Date().toISOString();
+        await env.DB.prepare("INSERT INTO ratopolis_daily_reward_config (id,active,start_date,duration_days,rewards_json,updated_by,updated_at) VALUES (1,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,start_date=excluded.start_date,duration_days=excluded.duration_days,rewards_json=excluded.rewards_json,updated_by=excluded.updated_by,updated_at=excluded.updated_at")
+          .bind(active ? 1 : 0, startDate, duration, JSON.stringify(normalized), actor.id, now).run();
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, NULL, ?, ?)")
+          .bind(crypto.randomUUID(), actor.id, "daily_rewards_config_updated", JSON.stringify({ active, start_date: startDate, duration_days: duration }), now).run();
+        return reply({ ok: true, mensagem: "Calendario diário salvo.", calendario: { active, start_date: startDate, duration_days: duration, rewards: normalized } });
+      }
+
+      if (path === "/api/daily-rewards/status" && method === "GET") {
+        etapaAtual = "status pessoal de recompensas diarias";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Entre na sua conta para ver suas recompensas." }, 401);
+        const config = await env.DB.prepare("SELECT active, start_date, duration_days, rewards_json FROM ratopolis_daily_reward_config WHERE id = 1").first();
+        const claims = await env.DB.prepare("SELECT claim_date, day_index, coins_awarded, xp_awarded, created_at FROM ratopolis_daily_reward_claims WHERE user_id = ? ORDER BY claim_date DESC LIMIT 40").bind(actor.id).all();
+        const today = new Date().toISOString().slice(0,10);
+        return reply({ ok: true, hoje: today, calendario: config ? { active: !!config.active, start_date: config.start_date, duration_days: Number(config.duration_days), rewards: safeJson(config.rewards_json, []) } : { active: false, start_date: "", duration_days: 7, rewards: [] }, resgates: claims.results });
+      }
+
+      if (path === "/api/daily-rewards/claim" && method === "POST") {
+        etapaAtual = "resgate de recompensa diaria";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Entre na sua conta para resgatar." }, 401);
+        const config = await env.DB.prepare("SELECT active, start_date, duration_days, rewards_json FROM ratopolis_daily_reward_config WHERE id = 1").first();
+        if (!config || !config.active) return reply({ ok: false, erro: "O calendario diario nao esta ativo." }, 409);
+        const today = new Date().toISOString().slice(0,10);
+        const start = new Date(config.start_date + "T00:00:00Z");
+        const nowDate = new Date(today + "T00:00:00Z");
+        const dayIndex = Math.floor((nowDate.getTime() - start.getTime()) / 86400000) + 1;
+        if (!Number.isFinite(start.getTime()) || dayIndex < 1 || dayIndex > Number(config.duration_days)) return reply({ ok: false, erro: "Hoje nao esta dentro do periodo deste calendario." }, 409);
+        const rewards = safeJson(config.rewards_json, []);
+        const reward = rewards[dayIndex-1];
+        if (!reward) return reply({ ok: false, erro: "Recompensa deste dia nao configurada." }, 409);
+        const already = await env.DB.prepare("SELECT id FROM ratopolis_daily_reward_claims WHERE user_id = ? AND claim_date = ?").bind(actor.id, today).first();
+        if (already) return reply({ ok: false, erro: "Voce ja resgatou a recompensa de hoje." }, 409);
+        if (reward.item) return reply({ ok: false, erro: "Este calendario contem um item especial; a entrega de itens ainda precisa ser configurada. Nenhuma recompensa foi entregue." }, 501);
+        const coins = Number(reward.coins) || 0;
+        const xp = Number(reward.xp) || 0;
+        const eventId = "daily-" + actor.id + "-" + today;
+        const now = new Date().toISOString();
+        try {
+          await env.DB.batch([
+            env.DB.prepare("INSERT INTO ratopolis_daily_reward_claims (id,user_id,claim_date,day_index,coins_awarded,xp_awarded,created_at) VALUES (?,?,?,?,?,?,?)").bind(crypto.randomUUID(), actor.id, today, dayIndex, coins, xp, now),
+            env.DB.prepare("INSERT INTO ratopolis_reward_events (event_id,user_id,event_type,xp_awarded,coins_awarded,created_at) VALUES (?,?, 'daily_calendar',?,?,?)").bind(eventId, actor.id, xp, coins, now),
+            env.DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?, coins=coins+?, level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=?").bind(xp, coins, xp, actor.id),
+            env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,NULL,?,?,?,?)").bind(crypto.randomUUID(), "daily_reward_claimed", actor.id, JSON.stringify({ event_id:eventId, day_index:dayIndex, coins_awarded:coins, xp_awarded:xp }), now)
+          ]);
+        } catch (err) {
+          const duplicate = await env.DB.prepare("SELECT id FROM ratopolis_daily_reward_claims WHERE user_id = ? AND claim_date = ?").bind(actor.id, today).first();
+          if (duplicate) return reply({ ok: false, erro: "Voce ja resgatou a recompensa de hoje." }, 409);
+          throw err;
+        }
+        const profile = await env.DB.prepare("SELECT level,xp,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
+        return reply({ ok: true, mensagem: "Recompensa diaria resgatada!", dia: dayIndex, recompensa: { coins, xp }, perfil: profile });
+      }
+
       // Store de cosméticos com saldo, inventário e preços controlados no servidor.
       if (path === "/api/store/catalog" && method === "GET") {
         etapaAtual = "catalogo da loja";
