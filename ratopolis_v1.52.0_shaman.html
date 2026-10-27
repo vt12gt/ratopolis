@@ -3902,7 +3902,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   try{
    const r=await fetch('https://ratopolis-admin-test.juniorgmj69.workers.dev/api/admin/me',{method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store'});
    const d=await r.json().catch(()=>({}));if(!r.ok||d.autorizado!==true)return;
-   const raw=String(d.role||d.papel||d.user?.role||d.usuario?.role||d.perfil?.role||'').trim().toLowerCase().replace(/[\\s_-]/g,'');
+   const raw=String(d.role||d.papel||d.user?.role||d.usuario?.role||d.perfil?.role||'').trim().toLowerCase().replace(/[\s_-]/g,'');
    let label='Player';
    if(['spadm','superadmin','superadministrator','superadministrador','adm','admin','administrator','administrador'].includes(raw))label='ADM';
    else if(['gm','gamemaster','gamemestre','gamemasterratopolis'].includes(raw))label='GM';
