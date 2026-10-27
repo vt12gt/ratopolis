@@ -67,3 +67,18 @@ Migration: `migrations/0003_gifts_item_registry.sql`. Ela cria o cadastro real d
 - O jogo tem o botão **RESGATAR GIFT** no menu e envia o código ao servidor. O saldo é atualizado por meio da progressão do servidor quando disponível.
 
 A tabela de itens registra 23 cosméticos e 6 títulos que já aparecem nas listas de itens/títulos do jogo. O catálogo pode ser ampliado junto com novos itens reais. A publicação do Worker e a criação das tabelas foram realizadas; é necessário fazer um resgate real com conta de jogador para validar a experiência completa na interface.
+
+
+## Coleção SUPREMO — D1 e jogo
+
+A migração `migrations/0003_supreme_cosmetics.sql` registra de forma idempotente 16 cosméticos no `ratopolis_item_registry` e no `ratopolis_store_catalog`. Os códigos, preços e payloads de equipamento ficam no D1; o jogo busca o catálogo em `GET /api/store/catalog` e monta as opções a partir dos itens ativos com `payload.type = "hat"`.
+
+Categorias adicionadas:
+- Skins: Pelagem Caramelo, Meia-Noite, Neve e Aurora Suprema.
+- Roupas e mochilas: Jaqueta, Cachecol, Capa e Mochila Suprema.
+- Chapéus: Capacete, Coroa, Chapéu Arcano e Chifres Supremos.
+- Acessórios: Halo, Asas, Aura e Chamas Supremas.
+
+A raridade é identificada por `payload.rarity = "Supremo"` e mostrada com o selo **SUPREMO** no guarda-roupa e no catálogo administrativo. Todos os 16 itens estão ativos no D1 e usam o fluxo de compra/inventário/equipamento do servidor. Os visuais de roupa e acessórios novos usam ícones no personagem; as quatro skins também mudam a cor da pelagem.
+
+O painel administrativo em `ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html` sincroniza a tela “Catálogo da loja” com `GET /api/admin/store/catalog`; salvar e ativar/desativar usa `POST /api/admin/store/catalog`. O painel não deve apresentar os itens locais demonstrativos como se fossem o catálogo oficial.
