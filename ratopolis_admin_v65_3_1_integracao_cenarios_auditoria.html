@@ -774,8 +774,8 @@ auditLog('Painel v65.3 aberto');render();
       const description=String($('srvScDescription')?.value||x.description||'').trim().slice(0,500);
       if(!name){setStatus('srvScStatus','Informe o nome do cenário.','error');return}
       if(!layout.length){setStatus('srvScStatus','Esta cópia não tem peças compatíveis para salvar. Abra o editor, salve o mapa e tente novamente.','error');return}
-      if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\\n'+v.checks.filter(q=>!q.ok).map(q=>'• '+q.label).join('\\n')+'\\n\\nSalvar mesmo assim?'))return}
-      if(!confirm('Salvar uma nova versão no cenário original '+serverId+'?\\n\\nO Worker criará uma nova versão e voltará o cenário para RASCUNHO, removendo a aprovação/publicação atual.'))return;
+      if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(q=>!q.ok).map(q=>'• '+q.label).join('\n')+'\n\nSalvar mesmo assim?'))return}
+      if(!confirm('Salvar uma nova versão no cenário original '+serverId+'?\n\nO Worker criará uma nova versão e voltará o cenário para RASCUNHO, removendo a aprovação/publicação atual.'))return;
       try{
         setStatus('srvScStatus','Salvando nova versão no cenário '+serverId+'…');
         const saved=await api('/api/editor/scenarios/'+encodeURIComponent(serverId)+'/save','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Nova versão enviada do painel v65.3'});
