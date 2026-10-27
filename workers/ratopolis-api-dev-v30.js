@@ -481,6 +481,8 @@ export default {
         if (!reward) return reply({ ok: false, erro: "Recompensa deste dia nao configurada." }, 409);
         const already = await env.DB.prepare("SELECT id FROM ratopolis_daily_reward_claims WHERE user_id = ? AND claim_date = ?").bind(actor.id, today).first();
         if (already) return reply({ ok: false, erro: "Voce ja resgatou a recompensa de hoje." }, 409);
+        const playerProfile = await env.DB.prepare("SELECT user_id FROM ratopolis_profiles WHERE user_id = ? LIMIT 1").bind(actor.id).first();
+        if (!playerProfile) return reply({ ok: false, erro: "Perfil do jogador nao encontrado." }, 404);
         const coins = Number(reward.coins) || 0;
         const xp = Number(reward.xp) || 0;
         const item = typeof reward.item === "string" ? reward.item.trim() : "";
@@ -492,7 +494,7 @@ export default {
             env.DB.prepare("INSERT INTO ratopolis_daily_reward_claims (id,user_id,claim_date,day_index,coins_awarded,xp_awarded,created_at) VALUES (?,?,?,?,?,?,?)").bind(crypto.randomUUID(), actor.id, today, dayIndex, coins, xp, now),
             env.DB.prepare("INSERT INTO ratopolis_reward_events (event_id,user_id,event_type,xp_awarded,coins_awarded,created_at) VALUES (?,?, 'daily_calendar',?,?,?)").bind(eventId, actor.id, xp, coins, now),
             env.DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?, coins=coins+?, level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=?").bind(xp, coins, xp, actor.id),
-            env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,NULL,?,?,?,?)").bind(crypto.randomUUID(), "daily_reward_claimed", actor.id, JSON.stringify({ event_id:eventId, day_index:dayIndex, coins_awarded:coins, xp_awarded:xp, item:item || null }), now)
+            env.DB.prepare("INSERT INTO ratopolis_audit_logs (id,actor_user_id,action,target_user_id,details,created_at) VALUES (?,?,?,?,?,?)").bind(crypto.randomUUID(), actor.id, "daily_reward_claimed", actor.id, JSON.stringify({ event_id:eventId, day_index:dayIndex, coins_awarded:coins, xp_awarded:xp, item:item || null }), now)
           ];
           if (item) statements.push(env.DB.prepare("INSERT INTO ratopolis_store_inventory (user_id,item_code,quantity,equipped,acquired_at,updated_at) VALUES (?,?,1,0,?,?) ON CONFLICT(user_id,item_code) DO UPDATE SET quantity=MAX(quantity,1), updated_at=excluded.updated_at").bind(actor.id, item, now, now));
           await env.DB.batch(statements);
