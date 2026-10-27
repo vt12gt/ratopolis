@@ -3911,7 +3911,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   try{
    const nickname=(typeof playerNickname!=='undefined'&&playerNickname)||localStorage.getItem('ratopolis_nickname')||'Jogador';const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({nickname})});
    const d=await r.json().catch(()=>({}));
-   if(!r.ok||!d.ok||!d.ticket){online=false;setState(r.status===401?'sessão expirada':'indisponível');connecting=false;retry=setTimeout(connect,5000);return;}
+   if(!r.ok||!d.ok||!d.ticket){online=false;const reason=String(d.error||d.message||'erro_desconhecido').slice(0,70);setState((r.status===401?'sessão expirada':'indisponível')+' · HTTP '+r.status+' · '+reason);connecting=false;retry=setTimeout(connect,5000);return;}
    const u=new URL(d.websocket||'wss://ratopolis-chat-world-v1.juniorgmj69.workers.dev/ws');u.searchParams.set('ticket',d.ticket);
    ws=new WebSocket(u.toString());
    ws.onopen=()=>{online=true;lastOnline=Date.now();setState('conectado · Mundo');};
