@@ -584,7 +584,7 @@ auditLog('Painel v65.3 aberto');render();
   async function loadMe(){
     const box=$('srvSession');
     try{
-      state.me=await api('/api/admin/me');state.meError='';
+      const adminMe=await api('/api/admin/me');const userMe=await api('/api/me');state.me={...adminMe,jogador:userMe.jogador};state.meError='';
       const i=identity();
       box.innerHTML='<span>Sessão do servidor: <b>'+esc(i.nick||'conta autenticada')+'</b> · cargo: <b>'+esc(i.role||'não informado pelo servidor')+'</b></span>'+(i.id?'':'<span class="pill goldpill">ID da conta não identificado: aprovação/rejeição bloqueadas nesta tela</span>');
     }catch(e){
