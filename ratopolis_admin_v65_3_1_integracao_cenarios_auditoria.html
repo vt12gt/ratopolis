@@ -851,7 +851,7 @@ auditLog('Painel v65.3 aberto');render();
       try{fresh=(await fetchDetail(id)).cenario}catch(e){setStatus('srvApStatus','Não foi possível conferir o cenário antes de decidir: '+errText(e),'error');return}
       const st=selfState(fresh.creator_user_id);
       if(!st.known){setStatus('srvApStatus','Decisão bloqueada: não foi possível identificar sua conta para impedir autoaprovação.','error');return}
-      if(st.self){setStatus('srvApStatus','Autoaprovação bloqueada nesta interface: você é o autor deste cenário.','error');await loadQueue({quiet:true});return}
+      if(st.self&&!['spadm','spadmin','superadmin','adm','admin'].includes(identity().role)){setStatus('srvApStatus','A autoaprovação é restrita aos cargos SpAdmin e Admin.','error');await loadQueue({quiet:true});return}
       if(!['submitted','in_review'].includes(statusKey(fresh.status))){setStatus('srvApStatus','Este cenário já não está aguardando revisão (status atual: '+statusLabel(fresh.status)+').','error');await refreshAll();return}
       const approve=decision==='approved';
       const body='<p>Cenário: <b>'+esc(fresh.name||id)+'</b> · autor: '+esc(fresh.creator_nickname||fresh.creator_user_id||'—')+'</p><div class="field"><label for="srvReviewReason">'+(approve?'Observação da aprovação (opcional)':'Motivo da rejeição (obrigatório)')+'</label><textarea id="srvReviewReason" maxlength="500"></textarea></div><p id="srvReviewErr" class="tiny" style="color:#ff9baa" role="alert"></p><p class="foot">A decisão é enviada ao Worker, que a valida de novo. Esta tela só confirma sucesso depois de reconsultar o status.</p>';
