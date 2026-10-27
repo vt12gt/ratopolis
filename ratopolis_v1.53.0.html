@@ -914,6 +914,43 @@ canvas{image-rendering:auto;touch-action:none}
 #roomsOverlay .room-note{margin:3px 0!important;font-size:11px!important;line-height:1.2!important}
 @media(max-height:520px){#roomsOverlay .rooms-modal{max-height:calc(100dvh - 8px)!important;padding:5px!important}#roomsOverlay h2{font-size:16px!important;margin:2px 0!important}#roomsOverlay h3{font-size:14px!important;margin:2px 0!important}#roomsOverlay .online-rooms-directory{max-height:40dvh!important}#roomsOverlay #onlineDirectoryList{max-height:27dvh!important}#roomsOverlay .online-room-actions{margin:2px 0!important}}
 </style>
+<style id="ratopolis-1534-gameplay-unfreeze">
+/* O overlay de contagem não pode cobrir o canvas com uma placa opaca. */
+#phaseStart.overlay:not(.hidden){
+ position:fixed!important;inset:0!important;display:flex!important;
+ align-items:flex-start!important;justify-content:center!important;
+ padding:12px!important;background:rgba(7,28,20,.12)!important;
+ opacity:1!important;pointer-events:none!important;z-index:30!important;
+}
+#phaseStart.overlay:not(.hidden) .modal{
+ width:auto!important;max-width:92vw!important;min-height:0!important;
+ padding:4px 14px!important;margin:5vh auto 0!important;
+ background:rgba(8,35,25,.22)!important;border:0!important;
+ box-shadow:none!important;backdrop-filter:none!important;
+ pointer-events:none!important;
+}
+#phaseStartCount{font-size:clamp(42px,11vh,86px)!important;line-height:1!important}
+#controls,#joystick{z-index:40!important}
+#start:not(.hidden)~#controls,#start:not(.hidden) #controls,
+body:has(#start:not(.hidden)) #controls,
+body:has(#roomsOverlay:not(.hidden)) #controls,
+body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;pointer-events:none!important}
+#start.hidden,#roomsOverlay.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#roomsOverlay.overlay:not(.hidden){position:fixed!important;inset:0!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:3px!important}
+#roomsOverlay .rooms-modal{box-sizing:border-box!important;width:98vw!important;max-width:1100px!important;max-height:calc(100dvh - 6px)!important;overflow:hidden!important;padding:5px!important}
+#roomsOverlay #ratopolisOnlineRooms{display:grid!important;gap:3px!important;min-height:0!important}
+#roomsOverlay #ratopolisOnlineRooms>p.room-note{margin:1px 0!important;font-size:clamp(10px,1.35vw,13px)!important;line-height:1.15!important}
+#roomsOverlay .online-rooms-directory{max-height:38dvh!important;overflow:hidden!important;padding:4px!important}
+#roomsOverlay #onlineDirectoryList{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important;max-height:27dvh!important;overflow:hidden!important}
+#roomsOverlay #onlineDirectoryList>div{min-width:0!important;margin:0!important;padding:4px!important}
+#roomsOverlay .online-room-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:3px 0!important}
+#roomsOverlay .online-room-join{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:3px!important;min-width:0!important}
+#roomsOverlay .online-room-join label{grid-column:1/-1!important;font-size:10px!important}
+#roomsOverlay input,#roomsOverlay button{min-width:0!important;min-height:26px!important;padding:3px 6px!important;font-size:clamp(9px,1.3vw,12px)!important}
+#roomsOverlay h2,#roomsOverlay h3{margin:2px 0!important;font-size:clamp(13px,1.8vw,18px)!important}
+#roomsOverlay .room-note{margin:2px 0!important;font-size:10px!important;line-height:1.15!important}
+@media(max-height:500px){#roomsOverlay .online-rooms-directory{max-height:32dvh!important}#roomsOverlay #onlineDirectoryList{max-height:22dvh!important}}
+</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -2022,7 +2059,7 @@ async function getVerifiedStaffRole(){
 function chooseNextRoom(current){const total=Math.min(12,scenarioNames.length);return (Math.max(0,Number(current)||0)+1)%Math.max(1,total);}
 async function goNextPhase(){clearPhaseTimers();
  {const R=window.RatopolisOnlineRooms;if(R&&R.isActive&&R.isActive()&&level===11&&!testMode){document.getElementById('finish').classList.add('hidden');try{if(window.__rpFinishPromise)await window.__rpFinishPromise.catch(()=>{});}catch(_e){}try{await R.leave();}catch(_e){}window.__ratopolisBackToMenu();const n=document.getElementById('rmGChatLog');if(n){const d=document.createElement('div');d.className='rm-gmsg sys';d.textContent='Você concluiu as 12 partidas e saiu da sala automaticamente.';n.appendChild(d);n.scrollTop=n.scrollHeight;}return;}}
-document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;if(staffRole==='SpAdmin'||staffRole==='Admin')showPhaseCountdown(0,true);else showPhaseCountdown(5,false);}
+document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;last=performance.now();physicsAccumulator=0;if(staffRole==='SpAdmin'||staffRole==='Admin')showPhaseCountdown(0,true);else showPhaseCountdown(5,false);}
 function start(){document.getElementById('start').classList.add('hidden');document.getElementById('finish').classList.add('hidden');registerMatchParticipation();makeLevel();showPhaseCountdown();last=performance.now()}
 async function requestLandscape(){
   try{
