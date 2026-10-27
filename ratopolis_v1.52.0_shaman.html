@@ -3074,7 +3074,12 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 #onlineAvatars{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;display:none}
 #onlineAvatars.active{display:block}
 .online-avatar{position:absolute;transform:translate(-50%,-100%);min-width:28px;text-align:center;color:#fff7dc;font:900 10px system-ui;white-space:nowrap;text-shadow:0 1px 3px #10271b,1px 0 2px #10271b,-1px 0 2px #10271b;will-change:left,top}
-.online-avatar .rat{display:block;font-size:27px;line-height:1;filter:drop-shadow(0 2px 2px #10271b)}
+.online-avatar .rat{display:block;font-size:27px;line-height:1;filter:drop-shadow(0 2px 2px #10271b);transform-origin:center bottom}
+.online-avatar .rat-face{display:inline-block;transform-origin:center bottom;animation:ratopolisRemoteRun .24s ease-in-out infinite alternate}
+.online-avatar .rat-face::selection{background:transparent}
+@keyframes ratopolisRemoteRun{from{translate:0 0;rotate:-7deg;scale:1 1}to{translate:0 -3px;rotate:7deg;scale:1.04 .96}}
+.online-avatar.shaman .rat-face{animation-duration:.32s}
+@media(prefers-reduced-motion:reduce){.online-avatar .rat-face{animation:none}}
 .online-avatar .tag{display:inline-block;max-width:100px;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;border:1px solid #f1d777;border-radius:7px;background:#143525e8}
 .online-avatar.shaman .tag{background:#704b13ed;border-color:#ffe28b}
 </style>
@@ -3219,10 +3224,10 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   for(const [id,p] of remotePlayers){
    if(!p||String(p.id)===getLocalPlayerId()||(localPhase!==null&&p.phase!==undefined&&Number(p.phase)!==localPhase))continue;
    currentIds.add(id);let node=avatarLayer.querySelector('[data-player-id="'+CSS.escape(String(id))+'"]');
-   if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';rat.textContent='🐭';const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
+   if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';const face=document.createElement('span');face.className='rat-face';face.textContent='🐭';rat.appendChild(face);const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
    node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
    const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y)){node.style.display='none';continue;}
-   node.style.display='block';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
+   node.style.display='block';const face=node.querySelector('.rat');if(face)face.style.transform='scaleX('+(Number(p.facing)<0?-1:1)+')';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
   }
   avatarLayer.querySelectorAll('.online-avatar').forEach(n=>{if(!currentIds.has(n.dataset.playerId))n.remove();});
  }
