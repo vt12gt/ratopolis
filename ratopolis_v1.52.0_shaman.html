@@ -2529,7 +2529,7 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
   // Exponha somente o estado necessário para sincronizar o rato, sem alterar a lógica das fases.
   window.__ratopolisGetMultiplayerState=function(){
     const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
-      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!playing,
+      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
       started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
       finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
       nickname:String(playerNickname||'Jogador').slice(0,18)};
@@ -3222,7 +3222,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';rat.textContent='🐭';const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
    node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
    const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y)){node.style.display='none';continue;}
-   node.style.display=(p.active===false?'none':'block');node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
+   node.style.display='block';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
   }
   avatarLayer.querySelectorAll('.online-avatar').forEach(n=>{if(!currentIds.has(n.dataset.playerId))n.remove();});
  }
