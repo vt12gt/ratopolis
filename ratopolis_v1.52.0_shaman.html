@@ -3075,7 +3075,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 #onlineAvatars.active{display:block}
 .online-avatar{position:absolute;transform:translate(-50%,-100%);min-width:28px;text-align:center;color:#fff7dc;font:900 10px system-ui;white-space:nowrap;text-shadow:0 1px 3px #10271b,1px 0 2px #10271b,-1px 0 2px #10271b;will-change:left,top}
 .online-avatar .rat{display:block;position:relative;width:36px;height:34px;margin:0 auto 2px;filter:drop-shadow(0 2px 2px #10271b);transform-origin:center bottom}
-.online-avatar .rat-face{display:block;position:relative;width:36px;height:31px;transform-origin:center bottom;animation:ratopolisRemoteRun .22s ease-in-out infinite alternate}
+.online-avatar .rat-face{display:block;position:relative;width:36px;height:31px;transform-origin:center bottom;animation:ratopolisRemoteRun .22s ease-in-out infinite alternate;animation-play-state:paused}.online-avatar.moving .rat-face{animation-play-state:running}
 .online-avatar .rat-body{position:absolute;left:7px;top:10px;width:23px;height:17px;border:1.5px solid #747d75;border-radius:48% 52% 48% 48%;background:var(--remote-fur,#aeb5ad);box-shadow:inset 0 -3px 0 rgba(45,50,43,.12)}
 .online-avatar .rat-belly{position:absolute;left:18px;top:17px;width:11px;height:8px;border-radius:50%;background:#e4dfca;transform:rotate(-12deg)}
 .online-avatar .rat-ear{position:absolute;top:1px;width:10px;height:13px;border:1.5px solid #747d75;border-radius:65% 65% 45% 45%;background:var(--remote-fur,#aeb5ad)}
@@ -3084,7 +3084,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 .online-avatar .rat-eye{position:absolute;left:25px;top:12px;width:3px;height:4px;border-radius:50%;background:#17271b}
 .online-avatar .rat-nose{position:absolute;left:30px;top:17px;width:4px;height:3px;border-radius:60%;background:#e69aa6}
 .online-avatar .rat-tail{position:absolute;left:0;top:23px;width:12px;height:9px;border:2px solid #a8aaa4;border-right:0;border-top:0;border-radius:0 0 0 90%;transform:rotate(-12deg)}
-.online-avatar .rat-feet{position:absolute;left:13px;top:25px;width:5px;height:7px;border-radius:2px;background:#777f79;transform-origin:top;animation:ratopolisRemoteFeet .22s ease-in-out infinite alternate}
+.online-avatar .rat-feet{position:absolute;left:13px;top:25px;width:5px;height:7px;border-radius:2px;background:#777f79;transform-origin:top;animation:ratopolisRemoteFeet .22s ease-in-out infinite alternate;animation-play-state:paused}.online-avatar.moving .rat-feet{animation-play-state:running}
 .online-avatar .rat-feet.second{left:25px;animation-delay:-.11s}
 @keyframes ratopolisRemoteRun{from{translate:0 0;rotate:-3deg;scale:1 1}to{translate:0 -2px;rotate:3deg;scale:1.03 .97}}
 @keyframes ratopolisRemoteFeet{from{rotate:-25deg}to{rotate:25deg}}
@@ -3237,7 +3237,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(!node){node=document.createElement('div');node.className='online-avatar';node.dataset.playerId=String(id);const rat=document.createElement('span');rat.className='rat';const face=document.createElement('span');face.className='rat-face';face.innerHTML='<i class="rat-tail"></i><i class="rat-ear left"></i><i class="rat-ear right"></i><i class="rat-body"></i><i class="rat-belly"></i><i class="rat-eye"></i><i class="rat-nose"></i><i class="rat-feet"></i><i class="rat-feet second"></i>';rat.appendChild(face);const tag=document.createElement('span');tag.className='tag';node.append(rat,tag);avatarLayer.appendChild(node);}
    node.classList.toggle('shaman',p.role==='shaman');node.querySelector('.tag').textContent=String(p.nickname||'Jogador').slice(0,18)+(p.role==='shaman'?' 🔮':'');
    const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y)){node.style.display='none';continue;}
-   node.style.display='block';const face=node.querySelector('.rat');if(face)face.style.transform='scaleX('+(Number(p.facing)<0?-1:1)+')';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
+   node.style.display='block';const prevX=Number(node.dataset.lastX),prevY=Number(node.dataset.lastY);const moving=Number.isFinite(prevX)&&Number.isFinite(prevY)&&(Math.abs(x-prevX)+Math.abs(y-prevY)>.7);node.classList.toggle('moving',moving);node.dataset.lastX=String(x);node.dataset.lastY=String(y);const face=node.querySelector('.rat');if(face)face.style.transform='scaleX('+(Number(p.facing)<0?-1:1)+')';node.style.left=(((x-camera+13)/logicalW)*100)+'%';node.style.top=((y/logicalH)*100)+'%';
   }
   avatarLayer.querySelectorAll('.online-avatar').forEach(n=>{if(!currentIds.has(n.dataset.playerId))n.remove();});
  }
