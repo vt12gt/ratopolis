@@ -3977,7 +3977,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  refreshChatRole();
  window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY)refreshChatRole();});
  const gameLog=document.getElementById('chatLog');
- let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0, selfPlayerId='', selectedPrivateId='';
+ let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0, selfPlayerId='', selectedPrivateId='', pageLeaving=false;
  const onlinePlayers=new Map(), privateThreads=new Map();
  const privateOverlay=document.getElementById('rmPrivateOverlay'), privatePlayers=document.getElementById('rmPrivatePlayers'), privateLog=document.getElementById('rmPrivateLog'), privateInput=document.getElementById('rmPrivateInput');
  const privateButton=document.createElement('button');privateButton.type='button';privateButton.id='rmGChatPrivate';privateButton.textContent='✉️ PRIVADO';privateButton.addEventListener('click',()=>{privateOverlay.hidden=false;renderOnlinePlayers();renderPrivateThread();});
@@ -4005,6 +4005,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  }
  function sys(msg){append(menuLog,'rm-gmsg sys',msg);append(gameLog,'chat-line system',msg);}
  function scheduleReconnect(){
+  if(pageLeaving)return;
+  let currentToken='';try{currentToken=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  if(!currentToken){online=false;connecting=false;setState('entre no portal');if(retry){clearTimeout(retry);retry=null;}return;}
   if(retry)clearTimeout(retry);
   const delay=retryDelay;
   retryDelay=Math.min(15000,Math.round(retryDelay*1.7));
@@ -4012,7 +4015,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   retry=setTimeout(()=>{retry=null;connect();},delay);
  }
  async function connect(){
-  if(connecting||(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)))return;
+  if(pageLeaving||connecting||(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)))return;
   connecting=true;
   let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
   if(!token){online=false;setState('entre no portal');connecting=false;scheduleReconnect();return;}
@@ -4067,8 +4070,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  }
  window.RatopolisWorldChat={send:text=>{const r=send(text);return r.ok;},sendPrivate:(id,text)=>{selectedPrivateId=String(id||'');sendPrivate(text);},getPlayers:()=>[...onlinePlayers.values()],openPrivate:name=>{const n=String(name||'').trim().toLowerCase();for(const p of onlinePlayers.values()){if(String(p.nickname||p.nick||p.name||'').toLowerCase()===n){selectedPrivateId=String(p.playerId);break;}}privateOverlay.hidden=false;renderOnlinePlayers();renderPrivateThread();},isOnline:()=>online,reconnect:()=>{if(retry){clearTimeout(retry);retry=null;}if(ws)try{ws.close();}catch(_){}else connect();}};
  document.getElementById('rmPrivateClose')?.addEventListener('click',()=>{privateOverlay.hidden=true;});privateOverlay?.addEventListener('click',e=>{if(e.target===privateOverlay)privateOverlay.hidden=true;});document.getElementById('rmPrivateForm')?.addEventListener('submit',e=>{e.preventDefault();const value=privateInput.value.trim();if(!value)return;sendPrivate(value);privateInput.value='';privateInput.focus({preventScroll:true});});
- window.addEventListener('pagehide',()=>{online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(ws){try{ws.close(1000,'pagehide');}catch(_){}}});
- window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY&&!e.newValue){online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(ws){try{ws.close(1000,'logout');}catch(_){}}if(menuLog)menuLog.replaceChildren();if(gameLog)gameLog.replaceChildren();privateLog?.replaceChildren();}});
+ window.addEventListener('pagehide',()=>{pageLeaving=true;online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(retry){clearTimeout(retry);retry=null;}if(ws){try{ws.close(1000,'pagehide');}catch(_){}}});
+ window.addEventListener('pageshow',()=>{pageLeaving=false;let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}if(token&&(!ws||ws.readyState===WebSocket.CLOSED)){if(retry){clearTimeout(retry);retry=null;}connect();}});
+ window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY&&!e.newValue){online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(retry){clearTimeout(retry);retry=null;}if(ws){try{ws.close(1000,'logout');}catch(_){}}if(menuLog)menuLog.replaceChildren();if(gameLog)gameLog.replaceChildren();privateLog?.replaceChildren();setState('entre no portal');}});
  if(menuForm&&menuInput)menuForm.addEventListener('submit',e=>{
   e.preventDefault();const value=menuInput.value.trim();if(!value)return;
   const result=send(value);
