@@ -3881,65 +3881,101 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
 </style>
 
 <script id="rm-global-chat-menu">
-/* Ratópolis Chat Mundo 1.0 — um canal WebSocket para o menu e para o chat da partida. */
+/* Ratópolis Chat Mundo 1.1 — reconexão controlada, proteção contra duplicatas e envio com limite local. */
 (function(){
+ 'use strict';
  const API='https://ratopolis-chat-world-v1.juniorgmj69.workers.dev';
  const TOKEN_KEY='ratopolis_session_token';
  const menuLog=document.getElementById('rmGChatLog'), menuForm=document.getElementById('rmGChatForm'), menuInput=document.getElementById('rmGChatInput'), state=document.getElementById('rmGChatState');
  const gameLog=document.getElementById('chatLog');
- let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, lastOnline=0;
+ let ws=null, connecting=false, retry=null, online=false, loadedHistory=false, retryDelay=2500, lastSentAt=0;
+ const seen=new Set();
  function setState(s){if(state)state.textContent=s;}
  function append(log,cls,txt){
   if(!log)return;
   const d=document.createElement('div');d.className=cls;d.textContent=txt;log.appendChild(d);
-  while(log.children.length>60)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight;
+  while(log.children.length>60)log.removeChild(log.firstChild);
+  log.scrollTop=log.scrollHeight;
  }
  function render(m){
   if(!m||typeof (m.text||m.message)!=='string')return;
+  if(m.id){const id=String(m.id);if(seen.has(id))return;seen.add(id);if(seen.size>250){const first=seen.values().next().value;seen.delete(first);}}
   const nick=String(m.nickname||m.nick||'Jogador').slice(0,40), body=String(m.text||m.message).slice(0,300);
   let time='';try{time=new Date(Number(m.createdAt||m.created_at)||Date.now()).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(_){}
   const line=(time?'['+time+'] ':'')+nick+': '+body;
   append(menuLog,'rm-gmsg',line);append(gameLog,'chat-line',line);
  }
  function sys(msg){append(menuLog,'rm-gmsg sys',msg);append(gameLog,'chat-line system',msg);}
+ function scheduleReconnect(){
+  if(retry)clearTimeout(retry);
+  const delay=retryDelay;
+  retryDelay=Math.min(15000,Math.round(retryDelay*1.7));
+  setState('reconectando…');
+  retry=setTimeout(()=>{retry=null;connect();},delay);
+ }
  async function connect(){
   if(connecting||(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)))return;
   connecting=true;
   let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
-  if(!token){online=false;setState('entre no portal');connecting=false;retry=setTimeout(connect,5000);return;}
+  if(!token){online=false;setState('entre no portal');connecting=false;scheduleReconnect();return;}
   setState('conectando…');
   try{
-   const nickname=(typeof playerNickname!=='undefined'&&playerNickname)||localStorage.getItem('ratopolis_nickname')||'Jogador';const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({nickname})});
+   const nickname=(typeof playerNickname!=='undefined'&&playerNickname)||localStorage.getItem('ratopolis_nickname')||'Jogador';
+   const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({nickname})});
    const d=await r.json().catch(()=>({}));
-   if(!r.ok||!d.ok||!d.ticket){online=false;const reason=String(d.error||d.message||'erro_desconhecido').slice(0,70);setState((r.status===401?'sessão expirada':'indisponível')+' · HTTP '+r.status+' · '+reason);connecting=false;retry=setTimeout(connect,5000);return;}
-   const u=new URL(d.websocket||'wss://ratopolis-chat-world-v1.juniorgmj69.workers.dev/ws');u.searchParams.set('ticket',d.ticket);
-   ws=new WebSocket(u.toString());
-   ws.onopen=()=>{online=true;lastOnline=Date.now();setState('conectado · Mundo');};
-   ws.onmessage=e=>{
+   if(!r.ok||!d.ok||!d.ticket){
+    online=false;
+    setState((r.status===401?'sessão expirada':'indisponível')+' · HTTP '+r.status+' · '+String(d.error||d.message||'erro_desconhecido').slice(0,55));
+    connecting=false;scheduleReconnect();return;
+   }
+   const u=new URL(d.websocket||API.replace(/^https:/,'wss:')+'/ws');u.searchParams.set('ticket',d.ticket);
+   const socket=new WebSocket(u.toString());ws=socket;
+   socket.onopen=()=>{online=true;retryDelay=2500;setState('conectado · Mundo');};
+   socket.onmessage=e=>{
     let d;try{d=JSON.parse(e.data);}catch(_){return;}
-    if(d.type==='ready'){online=true;lastOnline=Date.now();setState('Mundo online');if(!loadedHistory&&Array.isArray(d.history)){d.history.forEach(render);loadedHistory=true;}return;}
+    if(d.type==='ready'){
+     online=true;setState('Mundo online');
+     if(!loadedHistory&&Array.isArray(d.history)){d.history.forEach(render);loadedHistory=true;}
+     return;
+    }
     if(d.type==='chat_message'){render(d.message);return;}
     if(d.type==='presence'){setState('Mundo online · '+Math.max(0,Number(d.online)||0));return;}
-    if(d.type==='error'&&d.message)sys(d.message);
+    if(d.type==='error'&&d.message)sys(String(d.message).slice(0,200));
    };
-   ws.onerror=()=>setState('reconectando…');
-   ws.onclose=()=>{online=false;connecting=false;ws=null;setState('reconectando…');clearTimeout(retry);retry=setTimeout(connect,2500);};
+   socket.onerror=()=>setState('conexão instável…');
+   socket.onclose=()=>{
+    online=false;connecting=false;
+    if(ws===socket)ws=null;
+    if(!document.hidden)scheduleReconnect();
+    else setState('offline · aguardando retorno');
+   };
    connecting=false;
-  }catch(_){online=false;connecting=false;setState('sem conexão');retry=setTimeout(connect,5000);}
+  }catch(_){online=false;connecting=false;scheduleReconnect();}
  }
  function send(text){
-  const value=String(text||'').trim();if(!value)return true;
-  if(!ws||ws.readyState!==WebSocket.OPEN||!online)return false;
-  ws.send(JSON.stringify({type:'chat_message',text:value.slice(0,300)}));return true;
+  const value=String(text||'').trim();
+  if(!value)return {ok:false,reason:'empty'};
+  if(value.length>300)return {ok:false,reason:'long'};
+  if(!ws||ws.readyState!==WebSocket.OPEN||!online)return {ok:false,reason:'offline'};
+  const now=Date.now();
+  if(now-lastSentAt<700)return {ok:false,reason:'rate'};
+  try{ws.send(JSON.stringify({type:'chat_message',text:value}));lastSentAt=now;return {ok:true};}
+  catch(_){return {ok:false,reason:'offline'};}
  }
- window.RatopolisWorldChat={send,isOnline:()=>online,reconnect:()=>{if(ws)try{ws.close();}catch(_){}connect();}};
+ window.RatopolisWorldChat={send:text=>{const r=send(text);return r.ok;},isOnline:()=>online,reconnect:()=>{if(retry){clearTimeout(retry);retry=null;}if(ws)try{ws.close();}catch(_){}else connect();}};
  if(menuForm&&menuInput)menuForm.addEventListener('submit',e=>{
   e.preventDefault();const value=menuInput.value.trim();if(!value)return;
-  if(send(value))menuInput.value='';else{setState('aguarde conexão');sys('Chat Mundo desconectado. Aguarde a reconexão e tente novamente.');}
+  const result=send(value);
+  if(result.ok)menuInput.value='';
+  else if(result.reason==='long')sys('A mensagem deve ter no máximo 300 caracteres.');
+  else if(result.reason==='rate')setState('aguarde um instante');
+  else if(result.reason==='offline')setState('aguarde conexão');
   menuInput.focus({preventScroll:true});
  });
- window.addEventListener('online',()=>{clearTimeout(retry);connect();});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(!ws||ws.readyState===WebSocket.CLOSED)){clearTimeout(retry);connect();}});
+ window.addEventListener('online',()=>{if(retry){clearTimeout(retry);retry=null;}connect();});
+ document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&(!ws||ws.readyState===WebSocket.CLOSED)){if(retry){clearTimeout(retry);retry=null;}connect();}
+ });
  connect();
 })();
 </script>
