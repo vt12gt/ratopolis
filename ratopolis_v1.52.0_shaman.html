@@ -2124,6 +2124,20 @@ const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legac
  document.querySelectorAll('[data-loadout]').forEach(b=>b.addEventListener('click',()=>setShamanLoadout(b.dataset.loadout)));const shamanGhost=document.getElementById('shamanPlacementGhost');function beginShamanPlacement(kind,label){shamanPlacementMode={kind,x:player.x+player.facing*72,y:player.y-35};if(shamanGhost){shamanGhost.style.display='block';shamanGhost.textContent=({plank:'🪵',box:'📦',anvil:'⚒️',cannon:'⚫',balloon:'🎈',spring:'〰️',trampoline:'🟠'})[kind]||'✨';shamanGhost.className='';}updateShamanTools();showMessage('Toque no mapa para criar: '+label+'. Ele cai até achar apoio.');}document.querySelectorAll('#shamanTools [data-skill]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.skill;if(shamanPlacementMode&&shamanPlacementMode.kind===k){cancelShamanPlacement();return;}beginShamanPlacement(k,SHAMAN_SKILLS[k].name);}));document.getElementById('shamanUndo').addEventListener('click',shamanUndoLast);function cancelShamanPlacement(){shamanPlacementMode=null;if(shamanGhost)shamanGhost.style.display='none';updateShamanTools();}window.addEventListener('keydown',e=>{if(!playing||activeMatchRole!=='shaman')return;const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA')return;const i='1234567'.indexOf(e.key);if(i>=0){const k=SHAMAN_ORDER[i];beginShamanPlacement(k,SHAMAN_SKILLS[k].name);}else if(e.key==='Escape')cancelShamanPlacement();else if(e.key==='z'||e.key==='Z')shamanUndoLast();});canvas.addEventListener('pointermove',e=>{if(!shamanPlacementMode||!shamanGhost)return;const pt=window.__rpPt(canvas,e);const sx=pt.x*(W/pt.w),sy=pt.y*(H/pt.h);shamanPlacementMode.x=cam+sx;shamanPlacementMode.y=sy;if(shamanGhost.style.display!=='block')shamanGhost.style.display='block';shamanGhost.style.left=pt.x+'px';shamanGhost.style.top=pt.y+'px';});canvas.addEventListener('click',e=>{if(!shamanPlacementMode||!playing||activeMatchRole!=='shaman')return;const pt=window.__rpPt(canvas,e);const sx=pt.x*(W/pt.w);const sy=pt.y*(H/pt.h);const worldX=Math.max(8,Math.min(cam+sx,(platforms[0]?.x||0)+(platforms[0]?.w||W)-40));const worldY=Math.max(8,Math.min(sy,H-40));const kind=shamanPlacementMode.kind;shamanPlacementMode={x:worldX,y:worldY,kind};placeShamanItem(kind);if(shamanMana<SHAMAN_SKILLS[kind].cost||!e.shiftKey){shamanPlacementMode=null;if(shamanGhost)shamanGhost.style.display='none';updateShamanTools();}else{shamanPlacementMode={kind,x:worldX,y:worldY};}});document.getElementById('roomCloseBtn').addEventListener('click',closeRooms);document.getElementById('roomStartBtn').addEventListener('click',()=>joinSelectedRoom(false));document.getElementById('roomRandomBtn').addEventListener('click',()=>joinSelectedRoom(true));document.getElementById('roomsOverlay').addEventListener('click',e=>{if(e.target.id==='roomsOverlay')closeRooms();});
  document.getElementById('chatClose').addEventListener('click',()=>{const panel=document.getElementById('chatPanel');openChat(false);if(panel.dataset.fromMenu==='1'){panel.dataset.fromMenu='0';panel.classList.remove('menu-chat-mode');document.getElementById('scene').appendChild(panel);document.getElementById('start').classList.remove('menu-chat-open');document.getElementById('start').classList.remove('hidden')}});document.getElementById('nextBtn').addEventListener('click',()=>{goNextPhase()});document.getElementById('testPhaseBtn').addEventListener('click',async()=>{clearPhaseTimers();document.getElementById('phaseStart').classList.add('hidden');const chosen=Math.max(1,Math.min(scenarioNames.length,Number(document.getElementById('testPhase').value)||3));level=chosen-1;testMode=true;await startFromTap();showMessage('Modo de teste: fase '+chosen+'. Recompensas desativadas. '+phaseAuditMessage(chosen))});
 level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(bestPhase);document.getElementById('settingSound').checked=soundEnabled;document.getElementById('settingMusic').checked=musicEnabled;document.getElementById('settingNotifications').checked=notificationsEnabled;document.getElementById('settingHideNames').checked=hidePlayerNames;document.getElementById('settingQuality').value=visualQuality;makeLevel();updateStats();updateMenuProfile();renderLocalRooms();updateRolePicker();updateShamanTools();renderRankingPage();renderGuildPage();checkAchievements(false);syncAchievementRewards(false);refreshTitleChallenges(false);renderAchievements();void syncProgressionStartup();requestAnimationFrame(loop);
+
+  // Multiplayer state bridge must live in the same closure as the game engine's player.
+  window.__ratopolisGetMultiplayerState=function(){
+    const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
+      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
+      started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
+      finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
+      nickname:String(playerNickname||'Jogador').slice(0,18)};
+    if(state.role==='shaman')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({
+      type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,
+      falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring
+    }));
+    return state;
+  };
 })();
 
 // v1.14.3: correção da camada de salas, novo template estático e menos animações.
@@ -2525,20 +2539,6 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
       if(screen.orientation && typeof screen.orientation.lock==='function') await screen.orientation.lock('landscape');
     }catch(_e){}
   }
-  // Ponte de estado multiplayer: a integração de salas roda em outro escopo JS.
-  // Exponha somente o estado necessário para sincronizar o rato, sem alterar a lógica das fases.
-  window.__ratopolisGetMultiplayerState=function(){
-    const state={x:Number(player.x)||0,y:Number(player.y)||0,w:Number(player.w)||28,h:Number(player.h)||30,
-      facing:Number(player.facing)||1,phase:Number(level)||0,logicalW:Number(W)||0,logicalH:Number(H)||0,camera:Number(cam)||0,active:!!(playing||raceHumanFinished||phaseElapsed>0),
-      started:!!(playing||raceHumanFinished||phaseElapsed>0),role:String(activeMatchRole||'mouse'),
-      finished:!!raceHumanFinished,finishTime:Number(raceHumanFinishTime)||0,
-      nickname:String(playerNickname||'Jogador').slice(0,18)};
-    if(state.role==='shaman')state.shamanObjects=obstacles.filter(o=>o&&o.shamanPlaced).map(o=>({
-      type:o.type,x:o.x,y:o.y,w:o.w,h:o.h,kind:o.kind,cost:o.cost,vy:o.vy||0,vx:o.vx||0,
-      falling:!!o.falling,used:!!o.used,lifting:!!o.lifting,rider:!!o.rider,realSpring:!!o.realSpring
-    }));
-    return state;
-  };
   menu.addEventListener('pointerdown',requestMenuLandscape,{once:true,passive:true});
   menu.addEventListener('touchstart',requestMenuLandscape,{once:true,passive:true});
   window.addEventListener('orientationchange',()=>{
