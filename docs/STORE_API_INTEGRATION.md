@@ -54,3 +54,16 @@ A migration `migrations/0002_events_daily_rewards.sql` foi aplicada ao D1 de des
 - A configuração e o resgate diário são executados pelo servidor; itens especiais são gravados no inventário pelo código do item configurado.
 - Eventos exibem descrição e recompensa anunciada, mas **a recompensa de participação do evento ainda não é concedida automaticamente**; isso exige regras de conclusão/participação próprias.
 - A estrutura e as tabelas foram verificadas via Cloudflare D1. A navegação de ponta a ponta com uma sessão real de ADM/jogador ainda precisa ser testada: criar/publicar evento, conferir no jogo, resgatar uma recompensa, tentar resgatar de novo e conferir saldo/inventário.
+
+
+## Gifts resgatáveis e catálogo de itens (v1)
+
+Migration: `migrations/0003_gifts_item_registry.sql`. Ela cria o cadastro real de gifts, histórico de resgates e registro de cosméticos/títulos existentes no jogo. O cadastro de gifts começa vazio de propósito; nenhum gift fictício ou de teste é inserido.
+
+- `GET /api/admin/gifts`: lista os gifts salvos, recompensas, autor, validade, estado e contagem de resgates; exige ADM/SpAdmin.
+- `POST /api/admin/gifts`: cria ou atualiza um gift com código, descrição, moedas, XP, item, quantidade, limite de resgates, expiração e status; exige ADM/SpAdmin.
+- `GET /api/admin/items/catalog`: lista os cosméticos e títulos registrados no jogo, incluindo preço quando o item também existe na loja; exige ADM/SpAdmin.
+- `POST /api/gifts/redeem`: jogador autenticado resgata o código. O servidor valida status, expiração, limite e resgate único por conta; credita moedas/XP e grava o item no inventário em lote D1.
+- O jogo tem o botão **RESGATAR GIFT** no menu e envia o código ao servidor. O saldo é atualizado por meio da progressão do servidor quando disponível.
+
+A tabela de itens registra 23 cosméticos e 6 títulos que já aparecem nas listas de itens/títulos do jogo. O catálogo pode ser ampliado junto com novos itens reais. A publicação do Worker e a criação das tabelas foram realizadas; é necessário fazer um resgate real com conta de jogador para validar a experiência completa na interface.
