@@ -3909,7 +3909,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   if(!token){online=false;setState('entre no portal');connecting=false;retry=setTimeout(connect,5000);return;}
   setState('conectando…');
   try{
-   const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json'}});
+   const nickname=(typeof playerNickname!=='undefined'&&playerNickname)||localStorage.getItem('ratopolis_nickname')||'Jogador';const r=await fetch(API+'/api/ticket',{method:'POST',cache:'no-store',headers:{Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({nickname})});
    const d=await r.json().catch(()=>({}));
    if(!r.ok||!d.ok||!d.ticket){online=false;setState(r.status===401?'sessão expirada':'indisponível');connecting=false;retry=setTimeout(connect,5000);return;}
    const u=new URL(d.websocket||'wss://ratopolis-chat-world-v1.juniorgmj69.workers.dev/ws');u.searchParams.set('ticket',d.ticket);
