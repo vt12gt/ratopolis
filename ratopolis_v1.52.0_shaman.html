@@ -2277,7 +2277,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
 if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err){console.warn('Perfil do menu:',err);}document.getElementById('start').classList.remove('hidden');
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
- document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
+ document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();return;}const m=document.getElementById('message');if(m)m.textContent='Servidor de salas indisponível. Nenhuma partida local será iniciada; tente novamente mais tarde.';});
  document.getElementById('menuRooms').addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
@@ -3484,13 +3484,14 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
   connectRoomSocket(activeRoomCode);
  }
- function showRoom(code,data){
+ function showRoom(code,data,autoStart=false){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
-  setMessage('Você entrou na sala online '+code+'. Toque em JOGAR NESTA SALA para iniciar.','success');
-  connectRoomSocket(code);startPollingIfVisible();loadDirectory();
+  setMessage('Você entrou na sala online '+code+'.','success');
+  if(autoStart)startOnlineMatch();else connectRoomSocket(code);
+  startPollingIfVisible();loadDirectory();
  }
  function stopPolling(){
   if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}
@@ -3576,21 +3577,38 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   }finally{leaveBtn.disabled=false;}
  }
  async function joinRandomAndStart(){
+  if(requestInFlight)return;
   if(activeRoomCode){startOnlineMatch();return;}
-  const note=t=>{const m=document.getElementById('message');if(m)m.textContent=t;};
+  requestInFlight=true;
+  const thisGeneration=++generation;
+  const playBtn=document.getElementById('menuPlay');
+  const playLabel=playBtn&&playBtn.querySelector('.rm-lbl');
+  const oldPlayLabel=playLabel?playLabel.textContent:'JOGAR';
   try{
+   if(playBtn){playBtn.disabled=true;playBtn.setAttribute('aria-busy','true');if(playLabel)playLabel.textContent='CONECTANDO…';}
+   createBtn.disabled=true;joinBtn.disabled=true;
+   setOnlineStatus('Validando conta e procurando jogadores…');
+   setMessage('Procurando uma sala online com jogadores conectados…','');
    const token=await validateSession();
-   const data=await api('/api/rooms/list',{},token);
-   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('Nenhuma sala online disponível agora.');
-   const pick=rooms[Math.floor(Math.random()*rooms.length)],code=String(pick.code);
-   codeInput.value=code;await runRoomAction('join');
-   if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala.');
-   startOnlineMatch();
+   if(thisGeneration!==generation)return;
+   // O endpoint match inicializa as salas oficiais e faz a escolha/entrada atomicamente no servidor.
+   const data=await api('/api/rooms/match',{},token);
+   if(!data||data.ok===false)throw new Error(String(data&& (data.message||data.error||data.erro)||'O servidor não confirmou a entrada.'));
+   const code=String(roomCodeFrom(data)||data.room||'').trim().toUpperCase();
+   if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('O servidor não retornou uma sala válida.');
+   if(thisGeneration!==generation)return;
+   showRoom(code,data,true);
   }catch(err){
-   /* Uma falha no login ou no servidor online nunca deve iniciar uma sala local. */
-   note('Não foi possível entrar na sala online: '+((err&&err.message)||'servidor indisponível')+'. Entre novamente na sua conta e tente outra vez.');
-   return;
+   if(thisGeneration===generation){
+    const msg=err&&err.message?err.message:'servidor indisponível';
+    setOnlineStatus('Conexão não estabelecida');
+    setMessage('Não foi possível entrar na sala online: '+msg+'. Verifique sua conta e conexão e tente novamente.','error');
+   }
+  }finally{
+   if(thisGeneration===generation){
+    requestInFlight=false;createBtn.disabled=false;joinBtn.disabled=false;
+    if(playBtn){playBtn.disabled=false;playBtn.removeAttribute('aria-busy');if(playLabel)playLabel.textContent=oldPlayLabel;}
+   }
   }
  }
  window.RatopolisOnlineRooms={leave:leaveOnlineRoom,joinRandom:joinRandomAndStart,open:()=>{overlay.classList.remove('hidden');loadDirectory();},assignShaman:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},await validateSession());},submitFinish:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/finish',{room:activeRoomCode,phase:Number(phase)},await validateSession());},isActive:()=>!!(activeRoomCode&&localRoomMatchStarted),roundStatus:()=>{const phase=Number(typeof level!=='undefined'?level:0);const ps=roomState&&Array.isArray(roomState.players)?roomState.players:[];const participants=ps.filter(p=>p&&p.state&&Number(p.state.phase)===phase&&(p.state.started||p.state.active||p.state.finished));const finished=participants.filter(p=>p.state.finished);return {activeCount:participants.length,finishedCount:finished.length,allFinished:participants.length>0&&finished.length>=participants.length};}};
@@ -4088,6 +4106,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
 #chatPanel #chatLog{font-size:12px!important}
 @media(max-width:700px){#chatPanel:not(.hidden){width:min(340px,56vw)!important;height:min(220px,52dvh)!important}#communityDock:not(.hidden){width:min(92%,520px)!important}}
 .rm-gchat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rm-gchat-role{display:inline-flex;align-items:center;border:1px solid rgba(255,221,120,.55);border-radius:999px;padding:2px 7px;font-size:10px;font-weight:800;color:#ffe7a1;background:rgba(22,48,34,.75)}
+
+/* Test branch: matchmaking automatico online, sem seletor manual no menu principal. */
+#start #menuRooms{display:none!important}
+#start #menuPlay:disabled{opacity:.72;cursor:progress}
+#start #menuPlay[aria-busy="true"] .rm-ico{animation:rmMatchPulse .8s ease-in-out infinite alternate}
+@keyframes rmMatchPulse{to{transform:scale(1.16);opacity:.65}}
+@media(prefers-reduced-motion:reduce){#start #menuPlay[aria-busy="true"] .rm-ico{animation:none}}
 </style>
 
 <script id="rm-global-chat-menu">
