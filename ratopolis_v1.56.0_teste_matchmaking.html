@@ -1010,6 +1010,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 </style>
 <style id="ratopolis-1558-hide-obsolete-role-picker">.shaman-role-picker{display:none!important}</style>
 <style id="ratopolis-test-room-ui-cleanup">#onlineRoomsDirectory,.online-room-join,#onlineStartMatchBtn,.rooms-layout,.shaman-role-picker,.room-actions{display:none!important}</style>
+<style id="ratopolis-v1561-horizontal-room-cleanup">#menuRooms{grid-column:auto!important;white-space:nowrap!important}#roomsOverlay,#onlineRoomsDirectory,.online-room-join,#onlineStartMatchBtn,.rooms-layout,.shaman-role-picker,.room-actions,#roomRandomBtn,#communityRoomsBtn{display:none!important}#ratopolisOnlineRooms>h3,#ratopolisOnlineRooms>.room-note,#onlineShamanChoice{display:none!important}@media(orientation:landscape){#start #rmNav{grid-auto-flow:row!important}#start #menuRooms{min-width:0!important;min-height:42px!important}}#ratopolisMatchSearchCard strong{letter-spacing:.1px}</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -1030,7 +1031,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
  <div class="rm-logo" aria-label="Ratópolis"><span class="rm-logo-text">RATÓPOLIS</span><span class="rm-logo-cheese" aria-hidden="true">🧀</span></div>
  <nav class="rm-nav" id="rmNav" aria-label="Menu principal">
   <button id="menuPlay" class="rm-btn rm-primary" type="button"><span class="rm-ico">▶</span><span class="rm-lbl">JOGAR</span></button>
-  <button id="menuRooms" class="rm-btn" type="button"><span class="rm-ico">🚪</span><span class="rm-lbl">ESCOLHER SALA</span></button>
+  <button id="menuRooms" class="rm-btn" type="button"><span class="rm-ico">🚪</span><span class="rm-lbl">＋ CRIAR SALA</span></button>
   <button id="menuMyHome" class="rm-btn" type="button"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
   <button id="menuMiniGame" class="rm-btn" type="button"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
   <button id="rmFriends" class="rm-btn" type="button"><span class="rm-ico">👥</span><span class="rm-lbl">AMIGOS</span></button>
@@ -2390,7 +2391,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
- document.getElementById('menuRooms').addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
+ document.getElementById('menuRooms').addEventListener('click',()=>{const create=document.getElementById('onlineCreateRoomBtn');if(create)create.click();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3731,8 +3732,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    loading=document.createElement('div');
    loading.id='ratopolisMatchSearchOverlay';
    loading.setAttribute('role','status');loading.setAttribute('aria-live','polite');
-   loading.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(5,12,28,.88);padding:22px;font-family:system-ui,sans-serif;color:#fff;text-align:center';
-   loading.innerHTML='<div style="width:min(420px,100%);padding:26px 22px;border:1px solid rgba(255,255,255,.18);border-radius:20px;background:#14213a;box-shadow:0 20px 70px #0008"><div style="font-size:42px;margin-bottom:10px">🐭</div><strong style="display:block;font-size:21px">Procurando uma sala disponível…</strong><p style="margin:10px 0 16px;color:#dce7ff">Aguarde enquanto conectamos você a outros jogadores.</p><div style="height:7px;border-radius:99px;background:#33435f;overflow:hidden"><div id="ratopolisMatchProgress" style="height:100%;width:0%;background:#54d88b;transition:width .25s"></div></div><p style="margin:12px 0 0;font-size:14px;color:#c4d3ed">Tempo de busca: <strong id="ratopolisMatchSeconds">20</strong> s</p></div>';
+   loading.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(5,12,28,.50);padding:12px;font-family:system-ui,sans-serif;color:#fff;text-align:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)';
+   loading.innerHTML='<style>@keyframes ratoSearchRun{0%{transform:translateX(-130%) rotate(-8deg)}50%{transform:translateX(130%) rotate(8deg)}100%{transform:translateX(-130%) rotate(-8deg)}}@keyframes ratoSearchPulse{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}@keyframes ratoSearchSpin{to{transform:rotate(360deg)}}#ratopolisMatchSearchCard{width:min(560px,94vw);padding:clamp(14px,3vw,26px);border:1px solid rgba(255,255,255,.42);border-radius:22px;background:linear-gradient(135deg,rgba(17,47,37,.94),rgba(15,29,54,.94));box-shadow:0 16px 48px #0006;position:relative;overflow:hidden}#ratopolisMatchRat{display:inline-block;font-size:clamp(28px,6vw,46px);animation:ratoSearchRun 2.2s ease-in-out infinite}#ratopolisMatchRing{width:30px;height:30px;border:3px solid #ffffff40;border-top-color:#ffe16b;border-radius:50%;animation:ratoSearchSpin .9s linear infinite;margin:auto}@media(orientation:landscape){#ratopolisMatchSearchCard{display:grid;grid-template-columns:100px 1fr;column-gap:16px;align-items:center;text-align:left}#ratopolisMatchArt{grid-row:1/5;align-self:center;text-align:center}#ratopolisMatchRing{margin:0}}@media(orientation:portrait){#ratopolisMatchSearchCard{text-align:center}}</style><div id="ratopolisMatchSearchCard"><div id="ratopolisMatchArt"><div id="ratopolisMatchRat">🐭</div><div style="font-size:11px;letter-spacing:2px;color:#ffe16b;font-weight:900;margin:4px 0 10px">RATÓPOLIS</div><div id="ratopolisMatchRing"></div></div><div><strong style="display:block;font-size:clamp(18px,3vw,24px);line-height:1.2">Procurando uma sala disponível…</strong><p style="margin:8px 0 14px;color:#e0e9f7;font-size:clamp(12px,1.8vw,15px)">Estamos procurando jogadores. Se não houver uma sala livre, vamos criar uma automaticamente.</p><div style="height:8px;border-radius:99px;background:#ffffff28;overflow:hidden"><div id="ratopolisMatchProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#49d890,#ffe16b);transition:width .2s;border-radius:99px"></div></div><p style="margin:10px 0 0;font-size:13px;color:#f0f4ff">Conectando em até <strong id="ratopolisMatchSeconds">20</strong> s</p></div></div>';
    document.body.appendChild(loading);
    const seconds=loading.querySelector('#ratopolisMatchSeconds'),progress=loading.querySelector('#ratopolisMatchProgress');
    const update=()=>{const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));if(seconds)seconds.textContent=String(left);if(progress)progress.style.width=((20-left)/20*100)+'%';};
@@ -3743,10 +3744,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
      const data=await api('/api/rooms/match',{},token);
      const code=roomCodeFrom(data);
      if(data&&data.ok&&/^[A-Z0-9]{4,8}$/.test(code)){
-      codeInput.value=code;
-      await runRoomAction('join');
-      if(activeRoomCode===code){if(tick)clearInterval(tick);loading.remove();loading=null;startOnlineMatch();return;}
-      lastError=new Error(messageEl.textContent||'A entrada na sala ainda não foi confirmada.');
+      if(tick)clearInterval(tick);tick=null;
+      showRoom(code,data);loading.remove();loading=null;startOnlineMatch();return;
      }else lastError=new Error(data&&data.message||'Ainda procurando uma sala disponível.');
     }catch(err){
      lastError=err;
