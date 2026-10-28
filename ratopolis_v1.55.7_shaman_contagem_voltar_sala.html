@@ -3719,7 +3719,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
    const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('Nenhuma sala online disponível agora.');
+   if(!rooms.length){note('Nenhuma sala disponível. Criando uma sala online para você…');await runRoomAction('create');if(!activeRoomCode)throw new Error(messageEl.textContent||'Não foi possível criar uma sala online.');startOnlineMatch();return;}
    const pick=rooms[Math.floor(Math.random()*rooms.length)],code=String(pick.code);
    codeInput.value=code;await runRoomAction('join');
    if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala.');
