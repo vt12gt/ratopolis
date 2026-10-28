@@ -61,7 +61,69 @@ body{background:#172e25;overflow-x:hidden}
 @media(max-width:900px){.scene{padding:8px}.layout{grid-template-columns:230px minmax(0,1fr);gap:9px;min-height:calc(100vh - 16px)}.left{padding:9px;gap:8px}.nav button{padding:9px 7px;min-height:42px}.topbar{grid-template-columns:minmax(130px,1fr) minmax(125px,.8fr) 48px}.topbar .levelbox{display:none}.topbox{padding:7px}.chat{right:0;width:100%;top:5%;height:72vh}.bottom{grid-template-columns:1fr}.bottomcard:nth-child(2){display:none}}
 @media(max-width:620px){.scene{padding:5px}.layout{grid-template-columns:1fr;min-height:calc(100vh - 10px)}.left{display:none}.topbar{grid-template-columns:minmax(0,1fr) auto 42px}.topbox:first-child{padding:6px}.topbox .vip{display:none}.resources{font-size:13px}.mainrow{min-height:490px}.chat{top:0;right:0;width:100%;height:72vh;min-height:360px;padding:7px}.chat-tabs{gap:3px}.chat-tabs button{font-size:10px;padding:9px 2px}.bottom{grid-template-columns:1fr}.bottomcard{min-height:66px}.bottomcard:nth-child(2){display:none}.exit{font-size:20px}}
 @media(orientation:landscape) and (max-height:560px){.scene{padding:5px}.layout{grid-template-columns:220px minmax(0,1fr);gap:8px;min-height:calc(100dvh - 10px)}.left{padding:7px;gap:6px}.brand{padding-bottom:7px}.logo{font-size:25px}.nav{gap:4px}.nav button{min-height:34px;padding:5px 7px;font-size:11px}.nav button .ico{font-size:16px}.profile{min-height:85px;padding:5px}.mouse{font-size:32px}.topbar{gap:6px}.topbox{padding:4px 7px}.topbar .levelbox{display:flex}.topbar{grid-template-columns:minmax(130px,1fr) minmax(120px,.8fr) minmax(130px,.8fr) 42px}.avatar{font-size:23px}.mainrow{min-height:260px}.chat{top:0;height:72vh;min-height:230px;width:min(620px,96%);padding:6px}.chat-tabs button{padding:6px 3px}.messages{font-size:12px;line-height:1.45}.sendrow input{padding:7px}.bottomcard{min-height:55px;padding:6px 9px}.bottomtitle{font-size:12px;margin-bottom:3px}.bottomcard p{font-size:10px}}
-</style>
+
+/* Atualização: paisagem obrigatória na apresentação; tela cheia somente por ação do usuário. */
+html,body{width:100%;height:100%;overflow:hidden}
+.scene{width:100%;height:100vh;height:100dvh;min-height:0;overflow:hidden;padding:8px}
+.layout{width:100%;height:calc(100vh - 16px);height:calc(100dvh - 16px);min-height:0;overflow:hidden}
+.right{height:100%;min-height:0;overflow:hidden}
+.mainrow{min-height:0;overflow:hidden}
+.bottom{flex:0 0 auto}
+.fullscreen-button{cursor:pointer;display:grid;place-items:center;font-size:21px;color:#ffe4a0;min-width:42px;min-height:42px;border:3px ridge #d5b363;border-radius:12px;background:linear-gradient(#28774d,#12452f);box-shadow:inset 0 1px 0 #f4d991,0 3px 0 #092b1e}
+.fullscreen-button:focus-visible{outline:3px solid #fff0a6;outline-offset:2px}
+.orientation-notice{display:none;position:fixed;inset:0;z-index:1000;background:linear-gradient(145deg,#103b2b,#071e16);color:#f7e5ad;align-items:center;justify-content:center;text-align:center;padding:24px}
+.orientation-notice .notice-inner{max-width:360px;border:2px solid #d6b568;border-radius:18px;padding:24px;background:#123a2bd9}
+.orientation-notice .rotate-icon{font-size:52px;display:block;margin-bottom:12px}
+.orientation-notice h1{font-size:21px;margin:0 0 10px}
+.orientation-notice p{font-size:14px;line-height:1.5;margin:0}
+@media (orientation:portrait){
+ .orientation-notice{display:flex}
+ .layout{display:none}
+}
+@media (orientation:landscape){
+ .layout{display:grid;grid-template-columns:minmax(190px,25%) minmax(0,1fr);gap:9px}
+ .topbar{grid-template-columns:minmax(130px,1.2fr) minmax(130px,.8fr) minmax(130px,.9fr) 42px 42px;gap:6px}
+ .topbox{padding:5px 8px}
+ .mainrow{flex:1}
+ .chat{height:min(70dvh,520px);min-height:0}
+ .bottomcard{min-height:60px}
+}
+@media (orientation:landscape) and (max-height:500px){
+ .scene{padding:4px}
+ .layout{height:calc(100dvh - 8px);grid-template-columns:minmax(165px,22%) minmax(0,1fr);gap:6px}
+ .left{padding:6px;gap:5px}
+ .brand{padding-bottom:6px}
+ .logo{font-size:24px}
+ .nav{gap:3px}
+ .nav button{min-height:30px;padding:4px 6px;font-size:10px}
+ .nav button .ico{font-size:15px;width:22px}
+ .profile{min-height:55px;padding:3px}
+ .mouse{font-size:25px}
+ .profile .muted{font-size:9px}
+ .topbar{grid-template-columns:minmax(110px,1fr) minmax(105px,.75fr) minmax(110px,.8fr) 36px 36px;gap:4px}
+ .topbox{padding:3px 5px}
+ .avatar{font-size:20px}
+ .topname{font-size:11px}
+ .subline{font-size:9px}
+ .vip{font-size:9px;padding:4px}
+ .resources{font-size:11px}
+ .levelrow{font-size:10px}
+ .bar{height:7px;margin-top:3px}
+ .mainrow{min-height:0}
+ .chat{top:0;right:1%;height:69dvh;width:min(590px,96%);padding:5px}
+ .chat-tabs button{padding:5px 2px;font-size:10px}
+ .chat-title{padding:4px;font-size:10px}
+ .messages{font-size:11px;line-height:1.35;padding:4px}
+ .sendrow{padding-top:4px}
+ .sendrow input{padding:5px;font-size:11px}
+ .sendrow button{padding:0 9px;font-size:11px}
+ .bottom{gap:5px}
+ .bottomcard{min-height:43px;padding:5px 7px}
+ .bottomtitle{font-size:10px;margin-bottom:2px}
+ .bottomcard p{font-size:9px}
+ .tag{font-size:8px;margin-top:2px;padding:1px 5px}
+}
+
 </head>
 <body>
 <div class="scene">
@@ -89,7 +151,7 @@ body{background:#172e25;overflow-x:hidden}
   <div class="topbox"><div class="avatar">🐭</div><div style="min-width:0;flex:1"><div class="topname">Jogador de teste</div><div class="subline">● online · prévia visual</div></div><div class="vip">👑 VIP</div></div>
   <div class="topbox resources">🧀 5 &nbsp; 🥜 6 &nbsp; 🪙 926</div>
   <div class="topbox levelbox"><div class="level"><div class="levelrow"><span>Nível: 0</span><span>21/1200 XP</span></div><div class="bar"><span></span></div></div></div>
-  <button class="topbox exit" aria-label="Sair" data-action="Sair">⇥</button>
+  <button class="fullscreen-button" id="fullscreenButton" type="button" aria-label="Expandir para tela cheia" title="Expandir para tela cheia">⛶</button>\n  <button class="topbox exit" aria-label="Sair" data-action="Sair">⇥</button>
  </div>
  <div class="mainrow">
   <section class="chat" aria-label="Prévia do chat">
@@ -113,7 +175,7 @@ body{background:#172e25;overflow-x:hidden}
 </main>
 </div>
 </div>
-<div class="toast" id="toast" role="status"></div>
+<div class="orientation-notice" role="status" aria-live="polite"><div class="notice-inner"><span class="rotate-icon">📱 ↻</span><h1>Gire o celular para jogar</h1><p>O menu Ratópolis foi projetado para o modo paisagem (horizontal), sem rolagem. A tela cheia é opcional: use o botão ⛶ quando quiser.</p></div></div>\n<div class="toast" id="toast" role="status"></div>
 <script>
 (function(){
  const titles={global:'💬 CHAT GLOBAL',world:'🌐 CHAT DO MUNDO',private:'✉️ CHAT PRIVADO',notifications:'🔔 NOTIFICAÇÕES'};
@@ -128,6 +190,29 @@ body{background:#172e25;overflow-x:hidden}
   toast.textContent=btn.dataset.action==='Jogar'?'Teste do menu: o botão Jogar ainda não inicia o jogo.':btn.dataset.action+' — apenas demonstração visual.';
   toast.style.display='block';clearTimeout(timer);timer=setTimeout(()=>toast.style.display='none',2300);
  }));
+ const fsButton=document.getElementById('fullscreenButton');
+ function updateFullscreenButton(){
+  const active=!!document.fullscreenElement;
+  fsButton.textContent=active?'⛶':'⛶';
+  fsButton.setAttribute('aria-label',active?'Sair da tela cheia':'Expandir para tela cheia');
+  fsButton.title=active?'Sair da tela cheia':'Expandir para tela cheia';
+ }
+ fsButton.addEventListener('click',async()=>{
+  try{
+   if(document.fullscreenElement){await document.exitFullscreen();}
+   else{
+    const target=document.documentElement;
+    if(target.requestFullscreen) await target.requestFullscreen();
+    else {toast.textContent='Tela cheia não é compatível com este navegador.';toast.style.display='block';clearTimeout(timer);timer=setTimeout(()=>toast.style.display='none',2500);return;}
+    try{if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('landscape');}catch(_){}
+   }
+  }catch(_){
+   toast.textContent='O navegador não permitiu tela cheia. Tente pelo menu do navegador.';
+   toast.style.display='block';clearTimeout(timer);timer=setTimeout(()=>toast.style.display='none',2800);
+  }
+  updateFullscreenButton();
+ });
+ document.addEventListener('fullscreenchange',updateFullscreenButton);
  document.getElementById('sendForm').addEventListener('submit',e=>e.preventDefault());
 })();
 </script>
