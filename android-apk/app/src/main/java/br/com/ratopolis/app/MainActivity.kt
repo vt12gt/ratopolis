@@ -3,6 +3,8 @@ package br.com.ratopolis.app
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.view.View
 import android.view.Window
@@ -27,6 +29,8 @@ class MainActivity : Activity() {
     private lateinit var progress: ProgressBar
     private lateinit var root: FrameLayout
     private lateinit var errorPanel: LinearLayout
+    private lateinit var splashPanel: FrameLayout
+    private lateinit var splashProgress: ProgressBar
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +57,9 @@ class MainActivity : Activity() {
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 progress.progress = newProgress
+                if (::splashProgress.isInitialized) splashProgress.progress = newProgress
                 progress.visibility = if (newProgress >= 100) View.GONE else View.VISIBLE
+                if (newProgress >= 100) hideSplash()
             }
         }
         webView.webViewClient = object : WebViewClient() {
@@ -84,6 +90,7 @@ class MainActivity : Activity() {
         ))
         root.addView(progress)
         buildErrorPanel()
+        buildSplashPanel()
         setContentView(root)
 
         if (savedInstanceState == null) {
@@ -119,6 +126,9 @@ class MainActivity : Activity() {
         retry.setBackgroundColor(Color.rgb(120, 43, 255))
         retry.setOnClickListener {
             errorPanel.visibility = View.GONE
+            splashPanel.visibility = View.VISIBLE
+            splashPanel.alpha = 1f
+            progress.visibility = View.VISIBLE
             webView.loadUrl(APP_URL)
         }
         errorPanel.addView(title)
@@ -130,8 +140,84 @@ class MainActivity : Activity() {
         ))
     }
 
+    private fun buildSplashPanel() {
+        splashPanel = FrameLayout(this)
+        splashPanel.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(66, 27, 100), Color.rgb(25, 13, 42), Color.rgb(9, 6, 17))
+        )
+
+        val content = LinearLayout(this)
+        content.orientation = LinearLayout.VERTICAL
+        content.gravity = Gravity.CENTER
+        content.setPadding(dp(28), dp(24), dp(28), dp(24))
+
+        val mascot = TextView(this)
+        mascot.text = "🐭"
+        mascot.textSize = 76f
+        mascot.gravity = Gravity.CENTER
+        mascot.setShadowLayer(dp(18).toFloat(), 0f, 0f, Color.rgb(189, 105, 255))
+        content.addView(mascot, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { bottomMargin = dp(8) })
+        ObjectAnimator.ofFloat(mascot, "translationY", 0f, -dp(9).toFloat(), 0f).apply {
+            duration = 1450
+            repeatCount = ObjectAnimator.INFINITE
+            start()
+        }
+
+        val title = TextView(this)
+        title.text = "RATÓPOLIS"
+        title.setTextColor(Color.rgb(255, 224, 122))
+        title.textSize = 30f
+        title.typeface = android.graphics.Typeface.DEFAULT_BOLD
+        title.letterSpacing = 0.12f
+        title.gravity = Gravity.CENTER
+        content.addView(title)
+
+        val subtitle = TextView(this)
+        subtitle.text = "SUA PRÓXIMA AVENTURA COMEÇA AQUI"
+        subtitle.setTextColor(Color.rgb(218, 197, 239))
+        subtitle.textSize = 10f
+        subtitle.letterSpacing = 0.08f
+        subtitle.gravity = Gravity.CENTER
+        subtitle.setPadding(0, dp(5), 0, dp(28))
+        content.addView(subtitle)
+
+        val loading = TextView(this)
+        loading.text = "Preparando a toca..."
+        loading.setTextColor(Color.WHITE)
+        loading.textSize = 13f
+        loading.gravity = Gravity.CENTER
+        content.addView(loading)
+
+        splashProgress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
+        splashProgress.max = 100
+        splashProgress.progressTintList = android.content.res.ColorStateList.valueOf(Color.rgb(255, 214, 91))
+        splashProgress.progressBackgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(76, 52, 96))
+        content.addView(splashProgress, LinearLayout.LayoutParams(
+            dp(230), dp(4)
+        ).apply { topMargin = dp(12) })
+
+        splashPanel.addView(content, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER
+        ))
+        root.addView(splashPanel, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+    }
+
+    private fun hideSplash() {
+        if (!::splashPanel.isInitialized || splashPanel.visibility != View.VISIBLE) return
+        splashPanel.animate().alpha(0f).setDuration(320).withEndAction {
+            splashPanel.visibility = View.GONE
+            splashPanel.alpha = 1f
+        }.start()
+    }
+
     private fun showError() {
         runOnUiThread {
+            if (::splashPanel.isInitialized) splashPanel.visibility = View.GONE
             errorPanel.visibility = View.VISIBLE
         }
     }
