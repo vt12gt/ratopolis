@@ -838,14 +838,16 @@ auditLog('Painel v65.3 aberto');render();
       const name=String($('srvScName')?.value||x.name||'').trim().slice(0,80);
       const description=String($('srvScDescription')?.value||x.description||'').trim().slice(0,500);
       if(!name){setStatus('srvScStatus','Informe o nome do cenário.','error');return}
-      if(!layout.length){setStatus('srvScStatus','Este cenário local não tem peças compatíveis. Abra o editor, salve o mapa e tente novamente.','error');return}
+      const hasPieces=Array.isArray(layout)?layout.length>0:!!(layout&&typeof layout==='object'&&((Array.isArray(layout.objects)&&layout.objects.length)||(Array.isArray(layout.layout)&&layout.layout.length)));
+      if(!hasPieces){setStatus('srvScStatus','Este cenário local não tem peças compatíveis. Abra o editor, salve o mapa e tente novamente.','error');return}
+      const payloadLayout=Array.isArray(layout)?{schema:'ratopolis.scenario-package',schemaVersion:1,layout}:layout;
       const links=readLinks();
       if(links[x.id]&&!confirm('Este cenário local já foi enviado antes (ID no servidor: '+links[x.id]+'). Enviar de novo cria OUTRO cenário no servidor. Continuar?'))return;
-      if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(c=>!c.ok).map(c=>'• '+c.label).join('\n')+'\n\nEnviar mesmo assim?'))return}
+      if(Array.isArray(layout)&&typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(c=>!c.ok).map(c=>'• '+c.label).join('\n')+'\n\nEnviar mesmo assim?'))return}
       if(!confirm('Enviar "'+name+'" ao servidor'+(submitAfter?' e submeter à revisão?':' como rascunho?')+(x.serverSource&&x.serverSource.id?' Esta é uma cópia do cenário '+x.serverSource.id+'; esta ação cria um NOVO cenário e não altera o original. Para atualizar o original, use “Salvar nova versão no servidor”.':'')))return;
       try{
         setStatus('srvScStatus','Criando rascunho no servidor…');
-        const created=await api('/api/editor/scenarios','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Enviado do painel v65.3'});
+        const created=await api('/api/editor/scenarios','POST',{name,description,layout:payloadLayout,notes:'Enviado do painel v65.3'});
         const sid=created.cenario&&created.cenario.id;
         if(!sid)throw new ApiError('invalid','O servidor não retornou o ID do cenário criado; não é possível confirmar o envio.');
         writeLink(x.id,String(sid));
@@ -876,7 +878,8 @@ auditLog('Painel v65.3 aberto');render();
       if(!confirm('Salvar uma nova versão no cenário original '+serverId+'?\n\nO Worker criará uma nova versão e voltará o cenário para RASCUNHO, removendo a aprovação/publicação atual.'))return;
       try{
         setStatus('srvScStatus','Salvando nova versão no cenário '+serverId+'…');
-        const saved=await api('/api/editor/scenarios/'+encodeURIComponent(serverId)+'/save','POST',{name,description,layout:{schema:'ratopolis.scenario-package',schemaVersion:1,layout},notes:'Nova versão enviada do painel v65.3'});
+        const payloadLayout=Array.isArray(layout)?{schema:'ratopolis.scenario-package',schemaVersion:1,layout}:layout;
+        const saved=await api('/api/editor/scenarios/'+encodeURIComponent(serverId)+'/save','POST',{name,description,layout:payloadLayout,notes:'Nova versão enviada do painel v65.3'});
         const updated=saved.cenario;
         if(!updated||String(updated.id)!==String(serverId))throw new ApiError('invalid','O Worker não confirmou o ID do cenário original. Confira a lista antes de tentar novamente.');
         x.serverSource.version=Number(updated.current_version)||Number(x.serverSource.version||1)+1;
