@@ -121,6 +121,43 @@ h1{letter-spacing:-.8px}.primary{background:linear-gradient(135deg,#d9e99b,#8fbd
 .ranking-list{overflow-y:auto;overscroll-behavior:contain;min-height:0;flex:1;border:1px solid #ffffff13;border-radius:15px;background:#0d1511aa;scrollbar-width:thin;scrollbar-color:#617b4f transparent}
 .ranking-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #ffffff0c;min-height:61px}.ranking-row:last-child{border-bottom:0}.ranking-pos{width:30px;flex:none;text-align:center;font-weight:950;font-size:16px;color:var(--muted)}.ranking-avatar{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#354b37,#17251a);font-size:22px;flex:none}.ranking-player{flex:1;min-width:0}.ranking-player b{display:block;overflow-wrap:anywhere;font-size:13px}.ranking-player small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.ranking-level{text-align:right;min-width:52px}.ranking-level small{display:block;color:var(--muted);font-size:8px;letter-spacing:1px}.ranking-level b{font-size:18px;color:var(--gold)}.ranking-row.podium-1{background:linear-gradient(90deg,#e9c45b16,transparent 70%)}.ranking-row.podium-1 .ranking-avatar{background:linear-gradient(145deg,#f4dc8d,#9d6d21)}.ranking-row.podium-2{background:linear-gradient(90deg,#c8d5df0b,transparent 70%)}.ranking-row.podium-3{background:linear-gradient(90deg,#c8875710,transparent 70%)}.ranking-empty{padding:24px 14px;text-align:center;color:var(--muted);font-size:13px}
 @media(max-width:520px){.ranking-header{align-items:flex-start}.ranking-header p{max-width:250px}.ranking-header .btn{padding:8px;font-size:11px}.ranking-row{padding:8px 9px;gap:8px;min-height:56px}.ranking-avatar{width:34px;height:34px;font-size:20px}.ranking-player b{font-size:12px}.ranking-level b{font-size:16px}}
+/* Ranking otimizado para celular na horizontal: mais jogadores por tela */
+@media (orientation:landscape) and (min-width:600px){
+ .shell{max-width:none;padding:4px 8px 3px}
+ #ranking.view.active{gap:4px}
+ #ranking .ranking-header{padding:4px 10px;gap:10px;border-radius:10px}
+ #ranking .ranking-header h2{font-size:clamp(15px,2.4vh,20px);margin:1px 0}
+ #ranking .ranking-header p{font-size:10px;line-height:1.2;max-width:none}
+ #ranking .ranking-header .eyebrow{font-size:8px;letter-spacing:1.3px}
+ #ranking .ranking-header .btn{padding:5px 9px;font-size:10px}
+ #ranking .ranking-summary{gap:5px;flex-wrap:nowrap}
+ #ranking .ranking-summary span{padding:3px 7px;font-size:9px;border-radius:7px}
+ #ranking .status{font-size:10px;margin:0;line-height:1.2}
+ #ranking .ranking-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;align-items:stretch;gap:0;border-radius:10px}
+ #ranking .ranking-row{min-width:0;min-height:38px;padding:3px 8px;gap:7px}
+ #ranking .ranking-pos{width:24px;font-size:12px}
+ #ranking .ranking-avatar{width:27px;height:27px;border-radius:8px;font-size:16px}
+ #ranking .ranking-player b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #ranking .ranking-player small{font-size:9px;margin-top:0;white-space:nowrap}
+ #ranking .ranking-level{min-width:38px}
+ #ranking .ranking-level small{font-size:7px;letter-spacing:.5px}
+ #ranking .ranking-level b{font-size:14px}
+ #ranking .ranking-empty{padding:10px;font-size:11px}
+}
+@media (orientation:landscape) and (max-height:430px){
+ .top{flex-basis:36px;min-height:36px;padding:3px 10px}
+ .shell{padding:3px 6px 2px}
+ .nav{flex-basis:40px;height:40px;min-height:40px;padding:2px 5px}
+ .nav button{font-size:9px;padding:2px}
+ #ranking.view.active{gap:3px}
+ #ranking .ranking-header{padding:2px 8px}
+ #ranking .ranking-row{min-height:32px;padding:2px 6px;gap:5px}
+ #ranking .ranking-avatar{width:23px;height:23px;font-size:14px}
+ #ranking .ranking-player b{font-size:10px}
+ #ranking .ranking-player small{font-size:8px}
+ #ranking .ranking-level b{font-size:12px}
+}
+
 </style>
 </head>
 <body>
