@@ -1,6 +1,6 @@
 # Auditoria de organização do repositório
 
-Data da auditoria: 2026-10-27
+Data da auditoria: 2026-10-28
 
 ## Arquivos oficiais — preservar
 
@@ -14,7 +14,7 @@ Não apagar, mover, renomear nem substituir esses arquivos como parte da limpeza
 
 ## O que foi encontrado
 
-A raiz contém várias versões históricas do jogo, portal e painel, incluindo arquivos marcados como teste/corrigido/integrado. Exemplos de arquivos candidatos a revisão (não são automaticamente seguros para excluir):
+A raiz contém várias versões históricas do jogo, portal e painel, incluindo arquivos marcados como teste/corrigido/integrado. Exemplos para revisão (não são automaticamente seguros para excluir):
 
 - `index1.html`
 - `portal_ratopolis.html`
@@ -23,24 +23,33 @@ A raiz contém várias versões históricas do jogo, portal e painel, incluindo 
 - `ratopolis_admin_v64_corrige_criar_cenario.html`
 - `ratopolis_admin_v65_2_teste_integracao_cenarios.html`
 - `ratopolis_conta_portal_teste_integrado_v2_corrigido.html`
-- versões antigas e variantes de `ratopolis_v*.html)
+- versões antigas e variantes de `ratopolis_v*.html`
 
 O painel `ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html` é oficial, apesar do nome conter “auditoria”; não deve ser tratado como arquivo descartável.
 
-## Decisão de segurança
+## Resultado da primeira verificação de referências
 
-Nenhum HTML legado foi apagado nesta primeira etapa. Os nomes dos arquivos não provam que são descartáveis: links externos, favoritos, Pages e integrações podem depender deles. Apagar em lote pode quebrar o jogo ou o painel sem aviso.
+Foi feita uma leitura estática dos HTMLs da raiz e dos nomes de arquivos referenciados diretamente no conteúdo. Foram encontradas dependências concretas:
 
-## Próxima etapa recomendada
+- `index.html` contém um link direto para o painel administrativo oficial.
+- O painel administrativo oficial contém um link para `portal_ratopolis.html`.
+- Variantes antigas do jogo, incluindo `ratopolis_v1.52.0_shamakkn.html` e `ratopolis_v1.53.0_login_obrigatorio_sem_convites.html`, também apontam para `portal_ratopolis.html`.
+- `ratopolis_conta_portal_teste_integrado_v2_corrigido.html` e `ratopolis_v1.50.3.html` referenciam `portal_ratopolis_v4_integrado_teste.html`.
 
-1. Procurar referências aos HTMLs candidatos dentro do repositório e conferir configurações de hospedagem/deploy.
-2. Confirmar se cada candidato é usado por links externos, ferramentas de administração ou fluxos de suporte.
-3. Mover apenas versões comprovadamente antigas para `archive/` (em vez de apagar de imediato), sem tocar nos três arquivos oficiais.
-4. Validar os fluxos críticos: autenticação, salas online, chat, loja, eventos, recompensas diárias e painel de cenários.
-5. Excluir duplicatas comprovadamente sem uso somente em uma mudança separada e revisável.
+**Conclusão:** `portal_ratopolis.html` e `portal_ratopolis_v4_integrado_teste.html` têm referências internas verificadas e não devem ser movidos nem removidos nesta etapa. A ausência de referência encontrada em outros arquivos não prova que uma página esteja sem uso: pode haver links externos, favoritos, URLs compartilhadas ou configurações de publicação que não aparecem no HTML.
+
+O repositório indica que GitHub Pages está habilitado, mas a leitura feita até aqui não confirmou a origem de publicação nem o uso externo de cada URL. Portanto, nenhum HTML legado foi apagado ou movido.
+
+## Próximas etapas seguras
+
+1. Confirmar a origem e a configuração de publicação do GitHub Pages e conferir URLs em uso.
+2. Verificar as referências restantes, incluindo links montados por JavaScript e URLs externas compartilhadas.
+3. Manter no lugar os arquivos que têm dependências confirmadas.
+4. Só arquivar versões comprovadamente antigas em uma alteração reversível e revisável; não excluir duplicatas em lote.
+5. Validar os fluxos críticos no ambiente publicado: autenticação, salas online, chat, loja, eventos, recompensas diárias e painel de cenários.
 
 ## Observações
 
 - Não renomear ou remover migrations SQL já aplicadas.
 - Preservar o Worker, os bindings e os segredos existentes.
-- Esta auditoria é estática; ainda não substitui testes funcionais no navegador e no ambiente publicado.
+- Esta auditoria é estática; não substitui testes funcionais no navegador e no ambiente publicado.
