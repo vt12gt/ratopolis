@@ -723,7 +723,9 @@ auditLog('Painel v65.3 aberto');render();
       return '<tr><td><b>'+esc(s.name||'Sem nome')+'</b><div class="tiny muted">'+esc(id)+'</div></td><td>'+esc(s.creator_nickname||s.creator_user_id||'—')+'</td><td>'+statusPill(s.status)+'</td><td>v'+esc(s.current_version||1)+'</td><td>'+esc(fmtDate(s.updated_at||s.created_at))+'</td><td><div class="actions">'+
         ((k==='draft'||k==='rejected')?'<button type="button" data-srv-submit="'+esc(id)+'">Enviar para revisão</button>':'')+
         (k==='approved'?'<button type="button" class="gold" data-srv-publish="'+esc(id)+'">Publicar</button>':'')+
-        '<button type="button" data-srv-detail="'+esc(id)+'">Detalhes</button></div></td></tr>';
+        '<button type="button" data-srv-detail="'+esc(id)+'">Detalhes</button>'+
+        (canReview()?'<button type="button" class="danger" data-srv-delete="'+esc(id)+'">Excluir do servidor</button>':'')+
+        '</div></td></tr>';
     }).join('');
   }
   async function loadScenarios(opts){
@@ -742,6 +744,24 @@ auditLog('Painel v65.3 aberto');render();
       if(!state.scenarios.length){const b=$('srvScRows');if(b)b.innerHTML='<tr><td colspan="6">Não foi possível carregar. Confira login, permissão e conexão.</td></tr>'}
       return false;
     }
+  }
+
+  async function deleteServerScenario(id){
+    if(!canReview()){setStatus('srvScStatus','Somente SpAdmin e Admin podem excluir cenários do servidor.','error');return}
+    const scenario=state.scenarios.find(s=>String(s.id)===String(id));
+    if(!scenario){setStatus('srvScStatus','Cenário não encontrado na lista atual. Atualize a lista e tente novamente.','error');return}
+    const name=String(scenario.name||id);
+    if(!confirm('EXCLUSÃO PERMANENTE\n\nExcluir "'+name+'" do servidor? Todas as versões e avaliações desse cenário também serão apagadas do banco de dados. Esta ação não pode ser desfeita.'))return;
+    await guarded('delete-scenario',async()=>{
+      const result=await api('/api/editor/scenarios/'+encodeURIComponent(id),'DELETE');
+      if(!result||result.deleted!==true)throw new ApiError('invalid','O servidor não confirmou a exclusão. Atualize a lista antes de tentar novamente.');
+      state.scenarios=state.scenarios.filter(s=>String(s.id)!==String(id));
+      renderScenarios();
+      const refreshed=await loadScenarios({quiet:true});
+      if(!refreshed){setStatus('srvScStatus','O servidor confirmou a exclusão, mas a atualização da lista falhou. Clique em Atualizar para conferir.','error');return}
+      if(state.scenarios.some(s=>String(s.id)===String(id)))throw new ApiError('invalid','O servidor respondeu que excluiu, mas o cenário ainda aparece na lista. Não repita a operação; atualize e confira.');
+      setStatus('srvScStatus','Cenário excluído do servidor; versões e avaliações removidas e exclusão confirmada na lista.','ok');
+    });
   }
 
   /* ---------- fila real de revisão ---------- */
@@ -972,6 +992,7 @@ auditLog('Painel v65.3 aberto');render();
     else if(t.dataset.srvSubmit){if(t.closest('.modal')&&typeof closeModal==='function')closeModal();submitScenario(t.dataset.srvSubmit)}
     else if(t.dataset.srvPublish){if(t.closest('.modal')&&typeof closeModal==='function')closeModal();publishScenario(t.dataset.srvPublish)}
     else if(t.dataset.srvDetail){showDetail(t.dataset.srvDetail)}
+    else if(t.dataset.srvDelete){deleteServerScenario(t.dataset.srvDelete)}
     else if(t.dataset.srvCopy){copyToLocal(t.dataset.srvCopy)}
     else if(t.dataset.srvReview){reviewScenario(t.dataset.id,t.dataset.srvReview)}
   });
