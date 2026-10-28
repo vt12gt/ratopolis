@@ -1,17 +1,29 @@
 {
-  "name": "Ratópolis — App dos Jogadores",
+  "id": "/ratopolis/pwa/",
+  "name": "Ratópolis — Aplicativo dos Jogadores",
   "short_name": "Ratópolis",
-  "description": "Central mobile do Ratópolis com lobby, conta, perfil e acesso integrado ao jogo.",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Aplicativo instalável do Ratópolis para conta, perfil, ranking e jogos.",
+  "start_url": "/ratopolis/pwa/",
+  "scope": "/ratopolis/pwa/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "landscape",
   "background_color": "#090611",
   "theme_color": "#100d1d",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icon.svg",
-      "sizes": "any",
+      "src": "./icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
