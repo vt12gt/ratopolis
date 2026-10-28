@@ -29,6 +29,50 @@
 .toast{position:fixed;z-index:20;left:50%;bottom:12px;transform:translateX(-50%);max-width:90vw;background:#09291d;border:1px solid var(--gold);border-radius:10px;padding:9px 14px;font-size:12px;display:none;box-shadow:0 4px 18px #0007}
 @media(max-height:500px){.shell{inset:5px;grid-template-columns:minmax(145px,20%) minmax(0,1fr);gap:6px}.sidebar{padding:6px;gap:5px}.logo{font-size:22px;padding-bottom:5px}.menu{gap:3px}.menu button{min-height:27px;padding:3px 7px;font-size:10px}.profile{padding:4px}.mouse{font-size:24px}.top{gap:4px}.topbox{padding:3px 5px}.chat{top:0;height:95%;width:min(570px,95%);padding:5px}.tabs{padding-bottom:4px}.tab{min-height:26px}.chathead{padding:4px}.messages{padding:4px}.composer{padding-top:4px}.composer input{padding:5px}.footer{gap:4px}.footcard{padding:4px 7px}.footcard p{font-size:9px}}
 @media(max-width:620px) and (orientation:portrait){.shell{inset:5px;grid-template-columns:minmax(88px,26%) minmax(0,1fr);gap:5px}.sidebar{padding:5px;gap:5px}.logo{font-size:clamp(13px,3.4vw,20px);letter-spacing:0}.menu{gap:4px}.menu button{font-size:9px;padding:5px 4px;min-height:31px}.profile{padding:4px}.profile small{font-size:8px}.top{grid-template-columns:minmax(0,1fr) auto 34px;gap:3px}.top .levelbox{display:none}.topbox{padding:4px}.avatar{font-size:17px}.player b{font-size:9px}.player small{font-size:8px}.resources{font-size:9px}.expand{font-size:20px}.logout{display:none}.content{gap:5px}.chat{top:0;right:0;width:100%;height:74%;padding:4px;border-width:2px}.tab{font-size:8px;padding:4px 1px}.chathead{font-size:9px;padding:4px 2px}.online{font-size:7px}.messages{font-size:10px;padding:3px}.composer input{font-size:9px;padding:6px}.composer button{font-size:9px;padding:0 6px}.footer{display:none}.hill,.home,.cheese,.platform{opacity:.6}}
+
+/* Layout vertical: reorganiza os painéis sem bloquear a rotação do aparelho. */
+@media (orientation:portrait){
+ .shell{inset:6px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:6px}
+ .sidebar{padding:5px;gap:5px}
+ .logo{font-size:clamp(16px,4vw,22px);padding:1px 0 5px}
+ .menu{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .menu button{min-height:29px;padding:4px 2px;text-align:center;font-size:clamp(8px,2.5vw,11px);line-height:1.1}
+ .profile{display:none}
+ .content{grid-template-rows:auto minmax(0,1fr);gap:5px}
+ .top{grid-template-columns:minmax(0,1fr) auto 38px;gap:4px}
+ .top .levelbox,.top .logout{display:none}
+ .topbox{padding:4px 6px}
+ .avatar{font-size:19px}
+ .player b{font-size:10px}
+ .player small{font-size:8px}
+ .resources{font-size:clamp(9px,2.6vw,12px)}
+ .expand{font-size:22px}
+ .center{min-height:0}
+ .chat{inset:0;width:100%;height:100%;padding:6px;border-width:2px}
+ .tab{font-size:clamp(9px,2.5vw,12px);min-height:32px;padding:5px 2px}
+ .chathead{font-size:10px;padding:5px 2px}
+ .online{font-size:8px}
+ .messages{font-size:12px;padding:5px}
+ .composer{padding-top:5px}
+ .composer input{font-size:11px;padding:7px}
+ .composer button{font-size:10px;padding:0 9px}
+ .footer{display:none}
+ .hill,.home,.cheese,.platform{opacity:.55}
+}
+@media (orientation:portrait) and (max-height:520px){
+ .shell{inset:4px;gap:4px}
+ .sidebar{padding:3px;gap:3px}
+ .logo{font-size:15px;padding-bottom:3px}
+ .menu{gap:3px}
+ .menu button{min-height:24px;font-size:8px;padding:2px}
+ .top{gap:3px}
+ .topbox{padding:2px 4px}
+ .chat{padding:4px}
+ .tab{min-height:25px;font-size:9px}
+ .chathead{padding:3px;font-size:9px}
+ .messages{font-size:10px;padding:3px}
+ .composer input{padding:4px}
+}
 </style>
 </head>
 <body>
@@ -56,7 +100,7 @@
  document.querySelectorAll('[data-tab]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(tab=>{const active=tab===button;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active))});chatTitle.textContent=titles[button.dataset.tab];messages.innerHTML='<div class="hint">'+titles[button.dataset.tab]+'<br>Prévia visual desta aba.<br>Chat real não conectado nesta página.</div>'}));
  document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>notify(button.dataset.action+' — botão demonstrativo, sem ação no servidor.')));
  document.getElementById('composer').addEventListener('submit',event=>event.preventDefault());
- document.getElementById('expand').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen()}else{notify('Este navegador não oferece tela cheia por este botão. Use o menu ⋮ do Chrome.');return}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape')}catch(ignore){}}catch(error){notify('O navegador bloqueou a tela cheia. Tente o menu ⋮ do Chrome.')}});
+ document.getElementById('expand').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen()}else{notify('Este navegador não oferece tela cheia por este botão. Use o menu ⋮ do Chrome.');return}}catch(error){notify('O navegador bloqueou a tela cheia. Tente o menu ⋮ do Chrome.')}});
 })();
 </script>
 </body>
