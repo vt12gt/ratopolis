@@ -1408,7 +1408,44 @@ function renderWardrobe(){const list=document.getElementById('wardrobeItems'),ta
  for(const h of items){const owned=h.existing&&ownedHats.includes(h.id),equipped=h.existing&&equippedHat===h.id,exclusive=h.existing&&(Number.isInteger(h.rewardAt)||Number.isInteger(h.levelRewardAt));const item=document.createElement('div');item.style.cssText='border:2px solid '+(equipped?'#4b995a':(exclusive?'#b49ad9':'#d4c8a7'))+';border-radius:12px;padding:9px;background:'+(equipped?'#edf5d8':(exclusive?'#f0e8ff':'#f3ead0'))+';display:flex;align-items:center;gap:9px';const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';const title=document.createElement('strong');title.textContent=h.icon+' '+h.name;const desc=document.createElement('div');desc.textContent=(h.desc||'Item cosmético')+(h.future?' Disponível em uma atualização futura.':exclusive?(owned?' Recompensa conquistada!':' Ainda bloqueado.'):(h.cost?' Preço: '+h.cost+' moedas.':' Grátis.'));desc.style.cssText='font-size:11px;margin-top:3px';info.append(title,desc);item.append(info);if(h.existing){const btn=document.createElement('button');btn.type='button';btn.style.cssText='font-size:12px;padding:8px 9px;white-space:nowrap';btn.dataset.hat=h.id;btn.textContent=equipped?'EQUIPADO':owned?'EQUIPAR':exclusive?('🔒 '+(Number.isInteger(h.rewardAt)?h.rewardAt+' CONQUISTAS':'NÍVEL '+h.levelRewardAt)):('COMPRAR '+h.cost+' 🪙');btn.disabled=equipped||(!owned&&(exclusive||coins<h.cost));item.appendChild(btn)}else{const badge=document.createElement('span');badge.textContent='EM BREVE';badge.style.cssText='font-size:10px;font-weight:900;white-space:nowrap';item.appendChild(badge)}list.appendChild(item)}
 }
 function handleHatAction(id){const h=hatDefs.find(x=>x.id===id);if(!h)return;if(ownedHats.includes(id)){equippedHat=id;saveProgress();renderWardrobe();showMessage('Visual equipado: '+h.name+' '+h.icon);return;}if(Number.isInteger(h.rewardAt)){showMessage('Complete '+h.rewardAt+' conquistas para ganhar este item exclusivo! 🏅');return;}if(Number.isInteger(h.levelRewardAt)){showMessage('Alcance o nível '+h.levelRewardAt+' para ganhar este item exclusivo! ⭐');return;}if(coins<h.cost){showMessage('Moedas insuficientes! Conclua fases para ganhar mais. 🪙');return;}coins-=h.cost;ownedHats.push(id);equippedHat=id;saveProgress();updateStats();renderWardrobe();showMessage('Novo acessório desbloqueado: '+h.name+' '+h.icon);}
-function resize(){const oldW=W,oldH=H;const r=canvas.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,visualQuality==='low'?1:visualQuality==='high'?2:1.5);const portraitRotate=window.matchMedia('(orientation:portrait) and (max-width:900px)').matches;const vw=window.visualViewport?.width||window.innerWidth;const vh=window.visualViewport?.height||window.innerHeight;const gmEl=document.getElementById('game');const gmW=gmEl?gmEl.clientWidth:0,gmH=gmEl?gmEl.clientHeight:0;W=Math.max(320,portraitRotate?(gmW||vh):r.width);H=Math.max(240,portraitRotate?(gmH||vw):r.height);const dy=H-oldH;if(oldH>0&&Math.abs(dy)>1){platforms.forEach(p=>p.y+=dy);planks.forEach(p=>p.y+=dy);movingPlatforms.forEach(p=>{p.y+=dy;p.baseY+=dy;p.prevY+=dy});cheeses.forEach(c=>c.y+=dy);acorns.forEach(a=>a.y+=dy);obstacles.forEach(o=>o.y+=dy);goal.y+=dy;checkpoint.y+=dy;if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=dy;player.y+=dy;}if(platforms.length){const groundDelta=(H-54)-platforms[0].y;if(Math.abs(groundDelta)>0.5){platforms.forEach(p=>p.y+=groundDelta);planks.forEach(p=>p.y+=groundDelta);movingPlatforms.forEach(p=>{p.y+=groundDelta;p.baseY+=groundDelta;p.prevY+=groundDelta});cheeses.forEach(c=>c.y+=groundDelta);acorns.forEach(a=>a.y+=groundDelta);obstacles.forEach(o=>o.y+=groundDelta);goal.y+=groundDelta;checkpoint.y+=groundDelta;if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=groundDelta;player.y+=groundDelta;}}canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}let resizeTimer=0;function scheduleResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resize();last=performance.now();},140)}window.addEventListener('resize',scheduleResize);window.addEventListener('orientationchange',()=>setTimeout(scheduleResize,180));document.addEventListener('fullscreenchange',()=>{scheduleResize();setTimeout(scheduleResize,320);setTimeout(scheduleResize,600)});window.visualViewport?.addEventListener('resize',scheduleResize);resize();
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  const portraitRotate=window.matchMedia('(orientation:portrait) and (max-width:900px)').matches;
+  const vw=window.visualViewport?.width||window.innerWidth;
+  const vh=window.visualViewport?.height||window.innerHeight;
+  const gmEl=document.getElementById('game');
+  const gmW=gmEl?gmEl.clientWidth:0,gmH=gmEl?gmEl.clientHeight:0;
+  const nextW=Math.max(320,portraitRotate?(gmW||vh):r.width);
+  const nextH=Math.max(240,portraitRotate?(gmH||vw):r.height);
+  // O Chrome Android pode disparar resize com medidas intermediárias ao alternar tela cheia.
+  // Ignora leituras inválidas para impedir que o mundo salte entre dimensões temporárias.
+  if(!Number.isFinite(nextW)||!Number.isFinite(nextH)||r.width<160||r.height<120)return;
+  const oldH=H;
+  W=nextW;H=nextH;
+  // Reposiciona o mundo uma única vez em relação ao chão. Não acumula deslocamentos
+  // separados por cada evento resize/fullscreen, que poderiam sobrepor plataformas.
+  const targetGroundY=H-54;
+  const ground=platforms[0];
+  const groundDelta=ground?targetGroundY-ground.y:0;
+  if(Math.abs(groundDelta)>0.5){
+    platforms.forEach(p=>p.y+=groundDelta);
+    planks.forEach(p=>p.y+=groundDelta);
+    movingPlatforms.forEach(p=>{p.y+=groundDelta;if(Number.isFinite(p.baseY))p.baseY+=groundDelta;if(Number.isFinite(p.prevY))p.prevY+=groundDelta});
+    cheeses.forEach(c=>c.y+=groundDelta);
+    acorns.forEach(a=>a.y+=groundDelta);
+    obstacles.forEach(o=>o.y+=groundDelta);
+    if(goal)goal.y+=groundDelta;
+    if(checkpoint)checkpoint.y+=groundDelta;
+    if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=groundDelta;
+    if(player)player.y+=groundDelta;
+    if(Array.isArray(practiceBots))practiceBots.forEach(b=>b.y+=groundDelta);
+    if(Array.isArray(particles))particles.forEach(p=>p.y+=groundDelta);
+    if(Array.isArray(rewardTexts))rewardTexts.forEach(t=>t.y+=groundDelta);
+  }
+  dpr=Math.min(window.devicePixelRatio||1,visualQuality==='low'?1:visualQuality==='high'?2:1.5);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}let resizeTimer=0;function scheduleResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resize();last=performance.now();},140)}window.addEventListener('resize',scheduleResize);window.addEventListener('orientationchange',()=>setTimeout(scheduleResize,180));document.addEventListener('fullscreenchange',()=>{scheduleResize();setTimeout(scheduleResize,320);setTimeout(scheduleResize,600)});window.visualViewport?.addEventListener('resize',scheduleResize);resize();
 let editorTestActive=false,editorTestSnapshot=null,editorTestLayout=[];
 function cloneEditorValue(value){return JSON.parse(JSON.stringify(value));}
 function startScenarioEditorTest(pack){
@@ -2277,7 +2314,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
 if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err){console.warn('Perfil do menu:',err);}document.getElementById('start').classList.remove('hidden');
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
- document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
+ document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();return;}const m=document.getElementById('message');if(m)m.textContent='Servidor de salas indisponível. Nenhuma partida local será iniciada; tente novamente mais tarde.';});
  document.getElementById('menuRooms').addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
@@ -3484,13 +3521,14 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
   connectRoomSocket(activeRoomCode);
  }
- function showRoom(code,data){
+ function showRoom(code,data,autoStart=false){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
-  setMessage('Você entrou na sala online '+code+'. Toque em JOGAR NESTA SALA para iniciar.','success');
-  connectRoomSocket(code);startPollingIfVisible();loadDirectory();
+  setMessage('Você entrou na sala online '+code+'.','success');
+  if(autoStart)startOnlineMatch();else connectRoomSocket(code);
+  startPollingIfVisible();loadDirectory();
  }
  function stopPolling(){
   if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}
@@ -3576,21 +3614,38 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   }finally{leaveBtn.disabled=false;}
  }
  async function joinRandomAndStart(){
+  if(requestInFlight)return;
   if(activeRoomCode){startOnlineMatch();return;}
-  const note=t=>{const m=document.getElementById('message');if(m)m.textContent=t;};
+  requestInFlight=true;
+  const thisGeneration=++generation;
+  const playBtn=document.getElementById('menuPlay');
+  const playLabel=playBtn&&playBtn.querySelector('.rm-lbl');
+  const oldPlayLabel=playLabel?playLabel.textContent:'JOGAR';
   try{
+   if(playBtn){playBtn.disabled=true;playBtn.setAttribute('aria-busy','true');if(playLabel)playLabel.textContent='CONECTANDO…';}
+   createBtn.disabled=true;joinBtn.disabled=true;
+   setOnlineStatus('Validando conta e procurando jogadores…');
+   setMessage('Procurando uma sala online com jogadores conectados…','');
    const token=await validateSession();
-   const data=await api('/api/rooms/list',{},token);
-   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('Nenhuma sala online disponível agora.');
-   const pick=rooms[Math.floor(Math.random()*rooms.length)],code=String(pick.code);
-   codeInput.value=code;await runRoomAction('join');
-   if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala.');
-   startOnlineMatch();
+   if(thisGeneration!==generation)return;
+   // O endpoint match inicializa as salas oficiais e faz a escolha/entrada atomicamente no servidor.
+   const data=await api('/api/rooms/match',{},token);
+   if(!data||data.ok===false)throw new Error(String(data&& (data.message||data.error||data.erro)||'O servidor não confirmou a entrada.'));
+   const code=String(roomCodeFrom(data)||data.room||'').trim().toUpperCase();
+   if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('O servidor não retornou uma sala válida.');
+   if(thisGeneration!==generation)return;
+   showRoom(code,data,true);
   }catch(err){
-   /* Uma falha no login ou no servidor online nunca deve iniciar uma sala local. */
-   note('Não foi possível entrar na sala online: '+((err&&err.message)||'servidor indisponível')+'. Entre novamente na sua conta e tente outra vez.');
-   return;
+   if(thisGeneration===generation){
+    const msg=err&&err.message?err.message:'servidor indisponível';
+    setOnlineStatus('Conexão não estabelecida');
+    setMessage('Não foi possível entrar na sala online: '+msg+'. Verifique sua conta e conexão e tente novamente.','error');
+   }
+  }finally{
+   if(thisGeneration===generation){
+    requestInFlight=false;createBtn.disabled=false;joinBtn.disabled=false;
+    if(playBtn){playBtn.disabled=false;playBtn.removeAttribute('aria-busy');if(playLabel)playLabel.textContent=oldPlayLabel;}
+   }
   }
  }
  window.RatopolisOnlineRooms={leave:leaveOnlineRoom,joinRandom:joinRandomAndStart,open:()=>{overlay.classList.remove('hidden');loadDirectory();},assignShaman:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},await validateSession());},submitFinish:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/finish',{room:activeRoomCode,phase:Number(phase)},await validateSession());},isActive:()=>!!(activeRoomCode&&localRoomMatchStarted),roundStatus:()=>{const phase=Number(typeof level!=='undefined'?level:0);const ps=roomState&&Array.isArray(roomState.players)?roomState.players:[];const participants=ps.filter(p=>p&&p.state&&Number(p.state.phase)===phase&&(p.state.started||p.state.active||p.state.finished));const finished=participants.filter(p=>p.state.finished);return {activeCount:participants.length,finishedCount:finished.length,allFinished:participants.length>0&&finished.length>=participants.length};}};
@@ -4088,6 +4143,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
 #chatPanel #chatLog{font-size:12px!important}
 @media(max-width:700px){#chatPanel:not(.hidden){width:min(340px,56vw)!important;height:min(220px,52dvh)!important}#communityDock:not(.hidden){width:min(92%,520px)!important}}
 .rm-gchat-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rm-gchat-role{display:inline-flex;align-items:center;border:1px solid rgba(255,221,120,.55);border-radius:999px;padding:2px 7px;font-size:10px;font-weight:800;color:#ffe7a1;background:rgba(22,48,34,.75)}
+
+/* Test branch: matchmaking automatico online, sem seletor manual no menu principal. */
+#start #menuRooms{display:none!important}
+#start #menuPlay:disabled{opacity:.72;cursor:progress}
+#start #menuPlay[aria-busy="true"] .rm-ico{animation:rmMatchPulse .8s ease-in-out infinite alternate}
+@keyframes rmMatchPulse{to{transform:scale(1.16);opacity:.65}}
+@media(prefers-reduced-motion:reduce){#start #menuPlay[aria-busy="true"] .rm-ico{animation:none}}
 </style>
 
 <script id="rm-global-chat-menu">
