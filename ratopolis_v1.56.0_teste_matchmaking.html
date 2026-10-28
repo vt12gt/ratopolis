@@ -1102,7 +1102,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   <p class="room-note">As salas públicas são criadas conforme a necessidade. Salas privadas exigem senha.</p>
   <div id="onlineRoomsDirectory" class="online-rooms-directory" aria-live="polite"><div class="online-directory-head"><strong>🏠 Salas disponíveis</strong><button type="button" id="onlineRefreshRoomsBtn">ATUALIZAR</button></div><div id="onlineDirectoryList">Carregando salas do servidor…</div><div id="onlineDirectoryPager" aria-label="Navegação de salas"><button type="button" id="onlineRoomsPrev" aria-label="Salas anteriores">◀ ANTERIORES</button><span id="onlineRoomsPage">1 / 1</span><button type="button" id="onlineRoomsNext" aria-label="Próximas salas">PRÓXIMAS ▶</button></div></div>
   <div class="online-room-actions">
-    <button type="button" id="onlineCreateRoomBtn">＋ CRIAR SALA</button>
+    <button type="button" id="onlineCreateRoomBtn" disabled aria-disabled="true" title="Disponível em uma atualização futura">＋ CRIAR SALA · EM BREVE</button>
     <div class="online-room-join">
       <label for="onlineRoomCode">Código da sala</label>
       <input id="onlineRoomCode" type="text" maxlength="8" minlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RATO1" aria-describedby="onlineRoomHint"><input id="onlineRoomPassword" type="password" maxlength="64" autocomplete="off" placeholder="Senha (somente sala privada)" aria-label="Senha da sala privada">
@@ -2391,7 +2391,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
- document.getElementById('menuRooms').addEventListener('click',()=>{const create=document.getElementById('onlineCreateRoomBtn');if(create)create.click();});
+ document.getElementById('menuRooms').addEventListener('click',()=>{const create=document.getElementById('onlineCreateRoomBtn');if(create&&create.disabled){const m=document.getElementById('message');if(m)m.textContent='A criação manual de salas ficará disponível em uma atualização futura.';return;}if(create)create.click();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3608,13 +3608,25 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   drawRemoteAvatars();
  }
  function returnToOnlineRoom(){if(!activeRoomCode){setMessage('A sala online não está selecionada.','error');return false;}playing=false;clearTouchMovement();clearPhaseTimers();shamanPlacementMode=null;updateShamanTools();const startOverlay=$('start');if(startOverlay){startOverlay.classList.add('hidden');startOverlay.style.display='none';}overlay.classList.remove('hidden');details.classList.remove('hidden');setOnlineStatus('Você voltou ao lobby da sala '+activeRoomCode+'.');setMessage('Você voltou à sala online. Sua conexão e sua vaga foram mantidas.','success');pollRoomState();startPollingIfVisible();return true;}
-  function startOnlineMatch(){
+  async function startOnlineMatch(){
   if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
-  localRoomMatchStarted=true;const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.add('active');drawRemoteAvatars();startMatchPolling();
+  if(localRoomMatchStarted)return;
+  if(typeof window.switchToTestRoom!=='function'){setMessage('O motor da fase jogável ainda não está disponível nesta tela.','error');return;}
+  localRoomMatchStarted=true;
+  const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.add('active');
   overlay.classList.add('hidden');
-  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(0,false);
-  else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
-  connectRoomSocket(activeRoomCode);
+  setOnlineStatus('Sala conectada · carregando a fase jogável…');
+  setMessage('Sala conectada. Preparando a primeira fase jogável…','');
+  try{
+   await window.switchToTestRoom(0,false);
+   drawRemoteAvatars();
+   startMatchPolling();
+   connectRoomSocket(activeRoomCode);
+  }catch(err){
+   localRoomMatchStarted=false;
+   setOnlineStatus('Falha ao carregar a fase jogável');
+   setMessage('A sala foi conectada, mas a fase não abriu: '+(err&&err.message||'erro inesperado')+'. Toque em JOGAR novamente para tentar de novo.','error');
+  }
  }
  function updateRoomIdBadge(code){let badge=$('ratopolisRoomIdBadge');if(!badge){badge=document.createElement('div');badge.id='ratopolisRoomIdBadge';badge.setAttribute('aria-label','ID da sala online');badge.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;pointer-events:none;background:rgba(7,18,38,.82);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:5px 9px;color:#fff;font:700 12px system-ui,sans-serif;letter-spacing:.4px;box-shadow:0 3px 12px #0005';document.body.appendChild(badge);}badge.textContent='ID: '+String(code||'');badge.style.display=code?'block':'none';}
  function showRoom(code,data){
@@ -3763,7 +3775,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   }
  }
  window.RatopolisOnlineRooms={leave:leaveOnlineRoom,returnToRoom:returnToOnlineRoom,disconnectTab:()=>{generation++;clearOnlineState();},joinRandom:joinRandomAndStart,joinByCode:async(code,password)=>{const target=String(code||'').trim().toUpperCase();if(!/^[A-Z0-9]{4,8}$/.test(target))throw new Error('Informe um ID de sala válido.');if(activeRoomCode){if(activeRoomCode===target){startOnlineMatch();return true;}throw new Error('Saia da sala atual antes de entrar em outra.');}codeInput.value=target;const passInput=$('onlineRoomPassword');if(passInput)passInput.value=String(password||'');await runRoomAction('join');if(passInput)passInput.value='';if(activeRoomCode!==target)return false;startOnlineMatch();return true;},chooseShaman:async phase=>{if(!activeRoomCode)throw new Error('Entre na sala antes de escolher Shaman.');const token=await validateSession();const chosen=await api('/api/rooms/join',{room:activeRoomCode,role:'shaman'},token);roomState=chosen;applyRoomState(chosen);const result=await api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},token);const confirmed={...result,roleConfirmed:true,isShaman:String(result.shamanId||'')===String(getLocalPlayerId()||''),noShamanSelected:!!result.noShamanSelected};roomState={...roomState,shamanId:confirmed.shamanId||null};applyRoomState(roomState);return confirmed;},open:()=>{overlay.classList.remove('hidden');loadDirectory();},adminJoinByNumber:async(number,report)=>{const role=await getVerifiedStaffRole();if(!['SpAdmin','Admin','GM'].includes(role))throw new Error('Comando restrito a SpAdmin, Admin e GM.');const token=await validateSession();const data=await api('/api/rooms/list',{},token);const rooms=Array.isArray(data.rooms)?data.rooms:[];const index=Number(number)-1;if(!Number.isInteger(index)||index<0||index>=rooms.length)throw new Error('A sala '+number+' não existe. Existem '+rooms.length+' sala(s) cadastrada(s).');const target=rooms[index];if(activeRoomCode&&String(activeRoomCode)!==String(target.code)){const left=await leaveOnlineRoom();if(!left)throw new Error('Não foi possível confirmar a saída da sala atual; a troca foi cancelada.');}codeInput.value=String(target.code);await runRoomAction('join');if(activeRoomCode!==String(target.code))throw new Error(messageEl.textContent||'Não foi possível entrar na sala '+number+'.');startOnlineMatch();if(typeof report==='function')report('Sistema: comando /salaadm '+number+' executado. Entrando na sala '+number+' ('+target.code+').','system');},assignShaman:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},await validateSession());},submitFinish:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/finish',{room:activeRoomCode,phase:Number(phase)},await validateSession());},isActive:()=>!!activeRoomCode,roundStatus:()=>{const phase=Number(typeof level!=='undefined'?level:0);const ps=roomState&&Array.isArray(roomState.players)?roomState.players:[];const participants=ps.filter(p=>p&&p.state&&Number(p.state.phase)===phase&&(p.state.started||p.state.active||p.state.finished));const finished=participants.filter(p=>p.state.finished);return {activeCount:participants.length,finishedCount:finished.length,allFinished:participants.length>0&&finished.length>=participants.length};}};
- createBtn.addEventListener('click',()=>runRoomAction('create'));
+ createBtn.disabled=true;createBtn.setAttribute('aria-disabled','true');createBtn.title='Disponível em uma atualização futura';createBtn.addEventListener('click',event=>{event.preventDefault();setMessage('A criação manual de salas ficará disponível em uma atualização futura.','');});
  if(refreshRoomsBtn)refreshRoomsBtn.addEventListener('click',loadDirectory);
  $('onlineRoomsPrev')?.addEventListener('click',()=>{directoryPage=Math.max(0,directoryPage-1);renderDirectoryPage();});
  $('onlineRoomsNext')?.addEventListener('click',()=>{directoryPage=Math.min(Math.max(0,Math.ceil(allDirectoryRooms.length/DIRECTORY_PAGE_SIZE)-1),directoryPage+1);renderDirectoryPage();});
