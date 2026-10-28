@@ -27,7 +27,7 @@ export default {
     if (origin && ALLOWED_ORIGINS.has(origin)) {
       headers["Access-Control-Allow-Origin"] = origin;
       headers["Access-Control-Allow-Credentials"] = "true";
-      headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+      headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS";
       headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Bootstrap-Secret";
       headers["Access-Control-Max-Age"] = "86400";
     }
@@ -920,6 +920,21 @@ export default {
             env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, "scenario_created", null, JSON.stringify({ scenario_id: id, name, version: 1 }), at)
           ]);
           return reply({ ok: true, mensagem: "Cenário salvo como rascunho.", cenario: { id, name, description, status: "draft", current_version: 1, version_id: versionId } }, 201);
+        }
+        if (routeId && method === "DELETE" && !routeId[2]) {
+          if (!canReviewScenarios) return reply({ ok: false, erro: "Somente SpAdmin e Admin podem excluir cenários do servidor." }, 403);
+          const scenario = await loadScenario(routeId[1]);
+          if (!scenario) return reply({ ok: false, erro: "Cenário não encontrado." }, 404);
+          const at = now();
+          await env.DB.batch([
+            env.DB.prepare("DELETE FROM ratopolis_scenario_reviews WHERE scenario_id = ?").bind(scenario.id),
+            env.DB.prepare("DELETE FROM ratopolis_scenario_versions WHERE scenario_id = ?").bind(scenario.id),
+            env.DB.prepare("DELETE FROM ratopolis_scenarios WHERE id = ?").bind(scenario.id),
+            env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, NULL, ?, ?)").bind(crypto.randomUUID(), actor.id, "scenario_deleted", JSON.stringify({ scenario_id: scenario.id, name: scenario.name, previous_status: scenario.status }), at)
+          ]);
+          const remaining = await loadScenario(scenario.id);
+          if (remaining) return reply({ ok: false, erro: "A exclusão não foi confirmada pelo banco de dados." }, 500);
+          return reply({ ok: true, deleted: true, id: scenario.id, mensagem: "Cenário e versões excluídos do servidor." });
         }
         if (routeId && method === "GET" && !routeId[2]) {
           if (!canEditScenarios) return reply({ ok: false, erro: "Acesso ao editor negado." }, 403);
