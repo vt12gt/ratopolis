@@ -1141,6 +1141,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 (()=>{'use strict';
 const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');const cheeseCount=document.getElementById('cheeseCount'),winsEl=document.getElementById('wins'),message=document.getElementById('message');
 let W=800,H=460,dpr=1,cam=0,level=0,wins=0,acornTotal=0,coins=0,bestPhase=1,playing=false,anim=0,last=0,bridgeCooldown=0,noticeTimer=0,jumpBuffer=0,coyoteTime=0,airJumpsRemaining=2,testMode=false,phaseElapsed=0,phaseCountdownActive=false;
+window.__ratopolisIsPhaseCountdownActive=()=>phaseCountdownActive;
 const SHAMAN_LOCAL_TEST_MODE=false;
 /* Portal Oficial Ratópolis — estrutura reservada, INATIVA. Nenhuma autenticação existe neste jogo; quem joga sem conta é Convidado.
    Uma integração só deve ser ligada quando houver autenticação oficial e segura do portal. Não coloque segredos aqui. */
@@ -3414,7 +3415,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null; let allDirectoryRooms=[], directoryPage=0; const DIRECTORY_PAGE_SIZE=4;
  let selectedRoomRole='rat';
  const roleButtons=Array.from(document.querySelectorAll('.online-role-btn'));
- function updateRoleChoice(data){const shamanId=String((data&&data.shamanId)||(roomState&&roomState.shamanId)||'');const players=extractPlayers(data||roomState);const hasShaman=!!shamanId&&players.some(p=>String(p&&p.id||p&&p.playerId||'')===shamanId);const choice=$('countdownChooseShamanBtn');if(choice)choice.style.display=activeRoomCode&&!hasShaman&&phaseCountdownActive?'block':'none';if(choice)choice.disabled=hasShaman;}
+ function updateRoleChoice(data){const shamanId=String((data&&data.shamanId)||(roomState&&roomState.shamanId)||'');const players=extractPlayers(data||roomState);const hasShaman=!!shamanId&&players.some(p=>String(p&&p.id||p&&p.playerId||'')===shamanId);const choice=$('countdownChooseShamanBtn');if(choice)choice.style.display=activeRoomCode&&!hasShaman&&window.__ratopolisIsPhaseCountdownActive()?'block':'none';if(choice)choice.disabled=hasShaman;}
  function selectRoomRole(role){selectedRoomRole=role==='shaman'?'shaman':'rat';}
  selectRoomRole('rat');
  let roomState=null, connectionLost=false, generation=0, lastSuccessfulStateAt=0, remotePlayers=new Map(), localRoomMatchStarted=false;
