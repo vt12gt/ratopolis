@@ -3472,7 +3472,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  function getLocalPlayerId(){return String(window.ratopolisPlayerId||window.playerId||'');}
  function renderCommunityRoomPlayers(players){
   const list=document.getElementById('cdRoomPlayers'),count=document.getElementById('cdRoomCount');if(!list)return;
-  const items=Array.isArray(players)?players:[];list.replaceChildren();if(count)count.textContent=String(items.length||1);
+  const base=Array.isArray(players)?players:[];const merged=new Map();for(const p of base){const id=p&&typeof p==='object'?String(p.id||p.playerId||p.userId||p.user_id||''):'';if(id)merged.set(id,p);}for(const [id,p] of remotePlayers){if(Date.now()-Number(p.__lastUpdate||0)<=7000&&!merged.has(String(id)))merged.set(String(id),p);}const items=Array.from(merged.values());list.replaceChildren();if(count)count.textContent=String(items.length||1);
   if(!items.length){const row=document.createElement('div');row.className='cd-player';row.textContent='🐭 '+(playerNickname||'Você')+' — aguardando lista do servidor';list.appendChild(row);return;}
   items.forEach((p,i)=>{const row=document.createElement('div');row.className='cd-player';const name=document.createElement('span');const nick=playerLabel(p,i);const id=p&&typeof p==='object'?(p.id||p.playerId||p.userId||p.user_id):'';const self=String(id)===String(getLocalPlayerId());name.textContent='🐭 '+nick+(self?' (você)':'');const status=document.createElement('span');status.textContent='●';status.setAttribute('aria-label','Online');row.append(name,status);list.appendChild(row);});
  }
