@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123a2b">
+<title>RATÓPOLIS — Teste do novo menu</title>
+<style>
+:root{--green:#103b2b;--green2:#18543b;--green3:#26734c;--gold:#e8bd58;--gold2:#a9782f;--cream:#f6edcf;--ink:#1c3829;--glass:rgba(13,45,32,.88)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Trebuchet MS,system-ui,sans-serif;color:var(--cream)}
+body{background:#172e25;overflow-x:hidden}
+.scene{min-height:100vh;position:relative;isolation:isolate;background:linear-gradient(180deg,#eaa77d 0%,#f7cf8a 36%,#9c7956 62%,#684b39 100%);padding:12px}
+.scene:before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(ellipse at 80% 18%,#fff1a5 0 7%,transparent 7.5%),linear-gradient(180deg,transparent 0 50%,#6d4b3b 50% 100%)}
+.village{position:absolute;inset:0;z-index:-1;overflow:hidden;opacity:.92;pointer-events:none}
+.cheese{position:absolute;background:#f5c45e;border:4px solid #bd8438;box-shadow:inset -10px -8px #d99d43;border-radius:16px 25px 8px 8px}
+.cheese:after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#d99d43;left:22%;top:24%;box-shadow:45px 23px 0 -3px #d99d43,78px -8px 0 -6px #d99d43}
+.house{position:absolute;bottom:14%;width:170px;height:210px;background:#e9b46b;border:5px solid #a46b43;border-radius:12px 12px 0 0;box-shadow:inset 0 0 0 5px #f6d08b}
+.house:before{content:"";position:absolute;left:-15px;top:-45px;width:180px;height:65px;background:#c77b45;clip-path:polygon(50% 0,100% 100%,0 100%);border-bottom:5px solid #7f4c31}
+.window{position:absolute;left:22px;top:45px;width:38px;height:55px;border:5px solid #9d6641;border-radius:22px 22px 0 0;background:#59453b;box-shadow:65px 0 0 -1px #59453b,65px 0 0 4px #9d6641}
+.platform{position:absolute;height:18px;border:3px solid #9a8a77;background:linear-gradient(#f7e2bc,#b4a18a);border-radius:9px;box-shadow:0 7px 0 #604735}
+.logo{font-weight:1000;letter-spacing:1px;font-size:clamp(25px,3.2vw,47px);color:#ffd16a;text-shadow:0 3px #874c20,2px 5px 0 #173b29,-1px -1px #fff0a6;line-height:1}
+.logo span{font-size:.62em}
+.layout{position:relative;display:grid;grid-template-columns:minmax(255px,29%) minmax(0,1fr);gap:14px;max-width:1600px;margin:auto;min-height:calc(100vh - 24px)}
+.frame{border:3px solid #d6b568;border-radius:17px;background:linear-gradient(135deg,rgba(10,48,34,.96),rgba(27,79,54,.94));box-shadow:0 0 0 2px #4c653e,inset 0 0 0 2px rgba(255,229,151,.25),0 7px 18px #342b2066}
+.left{padding:13px;display:flex;flex-direction:column;gap:10px}
+.brand{padding:3px 4px 13px;text-align:center;border-bottom:2px solid #b89a51}
+.nav{display:grid;gap:7px}
+.nav button,.chat-tabs button,.goldbtn,.action{cursor:pointer;border:2px solid #c8a95a;color:#f9e9b6;font-weight:900;text-shadow:0 1px #173a2b;background:linear-gradient(#28774d,#12452f);border-radius:11px;box-shadow:inset 0 1px 0 #f4d991,0 3px 0 #092b1e;padding:12px 11px;text-align:left;font-size:clamp(12px,1.15vw,16px);letter-spacing:.2px}
+.nav button{display:flex;align-items:center;gap:11px;min-height:48px}
+.nav button .ico{font-size:22px;width:29px;text-align:center}
+.nav button:hover,.chat-tabs button:hover,.goldbtn:hover,.action:hover{filter:brightness(1.15)}
+.nav button.primary{background:linear-gradient(#54a85e,#247b45);font-size:18px}
+.nav button.selected{background:#e8f0d4;color:#183c2b;text-shadow:none;border-color:#fff2c7}
+.profile{margin-top:auto;padding:12px 10px 10px;text-align:center;background:linear-gradient(180deg,#345a3b,#182f24);border:4px ridge #d6b568;border-radius:20px;min-height:150px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.mouse{font-size:57px;filter:drop-shadow(0 4px 1px #0006);line-height:1.1}.profile strong{color:#ffda7a}.muted{color:#c6d4bc;font-size:12px}
+.right{min-width:0;display:flex;flex-direction:column;gap:13px}
+.topbar{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(155px,.8fr) minmax(180px,.9fr) 52px;gap:9px}
+.topbox{min-width:0;padding:9px 12px;display:flex;align-items:center;gap:9px;border:3px ridge #d5b363;border-radius:14px;background:rgba(13,48,34,.94);box-shadow:0 4px 10px #38271955}
+.avatar{font-size:31px}.topname{font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.subline{font-size:11px;color:#b9d2ad;margin-top:3px}
+.vip{white-space:nowrap;color:#4b3513;background:linear-gradient(#ffe59a,#dba93e);padding:6px 9px;border-radius:9px;font-weight:1000;font-size:11px}
+.resources{justify-content:center;font-size:clamp(12px,1.2vw,17px);font-weight:900;white-space:nowrap}.level{display:block;width:100%}.levelrow{display:flex;justify-content:space-between;font-size:13px;gap:6px}.bar{height:10px;border:2px solid #9d8a52;background:#0a2a1d;border-radius:99px;margin-top:7px;overflow:hidden}.bar span{display:block;width:35%;height:100%;background:linear-gradient(#ffe891,#d9a63a)}
+.exit{cursor:pointer;display:grid;place-items:center;font-size:24px;color:#ffe4a0}
+.mainrow{flex:1;min-height:390px;display:grid;grid-template-columns:minmax(0,1fr);position:relative}
+.chat{position:absolute;right:5%;top:3%;width:min(630px,95%);height:min(72vh,570px);min-height:340px;padding:10px;background:rgba(12,47,34,.91);border:4px ridge #d6b568;border-radius:22px;box-shadow:0 8px 20px #1d251d80;display:flex;flex-direction:column;backdrop-filter:blur(5px)}
+.chat-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding-bottom:8px;border-bottom:1px solid #a68d4c}
+.chat-tabs button{padding:10px 5px;text-align:center;font-size:clamp(10px,1vw,14px);min-width:0}
+.chat-tabs button.active{background:linear-gradient(#f4d98d,#d9a94e);color:#173b29;text-shadow:none}
+.chat-title{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:12px;color:#f8d67b;padding:8px 5px 4px}
+.status{font-size:10px;color:#b8d9b6;font-weight:600}
+.messages{flex:1;min-height:0;overflow:auto;padding:8px 7px;color:#f5efd9;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.msg{margin-bottom:3px}.msg b{color:#f4d278}.hint{color:#c5d5be;font-size:12px;text-align:center;padding:18px 6px}
+.sendrow{display:flex;gap:7px;padding-top:8px;border-top:1px solid #8c7948}
+.sendrow input{min-width:0;flex:1;background:#10281f;color:white;border:2px solid #a88c49;border-radius:11px;padding:12px;font:inherit;outline:none}
+.sendrow input:focus{border-color:#ffe29a}.sendrow button{border:2px solid #f2d17a;border-radius:11px;background:linear-gradient(#f7d77b,#bd8c32);color:#1c3928;font-weight:1000;padding:0 15px;cursor:pointer}
+.bottom{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+.bottomcard{padding:11px 13px;min-height:85px}
+.bottomtitle{color:#f3d27a;font-weight:1000;font-size:15px;margin-bottom:7px}
+.bottomcard p{font-size:12px;line-height:1.4;margin:0;color:#d1d9c5}
+.tag{display:inline-block;font-size:10px;color:#f8df9d;border:1px solid #7e986f;border-radius:99px;padding:3px 8px;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#112e21;border:1px solid #d6b568;color:#f7e7b7;padding:10px 16px;border-radius:10px;box-shadow:0 5px 20px #0005;display:none;z-index:10}
+@media(max-width:900px){.scene{padding:8px}.layout{grid-template-columns:230px minmax(0,1fr);gap:9px;min-height:calc(100vh - 16px)}.left{padding:9px;gap:8px}.nav button{padding:9px 7px;min-height:42px}.topbar{grid-template-columns:minmax(130px,1fr) minmax(125px,.8fr) 48px}.topbar .levelbox{display:none}.topbox{padding:7px}.chat{right:0;width:100%;top:5%;height:72vh}.bottom{grid-template-columns:1fr}.bottomcard:nth-child(2){display:none}}
+@media(max-width:620px){.scene{padding:5px}.layout{grid-template-columns:1fr;min-height:calc(100vh - 10px)}.left{display:none}.topbar{grid-template-columns:minmax(0,1fr) auto 42px}.topbox:first-child{padding:6px}.topbox .vip{display:none}.resources{font-size:13px}.mainrow{min-height:490px}.chat{top:0;right:0;width:100%;height:72vh;min-height:360px;padding:7px}.chat-tabs{gap:3px}.chat-tabs button{font-size:10px;padding:9px 2px}.bottom{grid-template-columns:1fr}.bottomcard{min-height:66px}.bottomcard:nth-child(2){display:none}.exit{font-size:20px}}
+@media(orientation:landscape) and (max-height:560px){.scene{padding:5px}.layout{grid-template-columns:220px minmax(0,1fr);gap:8px;min-height:calc(100dvh - 10px)}.left{padding:7px;gap:6px}.brand{padding-bottom:7px}.logo{font-size:25px}.nav{gap:4px}.nav button{min-height:34px;padding:5px 7px;font-size:11px}.nav button .ico{font-size:16px}.profile{min-height:85px;padding:5px}.mouse{font-size:32px}.topbar{gap:6px}.topbox{padding:4px 7px}.topbar .levelbox{display:flex}.topbar{grid-template-columns:minmax(130px,1fr) minmax(120px,.8fr) minmax(130px,.8fr) 42px}.avatar{font-size:23px}.mainrow{min-height:260px}.chat{top:0;height:72vh;min-height:230px;width:min(620px,96%);padding:6px}.chat-tabs button{padding:6px 3px}.messages{font-size:12px;line-height:1.45}.sendrow input{padding:7px}.bottomcard{min-height:55px;padding:6px 9px}.bottomtitle{font-size:12px;margin-bottom:3px}.bottomcard p{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="village" aria-hidden="true">
+ <div class="cheese" style="left:31%;top:18%;width:135px;height:115px"></div><div class="cheese" style="right:4%;top:35%;width:115px;height:95px"></div>
+ <div class="house" style="left:30%;bottom:12%"><div class="window"></div></div><div class="house" style="right:4%;bottom:12%;transform:scale(.8)"><div class="window"></div></div>
+ <div class="platform" style="left:35%;top:43%;width:45%"></div><div class="platform" style="left:7%;top:62%;width:33%"></div><div class="platform" style="right:2%;top:68%;width:27%"></div>
+</div>
+<div class="layout">
+<aside class="left frame">
+ <div class="brand"><div class="logo">RATÓPOLIS<span> 🧀</span></div></div>
+ <nav class="nav" aria-label="Menu principal">
+  <button class="primary" data-action="Jogar"><span class="ico">▶️</span> JOGAR</button>
+  <button data-action="Perfil"><span class="ico">🐭</span> PERFIL</button>
+  <button data-action="Inventário"><span class="ico">🎒</span> INVENTÁRIO</button>
+  <button data-action="Loja"><span class="ico">🧀</span> LOJA</button>
+  <button data-action="Ranking"><span class="ico">🏆</span> RANKING</button>
+  <button data-action="Conquistas"><span class="ico">🏅</span> CONQUISTAS</button>
+  <button data-action="Configurações"><span class="ico">⚙️</span> CONFIGURAÇÕES</button>
+ </nav>
+ <div class="profile"><div class="mouse">🐭</div><strong>Rato de Teste</strong><div class="muted">Prévia do perfil · menu em avaliação</div></div>
+</aside>
+<main class="right">
+ <div class="topbar">
+  <div class="topbox"><div class="avatar">🐭</div><div style="min-width:0;flex:1"><div class="topname">Jogador de teste</div><div class="subline">● online · prévia visual</div></div><div class="vip">👑 VIP</div></div>
+  <div class="topbox resources">🧀 5 &nbsp; 🥜 6 &nbsp; 🪙 926</div>
+  <div class="topbox levelbox"><div class="level"><div class="levelrow"><span>Nível: 0</span><span>21/1200 XP</span></div><div class="bar"><span></span></div></div></div>
+  <button class="topbox exit" aria-label="Sair" data-action="Sair">⇥</button>
+ </div>
+ <div class="mainrow">
+  <section class="chat" aria-label="Prévia do chat">
+   <div class="chat-tabs" role="tablist">
+    <button class="active" role="tab" aria-selected="true" data-tab="global">Chat Global</button>
+    <button role="tab" aria-selected="false" data-tab="world">Chat do Mundo</button>
+    <button role="tab" aria-selected="false" data-tab="private">Chat Privado</button>
+    <button role="tab" aria-selected="false" data-tab="notifications">Notificações</button>
+   </div>
+   <div class="chat-title"><span id="chatTitle">💬 CHAT GLOBAL</span><span class="status">PRÉVIA DO MENU</span></div>
+   <div class="messages" id="messages" aria-live="polite">
+    <div class="hint">Área de mensagens do menu.<br>Esta página avalia apenas o visual e a navegação das abas.<br>Não envia mensagens ao servidor.</div>
+   </div>
+   <form class="sendrow" id="sendForm"><input id="messageInput" maxlength="160" placeholder="Prévia visual — chat offline" aria-label="Mensagem de teste" disabled><button type="submit" disabled>Enviar</button></form>
+  </section>
+ </div>
+ <div class="bottom">
+  <section class="bottomcard frame"><div class="bottomtitle">🧀 CONTA DO RATÓPOLIS</div><p>Seu perfil, seus itens e sua jornada em Ratópolis.</p><span class="tag">INTERFACE EM TESTE</span></section>
+  <section class="bottomcard frame"><div class="bottomtitle">ⓘ COMO JOGAR</div><p>Explore o reino de queijo e descubra as aventuras dos ratinhos.</p></section>
+ </div>
+</main>
+</div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(function(){
+ const titles={global:'💬 CHAT GLOBAL',world:'🌐 CHAT DO MUNDO',private:'✉️ CHAT PRIVADO',notifications:'🔔 NOTIFICAÇÕES'};
+ const messages=document.getElementById('messages'),title=document.getElementById('chatTitle');
+ document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b===btn);b.setAttribute('aria-selected',b===btn?'true':'false')});
+  title.textContent=titles[btn.dataset.tab];
+  messages.innerHTML='<div class="hint">'+titles[btn.dataset.tab]+'<br>Prévia visual da aba selecionada.<br>A conexão real do chat não é ativada nesta página de teste.</div>';
+ }));
+ const toast=document.getElementById('toast');let timer;
+ document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>{
+  toast.textContent=btn.dataset.action==='Jogar'?'Teste do menu: o botão Jogar ainda não inicia o jogo.':btn.dataset.action+' — apenas demonstração visual.';
+  toast.style.display='block';clearTimeout(timer);timer=setTimeout(()=>toast.style.display='none',2300);
+ }));
+ document.getElementById('sendForm').addEventListener('submit',e=>e.preventDefault());
+})();
+</script>
+</body>
+</html>
