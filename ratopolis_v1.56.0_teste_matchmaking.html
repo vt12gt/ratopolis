@@ -3615,7 +3615,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
   connectRoomSocket(activeRoomCode);
  }
- function updateRoomIdBadge(code){let badge=$('ratopolisRoomIdBadge');if(!badge){badge=document.createElement('div');badge.id='ratopolisRoomIdBadge';badge.setAttribute('aria-label','ID da sala online');badge.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;pointer-events:none;background:rgba(7,18,38,.82);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:5px 9px;color:#fff;font:700 12px system-ui,sans-serif;letter-spacing:.4px;box-shadow:0 3px 12px #0005';document.body.appendChild(badge);}badge.textContent='ID: '+String(code||'');badge.style.display=code?'block':'none';}\n function showRoom(code,data){
+ function updateRoomIdBadge(code){let badge=$('ratopolisRoomIdBadge');if(!badge){badge=document.createElement('div');badge.id='ratopolisRoomIdBadge';badge.setAttribute('aria-label','ID da sala online');badge.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;pointer-events:none;background:rgba(7,18,38,.82);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:5px 9px;color:#fff;font:700 12px system-ui,sans-serif;letter-spacing:.4px;box-shadow:0 3px 12px #0005';document.body.appendChild(badge);}badge.textContent='ID: '+String(code||'');badge.style.display=code?'block':'none';}
+ function showRoom(code,data){
   activeRoomCode=code;updateRoomIdBadge(code);roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
