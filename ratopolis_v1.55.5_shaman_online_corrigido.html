@@ -3434,7 +3434,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    else setMessage('Escolha registrada. Aguardando alguém escolher Shaman.','success');
   }catch(err){setMessage(err.message||'Não foi possível registrar a escolha.','error');}
   finally{updateRoleChoice(roomState);}
- });
+ }));
  selectRoomRole('rat');
  let roomState=null, connectionLost=false, generation=0, lastSuccessfulStateAt=0, remotePlayers=new Map(), localRoomMatchStarted=false;
  const avatarLayer=$('onlineAvatars');
@@ -3719,13 +3719,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    clearOnlineState();activeMatchRole='mouse';activeShamanName='';shamanPlacementMode=null;updateShamanTools();
    const startOverlay=$('start');if(startOverlay){startOverlay.style.removeProperty('display');startOverlay.classList.remove('hidden');startOverlay.style.zIndex='2147483000';}
    if(typeof placeChatInMenu==='function')placeChatInMenu();
-   setOnlineStatus('Você saiu da sala.');setMessage('Saída confirmada pelo servidor. Voltando ao menu.','success');
+   setOnlineStatus('Saindo da sala…');setMessage('Saída solicitada ao servidor de salas. Voltando ao menu.','success');
    return true;
   };
   const exitCode=code,exitToken=token,exitPlayerId=playerId;
   const left=finishExit();
   if(leaveBtn)leaveBtn.disabled=false;const btn=$('onlineLeaveGameBtn');if(btn)btn.disabled=false;
-  api('/api/rooms/leave',{room:exitCode,playerId:exitPlayerId},exitToken).catch(()=>{
+  api('/api/rooms/leave',{room:exitCode,playerId:exitPlayerId},exitToken).then(result=>{if(!result||result.ok!==true||result.removed!==true)throw new Error('Remoção ainda não confirmada');setOnlineStatus('Você saiu da sala.');setMessage('Saída confirmada pelo servidor de salas.','success');}).catch(()=>{
    setOnlineStatus('Saída local concluída; servidor verificando remoção');
    setMessage('Você já voltou ao menu. O servidor de salas está concluindo a remoção da sala.','success');
   }); 
