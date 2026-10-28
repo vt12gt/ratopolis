@@ -198,6 +198,38 @@ input, .field input{transition:border-color .18s ease,box-shadow .18s ease}
 @media(hover:hover){.quick-card:hover,.mini-card:hover{transform:translateY(-3px);border-color:#c779ff70;box-shadow:0 9px 22px #0004}.btn:hover{filter:brightness(1.12);box-shadow:0 7px 22px #8c43d533}.quick-card:hover .quick-icon{transform:scale(1.12) rotate(-5deg)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
+
+/* POLIMENTO EXTRA: identidade de jogo, hierarquia e microinterações */
+.top{box-shadow:0 5px 24px #0005}
+.brand{gap:6px;letter-spacing:1px}
+.brand:first-letter{filter:drop-shadow(0 0 8px #c779ff)}
+.hero.home-hero{min-height:150px}
+.home-hero:after{content:"🧀";position:absolute;right:12%;bottom:7%;font-size:clamp(20px,4vw,36px);opacity:.16;transform:rotate(-18deg);filter:drop-shadow(0 0 12px #ffd86b);animation:ratCheese 5s ease-in-out infinite;pointer-events:none}
+.hero-copy h1{letter-spacing:-.8px;text-wrap:balance}
+.hero-copy p{max-width:35ch}
+#heroPlay{min-width:116px;position:relative;overflow:hidden}
+#heroPlay:after{content:"";position:absolute;inset:-80% auto -80% -35%;width:24%;transform:rotate(22deg);background:#ffffff70;animation:ratButtonShine 4.5s ease-in-out infinite}
+.quick-card{min-height:76px;align-content:center}
+.quick-card b{letter-spacing:.1px}
+.quick-card small{line-height:1.25}
+.card h2,.hero h2{letter-spacing:-.2px}
+.profile-progress .xp-track span{position:relative;overflow:hidden}
+.profile-progress .xp-track span:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,#ffffff70,transparent);transform:translateX(-100%);animation:ratXpShine 3s ease-in-out infinite}
+.avatar.big-avatar{transition:transform .2s ease,filter .2s ease}
+.avatar.big-avatar:active{transform:scale(.95) rotate(-3deg);filter:brightness(1.15)}
+.role-chip{box-shadow:0 0 14px #ffd86b0b}
+.status.good{color:#78ffd0}.status.bad{color:#ff91a7}
+#rankingList>*{transition:transform .18s ease,border-color .18s ease}
+.modal-backdrop{backdrop-filter:blur(12px)}
+.avatar-modal{border:1px solid #c779ff55;box-shadow:0 22px 70px #0009,inset 0 1px #ffffff12}
+.toast{box-shadow:0 12px 30px #0007;backdrop-filter:blur(14px)}
+.foot{letter-spacing:1.8px;text-transform:uppercase;color:#a997c0}
+@keyframes ratCheese{0%,100%{transform:translateY(0) rotate(-18deg)}50%{transform:translateY(-8px) rotate(-8deg)}}
+@keyframes ratButtonShine{0%,65%{left:-35%;opacity:0}72%{opacity:.9}90%,100%{left:130%;opacity:0}}
+@keyframes ratXpShine{0%,45%{transform:translateX(-100%)}75%,100%{transform:translateX(100%)}}
+@media(max-width:520px){.quick-grid{gap:6px}.quick-card{padding:8px 6px;min-height:70px}.quick-icon{font-size:21px}.quick-card b{font-size:11px}.quick-card small{font-size:9px}.hero-copy{max-width:74%}.hero-mascot{margin-right:3px}}
+@media(orientation:landscape) and (max-height:430px){.hero.home-hero{min-height:112px}.quick-card{min-height:58px;padding:6px}.quick-icon{font-size:18px}.home-bottom{flex-basis:18px}.hero-mascot{font-size:clamp(52px,12vh,82px)}}
+
 </style>
 </head>
 <body>
@@ -237,7 +269,7 @@ input, .field input{transition:border-color .18s ease,box-shadow .18s ease}
 <div id="rankingList" class="ranking-list"><div class="ranking-empty">Toque em “Atualizar” para carregar o ranking.</div></div>
 </section>
 <section id="store" class="view"><div class="card"><h2>🛍️ Loja da toca</h2><p>A loja ficará aqui quando a API oficial de catálogo e compras estiver confirmada. Nenhuma compra ou saldo é simulado nesta versão.</p></div></section>
-<div class="foot">RATÓPOLIS · PWA EM CONSTRUÇÃO · VERSÃO INICIAL</div>
+<div class="foot">RATÓPOLIS · SUA TOCA, SUA AVENTURA</div>
 </main>
 <nav class="nav" aria-label="Navegação"><button class="active" data-view="home">⌂<br>Início</button><button data-view="ranking" id="rankingNav">🏆<br>Ranking</button><button data-view="profile">🐭<br>Perfil</button><button data-view="games">🎮<br>Jogos</button><button data-view="store">🛍<br>Loja</button></nav>
 <div id="toast" class="toast" role="status"></div>
