@@ -3620,9 +3620,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  if(refreshRoomsBtn)refreshRoomsBtn.addEventListener('click',loadDirectory);
  $('onlineRoomsPrev')?.addEventListener('click',()=>{directoryPage=Math.max(0,directoryPage-1);renderDirectoryPage();});
  $('onlineRoomsNext')?.addEventListener('click',()=>{directoryPage=Math.min(Math.max(0,Math.ceil(allDirectoryRooms.length/DIRECTORY_PAGE_SIZE)-1),directoryPage+1);renderDirectoryPage();});
- joinBtn.addEventListener('click',()=>runRoomAction('join'));
+ joinBtn.addEventListener('click',async()=>{await runRoomAction('join');if(activeRoomCode&&!localRoomMatchStarted)startOnlineMatch();});
  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
- codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runRoomAction('join');}});
+ codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();(async()=>{await runRoomAction('join');if(activeRoomCode&&!localRoomMatchStarted)startOnlineMatch();})();}});
  leaveBtn.addEventListener('click',leaveOnlineRoom);if(startMatchBtn)startMatchBtn.addEventListener('click',startOnlineMatch);
  const leaveGameBtn=$('onlineLeaveGameBtn');if(leaveGameBtn)leaveGameBtn.addEventListener('click',async()=>{leaveGameBtn.disabled=true;try{await leaveOnlineRoom();clearPhaseTimers();playing=false;const startOverlay=$('start');if(startOverlay){startOverlay.style.display='';startOverlay.classList.remove('hidden');}if(typeof placeChatInMenu==='function')placeChatInMenu();setMessage('Você saiu da sala online e voltou ao menu.','success');}finally{leaveGameBtn.disabled=false;}});
 
