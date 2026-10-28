@@ -3754,9 +3754,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  if(refreshRoomsBtn)refreshRoomsBtn.addEventListener('click',loadDirectory);
  $('onlineRoomsPrev')?.addEventListener('click',()=>{directoryPage=Math.max(0,directoryPage-1);renderDirectoryPage();});
  $('onlineRoomsNext')?.addEventListener('click',()=>{directoryPage=Math.min(Math.max(0,Math.ceil(allDirectoryRooms.length/DIRECTORY_PAGE_SIZE)-1),directoryPage+1);renderDirectoryPage();});
- joinBtn.addEventListener('click',async()=>{await runRoomAction('join');if(activeRoomCode&&!localRoomMatchStarted)startOnlineMatch();});
+ joinBtn.addEventListener('click',async()=>{await runRoomAction('join');});
  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
- codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();(async()=>{await runRoomAction('join');if(activeRoomCode&&!localRoomMatchStarted)startOnlineMatch();})();}});
+ codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();(async()=>{await runRoomAction('join');})();}});
  leaveBtn.addEventListener('click',leaveOnlineRoom);if(startMatchBtn)startMatchBtn.addEventListener('click',startOnlineMatch);
  const oldLeaveGameBtn=$('onlineLeaveGameBtn');if(oldLeaveGameBtn){const leaveGameBtn=oldLeaveGameBtn.cloneNode(true);oldLeaveGameBtn.replaceWith(leaveGameBtn);const handleLeave=async ev=>{if(ev){ev.preventDefault();ev.stopPropagation();}if(leaveGameBtn.disabled)return;leaveGameBtn.disabled=true;const ok=await leaveOnlineRoom();if(ok){const startOverlay=$('start');if(startOverlay){startOverlay.style.removeProperty('display');startOverlay.classList.remove('hidden');startOverlay.style.zIndex='2147483000';}const gameRoot=$('game');if(gameRoot)gameRoot.style.removeProperty('pointer-events');}leaveGameBtn.disabled=false;};leaveGameBtn.addEventListener('click',handleLeave);}
 
