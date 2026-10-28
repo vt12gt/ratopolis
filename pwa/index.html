@@ -158,6 +158,46 @@ h1{letter-spacing:-.8px}.primary{background:linear-gradient(135deg,#d9e99b,#8fbd
  #ranking .ranking-level b{font-size:12px}
 }
 
+
+/* RATÓPOLIS VISUAL POLISH — motion, depth and tactile feedback */
+:root{--purple:#c779ff;--gold:#ffe07a;--green:#78ffd0}
+body{background:radial-gradient(ellipse at 12% 0%,#6526a2 0,transparent 40%),radial-gradient(ellipse at 95% 88%,#3c176a 0,transparent 36%),#090611}
+body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0;border-radius:50%;filter:blur(2px);opacity:.28}
+body:before{width:34vw;height:34vw;min-width:150px;min-height:150px;left:-12vw;top:20%;background:radial-gradient(circle,#a64cff 0,transparent 70%);animation:ratGlow 9s ease-in-out infinite alternate}
+body:after{width:38vw;height:38vw;min-width:170px;min-height:170px;right:-15vw;bottom:2%;background:radial-gradient(circle,#ffbf4a 0,transparent 70%);animation:ratGlow 12s ease-in-out infinite alternate-reverse}
+.top,.shell,.nav,.toast,.modal-backdrop{position:relative;z-index:1}
+.top{background:linear-gradient(90deg,#130c22f5,#1d1030f5,#130c22f5);box-shadow:0 5px 24px #0004}
+.brand{display:flex;align-items:center;gap:7px;text-shadow:0 0 18px #bd69ff55}
+.brand small{color:#ffe07a}
+.hero.home-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(115deg,#43205f 0%,#241438 52%,#171027 100%);border:1px solid #b56aff77;box-shadow:0 10px 32px #0005,inset 0 1px #ffffff18}
+.hero.home-hero:before{content:"";position:absolute;inset:-50%;z-index:-1;background:linear-gradient(115deg,transparent 40%,#ffffff0a 48%,#ffffff18 50%,#ffffff06 53%,transparent 60%);transform:translateX(-45%);animation:ratShimmer 8s ease-in-out infinite}
+.hero-mascot{filter:drop-shadow(0 0 14px #d18bff80) drop-shadow(0 8px 14px #0006);animation:ratFloat 3.2s ease-in-out infinite}
+.hero-mascot span{animation:ratSpark 2s ease-in-out infinite;text-shadow:0 0 14px #ffe07a}
+.quick-card,.card,.mini-card,.stat{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.quick-card{position:relative;overflow:hidden;border-color:#c78cff25;box-shadow:inset 0 1px #ffffff08,0 5px 15px #0002}
+.quick-card:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,#c779ff10,transparent 55%);opacity:.7;pointer-events:none}
+.quick-icon{display:inline-block;filter:drop-shadow(0 0 8px #c779ff35);transition:transform .18s ease}
+.btn{transition:transform .13s ease,filter .18s ease,box-shadow .18s ease;border:1px solid #ffffff16}
+.primary{box-shadow:0 5px 18px #782bff45,inset 0 1px #ffffff3b}
+.gold{box-shadow:0 5px 18px #ffd34f2c,inset 0 1px #ffffff80}
+.btn:active,.quick-card:active{transform:scale(.96);filter:brightness(1.15)}
+.btn:focus-visible,.quick-card:focus-visible,.nav button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.nav{background:linear-gradient(90deg,#100b1df8,#1a102af8,#100b1df8);border-top:1px solid #c779ff30;box-shadow:0 -8px 24px #0003}
+.nav button{transition:color .18s ease,transform .18s ease}
+.nav button.active{color:var(--gold);text-shadow:0 0 12px #ffe07a55}
+.nav button.active:first-line{filter:drop-shadow(0 0 5px #ffe07a)}
+.live-dot{animation:ratPulse 2s ease-in-out infinite}
+input, .field input{transition:border-color .18s ease,box-shadow .18s ease}
+.field input:focus{box-shadow:0 0 0 3px #c779ff20}
+.ranking-empty,.ranking-item,.mini-card{border-color:#c779ff24}
+@keyframes ratGlow{from{transform:translate3d(0,-2%,0) scale(.92);opacity:.18}to{transform:translate3d(5%,4%,0) scale(1.08);opacity:.34}}
+@keyframes ratFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-7px) rotate(-3deg)}}
+@keyframes ratSpark{0%,100%{transform:scale(.85) rotate(0);opacity:.7}50%{transform:scale(1.2) rotate(14deg);opacity:1}}
+@keyframes ratShimmer{0%,30%{transform:translateX(-45%)}70%,100%{transform:translateX(45%)}}
+@keyframes ratPulse{0%,100%{box-shadow:0 0 0 0 #78ffd055}50%{box-shadow:0 0 0 5px #78ffd000}}
+@media(hover:hover){.quick-card:hover,.mini-card:hover{transform:translateY(-3px);border-color:#c779ff70;box-shadow:0 9px 22px #0004}.btn:hover{filter:brightness(1.12);box-shadow:0 7px 22px #8c43d533}.quick-card:hover .quick-icon{transform:scale(1.12) rotate(-5deg)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 </style>
 </head>
 <body>
