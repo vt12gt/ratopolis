@@ -3680,37 +3680,39 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  async function leaveOnlineRoom(){
   if(!activeRoomCode){setMessage('Você não está em uma sala online.','');return true;}
   const code=activeRoomCode,token=getToken(),playerId=String(getLocalPlayerId()||'');
+  if(!token){setMessage('Sessão ausente. Entre novamente antes de sair da sala online.','error');return false;}
   if(leaveBtn)leaveBtn.disabled=true;
   const inGameExit=$('onlineLeaveGameBtn');if(inGameExit)inGameExit.disabled=true;
-  if(!token){setMessage('Sessão ausente. Entre novamente antes de sair da sala online.','error');return false;}
-  const oldGen=generation;generation++;stopPolling();
+  generation++;stopPolling();
   if(matchPollTimer!==null){clearInterval(matchPollTimer);matchPollTimer=null;}
   if(roomSocket){try{roomSocket.close(1000,'player left room');}catch(_){}roomSocket=null;}
   if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}
   if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}
   playing=false;clearPhaseTimers();localRoomMatchStarted=false;
-  try{
-   let leaveResult=await api('/api/rooms/leave',{room:code},token);
-   let state=await api('/api/rooms/state',{room:code},token);
-   let players=Array.isArray(state.players)?state.players:[];
-   const stillPresent=()=>players.some(p=>String(p.id||p.playerId||p.user_id)===String(getLocalPlayerId()||''));
-   if(leaveResult&&leaveResult.ok!==true)throw new Error('O servidor não confirmou a saída da sala.');
-   if(playerId&&stillPresent()){
-    leaveResult=await api('/api/rooms/leave',{room:code},token);
-    state=await api('/api/rooms/state',{room:code},token);players=Array.isArray(state.players)?state.players:[];
-   }
-   if(playerId&&stillPresent())throw new Error('O servidor ainda mostra sua conta na sala. A saída foi tentada novamente; tente mais uma vez.');
+  const finishExit=()=>{
    clearOnlineState();activeMatchRole='mouse';activeShamanName='';shamanPlacementMode=null;updateShamanTools();
    const startOverlay=$('start');if(startOverlay){startOverlay.style.removeProperty('display');startOverlay.classList.remove('hidden');startOverlay.style.zIndex='2147483000';}
    if(typeof placeChatInMenu==='function')placeChatInMenu();
-   setOnlineStatus('Você saiu da sala.');setMessage('Sala encerrada no servidor. Voltando ao menu.','success');
+   setOnlineStatus('Você saiu da sala.');setMessage('Saída confirmada pelo servidor. Voltando ao menu.','success');
    return true;
+  };
+  try{
+   let leaveResult=await api('/api/rooms/leave',{room:code},token);
+   if(leaveResult&&leaveResult.ok===true&&leaveResult.removed===true)return finishExit();
+   let state=await api('/api/rooms/state',{room:code},token);
+   let players=Array.isArray(state.players)?state.players:[];
+   const stillPresent=()=>playerId&&players.some(p=>String(p.id||p.playerId||p.user_id)===playerId);
+   if(!stillPresent())return finishExit();
+   leaveResult=await api('/api/rooms/leave',{room:code},token);
+   if(leaveResult&&leaveResult.ok===true&&leaveResult.removed===true)return finishExit();
+   state=await api('/api/rooms/state',{room:code},token);players=Array.isArray(state.players)?state.players:[];
+   if(!stillPresent())return finishExit();
+   throw new Error('O servidor ainda mostra sua conta na sala. Tente novamente.');
   }catch(err){
-   // Keep the room code so the player can retry; stop sending states meanwhile.
    if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
    setOnlineStatus('Saída não confirmada');setMessage((err&&err.message)||'Não foi possível confirmar a saída no servidor. Tente novamente.','error');
    return false;
-  }finally{if(leaveBtn)leaveBtn.disabled=false;const inGameExit=$('onlineLeaveGameBtn');if(inGameExit)inGameExit.disabled=false;}
+  }finally{if(leaveBtn)leaveBtn.disabled=false;const btn=$('onlineLeaveGameBtn');if(btn)btn.disabled=false;}
  }
  async function joinRandomAndStart(){
   if(activeRoomCode){startOnlineMatch();return;}
