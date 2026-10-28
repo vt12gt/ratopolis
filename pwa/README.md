@@ -22,7 +22,7 @@ A sessão usa `localStorage` com a chave `ratopolis_session_token`, como o porta
 
 ## Jogo
 O botão JOGAR usa o destino encontrado no portal atual:
-`https://vt12gt.github.io/ratopolis/ratopolis_v1.52.0_shaman.html`
+`https://vt12gt.github.io/ratopolis/ratopolis_v1.53.0_corrigido.html`
 
 Se o destino oficial mudar para outra versão, atualize a constante `GAME` em `index.html` depois de confirmar o URL publicado.
 
