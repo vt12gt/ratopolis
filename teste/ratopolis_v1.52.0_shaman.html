@@ -1408,7 +1408,44 @@ function renderWardrobe(){const list=document.getElementById('wardrobeItems'),ta
  for(const h of items){const owned=h.existing&&ownedHats.includes(h.id),equipped=h.existing&&equippedHat===h.id,exclusive=h.existing&&(Number.isInteger(h.rewardAt)||Number.isInteger(h.levelRewardAt));const item=document.createElement('div');item.style.cssText='border:2px solid '+(equipped?'#4b995a':(exclusive?'#b49ad9':'#d4c8a7'))+';border-radius:12px;padding:9px;background:'+(equipped?'#edf5d8':(exclusive?'#f0e8ff':'#f3ead0'))+';display:flex;align-items:center;gap:9px';const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';const title=document.createElement('strong');title.textContent=h.icon+' '+h.name;const desc=document.createElement('div');desc.textContent=(h.desc||'Item cosmético')+(h.future?' Disponível em uma atualização futura.':exclusive?(owned?' Recompensa conquistada!':' Ainda bloqueado.'):(h.cost?' Preço: '+h.cost+' moedas.':' Grátis.'));desc.style.cssText='font-size:11px;margin-top:3px';info.append(title,desc);item.append(info);if(h.existing){const btn=document.createElement('button');btn.type='button';btn.style.cssText='font-size:12px;padding:8px 9px;white-space:nowrap';btn.dataset.hat=h.id;btn.textContent=equipped?'EQUIPADO':owned?'EQUIPAR':exclusive?('🔒 '+(Number.isInteger(h.rewardAt)?h.rewardAt+' CONQUISTAS':'NÍVEL '+h.levelRewardAt)):('COMPRAR '+h.cost+' 🪙');btn.disabled=equipped||(!owned&&(exclusive||coins<h.cost));item.appendChild(btn)}else{const badge=document.createElement('span');badge.textContent='EM BREVE';badge.style.cssText='font-size:10px;font-weight:900;white-space:nowrap';item.appendChild(badge)}list.appendChild(item)}
 }
 function handleHatAction(id){const h=hatDefs.find(x=>x.id===id);if(!h)return;if(ownedHats.includes(id)){equippedHat=id;saveProgress();renderWardrobe();showMessage('Visual equipado: '+h.name+' '+h.icon);return;}if(Number.isInteger(h.rewardAt)){showMessage('Complete '+h.rewardAt+' conquistas para ganhar este item exclusivo! 🏅');return;}if(Number.isInteger(h.levelRewardAt)){showMessage('Alcance o nível '+h.levelRewardAt+' para ganhar este item exclusivo! ⭐');return;}if(coins<h.cost){showMessage('Moedas insuficientes! Conclua fases para ganhar mais. 🪙');return;}coins-=h.cost;ownedHats.push(id);equippedHat=id;saveProgress();updateStats();renderWardrobe();showMessage('Novo acessório desbloqueado: '+h.name+' '+h.icon);}
-function resize(){const oldW=W,oldH=H;const r=canvas.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,visualQuality==='low'?1:visualQuality==='high'?2:1.5);const portraitRotate=window.matchMedia('(orientation:portrait) and (max-width:900px)').matches;const vw=window.visualViewport?.width||window.innerWidth;const vh=window.visualViewport?.height||window.innerHeight;const gmEl=document.getElementById('game');const gmW=gmEl?gmEl.clientWidth:0,gmH=gmEl?gmEl.clientHeight:0;W=Math.max(320,portraitRotate?(gmW||vh):r.width);H=Math.max(240,portraitRotate?(gmH||vw):r.height);const dy=H-oldH;if(oldH>0&&Math.abs(dy)>1){platforms.forEach(p=>p.y+=dy);planks.forEach(p=>p.y+=dy);movingPlatforms.forEach(p=>{p.y+=dy;p.baseY+=dy;p.prevY+=dy});cheeses.forEach(c=>c.y+=dy);acorns.forEach(a=>a.y+=dy);obstacles.forEach(o=>o.y+=dy);goal.y+=dy;checkpoint.y+=dy;if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=dy;player.y+=dy;}if(platforms.length){const groundDelta=(H-54)-platforms[0].y;if(Math.abs(groundDelta)>0.5){platforms.forEach(p=>p.y+=groundDelta);planks.forEach(p=>p.y+=groundDelta);movingPlatforms.forEach(p=>{p.y+=groundDelta;p.baseY+=groundDelta;p.prevY+=groundDelta});cheeses.forEach(c=>c.y+=groundDelta);acorns.forEach(a=>a.y+=groundDelta);obstacles.forEach(o=>o.y+=groundDelta);goal.y+=groundDelta;checkpoint.y+=groundDelta;if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=groundDelta;player.y+=groundDelta;}}canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}let resizeTimer=0;function scheduleResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resize();last=performance.now();},140)}window.addEventListener('resize',scheduleResize);window.addEventListener('orientationchange',()=>setTimeout(scheduleResize,180));document.addEventListener('fullscreenchange',()=>{scheduleResize();setTimeout(scheduleResize,320);setTimeout(scheduleResize,600)});window.visualViewport?.addEventListener('resize',scheduleResize);resize();
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  const portraitRotate=window.matchMedia('(orientation:portrait) and (max-width:900px)').matches;
+  const vw=window.visualViewport?.width||window.innerWidth;
+  const vh=window.visualViewport?.height||window.innerHeight;
+  const gmEl=document.getElementById('game');
+  const gmW=gmEl?gmEl.clientWidth:0,gmH=gmEl?gmEl.clientHeight:0;
+  const nextW=Math.max(320,portraitRotate?(gmW||vh):r.width);
+  const nextH=Math.max(240,portraitRotate?(gmH||vw):r.height);
+  // O Chrome Android pode disparar resize com medidas intermediárias ao alternar tela cheia.
+  // Ignora leituras inválidas para impedir que o mundo salte entre dimensões temporárias.
+  if(!Number.isFinite(nextW)||!Number.isFinite(nextH)||r.width<160||r.height<120)return;
+  const oldH=H;
+  W=nextW;H=nextH;
+  // Reposiciona o mundo uma única vez em relação ao chão. Não acumula deslocamentos
+  // separados por cada evento resize/fullscreen, que poderiam sobrepor plataformas.
+  const targetGroundY=H-54;
+  const ground=platforms[0];
+  const groundDelta=ground?targetGroundY-ground.y:0;
+  if(Math.abs(groundDelta)>0.5){
+    platforms.forEach(p=>p.y+=groundDelta);
+    planks.forEach(p=>p.y+=groundDelta);
+    movingPlatforms.forEach(p=>{p.y+=groundDelta;if(Number.isFinite(p.baseY))p.baseY+=groundDelta;if(Number.isFinite(p.prevY))p.prevY+=groundDelta});
+    cheeses.forEach(c=>c.y+=groundDelta);
+    acorns.forEach(a=>a.y+=groundDelta);
+    obstacles.forEach(o=>o.y+=groundDelta);
+    if(goal)goal.y+=groundDelta;
+    if(checkpoint)checkpoint.y+=groundDelta;
+    if(typeof leafShield!=='undefined'&&leafShield)leafShield.y+=groundDelta;
+    if(player)player.y+=groundDelta;
+    if(Array.isArray(practiceBots))practiceBots.forEach(b=>b.y+=groundDelta);
+    if(Array.isArray(particles))particles.forEach(p=>p.y+=groundDelta);
+    if(Array.isArray(rewardTexts))rewardTexts.forEach(t=>t.y+=groundDelta);
+  }
+  dpr=Math.min(window.devicePixelRatio||1,visualQuality==='low'?1:visualQuality==='high'?2:1.5);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}let resizeTimer=0;function scheduleResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resize();last=performance.now();},140)}window.addEventListener('resize',scheduleResize);window.addEventListener('orientationchange',()=>setTimeout(scheduleResize,180));document.addEventListener('fullscreenchange',()=>{scheduleResize();setTimeout(scheduleResize,320);setTimeout(scheduleResize,600)});window.visualViewport?.addEventListener('resize',scheduleResize);resize();
 let editorTestActive=false,editorTestSnapshot=null,editorTestLayout=[];
 function cloneEditorValue(value){return JSON.parse(JSON.stringify(value));}
 function startScenarioEditorTest(pack){
