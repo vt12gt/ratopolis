@@ -12,8 +12,36 @@
 :root{color-scheme:dark;--bg:#090611;--panel:#171027;--panel2:#211438;--purple:#bd69ff;--gold:#ffd86b;--text:#fffaff;--muted:#bdb0d5;--line:#493064;--green:#71f5c0;--red:#ff7892}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -18%,#51217b 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding-bottom:84px}button,input{font:inherit}button,a{cursor:pointer}button:disabled{opacity:.55}.top{position:sticky;top:0;z-index:5;background:#100d1def;backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}.brand{font-weight:950;letter-spacing:.5px}.brand small{display:block;color:var(--gold);font-size:10px;letter-spacing:2px}.shell{max-width:780px;margin:auto;padding:15px}.hero,.card{border:1px solid var(--line);border-radius:19px;background:linear-gradient(145deg,var(--panel2),var(--panel));padding:18px;margin-bottom:13px;box-shadow:0 8px 24px #0002}.hero{border-color:#8954bb;background:linear-gradient(120deg,#302047,#171027 75%)}h1{font-size:clamp(27px,7vw,40px);line-height:1.05;margin:9px 0}h2{font-size:20px;margin:0 0 9px}.muted,p{color:var(--muted)}.eyebrow{color:var(--gold);font-size:11px;font-weight:900;letter-spacing:2px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.btn{border:1px solid var(--line);border-radius:12px;padding:11px 14px;background:#211632;color:var(--text);font-weight:800;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.primary{background:linear-gradient(120deg,#c77cff,#782bff);border:0}.gold{background:linear-gradient(120deg,#fff0a6,#ffd34f);color:#251604;border:0}.wide{width:100%;margin-top:8px}.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#141021f5;border-top:1px solid var(--line);padding:7px 4px calc(7px + env(safe-area-inset-bottom));z-index:8}.nav button{flex:1;background:none;border:0;color:#bdb0d5;font-size:11px;padding:6px 2px}.nav button.active{color:var(--gold)}.view{display:none}.view.active{display:block}.field{display:block;margin:12px 0}.field span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#100d1d;color:white;outline:none}.field input:focus{border-color:var(--purple)}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.tabs button{flex:1}.status{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:var(--muted);margin-top:12px}.status.good{color:var(--green)}.status.bad{color:var(--red)}.hidden{display:none!important}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{background:#100d1d;border-radius:11px;padding:12px 5px;text-align:center}.stat b{display:block;color:var(--gold);font-size:18px;overflow-wrap:anywhere}.stat small{font-size:10px;color:var(--muted)}.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:12;background:#2b2140;border:1px solid #674a91;border-radius:12px;padding:12px;max-width:90%;display:none}.toast.show{display:block}.foot{text-align:center;font-size:11px;color:#716984;padding:20px 0}
 
-#rotateNotice{display:none}
-@media (orientation:portrait){body{overflow:hidden}body>.top,body>.shell,body>.nav{visibility:hidden}#rotateNotice{display:flex;position:fixed;inset:0;z-index:100;background:#090611;color:#fffaff;align-items:center;justify-content:center;text-align:center;padding:28px}#rotateNotice .rotate-card{max-width:360px;border:1px solid #674a91;background:#171027;border-radius:22px;padding:25px}#rotateNotice .rotate-icon{font-size:48px;display:block;margin-bottom:12px}}
+/* Interface compacta para o atalho instalado em tela horizontal */
+@media (orientation:landscape) and (max-height:600px){
+ body{padding-bottom:52px;font-size:13px}
+ .top{padding:6px 12px;min-height:42px}
+ .brand small{font-size:8px}
+ .shell{max-width:none;padding:8px 12px}
+ .hero,.card{padding:12px 14px;border-radius:14px;margin-bottom:8px}
+ h1{font-size:clamp(22px,4vw,32px);margin:5px 0}
+ h2{font-size:16px;margin-bottom:5px}
+ p{margin:6px 0}
+ .actions{margin-top:8px}
+ .btn{padding:8px 11px;border-radius:10px;font-size:12px}
+ .field{margin:7px 0}
+ .field input{padding:9px}
+ .statgrid{margin-top:7px;gap:6px}
+ .stat{padding:7px 4px}
+ .stat b{font-size:15px}
+ .nav{padding:4px 5px calc(4px + env(safe-area-inset-bottom))}
+ .nav button{font-size:10px;padding:3px 2px}
+ .foot{padding:8px 0}
+}
+@media (orientation:landscape) and (min-width:700px){
+ .shell{max-width:1100px}
+ .view.active#home{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;align-items:start}
+ .view.active#home .hero{grid-row:span 2;margin:0}
+ .view.active#home .card{margin:0}
+ .view.active#games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
+ .view.active#games>.card{margin:0}
+}
+
 </style>
 </head>
 <body>
@@ -38,7 +66,7 @@
 <div class="foot">RATÓPOLIS · PWA EM CONSTRUÇÃO · VERSÃO INICIAL</div>
 </main>
 <nav class="nav" aria-label="Navegação"><button class="active" data-view="home">⌂<br>Início</button><button data-view="account" id="accountNav">♙<br>Conta</button><button data-view="profile">🐭<br>Perfil</button><button data-view="games">🎮<br>Jogos</button><button data-view="store">🛍<br>Loja</button></nav>
-<div id="rotateNotice"><div class="rotate-card"><span class="rotate-icon">📱 ↻</span><h2>Gire o celular</h2><p>Ratópolis foi feito para jogar na horizontal.</p></div></div><div id="toast" class="toast" role="status"></div>
+<div id="toast" class="toast" role="status"></div>
 <script type="module">
 const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.53.0_corrigido.html';
@@ -63,7 +91,7 @@ $('recoveryForm').addEventListener('submit',async e=>{e.preventDefault();const b
 $('logoutBtn').addEventListener('click',async()=>{try{await api('/api/logout',{method:'POST',body:JSON.stringify({})})}catch{}saveToken('');render(null);status('Você saiu da conta.');toast('Sessão encerrada.');go('home')});
 async function restore(){if(!token)return;try{const me=await api('/api/me');render(unwrap(me));status('Sessão restaurada.','good')}catch{saveToken('');render(null)}}restore();
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installBtn').classList.remove('hidden')});
-function requestLandscape(){try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{})}catch{}}document.addEventListener('click',requestLandscape,{once:true});if(window.matchMedia('(display-mode: standalone)').matches)requestLandscape();async function install(){if(!installPrompt){toast('No Chrome, abra o menu ⋮ e toque em “Instalar app” ou “Adicionar à tela inicial”.');return}installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').classList.add('hidden')}
+function requestLandscape(){try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{})}catch{}}if(window.matchMedia('(display-mode: standalone)').matches){requestLandscape()}else{window.addEventListener('appinstalled',requestLandscape)}async function install(){if(!installPrompt){toast('No Chrome, abra o menu ⋮ e toque em “Instalar app” ou “Adicionar à tela inicial”.');return}installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').classList.add('hidden')}
 $('installBtn').onclick=install;$('installBtn2').onclick=install;
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Service worker:',err)));
 </script>
