@@ -1,7 +1,7 @@
 {
   "name": "Ratópolis — App dos Jogadores",
   "short_name": "Ratópolis",
-  "description": "Aplicativo Ratópolis em orientação horizontal, com conta, perfil e acesso ao jogo.",
+  "description": "Central mobile do Ratópolis com lobby, conta, perfil e acesso integrado ao jogo.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
