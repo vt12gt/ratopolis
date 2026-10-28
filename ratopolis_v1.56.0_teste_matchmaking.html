@@ -3412,7 +3412,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const leaveBtn=$('onlineLeaveRoomBtn'),startMatchBtn=$('onlineStartMatchBtn');
  if(!overlay||!createBtn||!joinBtn||!codeInput||!details||!messageEl)return;
 
- let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null; let allDirectoryRooms=[], directoryPage=0; const DIRECTORY_PAGE_SIZE=4;
+ let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null; let allDirectoryRooms=[], directoryPage=0, socketConnectInFlight=false; const DIRECTORY_PAGE_SIZE=4;
  let selectedRoomRole='rat';
  const roleButtons=Array.from(document.querySelectorAll('.online-role-btn'));
  function updateRoleChoice(data){const shamanId=String((data&&data.shamanId)||(roomState&&roomState.shamanId)||'');const players=extractPlayers(data||roomState);const hasShaman=!!shamanId&&players.some(p=>String(p&&p.id||p&&p.playerId||'')===shamanId);const choice=$('countdownChooseShamanBtn');if(choice)choice.style.display=activeRoomCode&&!hasShaman&&window.__ratopolisIsPhaseCountdownActive()?'block':'none';if(choice)choice.disabled=hasShaman;}
@@ -3575,6 +3575,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  async function connectRoomSocket(code){
   if(!activeRoomCode||activeRoomCode!==code)return;
+  if(socketConnectInFlight)return;
+  if(roomSocket&&(roomSocket.readyState===WebSocket.CONNECTING||roomSocket.readyState===WebSocket.OPEN))return;
+  socketConnectInFlight=true;
   if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
   if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}
   try{
@@ -3593,6 +3596,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    ws.addEventListener('close',()=>{if(roomSocket!==ws)return;roomSocket=null;if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(activeRoomCode===code){setOnlineStatus('Reconectando ao jogo…');socketRetryTimer=setTimeout(()=>connectRoomSocket(code),2500);}});
    ws.addEventListener('error',()=>{if(activeRoomCode===code)setOnlineStatus('Conexão instável · tentando reconectar');});
   }catch(err){setOnlineStatus('Sala conectada; sincronização tentando reconectar');if(activeRoomCode===code)socketRetryTimer=setTimeout(()=>connectRoomSocket(code),3500);}
+  finally{socketConnectInFlight=false;}
  }
  function sendLocalPlayerState(){
   const ws=roomSocket;if(!ws||ws.readyState!==WebSocket.OPEN||!activeRoomCode)return;
