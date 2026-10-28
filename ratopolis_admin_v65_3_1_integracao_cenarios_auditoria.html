@@ -788,8 +788,10 @@ auditLog('Painel v65.3 aberto');render();
     let best=null;
     for(const v of versoes){if(!best||Number(v.version_number)>Number(best.version_number))best=v}
     if(!best)return [];
-    const l=best.layout;const arr=Array.isArray(l)?l:(l&&Array.isArray(l.layout)?l.layout:[]);
-    return arr.map(p=>({cell:Number(p&&p.cell),type:String(p&&p.type||''),angle:Number(p&&p.angle==null?45:p&&p.angle)})).filter(p=>Number.isInteger(p.cell)&&p.cell>=0&&p.cell<72&&p.type);
+    const l=best.layout;
+    if(l&&typeof l==='object'&&!Array.isArray(l)&&Array.isArray(l.objects))return JSON.parse(JSON.stringify(l));
+    const arr=Array.isArray(l)?l:(l&&Array.isArray(l.layout)?l.layout:[]);
+    return arr.filter(p=>p&&typeof p==='object'&&String(p.type||'')).map(p=>({...p,cell:Number(p.cell),type:String(p.type),angle:Number(p.angle==null?45:p.angle)})).filter(p=>Number.isInteger(p.cell)&&p.cell>=0&&p.cell<72&&p.type);
   }
   function showModal(title,body,label,fn){
     if(typeof modal==='function'){modal(title,body,label||'Fechar',fn||(typeof closeModal==='function'?closeModal:function(){}));return true}
@@ -800,12 +802,12 @@ auditLog('Painel v65.3 aberto');render();
       try{
         const {cenario:s,versoes}=await fetchDetail(id);
         const layout=latestLayout(versoes);
-        const preview=layout.length&&typeof scenarioPreviewHTML==='function'?scenarioPreviewHTML({layout}):'<div class="notice">O servidor não retornou um layout legível para pré-visualização.</div>';
-        const check=layout.length&&typeof scenarioValidationHTML==='function'?scenarioValidationHTML(layout):'';
+        const preview=Array.isArray(layout)&&layout.length&&typeof scenarioPreviewHTML==='function'?scenarioPreviewHTML({layout}):'<div class="notice">Layout carregado. A prévia visual deste formato de objetos ainda não está disponível.</div>';
+        const check=Array.isArray(layout)&&layout.length&&typeof scenarioValidationHTML==='function'?scenarioValidationHTML(layout):'';
         const k=statusKey(s.status);
         const rows=[['ID',s.id||id],['Nome',s.name],['Status real',statusLabel(s.status)],['Versão atual','v'+(s.current_version||1)],['Autor',s.creator_nickname||s.creator_user_id],['Criado',fmtDate(s.created_at)],['Atualizado',fmtDate(s.updated_at)],['Descrição',s.description||'Sem descrição']];
         const vers=versoes.length?'<div class="list">'+versoes.slice().sort((a,b)=>Number(b.version_number)-Number(a.version_number)).map(v=>'<div class="item"><div><b>v'+esc(v.version_number)+'</b><div class="tiny muted">'+esc(fmtDate(v.created_at))+'</div></div><span class="pill">'+esc((Array.isArray(v.layout&&v.layout.layout)?v.layout.layout.length+' peça(s)':'layout armazenado'))+'</span></div>').join('')+'</div>':'<div class="muted">Nenhuma versão retornada.</div>';
-        const body='<h3 style="margin:0 0 6px">Prévia da versão mais recente'+(layout.length?' · '+layout.length+' peças':'')+'</h3>'+preview+check+
+        const body='<h3 style="margin:0 0 6px">Prévia da versão mais recente'+((Array.isArray(layout)?layout.length:(layout&&Array.isArray(layout.objects)?layout.objects.length:0))?' · '+(Array.isArray(layout)?layout.length:layout.objects.length)+' peças':'')+'</h3>'+preview+check+
           '<div class="list">'+rows.map(([a,b])=>'<div class="item"><span>'+esc(a)+'</span><b style="text-align:right;overflow-wrap:anywhere">'+esc(b==null||b===''?'—':b)+'</b></div>').join('')+'</div>'+
           '<h3 style="margin:14px 0 6px">Versões no servidor ('+versoes.length+')</h3>'+vers+
           '<div class="actions" style="margin-top:12px">'+((k==='draft'||k==='rejected')?'<button type="button" data-srv-submit="'+esc(id)+'">Enviar para revisão</button>':'')+(k==='approved'?'<button type="button" class="gold" data-srv-publish="'+esc(id)+'">Publicar</button>':'')+'<button type="button" data-srv-copy="'+esc(id)+'">Editar em cópia local</button></div>'+
@@ -868,8 +870,9 @@ auditLog('Painel v65.3 aberto');render();
       const name=String($('srvScName')?.value||x.name||'').trim().slice(0,80);
       const description=String($('srvScDescription')?.value||x.description||'').trim().slice(0,500);
       if(!name){setStatus('srvScStatus','Informe o nome do cenário.','error');return}
-      if(!layout.length){setStatus('srvScStatus','Esta cópia não tem peças compatíveis para salvar. Abra o editor, salve o mapa e tente novamente.','error');return}
-      if(typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(q=>!q.ok).map(q=>'• '+q.label).join('\n')+'\n\nSalvar mesmo assim?'))return}
+      const hasPieces=Array.isArray(layout)?layout.length>0:!!(layout&&typeof layout==='object'&&((Array.isArray(layout.objects)&&layout.objects.length)||(Array.isArray(layout.layout)&&layout.layout.length)));
+      if(!hasPieces){setStatus('srvScStatus','Esta cópia não tem peças compatíveis para salvar. Abra o editor, salve o mapa e tente novamente.','error');return}
+      if(Array.isArray(layout)&&typeof validateScenarioLayout==='function'){const v=validateScenarioLayout(layout);if(!v.ok&&!confirm('O checklist local tem pendências:\n'+v.checks.filter(q=>!q.ok).map(q=>'• '+q.label).join('\n')+'\n\nSalvar mesmo assim?'))return}
       if(!confirm('Salvar uma nova versão no cenário original '+serverId+'?\n\nO Worker criará uma nova versão e voltará o cenário para RASCUNHO, removendo a aprovação/publicação atual.'))return;
       try{
         setStatus('srvScStatus','Salvando nova versão no cenário '+serverId+'…');
@@ -935,10 +938,12 @@ auditLog('Painel v65.3 aberto');render();
     await guarded('copy:'+id,async()=>{
       try{
         const {cenario:s,versoes}=await fetchDetail(id),layout=latestLayout(versoes);
-        if(!layout.length){setStatus('srvScStatus','O servidor não retornou peças legíveis para copiar.','error');return}
+        const hasPieces=Array.isArray(layout)?layout.length>0:!!(layout&&typeof layout==='object'&&((Array.isArray(layout.objects)&&layout.objects.length)||(Array.isArray(layout.layout)&&layout.layout.length)));
+        if(!hasPieces){setStatus('srvScStatus','O servidor não retornou peças legíveis para copiar.','error');return}
         if(typeof data==='undefined'||typeof save!=='function'||typeof scenarioSnapshot!=='function'){setStatus('srvScStatus','O módulo local do editor não está disponível.','error');return}
         const labels=[['terra','Terra/blocos'],['queijo','Queijos'],['bolota','Bolotas'],['toca','Tocas'],['palito','Palitos']];
-        const counts=labels.map(([t,l])=>{const n=layout.filter(p=>p.type===t).length;return n?l+': '+n:null}).filter(Boolean);
+        const pieceList=Array.isArray(layout)?layout:(layout&&Array.isArray(layout.objects)?layout.objects:[]);
+        const counts=labels.map(([t,l])=>{const n=pieceList.filter(p=>p.type===t).length;return n?l+': '+n:null}).filter(Boolean);
         const created={id:'MAP-'+Date.now().toString().slice(-7),name:String(s.name||'Cenário do servidor').slice(0,50)+' (cópia)',author:role==='SpAdmin'?'SpAdmin (SuperAdmin + Editor)':'Editor',status:'Rascunho',pieces:counts.join(', '),layout,description:String(s.description||'').slice(0,2000),created:new Date().toISOString().slice(0,10),reviewer:'',reviewNote:'',reviewed:'',history:[],version:1,versions:[],serverSource:{id:String(s.id||id),version:Number(s.current_version)||1,status:String(s.status||'draft')}};
         created.versions.push(scenarioSnapshot(created,1));
         if(typeof scenarioHistoryEntry==='function')scenarioHistoryEntry(created,'Cópia local criada a partir do servidor','Origem: '+(s.id||id)+'. Não herda aprovação nem publicação.');
