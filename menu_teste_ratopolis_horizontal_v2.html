@@ -73,9 +73,21 @@
  .messages{font-size:10px;padding:3px}
  .composer input{padding:4px}
 }
+
+/* Orientação obrigatória: só apresentar o menu quando estiver em paisagem. */
+.portrait-lock{display:none}
+@media (orientation:portrait){
+ .shell{display:none!important}
+ .portrait-lock{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:linear-gradient(145deg,#103b2b,#071e16);color:#fff1c7}
+ .portrait-lock .lock-card{max-width:340px;border:2px solid #e9c46a;border-radius:18px;padding:24px;background:#123a2b;box-shadow:0 8px 30px #0006}
+ .portrait-lock .rotate{font-size:56px;line-height:1.2}
+ .portrait-lock h1{font-size:22px;margin:12px 0 8px}
+ .portrait-lock p{font-size:14px;line-height:1.5;margin:0;color:#d6e3ce}
+}
 </style>
 </head>
 <body>
+<div class="portrait-lock" role="status" aria-live="polite"><div class="lock-card"><div class="rotate">📱 ↻</div><h1>Gire o celular para a horizontal</h1><p>RATÓPOLIS funciona somente no modo paisagem. Vire o aparelho para continuar.</p></div></div>
 <div class="stage">
  <div class="sky"></div><div class="hill one"></div><div class="hill two"></div><div class="home a"></div><div class="home b"></div><div class="cheese a"></div><div class="cheese b"></div><div class="platform a"></div><div class="platform b"></div><div class="platform c"></div>
  <div class="shell">
@@ -100,7 +112,7 @@
  document.querySelectorAll('[data-tab]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(tab=>{const active=tab===button;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active))});chatTitle.textContent=titles[button.dataset.tab];messages.innerHTML='<div class="hint">'+titles[button.dataset.tab]+'<br>Prévia visual desta aba.<br>Chat real não conectado nesta página.</div>'}));
  document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>notify(button.dataset.action+' — botão demonstrativo, sem ação no servidor.')));
  document.getElementById('composer').addEventListener('submit',event=>event.preventDefault());
- document.getElementById('expand').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen()}else{notify('Este navegador não oferece tela cheia por este botão. Use o menu ⋮ do Chrome.');return}}catch(error){notify('O navegador bloqueou a tela cheia. Tente o menu ⋮ do Chrome.')}});
+ document.getElementById('expand').addEventListener('click',async()=>{try{if(!document.fullscreenElement){if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else{notify('Este navegador não oferece tela cheia por este botão. Use o menu ⋮ do Chrome.');return}}if(screen.orientation&&screen.orientation.lock){try{await screen.orientation.lock('landscape')}catch(ignore){notify('Tela cheia ativada. Se continuar vertical, gire o aparelho manualmente para a horizontal.')}}}catch(error){notify('O navegador bloqueou a tela cheia. Tente o menu ⋮ do Chrome.')}});
 })();
 </script>
 </body>
