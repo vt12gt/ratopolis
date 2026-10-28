@@ -1009,6 +1009,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #onlineLeaveGameBtn{display:none;pointer-events:auto;z-index:2147483001;touch-action:manipulation;-webkit-tap-highlight-color:transparent}#onlineLeaveGameBtn.active{display:block!important;pointer-events:auto!important}
 </style>
 <style id="ratopolis-1558-hide-obsolete-role-picker">.shaman-role-picker{display:none!important}</style>
+<style id="ratopolis-test-room-ui-cleanup">#onlineRoomsDirectory,.online-room-join,#onlineStartMatchBtn,.rooms-layout,.shaman-role-picker,.room-actions{display:none!important}</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -1100,7 +1101,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   <p class="room-note">As salas públicas são criadas conforme a necessidade. Salas privadas exigem senha.</p>
   <div id="onlineRoomsDirectory" class="online-rooms-directory" aria-live="polite"><div class="online-directory-head"><strong>🏠 Salas disponíveis</strong><button type="button" id="onlineRefreshRoomsBtn">ATUALIZAR</button></div><div id="onlineDirectoryList">Carregando salas do servidor…</div><div id="onlineDirectoryPager" aria-label="Navegação de salas"><button type="button" id="onlineRoomsPrev" aria-label="Salas anteriores">◀ ANTERIORES</button><span id="onlineRoomsPage">1 / 1</span><button type="button" id="onlineRoomsNext" aria-label="Próximas salas">PRÓXIMAS ▶</button></div></div>
   <div class="online-room-actions">
-    <button type="button" id="onlineCreateRoomBtn">＋ CRIAR SALA PRIVADA</button>
+    <button type="button" id="onlineCreateRoomBtn">＋ CRIAR SALA</button>
     <div class="online-room-join">
       <label for="onlineRoomCode">Código da sala</label>
       <input id="onlineRoomCode" type="text" maxlength="8" minlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RATO1" aria-describedby="onlineRoomHint"><input id="onlineRoomPassword" type="password" maxlength="64" autocomplete="off" placeholder="Senha (somente sala privada)" aria-label="Senha da sala privada">
@@ -3614,8 +3615,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
   connectRoomSocket(activeRoomCode);
  }
- function showRoom(code,data){
-  activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
+ function updateRoomIdBadge(code){let badge=$('ratopolisRoomIdBadge');if(!badge){badge=document.createElement('div');badge.id='ratopolisRoomIdBadge';badge.setAttribute('aria-label','ID da sala online');badge.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;pointer-events:none;background:rgba(7,18,38,.82);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:5px 9px;color:#fff;font:700 12px system-ui,sans-serif;letter-spacing:.4px;box-shadow:0 3px 12px #0005';document.body.appendChild(badge);}badge.textContent='ID: '+String(code||'');badge.style.display=code?'block':'none';}\n function showRoom(code,data){
+  activeRoomCode=code;updateRoomIdBadge(code);roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
@@ -3625,6 +3626,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  function stopPolling(){if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}}
  function startMatchPolling(){if(matchPollTimer!==null)clearInterval(matchPollTimer);matchPollTimer=setInterval(async()=>{if(!activeRoomCode||!localRoomMatchStarted||document.visibilityState==='hidden'||pollInFlight||(roomSocket&&roomSocket.readyState===WebSocket.OPEN))return;pollInFlight=true;const code=activeRoomCode,gen=generation;try{const data=await api('/api/rooms/state',{room:code},getToken());if(gen===generation&&activeRoomCode===code){roomState=data;applyRoomState(data);}}catch(_e){}finally{pollInFlight=false;}},4000);}
  function clearOnlineState(){
+  const roomBadge=$('ratopolisRoomIdBadge');if(roomBadge)roomBadge.style.display='none';
   roleButtons.forEach(b=>b.disabled=false);selectRoomRole('rat');
   stopPolling();if(matchPollTimer!==null){clearInterval(matchPollTimer);matchPollTimer=null;}const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.remove('active');if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}remotePlayers.clear();localRoomMatchStarted=false;if(avatarLayer){avatarLayer.classList.remove('active');avatarLayer.replaceChildren();}activeRoomCode='';roomState=null;connectionLost=false;requestInFlight=false;pollInFlight=false;lastSuccessfulStateAt=0;
   details.classList.add('hidden');codeDisplay.textContent='------';participantsEl.replaceChildren();
@@ -3679,7 +3681,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(thisGeneration!==generation)return;
    const finalCode=code||roomCodeFrom(data);
    if(!finalCode)throw new Error('O servidor não confirmou o código da sala.');
-   showRoom(finalCode,data);
+   showRoom(finalCode,data);if(kind==='create')startOnlineMatch();
   }catch(err){
    if(thisGeneration===generation){
     const msg=err&&err.message?err.message:'Não foi possível concluir a operação.';
