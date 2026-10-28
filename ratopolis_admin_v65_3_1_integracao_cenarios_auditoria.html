@@ -972,9 +972,9 @@ auditLog('Painel v65.3 aberto');render();
         const hasPieces=Array.isArray(layout)?layout.length>0:!!(layout&&typeof layout==='object'&&((Array.isArray(layout.objects)&&layout.objects.length)||(Array.isArray(layout.layout)&&layout.layout.length)));
         if(!hasPieces){setStatus('srvScStatus','O servidor não retornou peças legíveis para copiar.','error');return}
         if(typeof data==='undefined'||typeof save!=='function'||typeof scenarioSnapshot!=='function'){setStatus('srvScStatus','O módulo local do editor não está disponível.','error');return}
-        const labels=[['terra','Terra/blocos'],['queijo','Queijos'],['bolota','Bolotas'],['toca','Tocas'],['palito','Palitos']];
+        const labels=[{types:['terra','terrain','ground','block'],'label':'Terra/blocos'},{types:['queijo','cheese'],'label':'Queijos'},{types:['bolota','acorn'],'label':'Bolotas'},{types:['toca','den','hole','spawn'],'label':'Tocas/entradas'},{types:['palito','stick','connector'],'label':'Palitos/conectores'},{types:['plank'],'label':'Plataformas de madeira'}];
         const pieceList=Array.isArray(layout)?layout:(layout&&Array.isArray(layout.objects)?layout.objects:[]);
-        const counts=labels.map(([t,l])=>{const n=pieceList.filter(p=>p.type===t).length;return n?l+': '+n:null}).filter(Boolean);
+        const counts=labels.map(({types,label})=>{const n=pieceList.filter(p=>types.includes(String(p.type||'').toLowerCase())||types.includes(String(p.editorType||'').toLowerCase())).length;return n?label+': '+n:null}).filter(Boolean);
         const created={id:'MAP-'+Date.now().toString().slice(-7),name:String(s.name||'Cenário do servidor').slice(0,50)+' (cópia)',author:role==='SpAdmin'?'SpAdmin (SuperAdmin + Editor)':'Editor',status:'Rascunho',pieces:counts.join(', '),layout,description:String(s.description||'').slice(0,2000),created:new Date().toISOString().slice(0,10),reviewer:'',reviewNote:'',reviewed:'',history:[],version:1,versions:[],serverSource:{id:String(s.id||id),version:Number(s.current_version)||1,status:String(s.status||'draft')}};
         created.versions.push(scenarioSnapshot(created,1));
         if(typeof scenarioHistoryEntry==='function')scenarioHistoryEntry(created,'Cópia local criada a partir do servidor','Origem: '+(s.id||id)+'. Não herda aprovação nem publicação.');
