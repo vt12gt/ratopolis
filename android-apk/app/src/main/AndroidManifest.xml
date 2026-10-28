@@ -5,6 +5,7 @@
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
         android:label="Ratópolis"
+        android:icon="@drawable/ic_launcher"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:supportsRtl="true">
         <activity
