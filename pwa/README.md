@@ -35,3 +35,10 @@ O cache offline só abre a estrutura da interface. Login, perfil remoto e o jogo
 
 ## Importante
 A primeira versão foi adicionada ao repositório para testes incrementais. A loja e os minijogos continuam como áreas informativas até existirem endpoints e URLs oficiais confirmados.
+
+## Atualização de orientação, sessão e MiniGames
+- O manifesto agora pede orientação horizontal (landscape); em telas em pé, a interface mostra um aviso para girar o celular.
+- Depois de autenticado, a aba Conta some. No portal, tocar no botão do nickname abre o Perfil em vez de voltar ao formulário de login.
+- O PWA extrai o token de sessão da resposta da API, confirma o perfil em /api/me e mantém a chave ratopolis_session_token.
+- A área MiniGames separa offline (não exige login) e online (exige uma sessão válida).
+- **Limitação atual:** não encontrei arquivos de minijogos offline publicados na raiz do repositório; por isso a área offline está preparada, mas ainda precisa receber o arquivo/link real do jogo offline. Os jogos online também precisam dos links oficiais antes de serem listados.
