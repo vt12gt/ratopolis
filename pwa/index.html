@@ -136,6 +136,9 @@ h1{font-size:clamp(23px,4vw,36px);margin:5px 0;line-height:1.04}h2{font-size:17p
 <script type="module">
 const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 
+const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.53.0_corrigido.html';
+const $=id=>document.getElementById(id);let token='',player=null,mode='login',installPrompt=null;
+try{token=localStorage.getItem('ratopolis_session_token')||''}catch(e){}
 const ADMIN_API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
 const RAT_AVATARS=[
 {face:'🐭',name:'Clássico',a:'#a86cff',b:'#432078',acc:'✦'},
@@ -171,9 +174,6 @@ async function refreshAdminAccess(){const btn=$('adminPanelBtn');btn.classList.a
 async function openAdminPanel(){if(!token||!player){toast('Entre na sua conta primeiro.');go('account');return}if(await refreshAdminAccess())location.href='https://vt12gt.github.io/ratopolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html';else toast('O servidor não confirmou autorização para o painel.')}
 $('adminPanelBtn').onclick=openAdminPanel;
 
-const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.53.0_corrigido.html';
-const $=id=>document.getElementById(id);let token='',player=null,mode='login',installPrompt=null;
-try{token=localStorage.getItem('ratopolis_session_token')||''}catch(e){}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
 function status(msg,kind=''){$('authStatus').textContent=msg;$('authStatus').className='status '+kind}
 function go(id){if(id==='account'&&player)id='profile';if(id==='profile'&&!player){id='account';status('Entre na conta para carregar o perfil.')}document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
