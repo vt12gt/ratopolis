@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#163d2c">
+<script id="ratopolis-tab-session-token-v154">
+(()=>{'use strict';const key='ratopolis_session_token',tabKey='__ratopolis_tab_session_v154';try{if(!sessionStorage.getItem(tabKey)){const value=localStorage.getItem(key)||'';if(value)sessionStorage.setItem(tabKey,value);}}catch(_){}window.__ratopolisGetTabSessionToken=function(){if(window.__ratopolisDuplicateTab)return '';try{return sessionStorage.getItem(tabKey)||'';}catch(_){return '';}};window.__ratopolisClearTabSessionToken=function(){try{sessionStorage.removeItem(tabKey);}catch(_){}};})();
+</script>
 <script>
 /* 1.50.0 — marca #game com "counting" enquanto a contagem está visível (apenas apresentação). */
 document.addEventListener('DOMContentLoaded',function(){
@@ -1170,7 +1173,7 @@ function showProgressionStatus(message,kind='info'){
  if(!el){el=document.createElement('div');el.id='progressionSyncStatus';el.setAttribute('role','status');el.setAttribute('aria-live','polite');el.style.cssText='position:fixed;z-index:100000;top:calc(env(safe-area-inset-top, 0px) + 8px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(92vw,520px);box-sizing:border-box;padding:9px 12px;border:1px solid rgba(235,220,165,.55);border-radius:10px;background:rgba(15,42,31,.94);color:#fff7dc;font:600 12px/1.4 system-ui,sans-serif;box-shadow:0 5px 18px rgba(0,0,0,.3);text-align:center;pointer-events:none;display:none';document.body.appendChild(el);}
  el.textContent=message;el.dataset.kind=kind;el.style.display='block';if(progressionStatusTimer)clearTimeout(progressionStatusTimer);progressionStatusTimer=setTimeout(()=>{if(el&&el.isConnected)el.style.display='none';progressionStatusTimer=null;},kind==='error'?9000:4500);
 }
-function progressionToken(){try{return localStorage.getItem('ratopolis_session_token')||'';}catch(_e){return '';}}
+function progressionToken(){try{return window.__ratopolisGetTabSessionToken()||'';}catch(_e){return '';}}
 function readPendingProgressionRewards(){try{const value=JSON.parse(localStorage.getItem(PROGRESSION_PENDING_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&typeof x.event_id==='string'&&Number.isInteger(x.phase)&&Number.isInteger(x.cheeses)&&Number.isInteger(x.acorns)&&Number.isInteger(x.lives)):[];}catch(_e){return [];}}
 function writePendingProgressionRewards(items){try{localStorage.setItem(PROGRESSION_PENDING_KEY,JSON.stringify(items));}catch(_e){showProgressionStatus('Não consegui guardar a fila de sincronização neste aparelho. Libere espaço no armazenamento do navegador.','error');}}
 function vipXPForLevel(target){let xp=0;const level=Math.max(1,Math.min(15,Math.floor(Number(target)||1)));for(let n=1;n<level;n++)xp+=100+n*50;return xp;}
@@ -2090,7 +2093,7 @@ function showPhaseCountdown(seconds=5,skip=false,serverAssigned=false){
 }
 async function getVerifiedStaffRole(){
  try{
-  const token=localStorage.getItem('ratopolis_session_token');if(!token)return '';
+  const token=window.__ratopolisGetTabSessionToken();if(!token)return '';
   const portal=await fetch('https://ratopolis-api-dev-v30.juniorgmj69.workers.dev/api/me',{method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store'});
   const pd=await portal.json().catch(()=>({}));if(!portal.ok||pd.ok===false)return '';
   const admin=await fetch('https://ratopolis-admin-test.juniorgmj69.workers.dev/api/admin/me',{method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store'});
@@ -2792,7 +2795,7 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
  const colors={ground:'#7aab52',block:'#a7794b',platform:'#8a633c',wall:'#6b4a35',cheese:'#ffd84d',acorn:'#9c6a32',den:'#25382b',plank:'#d3b17a',connector:'#5c9ad0'};
  function setStatus(t){$('scenarioEditorStatus').textContent=t}
  function normRole(v){const s=String(v||'').trim().toLowerCase().replace(/[\s_-]/g,'');if(['spadm','superadmin','superadministrator','superadministrador'].includes(s))return 'SpAdmin';if(['adm','admin','administrator','administrador'].includes(s))return 'Admin';if(['gm','gamemaster','gamemestre'].includes(s))return 'GM';if(['mod','moderator','moderador'].includes(s))return 'Mod';if(['editor','scenarioeditor','cenarioeditor','editordecenarios'].includes(s))return 'Editor';return s||'desconhecido'}
- function readToken(){try{return localStorage.getItem(TOKEN_KEY)||''}catch(_){return ''}}
+ function readToken(){try{return window.__ratopolisGetTabSessionToken()||''}catch(_){return ''}}
  async function verifyAccess(){
   const token=readToken();if(!token)throw new Error('Não encontrei a sessão do portal neste endereço. Entre pelo portal de teste, faça login e toque em Jogar.');
   let portalRes;try{portalRes=await fetch(PORTAL_API+'/api/me',{method:'GET',headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store',mode:'cors'});}catch(e){throw new Error('Não consegui validar a sessão do portal. Verifique a conexão da API principal.');}
@@ -2889,7 +2892,7 @@ level=Math.max(0,bestPhase-1);document.getElementById('testPhase').value=String(
  const state=document.getElementById('rmAccountState');
  const action=document.getElementById('rmAccountAction');
  if(!card||!state||!action)return;
- const token=()=>{try{return localStorage.getItem(KEY)||localStorage.getItem('ratopolis_session')||localStorage.getItem('sessionToken')||localStorage.getItem('portal_session_token')||''}catch(_){return ''}};
+ const token=()=>{try{return window.__ratopolisGetTabSessionToken()||localStorage.getItem('ratopolis_session')||localStorage.getItem('sessionToken')||localStorage.getItem('portal_session_token')||''}catch(_){return ''}};
  const set=(kind,message,button)=>{card.dataset.state=kind;state.textContent=message;action.textContent=button;const st=document.getElementById('rmStatus');if(st){st.dataset.state=kind==='connected'?'connected':kind==='error'?'error':'guest';const t=st.querySelector('span');if(t)t.textContent=kind==='connected'?'Conta conectada':kind==='checking'?'Verificando…':'Convidado';}};
  action.addEventListener('click',()=>{location.href=PORTAL;});
  async function check(){
@@ -2991,7 +2994,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{content:"";position:fixed;inset:
 (()=>{'use strict';
  const API='https://ratopolis-admin-test.juniorgmj69.workers.dev',PORTAL='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev',KEY='ratopolis_session_token';
  const allowed=new Set(['SpAdmin','Admin','GM','Mod','Editor']),$=id=>document.getElementById(id),btn=$('rpD1Switch'),modal=$('rpD1Modal'),status=$('rpD1Status'),list=$('rpD1List');if(!btn||!modal||!status||!list)return;
- const token=()=>{try{return localStorage.getItem(KEY)||''}catch(_){return ''}},esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const token=()=>{try{return window.__ratopolisGetTabSessionToken()||''}catch(_){return ''}},esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let allRows=[],activeFilter='all',verifiedAs='';
  async function req(path){const t=token();if(!t)throw Error('Faça login pelo portal e abra o jogo novamente.');const r=await fetch(API+path,{headers:{Authorization:'Bearer '+t,Accept:'application/json'},cache:'no-store',mode:'cors'});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw Error(d.erro||d.error||('Falha HTTP '+r.status));return d}
  async function verifyRole(){const t=token();if(!t)throw Error('Sessão do portal não encontrada.');const p=await fetch(PORTAL+'/api/me',{headers:{Authorization:'Bearer '+t,Accept:'application/json'},cache:'no-store',mode:'cors'}),pd=await p.json().catch(()=>({}));if(!p.ok||pd.ok===false)throw Error('O portal não confirmou sua sessão.');const d=await req('/api/admin/me');if(d.autorizado!==true)throw Error('O servidor não autorizou a consulta de equipe.');const raw=String(d.role||d.papel||d.user?.role||d.usuario?.role||d.perfil?.role||'').trim().toLowerCase().replace(/[\s_-]/g,'');if(['spadm','superadmin','superadministrator','superadministrador'].includes(raw))return'SpAdmin';if(['admin','adm','administrator','administrador'].includes(raw))return'Admin';if(['gm','gamemaster','gamemestre','gamemasterratopolis'].includes(raw))return'GM';if(['mod','moderator','moderador'].includes(raw))return'Mod';if(['editor','cenarioeditor','editordecenarios','scenarioeditor'].includes(raw))return'Editor';throw Error('Cargo sem permissão para trocar de cenário.')}
@@ -3305,7 +3308,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const avatarLayer=$('onlineAvatars');
 
  function getToken(){
-  try{return localStorage.getItem(TOKEN_KEY)||'';}catch(_){return '';}
+  try{return window.__ratopolisGetTabSessionToken()||'';}catch(_){return '';}
  }
  function setMessage(message,kind){
   messageEl.textContent=message;
@@ -3646,13 +3649,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 <script id="ratopolis-single-tab-session-v154">
 (()=>{'use strict';
  const KEY='ratopolis_session_token',CHANNEL='ratopolis-session-tabs-v154';
- let token='';try{token=localStorage.getItem(KEY)||'';}catch(_){return;}
+ let token='';try{token=window.__ratopolisGetTabSessionToken()||'';}catch(_){return;}
  if(!token||!('BroadcastChannel' in window))return;
  const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2);
  const startedAt=Date.now();let locked=false;
  let channel;try{channel=new BroadcastChannel(CHANNEL);}catch(_){return;}
  function lockThisTab(){
-  if(locked)return;locked=true;window.__ratopolisDuplicateTab=true;
+  if(locked)return;locked=true;window.__ratopolisDuplicateTab=true;try{window.__ratopolisClearTabSessionToken?.();}catch(_){}
   try{window.RatopolisOnlineRooms?.disconnectTab?.();}catch(_){}
   const cover=document.createElement('div');cover.id='ratopolisDuplicateTabCover';
   cover.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(4,18,12,.97);color:#fff3ce;font:16px system-ui;text-align:center';
@@ -4093,7 +4096,7 @@ body:has(#game.shaman-on) #game #communityDock{width:min(700px,calc(var(--gw) - 
  var CHAT_API='https://ratopolis-chat-api-v1.juniorgmj69.workers.dev';
  window.RatopolisChatOnline={
   base:CHAT_API,messagesEnabled:true,
-  token:function(){try{return localStorage.getItem('ratopolis_session_token')||''}catch(_){return ''}},
+  token:function(){try{return window.__ratopolisGetTabSessionToken()||''}catch(_){return ''}},
   async health(){var c=new AbortController(),to=setTimeout(function(){c.abort()},6000);try{var r=await fetch(CHAT_API+'/health',{signal:c.signal,cache:'no-store'});var j=await r.json();return{ok:!!(r.ok&&j&&j.ok),data:j}}catch(e){return{ok:false,error:String(e&&e.message||e)}}finally{clearTimeout(to)}},
   async request(method,body){var token=this.token();if(!token)throw new Error('Entre no portal para usar o chat global.');var url=CHAT_API+'/api/chat/messages'+(method==='GET'?'?channel=global':'');var r=await fetch(url,{method:method,cache:'no-store',headers:{'Accept':'application/json','Content-Type':'application/json','Authorization':'Bearer '+token},body:method==='GET'?undefined:JSON.stringify(body||{})});var j=await r.json().catch(function(){return{}});if(!r.ok||!j.ok)throw new Error(j.error||('Erro do chat ('+r.status+')'));return j},
   async list(){var j=await this.request('GET');return Array.isArray(j.messages)?j.messages:(Array.isArray(j.results)?j.results:(Array.isArray(j.items)?j.items:[]))},
@@ -4153,7 +4156,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  const roleBadge=document.getElementById('rmGChatRole');
  async function refreshChatRole(){
   if(!roleBadge)return;
-  let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  let token='';try{token=window.__ratopolisGetTabSessionToken()||'';}catch(_){}
   if(!token){roleBadge.textContent='Visitante';roleBadge.title='Entre no portal para verificar sua conta.';return;}
   roleBadge.textContent='Player';roleBadge.title='Cargo padrão; verificando permissões da equipe.';
   try{
@@ -4202,7 +4205,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  function sys(msg){append(menuLog,'rm-gmsg sys',msg);append(gameLog,'chat-line system',msg);}
  function scheduleReconnect(){
   if(pageLeaving)return;
-  let currentToken='';try{currentToken=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  let currentToken='';try{currentToken=window.__ratopolisGetTabSessionToken()||'';}catch(_){}
   if(!currentToken){online=false;connecting=false;setState('entre no portal');if(retry){clearTimeout(retry);retry=null;}return;}
   if(retry)clearTimeout(retry);
   const delay=retryDelay;
@@ -4213,7 +4216,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  async function connect(){
   if(pageLeaving||connecting||(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)))return;
   connecting=true;
-  let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  let token='';try{token=window.__ratopolisGetTabSessionToken()||'';}catch(_){}
   if(!token){online=false;setState('entre no portal');connecting=false;scheduleReconnect();return;}
   setState('conectando…');
   try{
@@ -4267,7 +4270,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
  window.RatopolisWorldChat={send:text=>{const r=send(text);return r.ok;},sendPrivate:(id,text)=>{selectedPrivateId=String(id||'');sendPrivate(text);},getPlayers:()=>[...onlinePlayers.values()],openPrivate:name=>{const n=String(name||'').trim().toLowerCase();for(const p of onlinePlayers.values()){if(String(p.nickname||p.nick||p.name||'').toLowerCase()===n){selectedPrivateId=String(p.playerId);break;}}privateOverlay.hidden=false;renderOnlinePlayers();renderPrivateThread();},isOnline:()=>online,reconnect:()=>{if(retry){clearTimeout(retry);retry=null;}if(ws)try{ws.close();}catch(_){}else connect();}};
  document.getElementById('rmPrivateClose')?.addEventListener('click',()=>{privateOverlay.hidden=true;});privateOverlay?.addEventListener('click',e=>{if(e.target===privateOverlay)privateOverlay.hidden=true;});document.getElementById('rmPrivateForm')?.addEventListener('submit',e=>{e.preventDefault();const value=privateInput.value.trim();if(!value)return;sendPrivate(value);privateInput.value='';privateInput.focus({preventScroll:true});});
  window.addEventListener('pagehide',()=>{pageLeaving=true;online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(retry){clearTimeout(retry);retry=null;}if(ws){try{ws.close(1000,'pagehide');}catch(_){}}});
- window.addEventListener('pageshow',()=>{pageLeaving=false;let token='';try{token=localStorage.getItem(TOKEN_KEY)||'';}catch(_){}if(token&&(!ws||ws.readyState===WebSocket.CLOSED)){if(retry){clearTimeout(retry);retry=null;}connect();}});
+ window.addEventListener('pageshow',()=>{pageLeaving=false;let token='';try{token=window.__ratopolisGetTabSessionToken()||'';}catch(_){}if(token&&(!ws||ws.readyState===WebSocket.CLOSED)){if(retry){clearTimeout(retry);retry=null;}connect();}});
  window.addEventListener('storage',e=>{if(e.key===TOKEN_KEY&&!e.newValue){online=false;loadedHistory=false;onlinePlayers.clear();privateThreads.clear();selectedPrivateId='';if(retry){clearTimeout(retry);retry=null;}if(ws){try{ws.close(1000,'logout');}catch(_){}}if(menuLog)menuLog.replaceChildren();if(gameLog)gameLog.replaceChildren();privateLog?.replaceChildren();setState('entre no portal');}});
  if(menuForm&&menuInput)menuForm.addEventListener('submit',e=>{
   e.preventDefault();const value=menuInput.value.trim();if(!value)return;
