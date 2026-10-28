@@ -3507,7 +3507,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   try{
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
-   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&/^[A-Z0-9]{6}$/.test(String(r.code||'')));
+   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&/^[A-Z0-9]{4,8}$/.test(String(r.code||'')));
    directoryPage=0;renderDirectoryPage();
   }catch(err){
    allDirectoryRooms=[];directoryList.replaceChildren();const empty=document.createElement('div');empty.className='online-directory-empty';empty.textContent=(err&&err.message)||'Não foi possível carregar as salas. Tente atualizar.';directoryList.appendChild(empty);
@@ -3671,7 +3671,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    if(kind==='create'){
     const roomPassword=window.prompt('Crie uma senha para sua sala privada (mínimo 4 caracteres):');if(roomPassword===null)return;if(roomPassword.length<4||roomPassword.length>64)throw new Error('A senha deve ter de 4 a 64 caracteres.');data=await api('/api/rooms/create',{role:selectedRoomRole,password:roomPassword},token);
     code=roomCodeFrom(data);
-    if(!/^[A-Z0-9]{6}$/.test(code))throw new Error('O servidor não retornou um código válido de seis caracteres. Nenhuma sala foi selecionada localmente.');
+    if(!/^[A-Z0-9]{4,8}$/.test(code))throw new Error('O servidor não retornou um ID de sala válido. Nenhuma sala foi selecionada localmente.');
    }else{
     code=String(codeInput.value||'').trim().toUpperCase();
     if(!/^[A-Z0-9]{4,8}$/.test(code))throw new Error('Digite um ID de sala com 4 a 8 letras ou números.');
@@ -3742,7 +3742,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
     try{
      const data=await api('/api/rooms/match',{},token);
      const code=roomCodeFrom(data);
-     if(data&&data.ok&&/^[A-Z0-9]{6}$/.test(code)){
+     if(data&&data.ok&&/^[A-Z0-9]{4,8}$/.test(code)){
       codeInput.value=code;
       await runRoomAction('join');
       if(activeRoomCode===code){if(tick)clearInterval(tick);loading.remove();loading=null;startOnlineMatch();return;}
