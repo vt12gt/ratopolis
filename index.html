@@ -105,7 +105,7 @@ button:disabled{opacity:.55;cursor:wait}
 <header class="topbar"><div class="topinner"><div class="brand"><div class="logo">🐭</div><div>RATÓPOLIS<small>PORTAL OFICIAL</small></div></div><div class="top-actions"><span class="pill" id="connectionPill">API v34</span><button class="ghost" onclick="go('account')" id="topAccount">Entrar</button></div></div></header>
 <main class="shell">
 <section id="home" class="page active">
- <div class="hero"><div class="eyebrow">Seu mundo. Sua toca.</div><h1>Bem-vindo a <span style="color:var(--gold)">Ratópolis</span></h1><p>Entre na comunidade, acompanhe seu perfil e prepare-se para suas próximas corridas.</p><div class="actions"><button class="goldbtn play-cta" onclick="playGame()">▶ JOGAR</button><a class="ghost" href="./pwa/" style="display:inline-flex;align-items:center;text-decoration:none">📲 Abrir / instalar app</a><button class="ghost" onclick="go('ranking');loadPlayers()">Ver jogadores ↗</button></div></div>
+ <div class="hero"><div class="eyebrow">Seu mundo. Sua toca.</div><h1>Bem-vindo a <span style="color:var(--gold)">Ratópolis</span></h1><p>Entre na comunidade, escolha sua sala e prepare-se para correr. Nas salas vazias, você pode escolher ser Shaman ou Rato; cada sala mantém apenas um Shaman.</p><div class="actions"><button class="goldbtn play-cta" onclick="playGame()">▶ JOGAR</button><a class="ghost" href="./pwa/" style="display:inline-flex;align-items:center;text-decoration:none">📲 Abrir / instalar app</a><button class="ghost" onclick="go('ranking');loadPlayers()">Ver jogadores ↗</button></div></div>
  <div class="feature-list"><div class="feature"><strong>🐭 Comunidade</strong><span>Jogadores registrados</span></div><div class="feature"><strong>🧀 Recompensas</strong><span>Moedas e progresso</span></div><div class="feature"><strong>🏆 Rankings</strong><span>Confira os jogadores</span></div></div>
  <div class="section-head"><div><h2>Novidades da toca</h2><p>O portal está em integração</p></div><span class="tag goldtag">Em construção</span></div>
  <div class="grid"><article class="card"><div class="news-art">🎉 🐭</div><span class="tag goldtag">Comunidade</span><h3>Bem-vindo ao portal</h3><p>Um novo lugar para acompanhar seu perfil, novidades e conquistas.</p><span class="smallmeta">Comunicado demonstrativo</span></article><article class="card"><div class="news-art blue">🏁 ✨</div><span class="tag">Jogo</span><h3>Entre na corrida</h3><p>Entre na sua conta para jogar com seu perfil Ratópolis.</p><button class="linkbtn" onclick="playGame()">Abrir Ratópolis →</button></article><article class="card"><div class="news-art gold">🪙 🛍️</div><span class="tag goldtag">Loja</span><h3>Loja da toca</h3><p>Esta área é visual por enquanto. Nenhuma compra real é realizada.</p><button class="linkbtn" onclick="go('shop')">Explorar loja →</button></article></div>
@@ -124,7 +124,7 @@ button:disabled{opacity:.55;cursor:wait}
 const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const ADMIN_API = 'https://ratopolis-admin-test.juniorgmj69.workers.dev';
 const ADMIN_PANEL_URL = 'https://vt12gt.github.io/ratopolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html';
-const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.52.0_shaman.html';
+const GAME='https://vt12gt.github.io/ratopolis/ratopolis_v1.55.4_shaman_escolha.html';
 let formMode='login';
 let sessionToken='';
 try{sessionToken=localStorage.getItem('ratopolis_session_token')||''}catch(e){}
