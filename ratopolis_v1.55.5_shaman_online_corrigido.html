@@ -1107,7 +1107,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
     </div>
   </div>
   <div class="online-shaman-choice" id="onlineShamanChoice" aria-label="Escolha de papel para sala vazia">
-    <strong>🎭 Escolha seu papel (só vale ao criar ou entrar em uma sala vazia)</strong>
+    <strong>🎭 Escolha seu papel (disponível somente enquanto a sala não tiver Shaman)</strong>
     <div class="online-shaman-choice-buttons">
       <button type="button" class="online-role-btn active" data-role="shaman" aria-pressed="true">✨ Quero ser Shaman</button>
       <button type="button" class="online-role-btn" data-role="rat" aria-pressed="false">🐭 Quero ser Rato</button>
@@ -3408,8 +3408,33 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null; let allDirectoryRooms=[], directoryPage=0; const DIRECTORY_PAGE_SIZE=4;
  let selectedRoomRole='rat';
  const roleButtons=Array.from(document.querySelectorAll('.online-role-btn'));
- function selectRoomRole(role){selectedRoomRole=role==='rat'?'rat':'shaman';for(const b of roleButtons){const on=b.dataset.role===selectedRoomRole;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');}if(messageEl)messageEl.textContent='Papel escolhido: '+(selectedRoomRole==='shaman'?'Shaman':'Rato')+'. O servidor só aceitará a escolha manual se a sala estiver vazia.';}
- roleButtons.forEach(b=>b.addEventListener('click',()=>selectRoomRole(b.dataset.role)));
+ function updateRoleChoice(data){
+  const wrap=roleButtons[0]?.closest('.online-shaman-choice');
+  const players=extractPlayers(data||roomState);
+  const shamanId=String((data&&data.shamanId)||(roomState&&roomState.shamanId)||'');
+  const hasShaman=!!shamanId&&players.some(p=>String(p&&p.id||p&&p.playerId||'')===shamanId);
+  if(wrap)wrap.style.display=hasShaman?'none':'';
+  roleButtons.forEach(b=>{b.disabled=!!activeRoomCode&&hasShaman;});
+ }
+ function selectRoomRole(role){
+  selectedRoomRole=role==='rat'?'rat':'shaman';
+  for(const b of roleButtons){const on=b.dataset.role===selectedRoomRole;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');}
+  if(messageEl)messageEl.textContent='Papel escolhido: '+(selectedRoomRole==='shaman'?'Shaman':'Rato')+'. O servidor confirmará a escolha.';
+ }
+ roleButtons.forEach(b=>b.addEventListener('click',async()=>{
+  selectRoomRole(b.dataset.role);
+  if(!activeRoomCode)return;
+  const token=getToken();
+  roleButtons.forEach(x=>x.disabled=true);
+  try{
+   const data=await api('/api/rooms/join',{room:activeRoomCode,role:selectedRoomRole},token);
+   roomState=data;applyRoomState(data);updateRoleChoice(data);
+   if(data.isShaman||String(data.shamanId||'')===getLocalPlayerId())setMessage('O servidor confirmou você como Shaman!','success');
+   else if(data.shamanId)setMessage('Já existe um Shaman nesta sala. Você continua como Rato.','success');
+   else setMessage('Escolha registrada. Aguardando alguém escolher Shaman.','success');
+  }catch(err){setMessage(err.message||'Não foi possível registrar a escolha.','error');}
+  finally{updateRoleChoice(roomState);}
+ });
  selectRoomRole('rat');
  let roomState=null, connectionLost=false, generation=0, lastSuccessfulStateAt=0, remotePlayers=new Map(), localRoomMatchStarted=false;
  const avatarLayer=$('onlineAvatars');
@@ -3555,7 +3580,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   items.forEach((p,i)=>{const row=document.createElement('div');row.className='cd-player';const name=document.createElement('span');const nick=playerLabel(p,i);const id=p&&typeof p==='object'?(p.id||p.playerId||p.userId||p.user_id):'';const self=String(id)===String(getLocalPlayerId());name.textContent='🐭 '+nick+(self?' (você)':'');const status=document.createElement('span');status.textContent='●';status.setAttribute('aria-label','Online');row.append(name,status);list.appendChild(row);});
  }
  function applyRoomState(data){
-  roomState=data||roomState||{};
+  roomState=data||roomState||{};updateRoleChoice(roomState);
   const players=extractPlayers(roomState);renderCommunityRoomPlayers(players);const seen=new Set();let remotePreview=null;
   for(const p of players){if(!p||typeof p!=='object')continue;const id=String(p.id||p.playerId||'');if(!id)continue;seen.add(id);if(p.state&&typeof p.state==='object'){remotePlayers.set(id,{...p,...p.state,id,nickname:p.nickname||p.state.nickname});if(id!==String(getLocalPlayerId()||'')&&p.state.role==='shaman'){if(Array.isArray(p.state.shamanObjects))applySyncedShamanObjects(p.state);remotePreview=p.state.shamanPreview||null;}}}if(typeof window.__ratopolisSetRemoteShamanPreview==='function')window.__ratopolisSetRemoteShamanPreview(remotePreview);
   for(const id of Array.from(remotePlayers.keys()))if(!seen.has(id))remotePlayers.delete(id);
@@ -3603,7 +3628,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   connectRoomSocket(activeRoomCode);
  }
  function showRoom(code,data){
-  activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();roleButtons.forEach(b=>b.disabled=true);
+  activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
@@ -3697,23 +3722,14 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    setOnlineStatus('Você saiu da sala.');setMessage('Saída confirmada pelo servidor. Voltando ao menu.','success');
    return true;
   };
-  try{
-   let leaveResult=await api('/api/rooms/leave',{room:code},token);
-   if(leaveResult&&leaveResult.ok===true&&leaveResult.removed===true)return finishExit();
-   let state=await api('/api/rooms/state',{room:code},token);
-   let players=Array.isArray(state.players)?state.players:[];
-   const stillPresent=()=>playerId&&players.some(p=>String(p.id||p.playerId||p.user_id)===playerId);
-   if(!stillPresent())return finishExit();
-   leaveResult=await api('/api/rooms/leave',{room:code},token);
-   if(leaveResult&&leaveResult.ok===true&&leaveResult.removed===true)return finishExit();
-   state=await api('/api/rooms/state',{room:code},token);players=Array.isArray(state.players)?state.players:[];
-   if(!stillPresent())return finishExit();
-   throw new Error('O servidor ainda mostra sua conta na sala. Tente novamente.');
-  }catch(err){
-   if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
-   setOnlineStatus('Saída não confirmada');setMessage((err&&err.message)||'Não foi possível confirmar a saída no servidor. Tente novamente.','error');
-   return false;
-  }finally{if(leaveBtn)leaveBtn.disabled=false;const btn=$('onlineLeaveGameBtn');if(btn)btn.disabled=false;}
+  const exitCode=code,exitToken=token,exitPlayerId=playerId;
+  const left=finishExit();
+  if(leaveBtn)leaveBtn.disabled=false;const btn=$('onlineLeaveGameBtn');if(btn)btn.disabled=false;
+  api('/api/rooms/leave',{room:exitCode,playerId:exitPlayerId},exitToken).catch(()=>{
+   setOnlineStatus('Saída local concluída; servidor verificando remoção');
+   setMessage('Você já voltou ao menu. O servidor de salas está concluindo a remoção da sala.','success');
+  }); 
+  return left;
  }
  async function joinRandomAndStart(){
   if(activeRoomCode){startOnlineMatch();return;}
