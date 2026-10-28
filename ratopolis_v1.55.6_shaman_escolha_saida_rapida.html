@@ -3514,7 +3514,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const row=document.createElement('div');row.className='online-directory-room';
    const info=document.createElement('div');const name=document.createElement('span');name.textContent=(room.kind==='official'?'🌐 ':'👤 ')+(room.name||('Sala '+room.code));
    const maxP=Number(room.maxPlayers||20),cur=Number(room.players||0),stRaw=String(room.status||room.state||room.phase||'').trim();const closed=['closed','ended','finished','encerrada','encerrado'].includes(stRaw.toLowerCase())||room.open===false||room.available===false;const full=cur>=maxP;const meta=document.createElement('small');meta.textContent=cur+'/'+maxP+' jogadores · código '+String(room.code||'')+(stRaw?' · '+stRaw:'')+(full?' · LOTADA':'')+(closed?' · INDISPONÍVEL':'');info.append(name,meta);
-   const btn=document.createElement('button');btn.type='button';btn.textContent=closed?'INDISPONÍVEL':(full?'LOTADA':'ENTRAR');btn.disabled=!!activeRoomCode||full||closed;btn.addEventListener('click',async()=>{codeInput.value=String(room.code||'');await runRoomAction('join');if(activeRoomCode&&!localRoomMatchStarted)startOnlineMatch();});row.append(info,btn);directoryList.appendChild(row);
+   const btn=document.createElement('button');btn.type='button';btn.textContent=closed?'INDISPONÍVEL':(full?'LOTADA':'ENTRAR');btn.disabled=!!activeRoomCode||full||closed;btn.addEventListener('click',async()=>{codeInput.value=String(room.code||'');await runRoomAction('join');});row.append(info,btn);directoryList.appendChild(row);
   });
  }
  async function loadDirectory(){
