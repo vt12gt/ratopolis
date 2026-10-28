@@ -3298,7 +3298,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const avatarLayer=$('onlineAvatars'),leaveMatchBtn=$('leaveOnlineMatchBtn');
 
  const TAB_OWNER_KEY='ratopolis_active_game_tab_v154',TAB_LOCK_KEY='ratopolis_game_tab_locked_v154';
- let tabId='';try{tabId=sessionStorage.getItem('ratopolis_game_tab_id_v154')||'';if(!tabId){tabId='tab-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);sessionStorage.setItem('ratopolis_game_tab_id_v154',tabId);}localStorage.setItem(TAB_OWNER_KEY,tabId);sessionStorage.removeItem(TAB_LOCK_KEY);}catch(_){}
+ let tabId='';try{tabId=sessionStorage.getItem('ratopolis_game_tab_id_v154')||'';if(!tabId){tabId='tab-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);sessionStorage.setItem('ratopolis_game_tab_id_v154',tabId);}if(localStorage.getItem(TOKEN_KEY)){localStorage.setItem(TAB_OWNER_KEY,tabId);sessionStorage.removeItem(TAB_LOCK_KEY);}}catch(_){}
  function lockThisTab(reason){
   try{sessionStorage.setItem(TAB_LOCK_KEY,'1');}catch(_){}
   playing=false;if(typeof clearTouchMovement==='function')clearTouchMovement();
