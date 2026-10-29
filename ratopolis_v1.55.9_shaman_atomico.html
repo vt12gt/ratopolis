@@ -2389,7 +2389,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
- const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton)menuRoomsButton.addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
+ const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton)menuRoomsButton.style.display='none';
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3506,7 +3506,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   try{
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
-   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&/^[A-Z0-9]{6}$/.test(String(r.code||'')));
+   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&['RAT001','RAT002'].includes(String(r.code||'').toUpperCase()));
    directoryPage=0;renderDirectoryPage();
   }catch(err){
    allDirectoryRooms=[];directoryList.replaceChildren();const empty=document.createElement('div');empty.className='online-directory-empty';empty.textContent=(err&&err.message)||'Não foi possível carregar as salas. Tente atualizar.';directoryList.appendChild(empty);
@@ -3729,14 +3729,12 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   try{
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
-   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('A sala oficial ainda não está disponível. O jogo não vai criar outra sala nem escolher um mapa pelo servidor.');
-   // Prioriza a sala que já tem jogadores; se estiver vazia, entra nela e começa na Fase 1.
-   const pick=rooms.slice().sort((a,b)=>{
-    const ap=Array.isArray(a.playersList)?a.playersList.length:Number(a.players||0);
-    const bp=Array.isArray(b.playersList)?b.playersList.length:Number(b.players||0);
-    return bp-ap;
-   })[0];
+   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>['RAT001','RAT002'].includes(String(r.code||'').toUpperCase())&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
+   if(!rooms.length)throw new Error('As duas salas oficiais (RAT001 e RAT002) não estão disponíveis. O jogo não vai criar uma sala extra.');
+   // Prioriza a sala que já tem jogadores; em caso de empate, escolhe aleatoriamente entre as duas salas oficiais.
+   const maxPlayers=Math.max(...rooms.map(r=>Array.isArray(r.playersList)?r.playersList.length:Number(r.players||0)));
+   const candidates=rooms.filter(r=>(Array.isArray(r.playersList)?r.playersList.length:Number(r.players||0))===maxPlayers);
+   const pick=candidates[Math.floor(Math.random()*candidates.length)];
    const code=String(pick.code);
    codeInput.value=code;await runRoomAction('join');
    if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala oficial.');
@@ -4436,4 +4434,17 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   #roomsOverlay .online-room-join label{display:none!important}
   #roomsOverlay .online-room-message{margin:2px 0 0!important;font-size:11px!important}
 }
+
+/* v1.55.9 — acesso automático: duas salas oficiais, sem seletor manual */
+#start #menuRooms{display:none!important}
+#roomsOverlay .room-note,
+#roomsOverlay #onlineRoomsDirectory,
+#roomsOverlay .online-room-actions,
+#roomsOverlay #onlineShamanChoice,
+#roomsOverlay .rooms-layout,
+#roomsOverlay .shaman-role-picker,
+#roomsOverlay .room-actions{display:none!important}
+#roomsOverlay .rooms-modal>h2{display:none!important}
+#roomsOverlay #ratopolisOnlineRooms>h3,
+#roomsOverlay #ratopolisOnlineRooms>p{display:none!important}
 </style>
