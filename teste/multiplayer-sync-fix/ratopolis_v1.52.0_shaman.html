@@ -3518,10 +3518,32 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  function startOnlineMatch(){
   if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
-  localRoomMatchStarted=true;drawRemoteAvatars();
+  if(typeof window.makeLevel!=='function'&&typeof makeLevel!=='function'){
+    setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;
+  }
+  localRoomMatchStarted=true;
   overlay.classList.add('hidden');
-  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(0,false);
-  else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
+  document.getElementById('roomsOverlay')?.classList.add('hidden');
+  document.getElementById('start')?.classList.add('hidden');
+  document.getElementById('finish')?.classList.add('hidden');
+  document.getElementById('phaseStart')?.classList.add('hidden');
+  document.getElementById('death')?.classList.add('hidden');
+  /* Entrada tardia: monta o cenário observado sem iniciar/reiniciar a corrida local. */
+  const players=extractPlayers(roomState);
+  const phases=players.map(p=>Number((p&&p.state&&p.state.phase)??p.phase)).filter(n=>Number.isInteger(n)&&n>=0&&n<12);
+  if(phases.length){
+    const counts=new Map();for(const n of phases)counts.set(n,(counts.get(n)||0)+1);
+    level=[...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+  }
+  testMode=false;
+  if(typeof makeLevel==='function')makeLevel();
+  playing=false;
+  raceHumanFinished=false;
+  clearTouchMovement();
+  requestLandscape();
+  drawRemoteAvatars();
+  setOnlineStatus('Assistindo à corrida · aguardando a próxima fase');
+  setMessage('Você entrou durante uma partida. Acompanhe os ratos; você participará na próxima contagem regressiva.','success');
   connectRoomSocket(activeRoomCode);
  }
  function showRoom(code,data,autoStart=false){
