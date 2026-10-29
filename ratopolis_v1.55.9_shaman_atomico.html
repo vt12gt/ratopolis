@@ -1029,7 +1029,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
  <div class="rm-logo" aria-label="Ratópolis"><span class="rm-logo-text">RATÓPOLIS</span><span class="rm-logo-cheese" aria-hidden="true">🧀</span></div>
  <nav class="rm-nav" id="rmNav" aria-label="Menu principal">
   <button id="menuPlay" class="rm-btn rm-primary" type="button"><span class="rm-ico">▶</span><span class="rm-lbl">JOGAR</span></button>
-  <button id="menuRooms" class="rm-btn" type="button"><span class="rm-ico">🚪</span><span class="rm-lbl">ESCOLHER SALA</span></button>
+  <button id="menuRooms" class="rm-btn" type="button" hidden aria-hidden="true" style="display:none!important"></button>
   <button id="menuMyHome" class="rm-btn" type="button"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
   <button id="menuMiniGame" class="rm-btn" type="button"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
   <button id="rmFriends" class="rm-btn" type="button"><span class="rm-ico">👥</span><span class="rm-lbl">AMIGOS</span></button>
@@ -2389,7 +2389,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
- const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton)menuRoomsButton.style.display='none';
+ const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton){menuRoomsButton.hidden=true;menuRoomsButton.setAttribute('aria-hidden','true');menuRoomsButton.style.setProperty('display','none','important');}
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
