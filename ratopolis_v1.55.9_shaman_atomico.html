@@ -2310,7 +2310,7 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
   const close=document.getElementById('chatClose');if(close)close.classList.remove('menu-chat-close-hidden');
  }
  async function startRandomRoomCountdown(){if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){return window.RatopolisOnlineRooms.joinRandom();}const m=document.getElementById('message');if(m)m.textContent='Servidor do jogo não conectado. A partida online não pode começar.';return;}
- async function async function switchToTestRoom(roomIndex,skipCountdown=false){
+ async function switchToTestRoom(roomIndex,skipCountdown=false){
  document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}clearPhaseTimers();document.getElementById('finish').classList.add('hidden');document.getElementById('phaseStart').classList.add('hidden');document.getElementById('death').classList.add('hidden');
  level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();physicsAccumulator=0;clearTouchMovement();
  /* Todos os jogadores, inclusive a equipe, veem a mesma janela de seleção do Shaman. */
