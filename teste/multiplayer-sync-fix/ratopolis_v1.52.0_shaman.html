@@ -2325,7 +2325,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();return;}const m=document.getElementById('message');if(m)m.textContent='Servidor de salas indisponível. Nenhuma partida local será iniciada; tente novamente mais tarde.';});
- document.getElementById('menuRooms').addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
+ const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton)menuRoomsButton.addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3531,6 +3531,18 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  function startOnlineMatch(){
   if(!activeRoomCode){setMessage('Entre na sala online primeiro.','error');return;}
   if(typeof makeLevel!=='function'){setMessage('O cenário local ainda não terminou de carregar.','error');return;}
+  // Entra na fase local já ocupada por jogadores; se a sala estiver vazia, começa na Fase 1.
+  const selfId=String(getLocalPlayerId());
+  const players=extractPlayers(roomState||{});
+  const occupied=players
+    .filter(p=>p&&String(p.id||p.playerId||p.userId||p.user_id||'')!==selfId&&p.state&&Number.isFinite(Number(p.state.phase))&&(p.state.started||p.state.active)&&!p.state.finished)
+    .sort((a,b)=>Number(a.state.phase)-Number(b.state.phase));
+  if(occupied.length){
+    const target=Math.max(0,Math.min(scenarioNames.length-1,Number(occupied[0].state.phase)||0));
+    level=target;
+  }else{
+    level=0;
+  }
   localRoomMatchStarted=true;
   overlay.classList.add('hidden');
   document.getElementById('roomsOverlay')?.classList.add('hidden');
