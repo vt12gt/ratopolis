@@ -3647,7 +3647,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   details.classList.remove('hidden');codeDisplay.textContent=code;
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
-  setMessage('Você entrou na sala online '+code+'. Toque em JOGAR NESTA SALA para iniciar.','success');
+  setMessage('Você entrou na sala online '+code+'. As informações ficam no Lobby.','success');
+  const lobbyNotice=document.getElementById('rlNotice');if(lobbyNotice){const roster=Array.isArray(roomState.players)?roomState.players:(Array.isArray(roomState.roster)?roomState.roster:[]);lobbyNotice.textContent='Sala '+code+' · '+(roster.length||Number(roomState.playerCount)||Number(roomState.count)||1)+' jogador(es) conectado(s). As informações ficam aqui no Lobby.';}
   connectRoomSocket(code);startPollingIfVisible();loadDirectory();
  }
  function stopPolling(){if(pollTimer!==null){clearInterval(pollTimer);pollTimer=null;}}
