@@ -3554,7 +3554,6 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   drawRemoteAvatars();
   setOnlineStatus('Assistindo à corrida · aguardando a próxima fase');
   setMessage('Você entrou durante uma partida. Acompanhe os ratos; você participará na próxima contagem regressiva.','success');
-  connectRoomSocket(activeRoomCode);
  }
  function showRoom(code,data,autoStart=false){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();
@@ -3562,7 +3561,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   applyRoomState(roomState);
   setOnlineStatus('Sala online · conectada');
   setMessage('Você entrou na sala online '+code+'.','success');
-  if(autoStart)startOnlineMatch();else connectRoomSocket(code);
+  // Inicia a sincronização imediatamente após o servidor confirmar a entrada, mesmo se o motor local ainda não estiver pronto.
+  connectRoomSocket(code);
+  if(autoStart)startOnlineMatch();
   startPollingIfVisible();loadDirectory();
  }
  function stopPolling(){
