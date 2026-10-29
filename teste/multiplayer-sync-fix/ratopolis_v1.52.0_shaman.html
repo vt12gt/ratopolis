@@ -998,7 +998,17 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #roomsOverlay .online-room-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4px!important;margin:3px 0!important}
 #roomsOverlay button{min-height:28px!important;padding:3px 6px!important;font-size:11px!important}
 @media(max-height:520px){#roomsOverlay h2{font-size:15px!important;margin:1px 0!important}#roomsOverlay .room-note{font-size:10px!important;margin:2px 0!important}}
-</style></head>
+</style>
+<style id="ratopolis-auto-room-clean-menu">
+/* Lobby limpo: salas nunca são listadas ao jogador comum e as ferramentas do Shaman
+   só aparecem dentro da partida, quando o jogo autoriza o papel. */
+#start #menuRooms{display:none!important}
+body:has(#start:not(.hidden)) #shamanTools{display:none!important}
+#roomsOverlay{display:none!important}
+#onlineRoomsDirectory,#ratopolisOnlineRooms,.rooms-layout,.shaman-role-picker,.room-actions{display:none!important}
+#menuPlay[aria-busy="true"]{opacity:.86;cursor:progress}
+</style>
+</head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
  <div style="width:min(520px,100%);padding:26px;border:2px solid #d7b84d;border-radius:22px;background:#09251c;box-shadow:0 15px 60px #0009">
@@ -2302,7 +2312,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
   if(normalized.startsWith('/me ')){const action=value.slice(4).trim();if(!action){addChatLine('Sistema: use /me seguido de uma ação.','system');return;}addChatLine('✨ '+(playerNickname||'Convidado')+' '+action);return;}
   if(normalized==='/me'){addChatLine('Sistema: exemplo: /me comemora a vitória!','system');return;}
   if(normalized.startsWith('/nick ')){const nick=value.slice(6).trim().replace(/\s+/g,' ');if(nick.length<2||/[<>]/.test(nick)){addChatLine('Sistema: nickname precisa ter 2 a 18 caracteres e não pode conter < ou >.','system');return;}playerNickname=nick.slice(0,18);try{localStorage.setItem('ratopolis_guest_nickname_v1975',playerNickname);}catch(_e){}updateMenuProfile();renderRoomParticipants();renderCommunityParticipants();addChatLine('Sistema: seu nickname agora é '+playerNickname+'.','system');return;}
-  if(normalized==='/salas'||normalized==='/rooms'){addChatLine('Sistema: abrindo lista de salas locais.','system');closeCommunity();openRooms();return;}
+  if(normalized==='/salas'||normalized==='/rooms'){addChatLine('Sistema: as salas são escolhidas automaticamente para juntar você aos jogadores disponíveis. Use JOGAR para entrar.','system');closeCommunity();return;}
   const roomMatch=normalized.match(/^\/sala\s+(\d{1,2})$/);if(roomMatch){const room=Number(roomMatch[1]);if(room<1||room>scenarioNames.length){addChatLine('Sistema: escolha uma sala de 1 a '+scenarioNames.length+'. Use /salas para ver a lista.','system');return;}selectedLocalRoom=room-1;renderCommunityParticipants();addChatLine('Sistema: sala '+room+' selecionada — '+scenarioName(room-1)+'. Iniciando em 5 segundos.','system');closeCommunity();switchToTestRoom(room-1);return;}
   if(normalized==='/sala aleatoria'||normalized==='/sala aleatória'||normalized==='/sala random'){const room=chooseLeastPopulatedRoom();selectedLocalRoom=room;renderCommunityParticipants();addChatLine('Sistema: sorteio local escolheu a sala '+(room+1)+' — '+scenarioName(room)+'. Iniciando em 5 segundos.','system');closeCommunity();switchToTestRoom(room);return;}
   if(normalized.startsWith('/sala')){addChatLine('Sistema: comando não reconhecido. Tente /sala 5, /sala aleatoria ou /salas.','system');return;}
@@ -2310,7 +2320,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
   if(window.RatopolisWorldChat&&window.RatopolisWorldChat.send(value)){}else{addChatLine('Sistema: Chat Mundo conectando ou indisponível. Tente novamente em instantes.','system');}
  }
  document.getElementById('chatToggle').addEventListener('click',()=>openChat(document.getElementById('chatPanel').classList.contains('hidden')));document.getElementById('chatClose').addEventListener('click',()=>openChat(false));document.getElementById('chatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('chatInput');handleChatSubmit(input.value);input.value='';input.focus({preventScroll:true});});
- document.getElementById('communityBtn').addEventListener('click',openCommunity);document.getElementById('communityCloseBtn').addEventListener('click',closeCommunity);document.getElementById('communityRoomsBtn').addEventListener('click',()=>{closeCommunity();openRooms();});document.getElementById('communityOverlay').addEventListener('click',e=>{if(e.target.id==='communityOverlay')closeCommunity();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommunity();});
+ document.getElementById('communityBtn').addEventListener('click',openCommunity);document.getElementById('communityCloseBtn').addEventListener('click',closeCommunity);document.getElementById('communityRoomsBtn').addEventListener('click',()=>{closeCommunity();if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function')window.RatopolisOnlineRooms.joinRandom();else showMessage('Servidor de salas indisponível. Tente novamente.');});document.getElementById('communityOverlay').addEventListener('click',e=>{if(e.target.id==='communityOverlay')closeCommunity();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommunity();});
 if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err){console.warn('Perfil do menu:',err);}document.getElementById('start').classList.remove('hidden');
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
