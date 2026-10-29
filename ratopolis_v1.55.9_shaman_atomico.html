@@ -3507,7 +3507,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   try{
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
-   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&['RAT001','RAT002'].includes(String(r.code||'').toUpperCase()));
+   allDirectoryRooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&/^RAT00[1-5]$/.test(String(r.code||'').toUpperCase()));
    directoryPage=0;renderDirectoryPage();
   }catch(err){
    allDirectoryRooms=[];directoryList.replaceChildren();const empty=document.createElement('div');empty.className='online-directory-empty';empty.textContent=(err&&err.message)||'Não foi possível carregar as salas. Tente atualizar.';directoryList.appendChild(empty);
@@ -3735,8 +3735,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
    const countPlayers=r=>{const p=r.playersList??r.players??r.playerCount??r.count??0;if(Array.isArray(p))return p.length;if(p&&typeof p==='object')return Object.keys(p).length;const n=Number(p);return Number.isFinite(n)&&n>=0?n:0;};
-   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&['RAT001','RAT002'].includes(String(r.code||'').toUpperCase())&&countPlayers(r)<(Number(r.maxPlayers)||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('O servidor não retornou RAT001/RAT002 disponíveis.');
+   const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&/^RAT00[1-5]$/.test(String(r.code||'').toUpperCase())&&countPlayers(r)<(Number(r.maxPlayers)||20)&&r.open!==false&&r.available!==false);
+   if(!rooms.length)throw new Error('O servidor não retornou nenhuma sala oficial disponível.');
    const maxPlayers=Math.max(...rooms.map(countPlayers));
    const candidates=rooms.filter(r=>countPlayers(r)===maxPlayers);
    const pick=candidates[Math.floor(Math.random()*candidates.length)];
