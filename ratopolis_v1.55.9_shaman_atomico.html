@@ -2100,7 +2100,7 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
   if(countEl)countEl.textContent='15';
   overlay.classList.remove('hidden');playing=true;last=performance.now();
   const deadline=Date.now()+15000;
-  let assignmentReady=false,finished=false,assignmentResult=null,assigning=false;
+  let assignmentReady=false,finished=false,assignmentResult=null,assigning=false,finishing=false;
   const applyAssignment=result=>{
    if(!result||result.ok===false||result.roleConfirmed!==true)throw new Error('O servidor não confirmou a identidade do Shaman nesta sala.');
    assignmentResult=result;
@@ -2116,12 +2116,35 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
    shamanMana=shamanManaMax;shamanPlacementMode=null;updateShamanTools();
    if(nameEl)nameEl.textContent=activeMatchRole==='shaman'?'Você foi escolhido como Shaman! Prepare seus itens.':'Shaman da sala: '+activeShamanName;
   };
-  const finishSelection=()=>{
-   if(finished||!assignmentReady||Date.now()<deadline)return;
+  const finishSelection=async()=>{
+   if(finished||finishing||!assignmentReady||Date.now()<deadline)return;
+   finishing=true;
+   // Se ninguém se candidatou durante os 5 segundos, o servidor tenta atribuir
+   // o papel a um jogador da sala. O Worker garante que só um vence a disputa.
+   if(assignmentResult&&assignmentResult.noShamanSelected&&window.RatopolisOnlineRooms?.chooseShaman){
+    try{const fallback=await Promise.race([window.RatopolisOnlineRooms.chooseShaman(level+1),new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),700))]);if(fallback&&fallback.roleConfirmed===true)applyAssignment(fallback);}
+    catch(_e){if(choiceStatus)choiceStatus.textContent='Sem Shaman confirmado pelo servidor nesta rodada.';}
+   }
    finished=true;
    if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}
    showPhaseCountdown(0,true,true);
   };
+  if(chooseBtn){chooseBtn.onclick=async()=>{
+   if(finished||finishing||Date.now()>=deadline||!window.RatopolisOnlineRooms?.chooseShaman)return;
+   if(assignmentResult&&!assignmentResult.noShamanSelected)return;
+   chooseBtn.disabled=true;
+   if(choiceStatus)choiceStatus.textContent='Enviando sua escolha ao servidor…';
+   try{
+    const result=await window.RatopolisOnlineRooms.chooseShaman(level+1);
+    if(finished)return;
+    applyAssignment(result);assignmentReady=true;
+    if(choiceStatus)choiceStatus.textContent=result.isShaman?'Você foi confirmado como Shaman!':'O servidor confirmou outro Shaman: '+String(result.shamanNickname||'Shaman')+'.';
+   }catch(err){
+    chooseBtn.disabled=false;
+    if(choiceStatus)choiceStatus.textContent='Não foi possível confirmar agora. Tente novamente.';
+    setMessage(String(err&&err.message||'Falha ao escolher Shaman'),'error');
+   }
+  };}
   const requestAssignment=async()=>{
    if(assigning||assignmentReady||finished)return;
    assigning=true;
@@ -2135,8 +2158,7 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
     assignmentReady=false;
     if(Date.now()<deadline-800){
      if(nameEl)nameEl.textContent='Servidor escolhendo Shaman… tentando novamente';
-     setTimeout(()=>{assigning=false;if(chooseBtn){chooseBtn.onclick=async()=>{if(finished||Date.now()>=deadline||!window.RatopolisOnlineRooms?.chooseShaman)return;chooseBtn.disabled=true;if(choiceStatus)choiceStatus.textContent='Enviando sua escolha ao servidor…';try{const result=await window.RatopolisOnlineRooms.chooseShaman(level+1);if(finished)return;applyAssignment(result);assignmentReady=true;if(choiceStatus)choiceStatus.textContent=result.isShaman?'Você foi confirmado como Shaman!':'O servidor confirmou outro Shaman: '+String(result.shamanNickname||'Shaman')+'.';finishSelection();}catch(err){chooseBtn.disabled=false;if(choiceStatus)choiceStatus.textContent='Não foi possível confirmar agora. Tente novamente.';setMessage(String(err&&err.message||'Falha ao escolher Shaman'),'error');}};}
-   requestAssignment();},700);
+     setTimeout(()=>{assigning=false;requestAssignment();},700);
      return;
     }
     assignmentReady=true;activeMatchRole='mouse';activeShamanName='não confirmado';shamanPlacementMode=null;updateShamanTools();
