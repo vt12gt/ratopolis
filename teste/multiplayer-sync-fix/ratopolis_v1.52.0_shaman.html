@@ -3500,6 +3500,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  async function connectRoomSocket(code){
   if(!activeRoomCode||activeRoomCode!==code)return;
+  // Não derruba uma conexão que já está conectando ou funcionando.
+  if(roomSocket&&(roomSocket.readyState===WebSocket.CONNECTING||roomSocket.readyState===WebSocket.OPEN))return;
   if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
   if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}
   try{
@@ -3509,13 +3511,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const wsUrl=ROOMS_API.replace(/^https:/,'wss:').replace(/^http:/,'ws:')+'/ws?room='+encodeURIComponent(code)+'&ticket='+encodeURIComponent(ticketData.ticket||'');
    const ws=new WebSocket(wsUrl);roomSocket=ws;
    ws.addEventListener('open',()=>{if(roomSocket!==ws)return;connectionLost=false;setOnlineStatus('Sala online · movimento conectado');setMessage('Conectado à sala '+code+'. Os ratos conectados aparecem no cenário.','success');
-    if(stateSendTimer)clearInterval(stateSendTimer);stateSendTimer=setInterval(sendLocalPlayerState,100);
+    if(stateSendTimer)clearInterval(stateSendTimer);sendLocalPlayerState();stateSendTimer=setInterval(sendLocalPlayerState,100);
    });
    ws.addEventListener('message',ev=>{if(roomSocket!==ws)return;let data;try{data=JSON.parse(ev.data)}catch(_){return;}
     if(data.type==='room_state'){roomState={...roomState,room:data.room,players:data.players||[]};applyRoomState(roomState);}
     else if(data.type==='player_state'&&data.player){const p=data.player;remotePlayers.set(String(p.id),{...p,...(p.state||{}),id:p.id,nickname:p.nickname,__lastUpdate:Date.now()});if(p.state&&p.state.role==='shaman')applySyncedShamanObjects(p.state);if(roomState&&Array.isArray(roomState.players)){const i=roomState.players.findIndex(x=>String(x.id)===String(p.id));if(i>=0)roomState.players[i]=p;else roomState.players.push(p);}drawRemoteAvatars();}
    });
-   ws.addEventListener('close',()=>{if(roomSocket!==ws)return;roomSocket=null;if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(activeRoomCode===code){setOnlineStatus('Reconectando ao jogo…');socketRetryTimer=setTimeout(()=>connectRoomSocket(code),2500);}});
+   ws.addEventListener('close',ev=>{if(roomSocket!==ws)return;roomSocket=null;if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(activeRoomCode===code){const detail=ev&&ev.code?(' ('+ev.code+(ev.reason?': '+ev.reason:'')+')'):'';setOnlineStatus('Conexão encerrada'+detail+' · reconectando…');socketRetryTimer=setTimeout(()=>connectRoomSocket(code),2500);}});
    ws.addEventListener('error',()=>{if(activeRoomCode===code)setOnlineStatus('Conexão instável · tentando reconectar');});
   }catch(err){setOnlineStatus('Sala conectada; sincronização tentando reconectar');if(activeRoomCode===code)socketRetryTimer=setTimeout(()=>connectRoomSocket(code),3500);}
  }
