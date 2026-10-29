@@ -2118,7 +2118,7 @@ function showPhaseCountdown(seconds=5,skip=false,serverAssigned=false){
  const overlay=document.getElementById('phaseStart');
  if(!serverAssigned&&window.RatopolisOnlineRooms&&window.RatopolisOnlineRooms.isActive&&window.RatopolisOnlineRooms.isActive()&&window.RatopolisOnlineRooms.assignShaman){
   document.getElementById('phaseStartName').textContent=scenarioName(level)+' · escolhendo Shaman…';document.getElementById('phaseStartNumber').textContent=level+1;document.getElementById('phaseStartCount').textContent='…';overlay.classList.remove('hidden');/* Durante a seleção assíncrona do Shaman, o loop de física continua ativo. */playing=true;last=performance.now();
-  window.RatopolisOnlineRooms.assignShaman(level+1).then(result=>{rebuildLevelFromServerSeed(result.mapSeed);activeShamanName=String(result.shamanNickname||'Shaman');activeMatchRole=String(result.shamanId)===String(window.ratopolisPlayerId||'')?'shaman':'mouse';shamanMana=shamanManaMax;shamanPlacementMode=null;updateShamanTools();showPhaseCountdown(seconds,skip,true);}).catch(()=>{selectShamanForRound();showPhaseCountdown(seconds,skip,true);});
+  window.RatopolisOnlineRooms.assignShaman(level+1).then(result=>{/* O cenário é sempre local; o servidor sincroniza apenas a função Shaman e os jogadores. */activeShamanName=String(result.shamanNickname||'Shaman');activeMatchRole=String(result.shamanId)===String(window.ratopolisPlayerId||'')?'shaman':'mouse';shamanMana=shamanManaMax;shamanPlacementMode=null;updateShamanTools();showPhaseCountdown(seconds,skip,true);}).catch(()=>{selectShamanForRound();showPhaseCountdown(seconds,skip,true);});
   return;
  }
  if(panel)panel.classList.add('hidden');
@@ -3529,33 +3529,26 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   drawRemoteAvatars();
  }
  function startOnlineMatch(){
-  if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
-  if(typeof window.makeLevel!=='function'&&typeof makeLevel!=='function'){
-    setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;
-  }
+  if(!activeRoomCode){setMessage('Entre na sala online primeiro.','error');return;}
+  if(typeof makeLevel!=='function'){setMessage('O cenário local ainda não terminou de carregar.','error');return;}
   localRoomMatchStarted=true;
   overlay.classList.add('hidden');
   document.getElementById('roomsOverlay')?.classList.add('hidden');
   document.getElementById('start')?.classList.add('hidden');
   document.getElementById('finish')?.classList.add('hidden');
-  document.getElementById('phaseStart')?.classList.add('hidden');
   document.getElementById('death')?.classList.add('hidden');
-  /* Entrada tardia: monta o cenário observado sem iniciar/reiniciar a corrida local. */
-  const players=extractPlayers(roomState);
-  const phases=players.map(p=>Number((p&&p.state&&p.state.phase)??p.phase)).filter(n=>Number.isInteger(n)&&n>=0&&n<12);
-  if(phases.length){
-    const counts=new Map();for(const n of phases)counts.set(n,(counts.get(n)||0)+1);
-    level=[...counts.entries()].sort((a,b)=>b[1]-a[1])[0][0];
-  }
+  // O servidor não escolhe nem cria mapa: cada cliente monta o mesmo cenário local.
   testMode=false;
-  if(typeof makeLevel==='function')makeLevel();
-  playing=false;
+  makeLevel();
+  playing=true;
   raceHumanFinished=false;
+  raceHumanFinishTime=0;
   clearTouchMovement();
   requestLandscape();
   drawRemoteAvatars();
-  setOnlineStatus('Assistindo à corrida · aguardando a próxima fase');
-  setMessage('Você entrou durante uma partida. Acompanhe os ratos; você participará na próxima contagem regressiva.','success');
+  setOnlineStatus('Sala online · carregando cenário local…');
+  setMessage('Sala conectada. Preparando o cenário local…','success');
+  showPhaseCountdown(5,false);
  }
  function showRoom(code,data,autoStart=false){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();
