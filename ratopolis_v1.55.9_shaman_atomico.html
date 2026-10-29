@@ -3724,26 +3724,38 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   return left;
  }
  async function joinRandomAndStart(){
+  if(requestInFlight)return;
   if(activeRoomCode){startOnlineMatch();return;}
   const note=t=>{const m=document.getElementById('message');if(m)m.textContent=t;};
+  requestInFlight=true;
+  const playButton=document.getElementById('menuPlay');
+  if(playButton){playButton.disabled=true;playButton.textContent='CONECTANDO…';}
   try{
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
    const countPlayers=r=>{const p=r.playersList??r.players??r.playerCount??r.count??0;if(Array.isArray(p))return p.length;if(p&&typeof p==='object')return Object.keys(p).length;const n=Number(p);return Number.isFinite(n)&&n>=0?n:0;};
    const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>r&&['RAT001','RAT002'].includes(String(r.code||'').toUpperCase())&&countPlayers(r)<(Number(r.maxPlayers)||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length)throw new Error('O servidor não retornou RAT001/RAT002 disponíveis. Atualize a página e tente novamente.');
-   // Prioriza a sala mais ocupada para reunir jogadores; em empate, sorteia entre as duas salas.
+   if(!rooms.length)throw new Error('O servidor não retornou RAT001/RAT002 disponíveis.');
    const maxPlayers=Math.max(...rooms.map(countPlayers));
    const candidates=rooms.filter(r=>countPlayers(r)===maxPlayers);
    const pick=candidates[Math.floor(Math.random()*candidates.length)];
-   const code=String(pick.code);
-   codeInput.value=code;await runRoomAction('join');
-   if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala oficial.');
+   const code=String(pick.code||'').toUpperCase();
+   setOnlineStatus('Entrando na sala '+code+'…');
+   const joined=await api('/api/rooms/join',{room:code,role:'rat'},token);
+   const returned=roomCodeFrom(joined);
+   if(returned&&returned!==code)throw new Error('O servidor confirmou uma sala diferente da selecionada.');
+   showRoom(code,joined);
    startOnlineMatch();
   }catch(err){
-   /* Falha online não deve iniciar uma partida local desconectada. */
-   note('Não foi possível conectar ao jogo online: '+((err&&err.message)||'servidor indisponível')+'. Tente novamente em instantes.');
-   return;
+   const msg='Não foi possível carregar a sala: '+((err&&err.message)||'servidor indisponível');
+   note(msg);
+   setOnlineStatus('Falha ao conectar');
+   setMessage(msg,'error');
+   overlay.classList.remove('hidden');
+   details.classList.add('hidden');
+  }finally{
+   requestInFlight=false;
+   if(playButton){playButton.disabled=false;playButton.textContent='JOGAR';}
   }
  }
  window.RatopolisOnlineRooms={leave:leaveOnlineRoom,returnToRoom:returnToOnlineRoom,disconnectTab:()=>{generation++;clearOnlineState();},joinRandom:joinRandomAndStart,chooseShaman:async phase=>{if(!activeRoomCode)throw new Error('Entre na sala antes de escolher Shaman.');const token=await validateSession();const chosen=await api('/api/rooms/join',{room:activeRoomCode,role:'shaman'},token);roomState=chosen;applyRoomState(chosen);const result=await api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},token);const confirmed={...result,roleConfirmed:true,isShaman:String(result.shamanId||'')===String(getLocalPlayerId()||''),noShamanSelected:!!result.noShamanSelected};roomState={...roomState,shamanId:confirmed.shamanId||null};applyRoomState(roomState);return confirmed;},open:()=>{overlay.classList.remove('hidden');loadDirectory();},adminJoinByNumber:async(number,report)=>{const role=await getVerifiedStaffRole();if(!['SpAdmin','Admin','GM'].includes(role))throw new Error('Comando restrito a SpAdmin, Admin e GM.');const token=await validateSession();const data=await api('/api/rooms/list',{},token);const rooms=Array.isArray(data.rooms)?data.rooms:[];const index=Number(number)-1;if(!Number.isInteger(index)||index<0||index>=rooms.length)throw new Error('A sala '+number+' não existe. Existem '+rooms.length+' sala(s) cadastrada(s).');const target=rooms[index];if(activeRoomCode&&String(activeRoomCode)!==String(target.code)){const left=await leaveOnlineRoom();if(!left)throw new Error('Não foi possível confirmar a saída da sala atual; a troca foi cancelada.');}codeInput.value=String(target.code);await runRoomAction('join');if(activeRoomCode!==String(target.code))throw new Error(messageEl.textContent||'Não foi possível entrar na sala '+number+'.');startOnlineMatch();if(typeof report==='function')report('Sistema: comando /salaadm '+number+' executado. Entrando na sala '+number+' ('+target.code+').','system');},assignShaman:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/role',{room:activeRoomCode,phase:Number(phase)},await validateSession());},submitFinish:async phase=>{if(!activeRoomCode)throw new Error('Nenhuma sala online ativa.');return api('/api/rooms/finish',{room:activeRoomCode,phase:Number(phase)},await validateSession());},isActive:()=>!!activeRoomCode,roundStatus:()=>{const phase=Number(typeof level!=='undefined'?level:0);const ps=roomState&&Array.isArray(roomState.players)?roomState.players:[];const participants=ps.filter(p=>p&&p.state&&Number(p.state.phase)===phase&&(p.state.started||p.state.active||p.state.finished));const finished=participants.filter(p=>p.state.finished);return {activeCount:participants.length,finishedCount:finished.length,allFinished:participants.length>0&&finished.length>=participants.length};}};
