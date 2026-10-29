@@ -2389,7 +2389,7 @@ if(!playerNickname)playerNickname='Convidado';try{updateMenuProfile();}catch(err
 placeChatInMenu();
 const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legacyStartBtn.addEventListener('click',openRooms);
  document.getElementById('menuPlay').addEventListener('click',()=>{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){window.RatopolisOnlineRooms.joinRandom();}else startRandomRoomCountdown();});
- document.getElementById('menuRooms').addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
+ const menuRoomsButton=document.getElementById('menuRooms');if(menuRoomsButton)menuRoomsButton.addEventListener('click',()=>{const R=window.RatopolisOnlineRooms;if(R&&typeof R.open==='function')R.open();else openRooms();});
  document.getElementById('menuMyHome').addEventListener('click',()=>{document.getElementById('rmNav').classList.add('hidden');document.getElementById('rmHome').classList.remove('hidden');});
  document.getElementById('homeBack').addEventListener('click',()=>{document.getElementById('rmHome').classList.add('hidden');document.getElementById('rmNav').classList.remove('hidden');});
  document.getElementById('homeGuild').addEventListener('click',()=>{renderGuildPage();document.getElementById('start').classList.add('hidden');document.getElementById('guildPage').classList.remove('hidden');});
@@ -3604,10 +3604,19 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  function returnToOnlineRoom(){if(!activeRoomCode){setMessage('A sala online não está selecionada.','error');return false;}playing=false;clearTouchMovement();clearPhaseTimers();shamanPlacementMode=null;updateShamanTools();const startOverlay=$('start');if(startOverlay){startOverlay.classList.add('hidden');startOverlay.style.display='none';}overlay.classList.remove('hidden');details.classList.remove('hidden');setOnlineStatus('Você voltou ao lobby da sala '+activeRoomCode+'.');setMessage('Você voltou à sala online. Sua conexão e sua vaga foram mantidas.','success');pollRoomState();startPollingIfVisible();return true;}
   function startOnlineMatch(){
   if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
+  // Reutiliza a fase local já ocupada; se ninguém estiver jogando, começa na Fase 1.
+  const selfId=String(getLocalPlayerId()||'');
+  const players=extractPlayers(roomState||{});
+  const occupied=players.filter(p=>{
+   if(!p||String(p.id||p.playerId||p.userId||p.user_id||'')===selfId||!p.state)return false;
+   const st=p.state;
+   return Number.isFinite(Number(st.phase))&&(st.started===true||st.active===true)&&st.finished!==true;
+  }).sort((a,b)=>Number(a.state.phase)-Number(b.state.phase));
+  const targetPhase=occupied.length?Math.max(0,Math.min(scenarioNames.length-1,Number(occupied[0].state.phase)||0)):0;
   localRoomMatchStarted=true;const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.add('active');drawRemoteAvatars();startMatchPolling();
   overlay.classList.add('hidden');
-  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(0,false);
-  else {setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
+  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(targetPhase,false);
+  else {localRoomMatchStarted=false;setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
   connectRoomSocket(activeRoomCode);
  }
  function showRoom(code,data){
@@ -3721,14 +3730,20 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const token=await validateSession();
    const data=await api('/api/rooms/list',{},token);
    const rooms=(Array.isArray(data.rooms)?data.rooms:[]).filter(r=>/^[A-Z0-9]{6}$/.test(String(r.code||''))&&Number(r.players||0)<Number(r.maxPlayers||20)&&r.open!==false&&r.available!==false);
-   if(!rooms.length){note('Nenhuma sala disponível. Criando uma sala online para você…');await runRoomAction('create');if(!activeRoomCode)throw new Error(messageEl.textContent||'Não foi possível criar uma sala online.');startOnlineMatch();return;}
-   const pick=rooms[Math.floor(Math.random()*rooms.length)],code=String(pick.code);
+   if(!rooms.length)throw new Error('A sala oficial ainda não está disponível. O jogo não vai criar outra sala nem escolher um mapa pelo servidor.');
+   // Prioriza a sala que já tem jogadores; se estiver vazia, entra nela e começa na Fase 1.
+   const pick=rooms.slice().sort((a,b)=>{
+    const ap=Array.isArray(a.playersList)?a.playersList.length:Number(a.players||0);
+    const bp=Array.isArray(b.playersList)?b.playersList.length:Number(b.players||0);
+    return bp-ap;
+   })[0];
+   const code=String(pick.code);
    codeInput.value=code;await runRoomAction('join');
-   if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala.');
+   if(activeRoomCode!==code)throw new Error(messageEl.textContent||'Não foi possível entrar na sala oficial.');
    startOnlineMatch();
   }catch(err){
-   /* Uma falha no login ou no servidor online nunca deve iniciar uma sala local. */
-   note('Não foi possível entrar na sala online: '+((err&&err.message)||'servidor indisponível')+'. Entre novamente na sua conta e tente outra vez.');
+   /* Falha online não deve iniciar uma partida local desconectada. */
+   note('Não foi possível conectar ao jogo online: '+((err&&err.message)||'servidor indisponível')+'. Tente novamente em instantes.');
    return;
   }
  }
