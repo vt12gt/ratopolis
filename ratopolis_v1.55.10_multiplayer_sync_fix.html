@@ -1006,9 +1006,10 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 /* O seletor de salas fica translúcido, sem reiniciar fullscreen/rotação ao navegar. */
 #roomsOverlay{background:rgba(10,28,20,.50)!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 #roomsOverlay .rooms-modal{background:rgba(247,243,223,.97)!important}
-#onlineLeaveGameBtn{display:none;pointer-events:auto;z-index:2147483001;touch-action:manipulation;-webkit-tap-highlight-color:transparent}#onlineLeaveGameBtn.active{display:block!important;pointer-events:auto!important}
+#onlineLeaveGameBtn{display:none;pointer-events:auto;z-index:2147483001;touch-action:manipulation;-webkit-tap-highlight-color:transparent}#onlineLeaveGameBtn.active{display:none!important;pointer-events:none!important}
 </style>
 <style id="ratopolis-1558-hide-obsolete-role-picker">.shaman-role-picker{display:none!important}</style>
+<style id="ratopolis-v15511-remove-duplicate-return-button">#onlineLeaveGameBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}</style>
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
@@ -3413,7 +3414,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const leaveBtn=$('onlineLeaveRoomBtn'),startMatchBtn=$('onlineStartMatchBtn');
  if(!overlay||!createBtn||!joinBtn||!codeInput||!details||!messageEl)return;
 
- let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null; let allDirectoryRooms=[], directoryPage=0; const DIRECTORY_PAGE_SIZE=4;
+ let activeRoomCode='', pollTimer=null, matchPollTimer=null, requestInFlight=false, pollInFlight=false, roomSocket=null, socketRetryTimer=null, stateSendTimer=null, socketConnectRoom='', startMatchInFlight=false; let allDirectoryRooms=[], directoryPage=0; const DIRECTORY_PAGE_SIZE=4;
  let selectedRoomRole='rat';
  const roleButtons=Array.from(document.querySelectorAll('.online-role-btn'));
  function updateRoleChoice(data){const shamanId=String((data&&data.shamanId)||(roomState&&roomState.shamanId)||'');const players=extractPlayers(data||roomState);const hasShaman=!!shamanId&&players.some(p=>String(p&&p.id||p&&p.playerId||'')===shamanId);const choice=$('countdownChooseShamanBtn');if(choice)choice.style.display=activeRoomCode&&!hasShaman&&window.__ratopolisIsPhaseCountdownActive()?'block':'none';if(choice)choice.disabled=hasShaman;}
@@ -3605,14 +3606,18 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  async function connectRoomSocket(code){
   if(!activeRoomCode||activeRoomCode!==code)return;
-  if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
+  // showRoom() e startOnlineMatch() podem solicitar o socket quase juntos.
+  // Mantém apenas uma emissão de ticket/conexão por sala.
+  if(socketConnectRoom===code)return;
+  if(roomSocket&&(roomSocket.readyState===WebSocket.CONNECTING||roomSocket.readyState===WebSocket.OPEN))return;
+  socketConnectRoom=code;
   if(socketRetryTimer){clearTimeout(socketRetryTimer);socketRetryTimer=null;}
   try{
    const token=getToken();if(!token)throw new Error('Sessão ausente.');
    const ticketData=await api('/api/rooms/ws-ticket',{room:code},token);
-   if(activeRoomCode!==code)return;
+   if(activeRoomCode!==code){if(socketConnectRoom===code)socketConnectRoom='';return;}
    const wsUrl=ROOMS_API.replace(/^https:/,'wss:').replace(/^http:/,'ws:')+'/ws?room='+encodeURIComponent(code)+'&ticket='+encodeURIComponent(ticketData.ticket||'');
-   const ws=new WebSocket(wsUrl);roomSocket=ws;ensureFallbackPoll();
+   const ws=new WebSocket(wsUrl);roomSocket=ws;if(socketConnectRoom===code)socketConnectRoom='';ensureFallbackPoll();
    ws.addEventListener('open',()=>{
     if(roomSocket!==ws)return;connectionLost=false;
     setOnlineStatus('Sala online · movimento conectado');
@@ -3650,6 +3655,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    });
    ws.addEventListener('error',()=>{if(activeRoomCode===code)setOnlineStatus('Conexão instável · tentando reconectar');});
   }catch(err){
+   if(socketConnectRoom===code)socketConnectRoom='';
    setOnlineStatus('Sala conectada; sincronização tentando reconectar');
    if(activeRoomCode===code){
     if(/join_room_first|join room first|entre na sala/i.test(String(err&&err.message||''))&&!rejoinInFlight){
@@ -3671,22 +3677,38 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   },4000);
  }
  function returnToOnlineRoom(){if(!activeRoomCode){setMessage('A sala online não está selecionada.','error');return false;}playing=false;clearTouchMovement();clearPhaseTimers();shamanPlacementMode=null;updateShamanTools();const startOverlay=$('start');if(startOverlay){startOverlay.classList.add('hidden');startOverlay.style.display='none';}overlay.classList.remove('hidden');details.classList.remove('hidden');setOnlineStatus('Você voltou ao lobby da sala '+activeRoomCode+'.');setMessage('Você voltou à sala online. Sua conexão e sua vaga foram mantidas.','success');pollRoomState();startPollingIfVisible();return true;}
-  function startOnlineMatch(){
-  if(!activeRoomCode){setMessage('Entre em uma sala online primeiro.','error');return;}
-  // Reutiliza a fase local já ocupada; se ninguém estiver jogando, começa na Fase 1.
-  const selfId=String(getLocalPlayerId()||'');
-  const players=extractPlayers(roomState||{});
-  const occupied=players.filter(p=>{
-   if(!p||String(p.id||p.playerId||p.userId||p.user_id||'')===selfId||!p.state)return false;
-   const st=p.state;
-   return Number.isFinite(Number(st.phase))&&(st.started===true||st.active===true)&&st.finished!==true;
-  }).sort((a,b)=>Number(a.state.phase)-Number(b.state.phase));
-  const targetPhase=occupied.length?Math.max(0,Math.min(scenarioNames.length-1,Number(occupied[0].state.phase)||0)):0;
-  localRoomMatchStarted=true;const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.add('active');drawRemoteAvatars();startMatchPolling();
-  overlay.classList.add('hidden');
-  if(typeof window.switchToTestRoom==='function')window.switchToTestRoom(targetPhase,false);
-  else {localRoomMatchStarted=false;setMessage('O motor da partida ainda não está disponível nesta tela.','error');return;}
-  connectRoomSocket(activeRoomCode);
+  async function startOnlineMatch(){
+  if(!activeRoomCode){setMessage('Entre na sala online antes de iniciar.','error');return false;}
+  if(startMatchInFlight)return false;
+  startMatchInFlight=true;
+  const playButton=document.getElementById('menuPlay');
+  try{
+   // Mantém a interface reentrante: se a chamada falhar, o botão volta a aceitar tentativa.
+   const selfId=String(getLocalPlayerId()||'');
+   const players=extractPlayers(roomState||{});
+   const occupied=players.filter(p=>{
+    if(!p||String(p.id||p.playerId||p.userId||p.user_id||'')===selfId||!p.state)return false;
+    const st=p.state;
+    return Number.isFinite(Number(st.phase))&&(st.started===true||st.active===true)&&st.finished!==true;
+   }).sort((a,b)=>Number(a.state.phase)-Number(b.state.phase));
+   const targetPhase=occupied.length?Math.max(0,Math.min(scenarioNames.length-1,Number(occupied[0].state.phase)||0)):0;
+   overlay.classList.add('hidden');
+   if(typeof window.switchToTestRoom!=='function')throw new Error('O motor da partida não foi carregado. Tente novamente.');
+   await window.switchToTestRoom(targetPhase,false);
+   localRoomMatchStarted=true;
+   const exitBtn=$('onlineLeaveGameBtn');if(exitBtn)exitBtn.classList.remove('active');
+   drawRemoteAvatars();startMatchPolling();
+   // Não abre outro socket se showRoom() já estiver conectando a mesma sala.
+   connectRoomSocket(activeRoomCode);
+   return true;
+  }catch(err){
+   localRoomMatchStarted=false;
+   overlay.classList.remove('hidden');
+   setMessage('Não foi possível iniciar a partida: '+String(err&&err.message||err||'erro desconhecido'),'error');
+   setOnlineStatus('Falha ao iniciar · toque em JOGAR para tentar novamente');
+   if(playButton){playButton.disabled=false;playButton.textContent='JOGAR';playButton.removeAttribute('aria-busy');}
+   return false;
+  }finally{startMatchInFlight=false;}
  }
  function showRoom(code,data){
   activeRoomCode=code;roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
@@ -3843,7 +3865,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
  codeInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();(async()=>{await runRoomAction('join');})();}});
  leaveBtn.addEventListener('click',leaveOnlineRoom);if(startMatchBtn)startMatchBtn.addEventListener('click',startOnlineMatch);
- const oldLeaveGameBtn=$('onlineLeaveGameBtn');if(oldLeaveGameBtn){const leaveGameBtn=oldLeaveGameBtn.cloneNode(true);oldLeaveGameBtn.replaceWith(leaveGameBtn);leaveGameBtn.textContent='VOLTAR À SALA ↩';leaveGameBtn.setAttribute('aria-label','Voltar ao lobby da sala online');const handleLeave=ev=>{if(ev){ev.preventDefault();ev.stopPropagation();}if(leaveGameBtn.disabled)return;leaveGameBtn.disabled=true;returnToOnlineRoom();leaveGameBtn.disabled=false;};leaveGameBtn.addEventListener('click',handleLeave);}
+ const oldLeaveGameBtn=$('onlineLeaveGameBtn');if(oldLeaveGameBtn){oldLeaveGameBtn.removeAttribute('tabindex');oldLeaveGameBtn.disabled=true;oldLeaveGameBtn.setAttribute('aria-hidden','true');}
 
  // Closing the overlay stops polling, but keeps the online membership selected.
  const closeBtn=$('roomCloseBtn');
