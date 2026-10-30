@@ -3590,6 +3590,19 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   const safe=state.shamanObjects.filter(o=>o&&typeof o==='object'&&Number.isFinite(Number(o.x))&&Number.isFinite(Number(o.y))&&Number.isFinite(Number(o.w))&&Number.isFinite(Number(o.h))).slice(0,80).map(o=>({...o,shamanPlaced:true}));
   obstacles=obstacles.filter(o=>!o.shamanPlaced).concat(safe);
  }
+ function sendLocalPlayerState(){
+  const ws=roomSocket;
+  if(!ws||ws.readyState!==WebSocket.OPEN||!activeRoomCode)return;
+  const state=typeof window.__ratopolisGetMultiplayerState==='function'
+   ?window.__ratopolisGetMultiplayerState():null;
+  if(!state)return;
+  try{
+   ws.send(JSON.stringify({type:'player_state',playerId:getLocalPlayerId(),state}));
+  }catch(err){
+   console.warn('[Ratópolis] falha ao enviar estado multiplayer:',err);
+  }
+  drawRemoteAvatars();
+ }
  async function connectRoomSocket(code){
   if(!activeRoomCode||activeRoomCode!==code)return;
   if(roomSocket){try{roomSocket.close();}catch(_){}roomSocket=null;}
