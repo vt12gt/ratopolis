@@ -79,7 +79,9 @@ export function encodeMessage(type, payload = {}, requestId = null) {
   for (const key of ["version", "type", "requestId"]) {
     if (Object.hasOwn(payload, key)) throw new Error("reserved_envelope_field");
   }
-  const raw = JSON.stringify({ ...payload, version: PROTOCOL_VERSION, type, requestId });
+  const envelope = { version: PROTOCOL_VERSION, type };
+  if (requestId !== null) envelope.requestId = requestId;
+  const raw = JSON.stringify({ ...payload, ...envelope });
   if (utf8ByteLength(raw) > MAX_REQUEST_BYTES) throw new Error("request_size_invalid");
   const checked = decodeRequest(raw);
   if (!checked.ok) throw new Error(checked.error);
