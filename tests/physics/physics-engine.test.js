@@ -14,3 +14,5 @@ test("off-center connected anchors can rotate a construction",()=>{const p=new P
 
 test("off-center impact transfers angular velocity to a construction",()=>{const p=new PhysicsEngine({width:500,height:400,gravity:0});p.addObject({id:"moving",kind:"box",x:100,y:100,w:40,h:40,vx:100});p.addObject({id:"target",kind:"box",x:135,y:110,w:40,h:40});p.step();const moving=p.snapshot().objects.find(o=>o.id==="moving");assert.ok(Math.abs(moving.angularVelocity)>0.01);});
 test("static construction does not fall under gravity",()=>{const p=new PhysicsEngine({gravity:1800});p.addObject({id:"anchor",kind:"box",x:100,y:100,w:40,h:40,static:true});for(let i=0;i<60;i++)p.step();assert.equal(p.snapshot().objects[0].y,100);});
+
+test("Shaman placement preserves requested rotation for the physics engine",()=>{const s=new ShamanAuthority({rng:()=>0});s.begin([{id:"a"}],0);s.elect([{id:"a"}],15001);const result=s.place({playerId:"a",kind:"plank",x:100,y:100,rotation:35},{width:800,height:600});assert.equal(result.object.rotation,35);});
