@@ -7,7 +7,7 @@ import {validateCommand} from "../../shared/protocol/commands.js";
  * Never construct identity from a WebSocket message.
  */
 export class RoomWorkerAdapter{
- constructor({roomId,mapId="meadow",broadcast=()=>{},now=()=>Date.now()}={}){this.room=new RoomSimulation({roomId,mapId,now});this.broadcast=broadcast;this.now=now;this.sockets=new Map();this.lastBroadcast=0;}
+ constructor({roomId,mapId="test_fixture",broadcast=()=>{},now=()=>Date.now()}={}){this.room=new RoomSimulation({roomId,mapId,now});this.broadcast=broadcast;this.now=now;this.sockets=new Map();this.lastBroadcast=0;}
  attach(socket,verifiedIdentity){const id=String(verifiedIdentity?.userId||"");if(!id)throw Error("Sessão autenticada obrigatória");const player=this.room.join({id,nickname:verifiedIdentity.nickname});this.sockets.set(id,socket);this.send(socket,{type:"room_snapshot",...this.room.snapshot()});return player;}
  detach(userId){const id=String(userId);this.sockets.delete(id);this.room.leave(id);this.publish({type:"room_snapshot",...this.room.snapshot()});}
  receive(userId,raw){const id=String(userId);if(!this.sockets.has(id))return{ok:false,error:"socket_not_attached"};const parsed=validateCommand(raw);if(!parsed.ok)return parsed;const m=parsed.message;let result;
