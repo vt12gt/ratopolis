@@ -4,6 +4,7 @@ import { RatopolisServer } from "../../modules/server/index.js";
 import { decodeRequest, encodeMessage } from "../../modules/request/index.js";
 import { ResourceRegistry, SHAMAN_OBJECTS } from "../../modules/resource/index.js";
 import { RatopolisClient } from "../../modules/client/index.js";
+import { getMap, listMaps } from "../../src/shared/resources/maps.js";
 
 test("Server only accepts verified identity and publishes defensive room snapshots", () => {
   const server = new RatopolisServer({ clock: () => 1000, maxPlayers: 1 });
@@ -64,4 +65,26 @@ test("Client forwards input only when connected and renders server snapshots", a
   rendered.players.push({ userId: "fake" });
   assert.equal(client.latestSnapshot.players.length, 0);
   client.destroy();
+});
+
+
+test("Resource module contains all 12 official v1.55.11 procedural maps", () => {
+  const maps = listMaps().filter(map => map.id.startsWith("ratopolis_"));
+  assert.equal(maps.length, 12);
+  assert.equal(maps[0].name, "Clareira dos Saltos");
+  assert.equal(maps[11].name, "Templo da Bolota");
+  for (const entry of maps) {
+    const map = getMap(entry.id);
+    assert.equal(map.width, 3000);
+    assert.equal(map.height, 760);
+    assert.equal(map.colliders[0].id, "ground");
+    assert.equal(map.colliders.length, 1 + 10 + (map.id === "ratopolis_02" || map.id === "ratopolis_04" || map.id === "ratopolis_06" || map.id === "ratopolis_08" || map.id === "ratopolis_10" || map.id === "ratopolis_12" ? 3 : 2));
+    assert.ok(map.goal.x > map.spawn.x);
+    assert.ok(map.collectibles.cheese.shared);
+    assert.ok(map.hazards.length >= 1);
+  }
+  const map = getMap("ratopolis_01");
+  map.colliders[0].x = 999;
+  assert.equal(getMap("ratopolis_01").colliders[0].x, 0);
+  assert.throws(() => getMap("ratopolis_13"), /map_not_found/);
 });
