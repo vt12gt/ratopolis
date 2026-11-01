@@ -3,7 +3,7 @@
 The browser sends input intent and renders snapshots. It must not decide player positions, collisions, Shaman identity, physics, phase results, XP, currency or rewards.
 
 ## Modules
-- src/server/physics/physics-engine.js: fixed-step 60 Hz gravity, acceleration, friction, jumps, world bounds, AABB collision and spring/trampoline impulses.
+- src/server/physics/physics-engine.js: fixed-step 60 Hz gravity, acceleration, double jump, world bounds, SAT oriented-rectangle collisions, angular inertia, contact impulses, surface friction and spring/trampoline impulses.
 - src/server/room/room-simulation.js: room lifecycle, participants, phase state, commands and authoritative snapshots.
 - src/server/shaman/shaman-authority.js: 15-second election, mana, build limits and object ownership.
 - src/shared/resources/maps.js: versioned map resources and colliders.
@@ -29,7 +29,7 @@ Do not replace the portal, D1 identity, login or production Worker in this chang
 
 **Limitação técnica atual:** o motor agora inclui rotação, inércia, colisões SAT e juntas angulares simplificadas, mas ainda não é um motor completo de corpos rígidos de produção. A integração com o Durable Object de produção, a importação dos mapas reais e a validação dos testes no CI ainda são pendentes. O mapa `test_fixture` permanece exclusivamente para desenvolvimento.
 
-## Física angular e colisões orientadas
+## Física angular, colisões e atrito
 
 - Peças físicas agora mantêm rotação e velocidade angular no estado do servidor; o snapshot transmite ambos em graus.
 - As juntas usam âncoras locais transformadas pela rotação de cada peça. A correção considera massa e momento de inércia, permitindo que uma conexão fora do centro produza rotação.
@@ -38,3 +38,7 @@ Do not replace the portal, D1 identity, login or production Worker in this chang
 - Corpos dinâmicos e jogadores também passam por resolução simétrica de colisão, com impulsos lineares e angulares; corpos estáticos permanecem imóveis.
 - A implementação ainda é um motor 2D próprio e simplificado: não substitui um motor maduro de rigid bodies, ainda precisa de testes extensos de estabilidade, empilhamento, contatos múltiplos e desempenho sob 50 jogadores.
 
+
+- O contato entre peças e entre peça/cenário aplica atrito de Coulomb limitado pelo impulso normal; cada material pode declarar coeficiente `friction` entre 0 e 1.
+- O atrito usa a velocidade no ponto de contato, então pode reduzir deslizamento e também gerar rotação. O atrito efetivo combina os coeficientes dos dois corpos.
+- A suíte agora inclui um teste de deslizamento comparando superfície rugosa e superfície lisa, além de testes de âncoras e rotação.
