@@ -18,7 +18,7 @@ const onlyKeys = (m, allowed) => Object.keys(m).every(key => allowed.includes(ke
 const envelope = ["version", "requestId", "type"];
 
 const validators = Object.freeze({
-  input: m => isRecord(m.input) &&
+  input: m => onlyKeys(m, [...envelope, "input"]) && isRecord(m.input) &&
     Object.keys(m.input).every(k => ["left", "right", "jump"].includes(k)) &&
     ["left", "right", "jump"].every(k => m.input[k] === undefined || typeof m.input[k] === "boolean"),
   choose_shaman: m => onlyKeys(m, envelope),
