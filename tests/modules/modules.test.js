@@ -25,6 +25,7 @@ test("Request decodes versioned valid messages and rejects malformed or oversize
   assert.equal(decodeRequest(JSON.stringify({ version: 9, type: "ping" })).error, "protocol_version_unsupported");
   assert.equal(decodeRequest(JSON.stringify({ version: 1, type: "input", input: {}, x: 10 })).error, "invalid_payload");
   assert.equal(decodeRequest(JSON.stringify({ version: 1, type: "input", requestId: {}, input: {} })).error, "request_id_invalid");
+  assert.equal(decodeRequest(JSON.stringify({ version: 1, type: "place_shaman_object", kind: "plank", x: 10, y: 10, userId: "spoof" })).error, "invalid_payload");
   assert.equal(decodeRequest(JSON.stringify({ version: 1, type: "ping", clientTime: 1 }), { maxBytes: 5 }).error, "request_size_invalid");
   assert.throws(() => encodeMessage("input", { version: 99, input: {} }), /reserved_envelope_field/);
   assert.throws(() => encodeMessage("set_position", {}), /unknown_command/);
