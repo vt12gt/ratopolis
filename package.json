@@ -1,1 +1,1 @@
-{"name":"ratopolis-authoritative-physics","private":true,"type":"module","scripts":{"test:physics":"node --test tests/physics/*.test.js"}}
+{"name":"ratopolis-authoritative-physics","private":true,"type":"module","scripts":{"test":"npm run test:physics && npm run test:modules","test:physics":"node --test tests/physics/*.test.js","test:modules":"node --test tests/modules/*.test.js"}}
