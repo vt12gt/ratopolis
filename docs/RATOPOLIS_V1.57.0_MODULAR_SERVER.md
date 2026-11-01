@@ -27,7 +27,7 @@ Do not replace the portal, D1 identity, login or production Worker in this chang
 - Remover uma peça remove também suas conexões. Iniciar uma nova rodada limpa construções e juntas anteriores.
 - O protocolo inclui `connect_shaman_objects` e `disconnect_shaman_objects`; o adaptador publica o snapshot atualizado para os clientes.
 
-**Limitação técnica atual:** este é um sistema de juntas de distância com âncoras, não um motor completo de corpos rígidos com rotação/torque. A integração com o Durable Object de produção, a importação dos mapas reais e a execução da suíte de testes ainda são pendentes. O mapa `test_fixture` permanece exclusivamente para desenvolvimento.
+**Limitação técnica atual:** o motor agora inclui rotação, inércia, colisões SAT e juntas angulares simplificadas, mas ainda não é um motor completo de corpos rígidos de produção. A integração com o Durable Object de produção, a importação dos mapas reais e a validação dos testes no CI ainda são pendentes. O mapa `test_fixture` permanece exclusivamente para desenvolvimento.
 
 ## Física angular e colisões orientadas
 
@@ -35,5 +35,6 @@ Do not replace the portal, D1 identity, login or production Worker in this chang
 - As juntas usam âncoras locais transformadas pela rotação de cada peça. A correção considera massa e momento de inércia, permitindo que uma conexão fora do centro produza rotação.
 - Colisões entre retângulos usam SAT (Separating Axis Theorem), em vez de depender apenas de caixas alinhadas aos eixos. O ponto aproximado de contato permite aplicar impulso angular em impactos fora do centro.
 - Corpos estáticos não devem receber integração gravitacional. Peças de plataforma com propriedade `oneWay` ignoram colisões vindas de baixo.
+- Corpos dinâmicos e jogadores também passam por resolução simétrica de colisão, com impulsos lineares e angulares; corpos estáticos permanecem imóveis.
 - A implementação ainda é um motor 2D próprio e simplificado: não substitui um motor maduro de rigid bodies, ainda precisa de testes extensos de estabilidade, empilhamento, contatos múltiplos e desempenho sob 50 jogadores.
 
