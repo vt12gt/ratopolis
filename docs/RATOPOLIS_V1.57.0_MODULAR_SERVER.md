@@ -28,3 +28,12 @@ Do not replace the portal, D1 identity, login or production Worker in this chang
 - O protocolo inclui `connect_shaman_objects` e `disconnect_shaman_objects`; o adaptador publica o snapshot atualizado para os clientes.
 
 **Limitação técnica atual:** este é um sistema de juntas de distância com âncoras, não um motor completo de corpos rígidos com rotação/torque. A integração com o Durable Object de produção, a importação dos mapas reais e a execução da suíte de testes ainda são pendentes. O mapa `test_fixture` permanece exclusivamente para desenvolvimento.
+
+## Física angular e colisões orientadas
+
+- Peças físicas agora mantêm rotação e velocidade angular no estado do servidor; o snapshot transmite ambos em graus.
+- As juntas usam âncoras locais transformadas pela rotação de cada peça. A correção considera massa e momento de inércia, permitindo que uma conexão fora do centro produza rotação.
+- Colisões entre retângulos usam SAT (Separating Axis Theorem), em vez de depender apenas de caixas alinhadas aos eixos. O ponto aproximado de contato permite aplicar impulso angular em impactos fora do centro.
+- Corpos estáticos não devem receber integração gravitacional. Peças de plataforma com propriedade `oneWay` ignoram colisões vindas de baixo.
+- A implementação ainda é um motor 2D próprio e simplificado: não substitui um motor maduro de rigid bodies, ainda precisa de testes extensos de estabilidade, empilhamento, contatos múltiplos e desempenho sob 50 jogadores.
+
