@@ -14,21 +14,23 @@ const finite = (value, min, max) =>
   typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
 const validId = value => typeof value === "string" && value.length > 0 && value.length <= 100;
 const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
+const onlyKeys = (m, allowed) => Object.keys(m).every(key => allowed.includes(key));
+const envelope = ["version", "requestId", "type"];
 
 const validators = Object.freeze({
   input: m => isRecord(m.input) &&
     Object.keys(m.input).every(k => ["left", "right", "jump"].includes(k)) &&
     ["left", "right", "jump"].every(k => m.input[k] === undefined || typeof m.input[k] === "boolean"),
-  choose_shaman: m => Object.keys(m).every(k => ["version", "requestId", "type"].includes(k)),
-  place_shaman_object: m => typeof m.kind === "string" && m.kind.length > 0 && m.kind.length <= 24 &&
+  choose_shaman: m => onlyKeys(m, envelope),
+  place_shaman_object: m => onlyKeys(m, [...envelope, "kind", "x", "y", "rotation"]) && typeof m.kind === "string" && m.kind.length > 0 && m.kind.length <= 24 &&
     finite(m.x, -10000, 10000) && finite(m.y, -10000, 10000) &&
     (m.rotation === undefined || finite(m.rotation, -360, 360)),
-  remove_shaman_object: m => validId(m.objectId),
-  connect_shaman_objects: m => validId(m.objectA) && validId(m.objectB) && m.objectA !== m.objectB &&
+  remove_shaman_object: m => onlyKeys(m, [...envelope, "objectId"]) && validId(m.objectId),
+  connect_shaman_objects: m => onlyKeys(m, [...envelope, "objectA", "objectB", "anchorX", "anchorY"]) && validId(m.objectA) && validId(m.objectB) && m.objectA !== m.objectB &&
     finite(m.anchorX, -10000, 10000) && finite(m.anchorY, -10000, 10000),
-  disconnect_shaman_objects: m => validId(m.jointId),
-  request_snapshot: m => Object.keys(m).every(k => ["version", "requestId", "type"].includes(k)),
-  ping: m => Object.keys(m).every(k => ["version", "requestId", "type", "clientTime"].includes(k)) &&
+  disconnect_shaman_objects: m => onlyKeys(m, [...envelope, "jointId"]) && validId(m.jointId),
+  request_snapshot: m => onlyKeys(m, envelope),
+  ping: m => onlyKeys(m, [...envelope, "clientTime"]) &&
     (m.clientTime === undefined || finite(m.clientTime, 0, Number.MAX_SAFE_INTEGER))
 });
 
