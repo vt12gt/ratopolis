@@ -5,6 +5,9 @@ export class AuthoritativeRoomClient extends EventTarget{
  input({left=false,right=false,jump=false}){return this.send("input",{input:{left:!!left,right:!!right,jump:!!jump}});}
  chooseShaman(){return this.send("choose_shaman");}
  placeObject(kind,x,y,rotation=0){return this.send("place_shaman_object",{kind,x,y,rotation});}
+ connectObjects(objectA,objectB,anchorX,anchorY){return this.send("connect_shaman_objects",{objectA,objectB,anchorX,anchorY});}
+ disconnectJoint(jointId){return this.send("disconnect_shaman_objects",{jointId});}
+ removeObject(objectId){return this.send("remove_shaman_object",{objectId});}
  requestSnapshot(){return this.send("request_snapshot");}
  close(){this.socket?.close(1000,"client_exit");}
 }
