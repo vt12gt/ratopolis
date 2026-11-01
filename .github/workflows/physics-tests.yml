@@ -1,0 +1,17 @@
+name: Ratopolis Physics Tests
+on:
+  push:
+    branches:
+      - feature/v1.57.0-authoritative-physics-modular
+  pull_request:
+    branches:
+      - main
+jobs:
+  physics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:physics
