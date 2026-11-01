@@ -22,6 +22,7 @@ export class RoomWorkerAdapter{
   if(result?.ok===false)this.send(this.sockets.get(id),{type:"command_error",error:result.error});
   return result||{ok:true};
  }
+ startRound(){this.room.startRound();this.publish({type:"room_snapshot",...this.room.snapshot()});}
  tick(){const state=this.room.step(this.now());const now=this.now();if(now-this.lastBroadcast>=50){this.lastBroadcast=now;this.publish({type:"room_snapshot",...state});}return state;}
  publish(payload){const raw=JSON.stringify(payload);for(const [id,socket] of this.sockets){try{if(socket.readyState===1)socket.send(raw);}catch{this.sockets.delete(id);}}}
  send(socket,payload){try{if(socket?.readyState===1)socket.send(JSON.stringify(payload));}catch{}}
