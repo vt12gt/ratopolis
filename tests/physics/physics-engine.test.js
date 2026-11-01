@@ -16,3 +16,5 @@ test("off-center impact transfers angular velocity to a construction",()=>{const
 test("static construction does not fall under gravity",()=>{const p=new PhysicsEngine({gravity:1800});p.addObject({id:"anchor",kind:"box",x:100,y:100,w:40,h:40,static:true});for(let i=0;i<60;i++)p.step();assert.equal(p.snapshot().objects[0].y,100);});
 
 test("Shaman placement preserves requested rotation for the physics engine",()=>{const s=new ShamanAuthority({rng:()=>0});s.begin([{id:"a"}],0);s.elect([{id:"a"}],15001);const result=s.place({playerId:"a",kind:"plank",x:100,y:100,rotation:35},{width:800,height:600});assert.equal(result.object.rotation,35);});
+
+test("Shaman connection anchors respect pre-rotated construction geometry",()=>{const s=new ShamanAuthority({rng:()=>0});s.begin([{id:"a"}],0);s.elect([{id:"a"}],15001);const beam=s.place({playerId:"a",kind:"plank",x:100,y:100,rotation:90},{width:800,height:600}).object;const box=s.place({playerId:"a",kind:"box",x:153,y:138},{width:800,height:600}).object;const result=s.connect({playerId:"a",objectA:beam.id,objectB:box.id,anchorX:175,anchorY:160});assert.equal(result.ok,true);assert.ok(Math.abs(result.joint.ax-51)<1);});
