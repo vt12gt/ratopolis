@@ -20,7 +20,8 @@ test("Server only accepts verified identity and publishes defensive room snapsho
   assert.equal(server.snapshot("room-a").sequence, 1);
   assert.equal(server.snapshot("room-a").simulation.world.players.length, 1);
   server.dispatch("room-a", "u1", { type: "input", payload: { input: { right: true } } });
-  now += 100;
+  server.setPhase("room-a", "shaman_selection");
+  now += 16000;
   const stepped = server.step("room-a", now);
   assert.ok(stepped.world.tick > 0);
   assert.equal(server.snapshot("room-a").simulation.world.players.length, 1);
@@ -106,11 +107,12 @@ test("Room Worker adapter accepts versioned commands and broadcasts server-calcu
   adapter.attach(socket, { userId: "verified_1", nickname: "Rato Teste" });
   const accepted = adapter.receive("verified_1", encodeMessage("input", { input: { right: true } }));
   assert.equal(accepted.ok, true);
-  now += 100;
+  adapter.startRound();
+  now += 16000;
   const snapshot = adapter.tick();
   assert.ok(snapshot.world.tick > 0);
   assert.ok(sent.some(message => message.type === "room_snapshot"));
   assert.equal(adapter.receive("forged_user", encodeMessage("input", { input: { right: true } })).error, "socket_not_attached");
-  assert.equal(adapter.receive("verified_1", JSON.stringify({ type: "player_state", state: { x: 999999 } })).error, "request_size_invalid");
+  assert.equal(adapter.receive("verified_1", JSON.stringify({ type: "player_state", state: { x: 999999 } })).error, "protocol_version_unsupported");
   assert.equal(adapter.room.physics.players.get("verified_1").x < 999999, true);
 });
