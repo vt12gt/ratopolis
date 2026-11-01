@@ -1,0 +1,9 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {PhysicsEngine} from "../../src/server/physics/physics-engine.js";
+import {ShamanAuthority} from "../../src/server/shaman/shaman-authority.js";
+import {RoomSimulation} from "../../src/server/room/room-simulation.js";
+test("player falls and lands on authoritative floor",()=>{const p=new PhysicsEngine({width:500,height:300,colliders:[{id:"floor",x:0,y:250,w:500,h:50}]});p.addPlayer({id:"p1",x:50,y:0});for(let i=0;i<180;i++)p.advance(1/60);const v=p.snapshot().players[0];assert.equal(v.grounded,true);assert.ok(Math.abs(v.y-214)<.2);});
+test("server applies horizontal input and jump",()=>{const p=new PhysicsEngine({width:800,height:500,colliders:[{id:"floor",x:0,y:450,w:800,h:50}]});p.addPlayer({id:"p1",x:50,y:400});p.setInput("p1",{right:true,jump:true});for(let i=0;i<15;i++)p.advance(1/60);const v=p.snapshot().players[0];assert.ok(v.x>50);assert.ok(v.y<400);});
+test("only current Shaman can create a construction",()=>{const s=new ShamanAuthority({rng:()=>0});s.begin([{id:"a"},{id:"b"}],0);s.choose("b",1);assert.equal(s.elect([{id:"a"},{id:"b"}],15001),"b");assert.equal(s.place({playerId:"b",kind:"plank",x:100,y:100},{width:800,height:600}).ok,true);assert.equal(s.place({playerId:"a",kind:"box",x:100,y:100},{width:800,height:600}).error,"shaman_only");});
+test("room elects Shaman and advances player physics",()=>{let now=0;const room=new RoomSimulation({roomId:"test",rng:()=>0,now:()=>now});room.join({id:"a",nickname:"A"});room.join({id:"b",nickname:"B"});room.startRound();room.chooseShaman("b");now=16000;assert.equal(room.step(now).shaman.shamanId,"b");room.setInput("b",{right:true});for(let i=0;i<20;i++){now+=17;room.step(now);}assert.ok(room.snapshot().world.players.find(p=>p.id==="b").x>70);});
