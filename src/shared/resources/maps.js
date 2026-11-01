@@ -1,5 +1,5 @@
 const MAPS=Object.freeze({
- meadow:{id:"meadow",version:1,width:1800,height:760,colliders:[
+ test_fixture:{id:"test_fixture",version:1,width:1800,height:760,colliders:[
   {id:"floor",x:0,y:700,w:1800,h:60},
   {id:"ledge-a",x:260,y:570,w:280,h:24,oneWay:true},
   {id:"ledge-b",x:690,y:450,w:260,h:24,oneWay:true},
