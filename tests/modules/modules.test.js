@@ -5,10 +5,12 @@ import { decodeRequest, encodeMessage } from "../../modules/request/index.js";
 import { ResourceRegistry, SHAMAN_OBJECTS } from "../../modules/resource/index.js";
 import { RatopolisClient } from "../../modules/client/index.js";
 import { getMap, listMaps } from "../../src/shared/resources/maps.js";
+import { RoomWorkerAdapter } from "../../src/server/room/room-worker-adapter.js";
 
 test("Server only accepts verified identity and publishes defensive room snapshots", () => {
-  const server = new RatopolisServer({ clock: () => 1000, maxPlayers: 1 });
-  server.createRoom({ roomId: "room-a", mapId: "map-a" });
+  let now = 1000;
+  const server = new RatopolisServer({ clock: () => now, maxPlayers: 1 });
+  server.createRoom({ roomId: "room-a", mapId: "test_fixture" });
   assert.throws(() => server.addAuthenticatedPlayer("room-a", { userId: "u1" }), /verified_identity_required/);
   server.addAuthenticatedPlayer("room-a", { userId: "u1", nickname: "Rato 1" });
   assert.throws(() => server.addAuthenticatedPlayer("room-a", { userId: "u2", nickname: "Rato 2" }), /room_full/);
@@ -16,6 +18,12 @@ test("Server only accepts verified identity and publishes defensive room snapsho
   snapshot.players[0].nickname = "forjado";
   assert.equal(server.snapshot("room-a").players[0].nickname, "Rato 1");
   assert.equal(server.snapshot("room-a").sequence, 1);
+  assert.equal(server.snapshot("room-a").simulation.world.players.length, 1);
+  server.dispatch("room-a", "u1", { type: "input", payload: { input: { right: true } } });
+  now += 100;
+  const stepped = server.step("room-a", now);
+  assert.ok(stepped.world.tick > 0);
+  assert.equal(server.snapshot("room-a").simulation.world.players.length, 1);
   assert.throws(() => new RatopolisServer({ maxPlayers: 0 }), /max_players_invalid/);
 });
 
@@ -87,4 +95,22 @@ test("Resource module contains all 12 official v1.55.11 procedural maps", () => 
   map.colliders[0].x = 999;
   assert.equal(getMap("ratopolis_01").colliders[0].x, 0);
   assert.throws(() => getMap("ratopolis_13"), /map_not_found/);
+});
+
+
+test("Room Worker adapter accepts versioned commands and broadcasts server-calculated physics", () => {
+  let now = 1000;
+  const sent = [];
+  const socket = { readyState: 1, send: raw => sent.push(JSON.parse(raw)) };
+  const adapter = new RoomWorkerAdapter({ roomId: "adapter-room", mapId: "test_fixture", now: () => now });
+  adapter.attach(socket, { userId: "verified_1", nickname: "Rato Teste" });
+  const accepted = adapter.receive("verified_1", encodeMessage("input", { input: { right: true } }));
+  assert.equal(accepted.ok, true);
+  now += 100;
+  const snapshot = adapter.tick();
+  assert.ok(snapshot.world.tick > 0);
+  assert.ok(sent.some(message => message.type === "room_snapshot"));
+  assert.equal(adapter.receive("forged_user", encodeMessage("input", { input: { right: true } })).error, "socket_not_attached");
+  assert.equal(adapter.receive("verified_1", JSON.stringify({ type: "player_state", state: { x: 999999 } })).error, "request_size_invalid");
+  assert.equal(adapter.room.physics.players.get("verified_1").x < 999999, true);
 });
