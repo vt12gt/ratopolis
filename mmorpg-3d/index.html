@@ -62,15 +62,27 @@ fountain();
 for(let i=0;i<180;i++){const x=(Math.sin(i*91.7)*.5+.5)*42-21,z=(Math.sin(i*37.1)*.5+.5)*34-17;if(Math.abs(x)<3&&Math.abs(z)<3)continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);if(i%4===0){for(let k=0;k<5;k++)sphere(g,(k-2)*.12,.32+(k%2)*.1,0,.32,[leaf1,leaf2][k%2],1,.8,1)}else{for(let k=0;k<5;k++){const a=k*Math.PI*2/5;sphere(g,Math.cos(a)*.16,.22,Math.sin(a)*.16,.12,flowerMats[i%3],1,.65,1)}sphere(g,0,.24,0,.08,mat(0xe6bd68))}}
 }
 // Low-poly mouse hero with animated ears, tail and legs
-function makeMouse(fur=0xb8aaa0,scarf=0xa94f43){const root=new THREE.Group();const body=new THREE.Group();root.add(body);const furM=mat(fur),pink=mat(0xd99198),belly=mat(0xeee1d0),eye=mat(0x211d1a),scarfM=mat(scarf);
-sphere(body,0,.82,0,.57,furM,1,.9,1.25);sphere(body,0,1.12,.46,.43,furM,1,.95,.9);sphere(body,0,.98,.82,.27,belly,1,.7,.42);
-for(const side of [-1,1]){sphere(body,side*.32,1.53,.42,.24,furM,1,.95,.7);sphere(body,side*.32,1.53,.59,.145,pink,1,.95,.5);sphere(body,side*.16,1.19,.79,.055,eye);sphere(body,side*.16,1.19,.84,.026,mat(0xffffff));}
-sphere(body,0,1.02,1.03,.085,pink);
-const scarfObj=new THREE.Mesh(new THREE.TorusGeometry(.39,.075,8,18),scarfM);scarfObj.position.set(0,1.02,.38);scarfObj.rotation.x=1.25;body.add(scarfObj);
-const tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0,.55,-.45),new THREE.Vector3(.18,.38,-.85),new THREE.Vector3(.42,.45,-1.12),new THREE.Vector3(.55,.65,-1.35)]),18,.045,7,false),pink);body.add(tail);
-const legs=[];for(const side of [-1,1]){const leg=cylinder(body,side*.25,.28,.12,.105,.12,.45,furM,8);legs.push(leg);sphere(body,side*.25,.08,.28,.17,belly,1,.55,1)}
-root.userData={body,legs,tail};return root}
-const player=makeMouse();player.position.set(0,0,13);scene.add(player);const npcs=[];for(let i=0;i<7;i++){const npc=makeMouse([0xc5b7a8,0xa9b8a1,0xd1b58c,0xb9a5c5][i%4],[0x638e9c,0xb57c48,0x9a6d9d][i%3]);npc.position.set(-8+(i%4)*5,0,-5+Math.floor(i/4)*8);npc.userData.phase=i*1.7;scene.add(npc);npcs.push(npc)}
+function makeMouse(fur=0xb8aaa0,scarf=0xa94f43){const root=new THREE.Group(),body=new THREE.Group();root.add(body);const furM=mat(fur,.92),pink=mat(0xd98e98),innerEar=mat(0xeaa9ad),belly=mat(0xf0e4d0),eye=mat(0x201d1b,.3),white=mat(0xfff5df,.35),cloth=mat(scarf,.82),clothDark=mat(0x653d38),gold=mat(0xe5c47b,.45),paw=mat(0xbca99a); 
+// Silhueta: corpo arredondado, cabeça grande e focinho projetado
+sphere(body,0,.91,0,.55,furM,1,.94,1.18);sphere(body,0,1.22,.39,.49,furM,1,1,.91);sphere(body,0,1.04,.79,.3,belly,1,.68,.62);sphere(body,0,1.12,.96,.18,furM,1,.7,.72);
+for(const side of [-1,1]){sphere(body,side*.34,1.68,.36,.29,furM,1,1,.58);sphere(body,side*.34,1.69,.515,.19,innerEar,1,1,.38);sphere(body,side*.17,1.3,.79,.072,white,1,1,.45);sphere(body,side*.17,1.3,.833,.048,eye,1,1,.5);sphere(body,side*.185,1.325,.858,.015,white);}
+// focinho, nariz, sorriso e bigodes
+sphere(body,0,1.045,1.105,.09,pink,1,.72,.72);
+for(const side of [-1,1]){for(let k=0;k<3;k++){const whisk=new THREE.Mesh(new THREE.CylinderGeometry(.009,.014,.42,5),mat(0x6c6259));whisk.position.set(side*(.18+k*.025),1.02-k*.055,1.02);whisk.rotation.z=side*(Math.PI/2-.22+k*.13);whisk.rotation.x=.2;body.add(whisk)}}
+const smile=new THREE.Mesh(new THREE.TorusGeometry(.075,.012,5,12,Math.PI),mat(0x6b4a45));smile.position.set(0,.96,1.12);smile.rotation.x=Math.PI;body.add(smile);
+// Colete/túnica com gola, faixa e medalhão
+const tunic=new THREE.Mesh(new THREE.CylinderGeometry(.42,.57,.67,12),cloth);tunic.position.set(0,.88,.02);tunic.castShadow=true;body.add(tunic);
+const hem=new THREE.Mesh(new THREE.TorusGeometry(.49,.035,6,16),clothDark);hem.position.y=.55;hem.rotation.x=Math.PI/2;body.add(hem);
+const belt=new THREE.Mesh(new THREE.TorusGeometry(.48,.035,6,16),gold);belt.position.set(0,.84,0);belt.rotation.x=Math.PI/2;body.add(belt);
+box(body,0,.84,.49,.13,.13,.045,gold);
+const collar=new THREE.Mesh(new THREE.TorusGeometry(.28,.055,7,16),clothDark);collar.position.set(0,1.29,.38);collar.rotation.x=1.35;body.add(collar);
+// Braços articulados e pequenas patas
+const arms=[];for(const side of [-1,1]){const arm=new THREE.Group();arm.position.set(side*.43,1.12,.08);body.add(arm);cylinder(arm,0,-.22,0,.105,.12,.48,cloth,8);sphere(arm,0,-.48,.04,.14,paw,1,.8,1);arms.push(arm)}
+// Pernas separadas para ciclo de caminhada
+const legs=[];for(const side of [-1,1]){const leg=new THREE.Group();leg.position.set(side*.23,.55,.02);body.add(leg);cylinder(leg,0,-.19,0,.12,.13,.39,furM,8);sphere(leg,0,-.39,.18,.19,paw,1,.62,1.35);for(let t=-1;t<=1;t++)sphere(leg,t*.075,-.405,.31,.035,innerEar);legs.push(leg)}
+// Cauda curva com ponta arredondada, em pivô animável
+const tailPivot=new THREE.Group();tailPivot.position.set(0,.66,-.42);body.add(tailPivot);const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0),new THREE.Vector3(.08,-.05,-.35),new THREE.Vector3(.28,.02,-.63),new THREE.Vector3(.43,.2,-.82)]);const tail=new THREE.Mesh(new THREE.TubeGeometry(curve,20,.052,8,false),pink);tailPivot.add(tail);sphere(tailPivot,.43,.2,-.82,.065,pink);
+root.userData={body,legs,arms,tail:tailPivot};return root}const player=makeMouse();player.position.set(0,0,13);scene.add(player);const npcs=[];for(let i=0;i<7;i++){const npc=makeMouse([0xc5b7a8,0xa9b8a1,0xd1b58c,0xb9a5c5][i%4],[0x638e9c,0xb57c48,0x9a6d9d][i%3]);npc.position.set(-8+(i%4)*5,0,-5+Math.floor(i/4)*8);npc.userData.phase=i*1.7;scene.add(npc);npcs.push(npc)}
 // Environment props
 function sign(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,1,0,.16,2,.16,wood);box(g,0,2,0,1.5,.75,.15,wood);box(g,0,2,.09,1.3,.56,.035,mat(0xd9c49a));}
 sign(-14,-2);sign(14,2);
@@ -97,7 +109,7 @@ renderer.domElement.addEventListener('pointerup',()=>drag=null);renderer.domElem
 let prev=performance.now();function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-prev)/1000,.04);prev=now;
 let ix=joy.x+(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),iz=joy.y+(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);const mag=Math.hypot(ix,iz);if(mag>1){ix/=mag;iz/=mag}
 const moving=mag>.12;const speed=4.2;const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),right=new THREE.Vector3(forward.z,0,-forward.x);const delta=forward.multiplyScalar(iz*speed*dt).add(right.multiplyScalar(ix*speed*dt));if(moving){const nx=player.position.x+delta.x,nz=player.position.z+delta.z;if(!collides(nx,player.position.z))player.position.x=nx;if(!collides(player.position.x,nz))player.position.z=nz;yaw=Math.atan2(delta.x,delta.z);player.rotation.y+=(yaw-player.rotation.y)*Math.min(1,dt*12)}
-const ud=player.userData;ud.body.position.y=moving?Math.abs(Math.sin(now*.012))*.09:Math.sin(now*.002)*.018;ud.legs.forEach((l,i)=>{l.rotation.x=moving?Math.sin(now*.014+i*Math.PI)*.55:0});ud.tail.rotation.y=Math.sin(now*.006)*.18;
+const ud=player.userData;ud.body.position.y=moving?Math.abs(Math.sin(now*.012))*.09:Math.sin(now*.002)*.018;ud.legs.forEach((l,i)=>{l.rotation.x=moving?Math.sin(now*.014+i*Math.PI)*.62:Math.sin(now*.002+i)*.025});ud.arms.forEach((arm,i)=>{arm.rotation.x=moving?Math.sin(now*.014+i*Math.PI)*.48:Math.sin(now*.002+i)*.025;arm.rotation.z=(i===0?-.12:.12)+(moving?Math.sin(now*.014+i*Math.PI)*.12:0)});ud.tail.rotation.y=Math.sin(now*.006)*.24;ud.tail.rotation.x=Math.sin(now*.004)*.08;
 if(!onGround){jumpV-=13*dt;player.position.y+=jumpV*dt;if(player.position.y<=0){player.position.y=0;jumpV=0;onGround=true}}
 for(const n of npcs){const t=now*.0006+n.userData.phase;n.userData.body.position.y=Math.abs(Math.sin(t*2))*.035;n.rotation.y=Math.sin(t)*.22;n.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*3+i*Math.PI)*.12)}
 near=null;let nd=999;for(const [name,x,z] of [['Casa da Vila',-10,-9],['Loja de Itens',10,-9],['Oficina',-11,9],['Taverna',11,9]]){const d=Math.hypot(player.position.x-x,player.position.z-z);if(d<5&&d<nd){nd=d;near=name}}
