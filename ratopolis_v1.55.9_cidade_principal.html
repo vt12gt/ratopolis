@@ -3898,28 +3898,92 @@ function draw(){
  // Calçada em perspectiva
  ctx.fillStyle='#e8dfc3';ctx.beginPath();ctx.moveTo(left,groundY+8);ctx.lineTo(w,groundY+8);ctx.lineTo(w,groundY+55);ctx.lineTo(left,groundY+55);ctx.closePath();ctx.fill();
  ctx.strokeStyle='#c7b994';ctx.lineWidth=2;for(let x=left+20;x<w;x+=54){ctx.beginPath();ctx.moveTo(x,groundY+9);ctx.lineTo(x+8,groundY+53);ctx.stroke()}
- // Prédios com profundidade, fachadas e vitrines
- const buildings=[
- {x:.06,y:.28,bw:.19,bh:.36,c:'#f0c990',roof:'#a95748',name:'LOJA',accent:'#ffe4a9'},
- {x:.30,y:.18,bw:.22,bh:.46,c:'#e0ead9',roof:'#527e69',name:'GUILDA',accent:'#c8e8cf'},
- {x:.59,y:.25,bw:.20,bh:.39,c:'#f0d69d',roof:'#b56a48',name:'ARENA',accent:'#ffe8b8'},
- {x:.85,y:.34,bw:.13,bh:.30,c:'#cbdde9',roof:'#557d9e',name:'CASAS',accent:'#e7f4fb'}
+ // Arquitetura da Cidade Principal — construções 2.5D com materiais, volume e detalhes.
+ // Paleta de pedra, madeira escura, cobre e telhas: aparência de cidade de MMORPG, sem casas infantis.
+ const architecture=[
+  {x:.035,w:.205,h:.43,name:'MERCADO',sub:'COMÉRCIO',wall:'#9b8061',side:'#554637',roof:'#493b32',roofLight:'#80604a',wood:'#493528',stone:'#c1aa84',glass:'#73949a',kind:'shop'},
+  {x:.285,w:.235,h:.55,name:'SALÃO DA GUILDA',sub:'AVENTUREIROS',wall:'#777d70',side:'#454b45',roof:'#343b36',roofLight:'#65705f',wood:'#493a2c',stone:'#a8a18a',glass:'#82999a',kind:'guild'},
+  {x:.585,w:.205,h:.47,name:'ARENA',sub:'TORNEIOS',wall:'#a28a6b',side:'#5b4939',roof:'#503c32',roofLight:'#8a6048',wood:'#493529',stone:'#c5ae88',glass:'#7c9998',kind:'arena'},
+  {x:.835,w:.155,h:.36,name:'RESIDÊNCIAS',sub:'BAIRRO CENTRAL',wall:'#8d8978',side:'#4c4c43',roof:'#46504a',roofLight:'#778073',wood:'#49392b',stone:'#b9aa8b',glass:'#779499',kind:'homes'}
  ];
- buildings.forEach((b,i)=>{
-  const x=left+Math.max(12,(w-left)*b.x),bw=Math.max(72,(w-left)*b.bw),bh=Math.max(82,h*b.bh),y=groundY-bh-20;
-  ctx.fillStyle='#203d32';ctx.globalAlpha=.2;ctx.beginPath();ctx.ellipse(x+bw*.55,groundY-3,bw*.65,10,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-  ctx.fillStyle='#00000018';ctx.fillRect(x+bw-2,y+7,12,bh);
-  ctx.fillStyle=b.c;ctx.fillRect(x,y,bw,bh);
-  ctx.fillStyle='#ffffff55';ctx.fillRect(x+4,y+5,5,bh-10);
-  ctx.fillStyle=b.roof;ctx.beginPath();ctx.moveTo(x-10,y+8);ctx.lineTo(x+bw*.5,y-30);ctx.lineTo(x+bw+10,y+8);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#ffffff38';ctx.beginPath();ctx.moveTo(x+bw*.5,y-30);ctx.lineTo(x+bw+10,y+8);ctx.lineTo(x+bw,y+8);ctx.closePath();ctx.fill();
-  ctx.fillStyle=b.accent;ctx.fillRect(x+7,y+14,bw-14,22);
-  ctx.fillStyle='#36523d';ctx.font='1000 '+Math.max(10,Math.min(15,w*.012))+'px system-ui';ctx.textAlign='center';ctx.fillText(b.name,x+bw/2,y+30);
-  const cols=Math.max(2,Math.floor(bw/39));for(let c=0;c<cols;c++){const wx=x+11+c*((bw-25)/cols);ctx.fillStyle='#6caabd';ctx.fillRect(wx,y+bh*.42,18,25);ctx.fillStyle='#d8f2f0';ctx.fillRect(wx+2,y+bh*.42+2,14,8);ctx.fillStyle='#fff0c9';ctx.fillRect(wx+7,y+bh*.42,3,25);ctx.strokeStyle='#fff2d0';ctx.lineWidth=2;ctx.strokeRect(wx,y+bh*.42,18,25)}
-  ctx.fillStyle='#80583c';ctx.fillRect(x+bw*.43,y+bh-43,bw*.15,43);ctx.fillStyle='#f4d58c';ctx.fillRect(x+bw*.43+4,y+bh-34,bw*.15-8,15);
-  // floreiras
-  ctx.fillStyle='#a66b48';ctx.fillRect(x+8,y+bh-13,Math.max(18,bw*.24),7);ctx.fillStyle='#4d9a55';for(let k=0;k<4;k++){ctx.beginPath();ctx.arc(x+12+k*8,y+bh-17-(k%2)*3,5,0,Math.PI*2);ctx.fill()}
+ const poly=(pts,fill,stroke)=>{ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let q=1;q<pts.length;q++)ctx.lineTo(pts[q][0],pts[q][1]);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.4;ctx.stroke()}};
+ const rounded=(x,y,ww,hh,r,fill,stroke)=>{ctx.beginPath();ctx.roundRect(x,y,ww,hh,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.2;ctx.stroke()}};
+ const drawWindow=(x,y,ww,hh,glass,wood)=>{
+  ctx.fillStyle='#302b25';ctx.fillRect(x-3,y-3,ww+6,hh+6);
+  const g=ctx.createLinearGradient(x,y,x+ww,y+hh);g.addColorStop(0,'#d6c59b');g.addColorStop(.18,glass);g.addColorStop(1,'#263e43');ctx.fillStyle=g;ctx.fillRect(x,y,ww,hh);
+  ctx.fillStyle='rgba(255,239,190,.28)';poly([[x+2,y+2],[x+ww*.42,y+2],[x+ww*.25,y+hh*.52],[x+2,y+hh*.68]],'rgba(255,239,190,.28)');
+  ctx.fillStyle=wood;ctx.fillRect(x+ww*.47,y,Math.max(2,ww*.07),hh);ctx.fillRect(x,y+hh*.53,ww,Math.max(2,hh*.055));
+  ctx.strokeStyle='#d2bd91';ctx.lineWidth=1.5;ctx.strokeRect(x-1,y-1,ww+2,hh+2);
+ };
+ architecture.forEach((b,i)=>{
+  const x=left+Math.max(10,(w-left)*b.x),bw=Math.max(88,(w-left)*b.w),bh=Math.max(112,h*b.h),y=groundY-bh-17;
+  const depth=Math.max(13,bw*.105),roofRise=Math.max(24,bh*.13),frontRight=x+bw,baseY=groundY-17;
+  // sombra de contacto
+  const shadow=ctx.createRadialGradient(x+bw*.53,baseY,5,x+bw*.53,baseY,bw*.8);shadow.addColorStop(0,'rgba(19,31,24,.38)');shadow.addColorStop(1,'rgba(19,31,24,0)');ctx.fillStyle=shadow;ctx.fillRect(x-bw*.25,baseY-16,bw*1.6,34);
+  // parede lateral para criar profundidade
+  const sideGrad=ctx.createLinearGradient(frontRight,y,frontRight+depth,baseY);sideGrad.addColorStop(0,b.side);sideGrad.addColorStop(1,'#292b27');
+  poly([[frontRight,y+roofRise*.55],[frontRight+depth,y+roofRise*.9],[frontRight+depth,baseY],[frontRight,baseY]],sideGrad,'rgba(28,27,23,.7)');
+  // fachada com textura de reboco e luz lateral
+  const facade=ctx.createLinearGradient(x,y,x+bw,y+bh);facade.addColorStop(0,'#d3c09b');facade.addColorStop(.12,b.wall);facade.addColorStop(.78,b.wall);facade.addColorStop(1,'#625647');
+  ctx.fillStyle=facade;ctx.fillRect(x,y+roofRise*.58,bw,bh-roofRise*.58);
+  // rodapé de alvenaria em blocos
+  ctx.fillStyle=b.side;ctx.fillRect(x-2,baseY-22,bw+4,22);
+  for(let k=0;k<Math.floor(bw/24);k++){const bx=x+k*24;ctx.strokeStyle='rgba(225,207,169,.28)';ctx.beginPath();ctx.moveTo(bx,baseY-21);ctx.lineTo(bx,baseY-1);ctx.stroke();if(k%2===0){ctx.beginPath();ctx.moveTo(bx+12,baseY-11);ctx.lineTo(Math.min(x+bw,bx+24),baseY-11);ctx.stroke()}}
+  // telhado com duas águas e beirais espessos
+  const roofTop=y-roofRise,peak=x+bw*.5;
+  poly([[x-13,y+roofRise*.62],[peak,roofTop],[frontRight+13,y+roofRise*.62],[frontRight+depth+10,y+roofRise*.92],[peak+depth*.45,roofTop+depth*.38],[x-13,y+roofRise*.62]],b.roof,'#292b26');
+  poly([[x-13,y+roofRise*.62],[peak,roofTop],[peak+depth*.45,roofTop+depth*.38],[frontRight+depth+10,y+roofRise*.92],[frontRight,y+roofRise*.62]],b.roofLight,'rgba(25,27,24,.7)');
+  // linhas das telhas, em perspectiva
+  ctx.save();ctx.beginPath();ctx.moveTo(x-8,y+roofRise*.59);ctx.lineTo(peak,roofTop+3);ctx.lineTo(frontRight+8,y+roofRise*.59);ctx.lineTo(frontRight+depth+5,y+roofRise*.88);ctx.lineTo(peak+depth*.4,roofTop+depth*.4);ctx.closePath();ctx.clip();
+  for(let row=0;row<9;row++){const yy=roofTop+row*roofRise*.14;ctx.strokeStyle=row%2?'rgba(224,193,145,.20)':'rgba(18,22,20,.28)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-20,yy);ctx.lineTo(frontRight+depth+25,yy+roofRise*.48);ctx.stroke()}
+  for(let col=0;col<14;col++){const xx=x+col*bw/13;ctx.strokeStyle='rgba(230,204,160,.12)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xx,roofTop+3);ctx.lineTo(xx+depth*.35,y+roofRise);ctx.stroke()}ctx.restore();
+  // vigas e pilares de madeira
+  ctx.fillStyle=b.wood;ctx.fillRect(x+7,y+roofRise*.72,7,bh-roofRise*.72-4);ctx.fillRect(frontRight-14,y+roofRise*.72,7,bh-roofRise*.72-4);
+  ctx.fillStyle='rgba(239,215,169,.25)';ctx.fillRect(x+15,y+roofRise*.72,2,bh-roofRise*.72-7);
+  // faixa de identificação em madeira e placa
+  const signY=y+roofRise*.82+8;
+  rounded(x+bw*.13,signY,bw*.74,25,4,'#49382b','#c1a16a');
+  ctx.fillStyle='#f0d39a';ctx.font='900 '+Math.max(8,Math.min(12,bw*.052))+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.name,x+bw*.5,signY+9,{});
+  ctx.fillStyle='#c8b58f';ctx.font='700 '+Math.max(6,Math.min(8,bw*.032))+'px system-ui';ctx.fillText(b.sub,x+bw*.5,signY+19,{});
+  // janelas altas com moldura, vidro e iluminação interior
+  const windowY=y+bh*.43,windowW=Math.max(15,bw*.17),windowH=Math.max(24,bh*.16);
+  const positions=b.kind==='guild'?[.17,.42,.67]:b.kind==='arena'?[.18,.65]:b.kind==='homes'?[.18,.65]:[.18,.65];
+  positions.forEach((p,j)=>{
+   const wx=x+bw*p-windowW*.5;drawWindow(wx,windowY,windowW,windowH,b.glass,b.wood);
+   // peitoril e pequeno suporte
+   ctx.fillStyle='#d0b78b';ctx.fillRect(wx-4,windowY+windowH+2,windowW+8,4);
+   if(b.kind==='guild'||b.kind==='arena'){ctx.fillStyle=b.wood;ctx.fillRect(wx-5,windowY-5,windowW+10,5)}
+  });
+  // porta principal recuada, arco e ferragens
+  const doorW=Math.max(21,bw*.22),doorH=Math.max(37,bh*.24),doorX=x+bw*.5-doorW*.5,doorY=baseY-doorH;
+  ctx.fillStyle='#30291f';ctx.fillRect(doorX-5,doorY-6,doorW+10,doorH+7);
+  ctx.fillStyle=b.wood;ctx.fillRect(doorX,doorY,doorW,doorH);
+  ctx.fillStyle='rgba(214,178,117,.26)';ctx.fillRect(doorX+4,doorY+4,doorW-8,doorH-8);
+  ctx.strokeStyle='#b99862';ctx.lineWidth=2;ctx.strokeRect(doorX+3,doorY+3,doorW-6,doorH-6);
+  ctx.fillStyle='#d9b56b';ctx.beginPath();ctx.arc(doorX+doorW*.78,doorY+doorH*.55,2.2,0,Math.PI*2);ctx.fill();
+  // degraus de pedra e soleira
+  ctx.fillStyle='#b9a88b';poly([[doorX-10,baseY-5],[doorX+doorW+10,baseY-5],[doorX+doorW+15,baseY],[doorX-15,baseY]],'#b9a88b','#655744');
+  // luminárias de parede
+  [-1,1].forEach(side=>{
+   const lx=doorX+(side<0?-12:doorW+12),ly=doorY+9;
+   ctx.fillStyle='#332b21';ctx.fillRect(lx-3,ly-4,6,13);ctx.fillStyle='#f2c66e';ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,202,104,.18)';ctx.beginPath();ctx.arc(lx,ly,12,0,Math.PI*2);ctx.fill();
+  });
+  // toldo comercial e balcão para diferenciar a loja
+  if(b.kind==='shop'){
+   const awY=windowY+windowH+13;ctx.fillStyle='#6f4432';ctx.fillRect(x+8,awY,bw-16,7);
+   for(let q=0;q<6;q++){ctx.fillStyle=q%2?'#d2b77e':'#7e4938';ctx.fillRect(x+8+q*(bw-16)/6,awY+7,(bw-16)/6,13)}
+   ctx.fillStyle='#47382b';ctx.fillRect(x+10,awY+20,bw-20,4);
+  }
+  // bandeirolas discretas da guilda e arena
+  if(b.kind==='guild'||b.kind==='arena'){
+   const fx=x+bw*.5,fy=roofTop+roofRise*.7;ctx.fillStyle='#40352a';ctx.fillRect(fx-2,fy-13,4,37);
+   poly([[fx+2,fy-10],[fx+26,fy-4],[fx+2,fy+5]],b.kind==='guild'?'#9a7545':'#873f36','#392b24');
+  }
+  // acabamento de canto e frisos horizontais
+  ctx.strokeStyle='rgba(237,218,178,.35)';ctx.lineWidth=2;ctx.strokeRect(x+4,y+roofRise*.7,bw-8,bh-roofRise*.7-3);
+  ctx.fillStyle='rgba(29,28,24,.22)';ctx.fillRect(x,y+roofRise*.7,bw,3);
  });
+ ctx.textBaseline='alphabetic';
  // Árvores em primeiro plano, com copa em múltiplas camadas
  for(let i=0;i<Math.max(3,Math.floor((w-left)/145));i++){const x=left+55+i*145,y=groundY-28;ctx.fillStyle='#79543a';ctx.fillRect(x-6,y-38,12,43);ctx.fillStyle='#347c4c';ctx.beginPath();ctx.arc(x,y-51,25,0,Math.PI*2);ctx.fill();ctx.fillStyle=i%2?'#70bb67':'#82ca70';ctx.beginPath();ctx.arc(x-10,y-59,14,0,Math.PI*2);ctx.arc(x+10,y-48,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#b2df7a';ctx.beginPath();ctx.arc(x-7,y-65,5,0,Math.PI*2);ctx.fill()}
  // Canteiros floridos
