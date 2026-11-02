@@ -15,11 +15,27 @@
 <div class="actions"><button class="action" id="interact">ENTRAR</button><button class="action" id="jump">PULAR</button></div>
 <div id="hint"></div></div>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+let THREE;
+try {
+  THREE = await import('https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js');
+} catch (cdnError) {
+  try {
+    THREE = await import('https://unpkg.com/three@0.169.0/build/three.module.js');
+  } catch (fallbackError) {
+    document.getElementById('game').innerHTML = '<div style="position:fixed;inset:0;display:grid;place-items:center;padding:28px;background:#18251f;color:#fff;font:16px system-ui;text-align:center"><div><h2>Não foi possível carregar o Ratópolis 3D</h2><p>Verifique sua conexão com a internet e tente novamente. O navegador não conseguiu carregar a biblioteca gráfica.</p><button onclick="location.reload()" style="padding:12px 20px;border:0;border-radius:10px;background:#e5c47b;color:#302419;font-weight:bold">TENTAR NOVAMENTE</button></div></div>';
+    throw fallbackError;
+  }
+}
 const host=document.getElementById('game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9db6ad);scene.fog=new THREE.Fog(0x9db6ad,35,88);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,160);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+let renderer;
+try {
+  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+} catch (webglError) {
+  host.innerHTML = '<div style="position:fixed;inset:0;display:grid;place-items:center;padding:28px;background:#18251f;color:#fff;font:16px system-ui;text-align:center"><div><h2>Seu navegador não iniciou o 3D</h2><p>O WebGL está indisponível ou foi bloqueado. Atualize o Chrome, feche outras abas e tente novamente.</p><button onclick="location.reload()" style="padding:12px 20px;border:0;border-radius:10px;background:#e5c47b;color:#302419;font-weight:bold">TENTAR NOVAMENTE</button></div></div>';
+  throw webglError;
+}
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe4f2df,0x63724e,2.0));
 const sun=new THREE.DirectionalLight(0xffe4b3,2.5);sun.position.set(-18,30,16);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-34;sun.shadow.camera.right=34;sun.shadow.camera.top=34;sun.shadow.camera.bottom=-34;sun.shadow.bias=-.00025;scene.add(sun);
