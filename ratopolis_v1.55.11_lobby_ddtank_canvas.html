@@ -2422,7 +2422,7 @@ function renderLocalRooms(){const list=document.getElementById('roomsList');if(!
  async function startRandomRoomCountdown(){if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){return window.RatopolisOnlineRooms.joinRandom();}const m=document.getElementById('message');if(m)m.textContent='Servidor do jogo não conectado. A partida online não pode começar.';return;}
  async function switchToTestRoom(roomIndex,skipCountdown=false){
  document.getElementById('roomsOverlay').classList.add('hidden');document.getElementById('start').classList.add('hidden');const chatPanel=document.getElementById('chatPanel');if(chatPanel.dataset.fromMenu==='1'){restoreChatToGame();openChat(false);}clearPhaseTimers();document.getElementById('finish').classList.add('hidden');document.getElementById('phaseStart').classList.add('hidden');document.getElementById('death').classList.add('hidden');
- level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();physicsAccumulator=0;clearTouchMovement();
+ level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=window.__ratopolisGuestMode===true;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();physicsAccumulator=0;clearTouchMovement();
  /* Todos os jogadores, inclusive a equipe, veem a mesma janela de seleção do Shaman. */
  const staffRole=await Promise.race([getVerifiedStaffRole(),new Promise(resolve=>setTimeout(()=>resolve(''),1800))]);verifiedStaffRole=staffRole;
  addChatLine('Sistema: sala '+(level+1)+' preparada. Escolha do Shaman em 5 segundos.','system');showPhaseCountdown(5,false);
@@ -3922,6 +3922,26 @@ function renderCommunityRoomPlayers(players){
   if(requestInFlight)return;
   if(activeRoomCode){startOnlineMatch();return;}
   const note=t=>{const m=document.getElementById('message');if(m)m.textContent=t;};
+  // Sem sessão do portal, permite entrar como convidado em uma partida local de teste.
+  // O modo de teste não envia recompensas nem altera o progresso da conta.
+  if(!getToken()){
+   window.__ratopolisGuestMode=true;
+   const playButton=document.getElementById('menuPlay');
+   if(playButton){playButton.disabled=true;playButton.textContent='ABRINDO TESTE…';}
+   try{
+    setOnlineStatus('Modo convidado · teste local');
+    note('Você entrou como Convidado. Esta partida é somente para testes e não salva recompensas.');
+    if(typeof window.switchToTestRoom!=='function')throw new Error('O motor de teste ainda está carregando. Tente novamente.');
+    await window.switchToTestRoom(0,false);
+   }catch(err){
+    note('Não foi possível iniciar o teste: '+String(err&&err.message||err||'erro desconhecido'));
+    setOnlineStatus('Modo convidado disponível');
+   }finally{
+    if(playButton){playButton.disabled=false;playButton.textContent='JOGAR';}
+   }
+   return;
+  }
+  window.__ratopolisGuestMode=false;
   requestInFlight=true;
   const playButton=document.getElementById('menuPlay');
   if(playButton){playButton.disabled=true;playButton.textContent='CARREGANDO…';}
