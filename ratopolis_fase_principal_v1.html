@@ -1032,6 +1032,22 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
 #startMenuClose{display:none!important}
 #gameMenuBtn{display:none!important}
 </style>
+
+<style id="rp-hide-old-menu">
+/* A Fase Principal substitui completamente o menu antigo nesta versão de teste. */
+#start,
+#start.overlay,
+#ratopolisMapLobby,
+#ratopolisMapArt,
+#ratopolisMainLobby,
+#start .rm-shell,
+#start .menu-shell,
+#startMenuClose,
+#gameMenuBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#rpMainPhase{z-index:2147483647!important}
+#rpMainPhase.active{display:block!important;visibility:visible!important}
+</style>
+
 </head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
