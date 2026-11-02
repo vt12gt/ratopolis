@@ -4005,7 +4005,7 @@ function renderCommunityRoomPlayers(players){
   const base=H-54,ground={x:0,y:base,w:1000000,h:90};
   platforms=[ground];movingPlatforms=[];holes=[];planks=[];obstacles=[];acorns=[];cheeses=[];
   goal={x:100000000,y:base-38};leafShield={x:-9999,y:base-31,got:true};shieldActive=false;
-  checkpointX=0;checkpointActive=false;checkpoint={x:0,y:base};checkpointCheeses=[];
+  checkpointX=0;checkpointActive=false;checkpointCheeses=[];
   player.h=30;player.x=45;player.y=base-player.h;player.vx=0;player.vy=0;player.onGround=true;player.supportId='solid:0';
   practiceBots.forEach(b=>{b.x=-10000;b.y=base-b.h;b.vx=0;b.vy=0;b.finished=true;});
   cam=0;phaseElapsed=0;raceHumanFinished=false;raceResultsShown=false;
