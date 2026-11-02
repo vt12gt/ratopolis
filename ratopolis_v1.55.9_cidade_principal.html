@@ -3824,49 +3824,44 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   <div class="rl-foot">CIDADE PRINCIPAL · PONTO DE ENCONTRO</div>
  </aside>
  <div id="rlWorldLabel">CIDADE PRINCIPAL <span>· PRAÇA CENTRAL</span></div>
- <div id="rlControls" aria-label="Controles do Lobby"><button type="button" data-move="left" aria-label="Mover para esquerda">◀</button><button type="button" data-move="right" aria-label="Mover para direita">▶</button><button type="button" data-move="jump" aria-label="Pular">⤒ PULAR</button></div>
- <div id="rlNotice" role="status" aria-live="polite">Verificando sua conta…</div>
+  <div id="rlNotice" role="status" aria-live="polite">Verificando sua conta…</div>
 </div>
 <style id="ratopolis-lobby-test-style">
 #start{display:none!important}
-#ratopolisLobbyTest{display:none;position:fixed;inset:0;z-index:2147483000;background:#b8dca0;color:#173522;font-family:system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#ratopolisLobbyTest{display:none;position:fixed;inset:0;z-index:2147483000;background:#b8dca0;color:#173522;font-family:system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 #ratopolisLobbyTest.rl-active{display:block}
 #ratopolisLobbyGround{position:absolute;inset:0;width:100%;height:100%;display:block}
-/* v1.60.1 — menu simplificado integrado ao Lobby */
-#ratopolisLobbySide .rm-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:12px 0 10px;max-height:34vh;overflow:auto;}
-#ratopolisLobbySide .rm-nav #menuPlay{display:none!important}
-#ratopolisLobbySide .rm-nav .rm-btn{display:flex;align-items:center;justify-content:flex-start;gap:7px;min-width:0;min-height:38px;padding:7px 8px;border:1px solid #d6e7ca;border-radius:10px;background:#f7f9e8;color:#25482d;font-size:11px;font-weight:850;text-align:left;box-shadow:0 2px 0 #a9c99a;}
-#ratopolisLobbySide .rm-nav .rm-ico{font-size:15px;flex:0 0 auto}
-#ratopolisLobbySide .rm-nav .rm-lbl{white-space:normal;line-height:1.1}
-#ratopolisLobbySide #rmHome{margin-top:8px;max-height:28vh;overflow:auto}
-#ratopolisLobbySide #rmHome .rm-btn{min-height:34px}
-#ratopolisLobbyTest #rlPlay{position:relative;overflow:hidden;}
-#ratopolisLobbyTest #rlPlay .rl-button-progress{position:absolute;left:0;bottom:0;height:4px;width:40%;background:#ffe16b;box-shadow:0 0 8px #ffe16b;animation:rlButtonProgress 1.1s ease-in-out infinite alternate;}
-@keyframes rlButtonProgress{from{transform:translateX(-5%);width:20%}to{transform:translateX(400%);width:38%}}
-@media(max-height:520px){#ratopolisLobbySide .rm-nav{gap:4px;margin:7px 0;max-height:30vh}#ratopolisLobbySide .rm-nav .rm-btn{min-height:30px;padding:4px 6px;font-size:10px}#ratopolisLobbySide .rm-nav .rm-ico{font-size:13px}}
-#ratopolisLobbySide{position:absolute;z-index:2;left:0;top:0;bottom:0;width:clamp(190px,24vw,280px);padding:clamp(12px,2vw,22px);box-sizing:border-box;background:rgba(248,250,232,.94);border-right:2px solid rgba(29,72,43,.22);box-shadow:5px 0 24px #183a241c;display:flex;flex-direction:column;gap:12px;overflow:auto}
-.rl-logo{font-weight:1000;font-size:clamp(17px,2.1vw,24px);letter-spacing:.5px;color:#204f31}
-.rl-online{font-size:12px;display:flex;align-items:center;gap:7px;color:#42634a}
-.rl-dot{width:9px;height:9px;border-radius:50%;background:#f2b84b;box-shadow:0 0 0 3px #f2b84b25}
+#ratopolisLobbySide{position:absolute;z-index:2;left:clamp(8px,1.5vw,20px);top:clamp(8px,1.5vh,18px);bottom:clamp(8px,1.5vh,18px);width:clamp(174px,20vw,250px);padding:clamp(10px,1.4vw,18px);box-sizing:border-box;background:linear-gradient(145deg,rgba(255,253,237,.96),rgba(231,241,214,.92));border:1px solid #ffffffd9;border-radius:18px;box-shadow:0 12px 36px #183a2440,inset 0 1px 0 #fff;display:flex;flex-direction:column;gap:clamp(7px,1.1vh,12px);overflow:hidden}
+.rl-logo{font-weight:1000;font-size:clamp(16px,2vw,23px);letter-spacing:.5px;color:#204f31;text-shadow:0 1px #fff}
+.rl-online{font-size:clamp(10px,1.1vw,12px);display:flex;align-items:center;gap:7px;color:#42634a}
+.rl-dot{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#f2b84b;box-shadow:0 0 0 3px #f2b84b25}
 #ratopolisLobbyTest.rl-connected .rl-dot{background:#29a85b;box-shadow:0 0 0 3px #29a85b25}
-.rl-play{width:100%;min-height:48px;border:0;border-radius:12px;background:#287b42;color:#fff;font-weight:1000;font-size:16px;letter-spacing:.6px;box-shadow:0 4px 0 #17532b;cursor:pointer;touch-action:manipulation}
-.rl-play:disabled{opacity:.5;cursor:wait;box-shadow:none}
-.rl-count{font-size:12px;color:#42634a;border-bottom:1px solid #d4dfc9;padding-bottom:9px}
-.rl-count strong{font-size:20px;color:#204f31;margin-right:4px}
-.rl-players{display:flex;flex-direction:column;gap:6px;overflow:auto;min-height:0}
-.rl-player{display:flex;align-items:center;gap:8px;padding:8px;border-radius:9px;background:#fff9;border:1px solid #dce6d4;font-size:12px;font-weight:700;overflow-wrap:anywhere}
-.rl-player .rl-mouse{font-size:20px}
-.rl-foot{margin-top:auto;padding-top:12px;font-size:10px;font-weight:900;letter-spacing:1.2px;color:#789078}
-#rlWorldLabel{position:absolute;top:14px;left:calc(clamp(190px,24vw,280px) + 18px);z-index:1;padding:8px 12px;border-radius:10px;background:#f8fae8d9;color:#245334;font-size:13px;font-weight:1000;letter-spacing:1px}
-#rlWorldLabel span{font-size:10px;font-weight:700;letter-spacing:.4px}
-#rlNotice{position:absolute;z-index:3;left:50%;bottom:18px;transform:translateX(-50%);max-width:min(560px,70vw);padding:10px 14px;border-radius:10px;background:#173522d9;color:white;font-size:12px;text-align:center;box-shadow:0 5px 18px #0002}
+.rl-play{width:100%;min-height:clamp(40px,8vh,52px);flex:0 0 auto;border:1px solid #8fda9c;border-radius:13px;background:linear-gradient(180deg,#49b85e,#20753b);color:#fff;font-weight:1000;font-size:clamp(14px,1.6vw,17px);letter-spacing:.8px;box-shadow:0 5px 0 #15532b,0 8px 18px #174e2d30;cursor:pointer;touch-action:manipulation}
+.rl-play:disabled{opacity:.55;cursor:wait;box-shadow:none}
+.rl-count{font-size:11px;color:#42634a;border-bottom:1px solid #d4dfc9;padding-bottom:7px;flex:0 0 auto}
+.rl-count strong{font-size:21px;color:#204f31;margin-right:4px}
+.rl-players{display:flex;flex-direction:column;gap:5px;overflow:hidden;min-height:0;flex:1}
+.rl-player{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;background:#ffffffb8;border:1px solid #dce6d4;font-size:11px;font-weight:750;overflow:hidden}
+.rl-player .rl-mouse{display:none!important}
+.rl-foot{margin-top:auto;padding-top:6px;font-size:9px;font-weight:900;letter-spacing:1px;color:#789078;flex:0 0 auto}
+#ratopolisLobbySide .rm-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:3px 0;max-height:none;overflow:hidden;flex:0 0 auto}
+#ratopolisLobbySide .rm-nav #menuPlay{display:none!important}
+#ratopolisLobbySide .rm-nav .rm-btn{display:flex;align-items:center;justify-content:flex-start;gap:5px;min-width:0;min-height:30px;padding:5px 6px;border:1px solid #d6e7ca;border-radius:8px;background:#f7f9e8;color:#25482d;font-size:10px;font-weight:850;text-align:left;box-shadow:0 2px 0 #a9c99a}
+#ratopolisLobbySide .rm-nav .rm-ico{font-size:13px;flex:0 0 auto}
+#ratopolisLobbySide .rm-nav .rm-lbl{white-space:normal;line-height:1.05}
+#ratopolisLobbySide #rmHome{margin-top:3px;max-height:none;overflow:hidden;flex:0 0 auto}
+#ratopolisLobbySide #rmHome .rm-btn{min-height:28px}
+#ratopolisLobbyTest #rlPlay{position:relative;overflow:hidden}
+#ratopolisLobbyTest #rlPlay .rl-button-progress{position:absolute;left:0;bottom:0;height:4px;width:40%;background:#ffe16b;box-shadow:0 0 8px #ffe16b;animation:rlButtonProgress 1.1s ease-in-out infinite alternate}
+@keyframes rlButtonProgress{from{transform:translateX(-5%);width:20%}to{transform:translateX(400%);width:38%}}
+#rlWorldLabel{position:absolute;top:clamp(10px,2vh,22px);left:calc(clamp(174px,20vw,250px) + clamp(24px,3vw,42px));z-index:1;padding:9px 15px;border:1px solid #ffffffb8;border-radius:12px;background:linear-gradient(135deg,#fff9e9e8,#e7f2d9df);color:#245334;font-size:clamp(11px,1.3vw,14px);font-weight:1000;letter-spacing:1.1px;box-shadow:0 5px 18px #1d45232b}
+#rlWorldLabel span{font-size:10px;font-weight:750;letter-spacing:.5px}
+#rlNotice{position:absolute;z-index:3;left:50%;bottom:clamp(10px,2vh,20px);transform:translateX(-50%);max-width:min(560px,65vw);padding:10px 15px;border:1px solid #ffffff55;border-radius:12px;background:#173522df;color:white;font-size:12px;text-align:center;box-shadow:0 7px 24px #0003;pointer-events:none}
 #rlNotice:empty{display:none}
-#rlControls{position:absolute;z-index:4;right:18px;bottom:16px;display:flex;align-items:center;gap:9px}
-#rlControls button{min-width:54px;height:50px;padding:0 14px;border:2px solid #fff9;border-radius:14px;background:#183e2bd9;color:#fff;font-size:20px;font-weight:1000;box-shadow:0 4px 0 #102b1d;touch-action:none;user-select:none;-webkit-user-select:none}
-#rlControls button[data-move="jump"]{font-size:13px;background:#f3c84d;color:#23452d;border-color:#fff4}
-@media(orientation:portrait){#ratopolisLobbyTest.rl-active{left:100dvw;top:0;right:auto;bottom:auto;width:100dvh;height:100dvw;transform-origin:top left;transform:rotate(90deg)}#ratopolisLobbySide{width:clamp(170px,28vw,220px)}#rlWorldLabel{left:calc(clamp(170px,28vw,220px) + 10px)}#rlControls{right:12px;bottom:10px}#rlControls button{min-width:42px;height:42px;padding:0 10px;font-size:17px}#rlControls button[data-move="jump"]{font-size:11px}}
-@media(max-width:640px){#ratopolisLobbySide{width:170px;padding:10px;gap:9px}.rl-logo{font-size:16px}#rlWorldLabel{left:180px;top:8px;font-size:11px}#rlWorldLabel span{display:none}#rlNotice{max-width:calc(100vw - 190px);left:calc(170px + (100vw - 170px)/2);bottom:8px;font-size:11px}.rl-player{padding:6px;font-size:11px}}
-@media(orientation:portrait){#ratopolisLobbyTest{overflow:hidden}#ratopolisLobbySide{width:clamp(170px,28vw,220px)}#rlWorldLabel{left:calc(clamp(170px,28vw,220px) + 10px)}}
+#rlControls{display:none!important}
+@media(max-width:700px){#ratopolisLobbySide{width:clamp(158px,25vw,190px);padding:9px;gap:6px}#rlWorldLabel{left:calc(clamp(158px,25vw,190px) + 18px);top:8px;font-size:10px;padding:7px 9px}#rlWorldLabel span{display:none}#rlNotice{max-width:calc(100vw - 190px);left:calc(clamp(158px,25vw,190px) + (100vw - clamp(158px,25vw,190px))/2);bottom:8px;font-size:10px;padding:7px 9px}.rl-player{padding:5px;font-size:10px}}
+@media(max-height:430px){#ratopolisLobbySide{top:5px;bottom:5px;gap:4px;padding:7px}.rl-logo{font-size:15px}.rl-play{min-height:34px}.rl-count{padding-bottom:4px}.rl-foot{font-size:8px}#ratopolisLobbySide .rm-nav .rm-btn{min-height:24px;padding:3px 5px;font-size:9px}}
+@media(orientation:portrait){#ratopolisLobbyTest.rl-active{left:100dvw;top:0;right:auto;bottom:auto;width:100dvh;height:100dvw;transform-origin:top left;transform:rotate(90deg)}}
 </style>
 <script id="ratopolis-lobby-test-logic">
 (()=>{'use strict';
@@ -3883,76 +3878,66 @@ function resize(){const dpr=Math.min(window.devicePixelRatio||1,2),w=root.client
 function draw(){
  if(!root.classList.contains('rl-active'))return;
  const w=root.clientWidth||innerWidth,h=root.clientHeight||innerHeight;
- const left=w<640?170:Math.min(280,Math.max(190,w*.24));
- const groundY=h*.78;
+ const panel=w<700?Math.min(190,Math.max(158,w*.25)):Math.min(250,Math.max(174,w*.20));
+ const left=panel+Math.max(22,w*.035),groundY=h*.79;
  ctx.clearRect(0,0,w,h);
- const sky=ctx.createLinearGradient(0,0,0,h);
- sky.addColorStop(0,'#8ed1e9');sky.addColorStop(.62,'#d5edc6');sky.addColorStop(1,'#b3d49a');
- ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
- // colinas ao fundo
- ctx.fillStyle='#91c58b';ctx.beginPath();ctx.moveTo(left,groundY-95);
- for(let x=left;x<=w+40;x+=40)ctx.lineTo(x,groundY-105-Math.sin(x*.012)*24-Math.cos(x*.027)*13);
- ctx.lineTo(w,h);ctx.lineTo(left,h);ctx.closePath();ctx.fill();
- // praça e ruas
- ctx.fillStyle='#d9d8b7';ctx.fillRect(left,groundY-8,w-left,h-groundY+8);
- ctx.fillStyle='#777f78';ctx.fillRect(left,groundY+55,w-left,42);
- ctx.fillStyle='#f4e6a2';for(let x=left+20;x<w;x+=72)ctx.fillRect(x,groundY+74,34,4);
- ctx.fillStyle='#6eaa62';ctx.fillRect(left,groundY-15,w-left,12);
- // calçadas
- ctx.fillStyle='#c9c7a7';ctx.fillRect(left,groundY-20,w-left,7);
- // edifícios da cidade
+ // Céu em camadas com luz e profundidade
+ const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#68b8df');sky.addColorStop(.48,'#b9e5df');sky.addColorStop(1,'#f5e9bd');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+ const sun=ctx.createRadialGradient(w*.78,h*.16,3,w*.78,h*.16,Math.min(w,h)*.19);sun.addColorStop(0,'#fff9d6b8');sun.addColorStop(1,'#fff9d600');ctx.fillStyle=sun;ctx.fillRect(left,0,w-left,h*.6);
+ // Nuvens suaves
+ for(let i=0;i<5;i++){const x=left+((i*211+w*.12)%(w-left)),y=h*(.13+(i%3)*.075);ctx.fillStyle='#ffffff9c';ctx.beginPath();ctx.ellipse(x,y,31,9,0,0,Math.PI*2);ctx.ellipse(x-17,y+2,16,7,0,0,Math.PI*2);ctx.ellipse(x+17,y+1,19,8,0,0,Math.PI*2);ctx.fill()}
+ // Colinas distantes e árvores de fundo
+ ctx.fillStyle='#8bc78d';ctx.beginPath();ctx.moveTo(left,groundY-95);for(let x=left;x<=w+40;x+=28)ctx.lineTo(x,groundY-100-Math.sin(x*.009)*34-Math.cos(x*.021)*15);ctx.lineTo(w,h);ctx.lineTo(left,h);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#70b77b';ctx.beginPath();ctx.moveTo(left,groundY-44);for(let x=left;x<=w+30;x+=25)ctx.lineTo(x,groundY-55-Math.sin(x*.014+2)*20);ctx.lineTo(w,h);ctx.lineTo(left,h);ctx.closePath();ctx.fill();
+ // Praça gramada, canteiros e passeio
+ ctx.fillStyle='#75b968';ctx.fillRect(left,groundY-22,w-left,h-groundY+22);
+ ctx.fillStyle='#d8d0ad';ctx.fillRect(left,groundY-16,w-left,13);
+ ctx.fillStyle='#b5a98b';ctx.fillRect(left,groundY-3,w-left,5);
+ // Rua principal
+ ctx.fillStyle='#586d70';ctx.fillRect(left,groundY+54,w-left,Math.max(35,h*.12));
+ ctx.fillStyle='#e9dca7';for(let x=left+18;x<w;x+=78){ctx.fillRect(x,groundY+76,36,4)}
+ // Calçada em perspectiva
+ ctx.fillStyle='#e8dfc3';ctx.beginPath();ctx.moveTo(left,groundY+8);ctx.lineTo(w,groundY+8);ctx.lineTo(w,groundY+55);ctx.lineTo(left,groundY+55);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#c7b994';ctx.lineWidth=2;for(let x=left+20;x<w;x+=54){ctx.beginPath();ctx.moveTo(x,groundY+9);ctx.lineTo(x+8,groundY+53);ctx.stroke()}
+ // Prédios com profundidade, fachadas e vitrines
  const buildings=[
-  {x:.07,y:.29,bw:.19,bh:.34,c:'#e8bd82',roof:'#a85f4a',name:'LOJA'},
-  {x:.32,y:.20,bw:.21,bh:.43,c:'#d7e2d1',roof:'#668c71',name:'GUILDA'},
-  {x:.61,y:.27,bw:.20,bh:.36,c:'#e7d09b',roof:'#b56c48',name:'ARENA'},
-  {x:.86,y:.34,bw:.12,bh:.29,c:'#c6d8e8',roof:'#557d9e',name:'CASAS'}
+ {x:.06,y:.28,bw:.19,bh:.36,c:'#f0c990',roof:'#a95748',name:'LOJA',accent:'#ffe4a9'},
+ {x:.30,y:.18,bw:.22,bh:.46,c:'#e0ead9',roof:'#527e69',name:'GUILDA',accent:'#c8e8cf'},
+ {x:.59,y:.25,bw:.20,bh:.39,c:'#f0d69d',roof:'#b56a48',name:'ARENA',accent:'#ffe8b8'},
+ {x:.85,y:.34,bw:.13,bh:.30,c:'#cbdde9',roof:'#557d9e',name:'CASAS',accent:'#e7f4fb'}
  ];
  buildings.forEach((b,i)=>{
-  const x=left+Math.max(12,(w-left)*b.x),bw=Math.max(75,(w-left)*b.bw),bh=Math.max(90,h*b.bh),y=groundY-bh-14;
-  ctx.fillStyle='#425c45';ctx.globalAlpha=.18;ctx.fillRect(x+8,y+bh-3,bw,12);ctx.globalAlpha=1;
+  const x=left+Math.max(12,(w-left)*b.x),bw=Math.max(72,(w-left)*b.bw),bh=Math.max(82,h*b.bh),y=groundY-bh-20;
+  ctx.fillStyle='#203d32';ctx.globalAlpha=.2;ctx.beginPath();ctx.ellipse(x+bw*.55,groundY-3,bw*.65,10,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#00000018';ctx.fillRect(x+bw-2,y+7,12,bh);
   ctx.fillStyle=b.c;ctx.fillRect(x,y,bw,bh);
-  ctx.fillStyle=b.roof;ctx.beginPath();ctx.moveTo(x-8,y+5);ctx.lineTo(x+bw/2,y-25);ctx.lineTo(x+bw+8,y+5);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#fff1c8';ctx.fillRect(x+8,y+18,bw-16,18);
-  ctx.fillStyle='#38543c';ctx.font='900 '+Math.max(10,Math.min(14,w*.012))+'px system-ui';ctx.textAlign='center';ctx.fillText(b.name,x+bw/2,y+31);
-  const cols=Math.max(2,Math.floor(bw/42));
-  for(let c=0;c<cols;c++){const wx=x+12+c*((bw-28)/cols);ctx.fillStyle='#8fc6d3';ctx.fillRect(wx,y+bh*.38,18,23);ctx.fillStyle='#f7e9bd';ctx.fillRect(wx+7,y+bh*.38,3,23)}
-  ctx.fillStyle='#76523b';ctx.fillRect(x+bw*.42,y+bh-38,bw*.16,38);
+  ctx.fillStyle='#ffffff55';ctx.fillRect(x+4,y+5,5,bh-10);
+  ctx.fillStyle=b.roof;ctx.beginPath();ctx.moveTo(x-10,y+8);ctx.lineTo(x+bw*.5,y-30);ctx.lineTo(x+bw+10,y+8);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ffffff38';ctx.beginPath();ctx.moveTo(x+bw*.5,y-30);ctx.lineTo(x+bw+10,y+8);ctx.lineTo(x+bw,y+8);ctx.closePath();ctx.fill();
+  ctx.fillStyle=b.accent;ctx.fillRect(x+7,y+14,bw-14,22);
+  ctx.fillStyle='#36523d';ctx.font='1000 '+Math.max(10,Math.min(15,w*.012))+'px system-ui';ctx.textAlign='center';ctx.fillText(b.name,x+bw/2,y+30);
+  const cols=Math.max(2,Math.floor(bw/39));for(let c=0;c<cols;c++){const wx=x+11+c*((bw-25)/cols);ctx.fillStyle='#6caabd';ctx.fillRect(wx,y+bh*.42,18,25);ctx.fillStyle='#d8f2f0';ctx.fillRect(wx+2,y+bh*.42+2,14,8);ctx.fillStyle='#fff0c9';ctx.fillRect(wx+7,y+bh*.42,3,25);ctx.strokeStyle='#fff2d0';ctx.lineWidth=2;ctx.strokeRect(wx,y+bh*.42,18,25)}
+  ctx.fillStyle='#80583c';ctx.fillRect(x+bw*.43,y+bh-43,bw*.15,43);ctx.fillStyle='#f4d58c';ctx.fillRect(x+bw*.43+4,y+bh-34,bw*.15-8,15);
+  // floreiras
+  ctx.fillStyle='#a66b48';ctx.fillRect(x+8,y+bh-13,Math.max(18,bw*.24),7);ctx.fillStyle='#4d9a55';for(let k=0;k<4;k++){ctx.beginPath();ctx.arc(x+12+k*8,y+bh-17-(k%2)*3,5,0,Math.PI*2);ctx.fill()}
  });
- // árvores e postes
- for(let i=0;i<Math.max(3,Math.floor((w-left)/170));i++){
-  const x=left+55+i*170,y=groundY-28;
-  ctx.fillStyle='#76543b';ctx.fillRect(x-5,y-38,10,42);
-  ctx.fillStyle=i%2?'#4f9b57':'#68ad5e';ctx.beginPath();ctx.arc(x,y-49,23,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#83c873';ctx.beginPath();ctx.arc(x-9,y-58,10,0,Math.PI*2);ctx.fill();
- }
- // placa da praça
- const signX=left+(w-left)*.49;
- ctx.fillStyle='#704a31';ctx.fillRect(signX-3,groundY-88,6,68);
- ctx.fillStyle='#f5d36b';ctx.strokeStyle='#8d6137';ctx.lineWidth=3;
- ctx.beginPath();ctx.roundRect(signX-72,groundY-116,144,34,8);ctx.fill();ctx.stroke();
- ctx.fillStyle='#493d28';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText('PRAÇA CENTRAL',signX,groundY-94);
- // personagens
- players.forEach((p,i)=>{
-  const id=String(p.id||p.playerId||i),local=id===playerId;
-  let x=left+40+((i*113+Math.abs(hash(id))%83)%Math.max(100,w-left-80)),y=groundY-28;
-  if(p.state&&Number.isFinite(Number(p.state.x)))x=left+28+Math.max(0,Math.min(w-left-56,Number(p.state.x)*(w-left-56)));
-  if(p.state&&Number.isFinite(Number(p.state.y)))y=Math.max(75,Math.min(groundY-25,groundY-28-Math.max(0,Number(p.state.y))));
-  drawMouse(x,y,local?'#795238':'#a66f4d',p.nickname||'Rato',local);
- });
- if(!players.length){ctx.fillStyle='#365c3c';ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.fillText('A praça está tranquila… aguardando outros ratos!',left+(w-left)/2,groundY-42)}
-}function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)}
-function drawMouse(x,y,color,name,local){ctx.save();ctx.translate(x,y);ctx.fillStyle='#2c5033';ctx.globalAlpha=.12;ctx.beginPath();ctx.ellipse(0,19,19,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(0,0,15,11,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(-8,-8,6,0,Math.PI*2);ctx.arc(4,-9,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e8b6a3';ctx.beginPath();ctx.arc(-8,-8,3,0,Math.PI*2);ctx.arc(4,-9,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(8,-2,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#17251a';ctx.beginPath();ctx.arc(9,-2,1.8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d98b8b';ctx.beginPath();ctx.arc(14,3,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-13,5);ctx.quadraticCurveTo(-24,13,-29,7);ctx.stroke();ctx.font=(local?'800 ':'600 ')+'11px system-ui';ctx.textAlign='center';const label=String(name||'Rato').slice(0,20);ctx.lineWidth=3;ctx.strokeStyle='#f2f8e9';ctx.strokeText(label,0,-22);ctx.fillStyle='#244a2d';ctx.fillText(label,0,-22);if(local){ctx.fillStyle='#fff2a9';ctx.font='900 9px system-ui';ctx.fillText('VOCÊ',0,30)}ctx.restore()}
-function paintPlayers(raw){const now=Date.now();players=(Array.isArray(raw)?raw:[]).filter(p=>p&&p.id&&(!p.lastSeen||now-Number(p.lastSeen)<22000));count.textContent=String(players.length);list.replaceChildren();if(!players.length){const e=document.createElement('div');e.className='rl-player';e.textContent='Você será o primeiro rato aqui.';list.appendChild(e)}else players.forEach(p=>{const row=document.createElement('div');row.className='rl-player';const icon=document.createElement('span');icon.className='rl-mouse';icon.textContent='🐭';const n=document.createElement('span');n.textContent=String(p.nickname||'Rato')+(String(p.id)===playerId?' · você':'');row.append(icon,n);list.appendChild(row)});draw()}
-async function connect(){if(inMatch||!root.classList.contains('rl-active'))return;if(window.__ratopolisGuestMode){socket=null;root.classList.add('rl-connected');status.textContent='Convidado · modo local';players=[{id:playerId,nickname,state:{x:playerState.x,y:playerState.y}}];paintPlayers(players);play.disabled=false;say('Você está na Cidade Principal como convidado. O modo convidado é local e não salva progresso.');return;}try{if(!joinedLobby){await post('/api/lobby/join');joinedLobby=true;}const t=await post('/api/rooms/ws-ticket',{room:'LOBBY'});if(inMatch)return;const ws=new WebSocket(API.replace(/^https:/,'wss:')+'/ws?room=LOBBY&ticket='+encodeURIComponent(t.ticket||''));socket=ws;ws.addEventListener('open',()=>{if(socket!==ws)return;root.classList.add('rl-connected');status.textContent='Conectado ao servidor';play.disabled=false;say('Você está no Lobby. Os jogadores presentes aparecem no terreno.');if(pingTimer)clearInterval(pingTimer);pingTimer=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping'}))},7000);startMovement()});ws.addEventListener('message',ev=>{let d;try{d=JSON.parse(ev.data)}catch(_){return}if(d.type==='room_state')paintPlayers(d.players||[]);else if(d.type==='player_state'&&d.player){const i=players.findIndex(p=>String(p.id)===String(d.player.id));if(i<0)players.push(d.player);else players[i]=d.player;paintPlayers(players)}else if(d.type==='presence_changed')refresh()});ws.addEventListener('close',()=>{if(socket!==ws)return;socket=null;if(pingTimer)clearInterval(pingTimer);root.classList.remove('rl-connected');status.textContent='Reconectando…';play.disabled=true;if(!inMatch)retryTimer=setTimeout(connect,1800)});ws.addEventListener('error',()=>{status.textContent='Reconectando…'})}catch(e){root.classList.remove('rl-connected');status.textContent='Falha na conexão';play.disabled=true;say((e.message||'Não foi possível entrar no Lobby')+' Tente novamente em instantes.');if(!inMatch)retryTimer=setTimeout(connect,3500)}}
+ // Árvores em primeiro plano, com copa em múltiplas camadas
+ for(let i=0;i<Math.max(3,Math.floor((w-left)/145));i++){const x=left+55+i*145,y=groundY-28;ctx.fillStyle='#79543a';ctx.fillRect(x-6,y-38,12,43);ctx.fillStyle='#347c4c';ctx.beginPath();ctx.arc(x,y-51,25,0,Math.PI*2);ctx.fill();ctx.fillStyle=i%2?'#70bb67':'#82ca70';ctx.beginPath();ctx.arc(x-10,y-59,14,0,Math.PI*2);ctx.arc(x+10,y-48,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#b2df7a';ctx.beginPath();ctx.arc(x-7,y-65,5,0,Math.PI*2);ctx.fill()}
+ // Canteiros floridos
+ for(let i=0;i<Math.max(4,Math.floor((w-left)/95));i++){const x=left+25+i*95,y=groundY+24;ctx.fillStyle='#4b9850';ctx.beginPath();ctx.ellipse(x,y,18,6,0,0,Math.PI*2);ctx.fill();for(let k=0;k<3;k++){ctx.fillStyle=['#fff0b5','#f4a4a0','#f7f4e6'][(i+k)%3];ctx.beginPath();ctx.arc(x-8+k*8,y-4-(k%2)*3,3,0,Math.PI*2);ctx.fill()}}
+ // Placa central iluminada
+ const signX=left+(w-left)*.51;ctx.fillStyle='#704a31';ctx.fillRect(signX-4,groundY-91,8,74);ctx.fillStyle='#f7d66e';ctx.strokeStyle='#8d6137';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(signX-82,groundY-126,164,39,9);ctx.fill();ctx.stroke();ctx.fillStyle='#493d28';ctx.font='1000 13px system-ui';ctx.textAlign='center';ctx.fillText('PRAÇA CENTRAL',signX,groundY-101);
+ // Iluminação dos postes
+ for(let i=0;i<Math.max(2,Math.floor((w-left)/260));i++){const x=left+130+i*260,y=groundY+15;ctx.fillStyle='#536b54';ctx.fillRect(x-2,y-58,4,60);ctx.fillStyle='#f7e5a0';ctx.beginPath();ctx.arc(x,y-61,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff2b84a';ctx.beginPath();ctx.arc(x,y-61,17,0,Math.PI*2);ctx.fill()}
+ // Os jogadores aparecem somente na lista lateral; a praça permanece livre de personagens.
+ if(!players.length){ctx.fillStyle='#365c3c';ctx.font='800 13px system-ui';ctx.textAlign='center';ctx.fillText('BEM-VINDO À CIDADE PRINCIPAL',left+(w-left)/2,groundY-43)}
+}
+function paintPlayers(raw){const now=Date.now();players=(Array.isArray(raw)?raw:[]).filter(p=>p&&p.id&&(!p.lastSeen||now-Number(p.lastSeen)<22000));count.textContent=String(players.length);list.replaceChildren();if(!players.length){const e=document.createElement('div');e.className='rl-player';e.textContent='Você será o primeiro rato aqui.';list.appendChild(e)}else players.forEach(p=>{const row=document.createElement('div');row.className='rl-player';const n=document.createElement('span');n.textContent=String(p.nickname||'Rato')+(String(p.id)===playerId?' · você':'');row.append(n);list.appendChild(row)});draw()}
+async function connect(){if(inMatch||!root.classList.contains('rl-active'))return;if(window.__ratopolisGuestMode){socket=null;root.classList.add('rl-connected');status.textContent='Convidado · modo local';players=[{id:playerId,nickname,state:{x:playerState.x,y:playerState.y}}];paintPlayers(players);play.disabled=false;say('Você está na Cidade Principal como convidado. O modo convidado é local e não salva progresso.');return;}try{if(!joinedLobby){await post('/api/lobby/join');joinedLobby=true;}const t=await post('/api/rooms/ws-ticket',{room:'LOBBY'});if(inMatch)return;const ws=new WebSocket(API.replace(/^https:/,'wss:')+'/ws?room=LOBBY&ticket='+encodeURIComponent(t.ticket||''));socket=ws;ws.addEventListener('open',()=>{if(socket!==ws)return;root.classList.add('rl-connected');status.textContent='Conectado ao servidor';play.disabled=false;say('Você está no Lobby. Os jogadores presentes aparecem no terreno.');if(pingTimer)clearInterval(pingTimer);pingTimer=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping'}))},7000);/* movimento de personagem removido do Lobby */});ws.addEventListener('message',ev=>{let d;try{d=JSON.parse(ev.data)}catch(_){return}if(d.type==='room_state')paintPlayers(d.players||[]);else if(d.type==='player_state'&&d.player){const i=players.findIndex(p=>String(p.id)===String(d.player.id));if(i<0)players.push(d.player);else players[i]=d.player;paintPlayers(players)}else if(d.type==='presence_changed')refresh()});ws.addEventListener('close',()=>{if(socket!==ws)return;socket=null;if(pingTimer)clearInterval(pingTimer);root.classList.remove('rl-connected');status.textContent='Reconectando…';play.disabled=true;if(!inMatch)retryTimer=setTimeout(connect,1800)});ws.addEventListener('error',()=>{status.textContent='Reconectando…'})}catch(e){root.classList.remove('rl-connected');status.textContent='Falha na conexão';play.disabled=true;say((e.message||'Não foi possível entrar no Lobby')+' Tente novamente em instantes.');if(!inMatch)retryTimer=setTimeout(connect,3500)}}
 async function refresh(){if(inMatch||window.__ratopolisGuestMode||!root.classList.contains('rl-active'))return;try{const d=await post('/api/lobby/state');paintPlayers(d.players||[])}catch(_){}}
-async function enterLobby(){if(joining)return;joining=true;inMatch=false;root.classList.add('rl-active');play.disabled=true;status.textContent='Preparando Cidade Principal…';say('Entrando na Cidade Principal…');try{await verify();await connect();if(window.__ratopolisGuestMode)startMovement();else{if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(refresh,6500)}}catch(e){status.textContent='Conta desconectada';play.disabled=true;say((e.message||'Falha de autenticação')+' Atualize após entrar pelo portal.')}finally{joining=false}}
+async function enterLobby(){if(joining)return;joining=true;inMatch=false;root.classList.add('rl-active');play.disabled=true;status.textContent='Preparando Cidade Principal…';say('Entrando na Cidade Principal…');try{await verify();await connect();if(window.__ratopolisGuestMode){status.textContent='Convidado · modo local';}else{if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(refresh,6500)}}catch(e){status.textContent='Conta desconectada';play.disabled=true;say((e.message||'Falha de autenticação')+' Atualize após entrar pelo portal.')}finally{joining=false}}
 async function goPlay(){if(joining)return;joining=true;play.disabled=true;try{if(window.__ratopolisGuestMode){inMatch=true;root.classList.remove('rl-active');if(typeof window.switchToTestRoom==='function'){await window.switchToTestRoom(0,false);}else{inMatch=false;root.classList.add('rl-active');say('O motor de jogo não carregou. Atualize a página e tente novamente.');}return;}if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.joinRandom==='function'){await window.RatopolisOnlineRooms.joinRandom();}else{say('Sistema de salas online não carregou. Tente novamente.');}}catch(e){inMatch=false;root.classList.add('rl-active');say((e.message||'Falha ao procurar sala online')+' Você continua na Cidade Principal.');}finally{joining=false;play.disabled=false;}}
 play.addEventListener('click',goPlay);
-function startMovement(){if(moveTimer)clearInterval(moveTimer);moveTimer=setInterval(()=>{if(!root.classList.contains('rl-active')||inMatch)return;if(!window.__ratopolisGuestMode&&(!socket||socket.readyState!==WebSocket.OPEN))return;const step=.018;if(held.left)playerState.x=Math.max(0,playerState.x-step);if(held.right)playerState.x=Math.min(1,playerState.x+step);if(jumpVelocity||playerState.y>0){playerState.y=Math.max(0,playerState.y+jumpVelocity);jumpVelocity-=2.4;if(playerState.y===0)jumpVelocity=0;}const me={id:playerId,nickname,state:{x:playerState.x,y:playerState.y},lastSeen:Date.now()};const i=players.findIndex(p=>String(p.id)===playerId);if(i<0)players.push(me);else players[i]=me;if(socket&&socket.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type:'player_state',state:me.state}));draw()},50)}
-document.querySelectorAll('#rlControls [data-move]').forEach(b=>{const key=b.dataset.move;const down=e=>{e.preventDefault();if(key==='jump'){if(playerState.y<=0)jumpVelocity=13}else held[key]=true};const up=e=>{e.preventDefault();if(key!=='jump')held[key]=false};b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up)});
-window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a'){held.left=true;e.preventDefault()}if(e.key==='ArrowRight'||e.key.toLowerCase()==='d'){held.right=true;e.preventDefault()}if(e.key===' '||e.key==='ArrowUp'){if(playerState.y<=0)jumpVelocity=13;e.preventDefault()}});
-window.addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')held.left=false;if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')held.right=false});
-
 async function returnFromGame(){if(!window.__ratopolisGuestMode){try{if(window.RatopolisOnlineRooms&&typeof window.RatopolisOnlineRooms.leave==='function')await window.RatopolisOnlineRooms.leave()}catch(_){}}inMatch=false;root.classList.add('rl-active');play.disabled=true;status.textContent=window.__ratopolisGuestMode?'Convidado · modo local':'Voltando à Cidade Principal…';await connect();if(!window.__ratopolisGuestMode&&!pollTimer)pollTimer=setInterval(refresh,6500);play.disabled=false}
 function bindExit(){const old=document.getElementById('onlineLeaveGameBtn');if(!old)return;const b=old.cloneNode(true);old.replaceWith(b);b.textContent='VOLTAR AO LOBBY ↩';b.setAttribute('aria-label','Voltar ao Lobby online');b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();b.disabled=true;await returnFromGame();b.disabled=false})}
 window.addEventListener('resize',resize);window.addEventListener('pagehide',()=>{if(socket)try{socket.close()}catch(_){}if(pingTimer)clearInterval(pingTimer);if(pollTimer)clearInterval(pollTimer);if(retryTimer)clearTimeout(retryTimer);if(moveTimer)clearInterval(moveTimer)});
