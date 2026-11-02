@@ -3972,6 +3972,21 @@ function renderCommunityRoomPlayers(players){
 #startMenuClose{position:absolute;top:10px;right:12px;z-index:2147483001;border:1px solid #e7c35a;border-radius:9px;background:#173d2c;color:#fff6dc;font-size:11px;font-weight:900;padding:8px 11px;touch-action:manipulation}
 @media(max-width:560px){#gameMenuBtn{min-width:48px;width:auto;min-height:27px;font-size:10px;padding:2px 6px}#startMenuClose{top:6px;right:7px;padding:6px 8px;font-size:10px}}
 </style>
+
+<style id="ratopolis-menu-final-fix-v15513">
+/* Correção definitiva da tela inicial: esconder o lobby antigo e usar o menu rm-shell. */
+#start.overlay:not(.hidden){display:flex!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;padding:0!important;margin:0!important;align-items:stretch!important;justify-content:stretch!important;overflow:hidden!important;background:#0b2018!important;z-index:2147483000!important}
+#start #ratopolisMapLobby{display:none!important;visibility:hidden!important}
+#start .rm-shell{display:block!important;visibility:visible!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;overflow:hidden!important}
+#start .rm-grid{display:grid!important;width:100%!important;height:100%!important;min-height:0!important}
+#start .rm-top,#start .rm-gchat,#start .rm-bottom{display:none!important}
+#start .rm-scene{display:block!important}
+#startMenuClose,#gameMenuBtn{display:none!important}
+@media(orientation:portrait){
+ #start.overlay:not(.hidden){overflow:hidden!important}
+ #start .rm-shell{width:100dvh!important;height:100vw!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%) rotate(90deg)!important;transform-origin:center center!important}
+}
+</style>
 </body></html>
 
 <style>
