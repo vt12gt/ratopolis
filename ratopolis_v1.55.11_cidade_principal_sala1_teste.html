@@ -4039,10 +4039,30 @@ function renderCommunityRoomPlayers(players){
   const target=document.getElementById(b.dataset.cityTarget);if(target)target.click();
  }));
  const gate=document.getElementById('ratopolisLoginGate');
- if(gate){
-  const mo=new MutationObserver(()=>{if(getComputedStyle(gate).display==='none'){mo.disconnect();setTimeout(enterCity,120);}});
-  mo.observe(gate,{attributes:true,attributeFilter:['style','class']});
-  if(getComputedStyle(gate).display==='none')setTimeout(enterCity,120);
+ const start=document.getElementById('start');
+ let cityEntered=false;
+ const tryEnterCity=()=>{
+  const currentGate=document.getElementById('ratopolisLoginGate');
+  if(cityEntered||currentGate&&currentGate.isConnected&&getComputedStyle(currentGate).display!=='none')return;
+  cityEntered=true;
+  setTimeout(()=>{
+   try{
+    if(start)start.classList.add('hidden');
+    document.getElementById('phaseStart')?.classList.add('hidden');
+    enterCity();
+   }catch(e){cityEntered=false;console.error('Falha ao entrar na Cidade Principal:',e);}
+  },150);
+ };
+ if(!gate||!gate.isConnected||getComputedStyle(gate).display==='none')tryEnterCity();
+ else{
+  const gateObserver=new MutationObserver(()=>{
+   const currentGate=document.getElementById('ratopolisLoginGate');
+   if(!currentGate||!currentGate.isConnected||getComputedStyle(currentGate).display==='none'){
+    gateObserver.disconnect();tryEnterCity();
+   }
+  });
+  gateObserver.observe(document.body,{childList:true,subtree:true});
+  gateObserver.observe(gate,{attributes:true,attributeFilter:['style','class']});
  }
  // Qualquer retorno ao antigo menu passa a devolver o jogador à Cidade Principal.
  const start=document.getElementById('start');
