@@ -4071,7 +4071,7 @@ function sync(){
  $('ddt-xpbar').style.width=$('rmXpFill')?.style.width||'0%';
  const state=$('rmStatus')?.innerText||'CONECTADO';$('ddt-status').textContent=state.toUpperCase();
 }
-sync();new MutationObserver(sync).observe(document.querySelector('.rm-shell'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['style','class']});
+sync();new MutationObserver(sync).observe(document.querySelector('.rm-shell'),{subtree:true,childList:true,characterData:true});
 root.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{
  const go=b.dataset.go;
  if(go==='bag')return existing('homeBag');
