@@ -1031,7 +1031,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   <button id="menuPlay" class="rm-btn rm-primary" type="button"><span class="rm-ico">▶</span><span class="rm-lbl">JOGAR</span></button>
   <button id="menuRooms" class="rm-btn" type="button" hidden aria-hidden="true" style="display:none!important"></button>
   <button id="menuMyHome" class="rm-btn" type="button"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
-  <button id="menuMiniGame" class="rm-btn" type="button"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
+  
   <button id="rmFriends" class="rm-btn" type="button"><span class="rm-ico">👥</span><span class="rm-lbl">AMIGOS</span></button>
   <button id="rmRanking" class="rm-btn" type="button"><span class="rm-ico">🏆</span><span class="rm-lbl">RANKING</span></button>
   <button id="rmAchievements" class="rm-btn" type="button"><span class="rm-ico">🏅</span><span class="rm-lbl">CONQUISTAS</span></button>
@@ -2397,7 +2397,6 @@ const legacyStartBtn=document.getElementById('startBtn');if(legacyStartBtn)legac
  document.getElementById('homeBag').addEventListener('click',()=>{document.getElementById('start').classList.add('hidden');openWardrobe('bag',true);});
  document.getElementById('homeShop').addEventListener('click',()=>{document.getElementById('start').classList.add('hidden');openWardrobe('shop',true);});
  document.getElementById('homeVIP').addEventListener('click',()=>{document.getElementById('start').classList.add('hidden');openVIPPanel(true);});
- document.getElementById('menuMiniGame').addEventListener('click',()=>openVIPMiniGame());
  {const startEl=document.getElementById('start');const showEl=id=>document.getElementById(id).classList.remove('hidden');
  document.getElementById('rmFriends').addEventListener('click',()=>{document.querySelector('[data-fm-tab="friends"]')?.click();showEl('friendsOverlay');});
  document.getElementById('rmRanking').addEventListener('click',()=>{renderRankingPage();startEl.classList.add('hidden');showEl('rankingPage');});
@@ -3868,7 +3867,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 const API='https://ratopolis-room-server-v1.juniorgmj69.workers.dev',ACCOUNT='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const root=document.getElementById('ratopolisLobbyTest'),canvas=document.getElementById('ratopolisLobbyGround'),ctx=canvas.getContext('2d');
 const status=document.getElementById('rlStatus'),count=document.getElementById('rlCount'),list=document.getElementById('rlPlayers'),notice=document.getElementById('rlNotice'),play=document.getElementById('rlPlay');
-const menuNav=document.getElementById('rmNav'),menuHome=document.getElementById('rmHome'),lobbySide=document.getElementById('ratopolisLobbySide');if(lobbySide&&menuNav&&play){play.insertAdjacentElement('afterend',menuNav);if(menuHome)menuNav.insertAdjacentElement('afterend',menuHome);menuNav.setAttribute('aria-label','Atalhos do Lobby');}
+const menuNav=document.getElementById('rmNav'),menuHome=document.getElementById('rmHome');if(root&&menuNav){root.appendChild(menuNav);if(menuHome)root.appendChild(menuHome);menuNav.setAttribute('aria-label','Menu de funcionalidades da Cidade Principal');}
 let token='',playerId='',nickname='Rato',players=[],socket=null,pingTimer=null,pollTimer=null,retryTimer=null,moveTimer=null,joining=false,inMatch=false,joinedLobby=false,drawFrame=0;const playerState={x:.5,y:0};const held={left:false,right:false};let jumpVelocity=0;
 function say(t){notice.textContent=t||''}
 function getToken(){try{return window.__ratopolisGetTabSessionToken()||''}catch(_){return ''}}
@@ -3944,6 +3943,47 @@ window.addEventListener('resize',resize);window.addEventListener('pagehide',()=>
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindExit();enterLobby()},{once:true});else{bindExit();enterLobby()}
 })();
 </script>
+
+<style id="ratopolis-mmorpg-lobby-ui">
+/* Cidade Principal — HUD inspirado em MMORPGs: barra de atalhos integrada ao mundo. */
+#ratopolisLobbyTest{isolation:isolate;background:#142b25}
+#ratopolisLobbyTest::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(180deg,rgba(7,25,23,.18),transparent 22%,transparent 72%,rgba(7,22,19,.20))}
+#ratopolisLobbySide{background:linear-gradient(155deg,rgba(12,39,32,.94),rgba(9,27,25,.90))!important;border:1px solid rgba(240,207,113,.66)!important;border-radius:15px!important;box-shadow:0 14px 38px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.12)!important;color:#f8edca!important;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);gap:clamp(7px,1.1vh,12px)!important}
+#ratopolisLobbySide .rl-logo{font-size:clamp(18px,2.2vw,26px)!important;letter-spacing:1.4px!important;color:#ffe18a!important;text-shadow:0 2px 10px rgba(255,190,67,.25)!important;padding-bottom:5px;border-bottom:1px solid rgba(238,204,119,.25)}
+#ratopolisLobbySide .rl-online{color:#d1ddc9!important;font-weight:700}
+#ratopolisLobbySide .rl-count{color:#d4dfd0!important;border-bottom-color:rgba(240,220,170,.2)!important}
+#ratopolisLobbySide .rl-count strong{color:#ffe18a!important}
+#ratopolisLobbySide .rl-player{background:rgba(235,243,220,.10)!important;border:1px solid rgba(235,218,165,.16)!important;color:#fff7df!important;border-radius:8px!important}
+#ratopolisLobbySide .rl-foot{color:#b8c9ad!important;letter-spacing:1.15px!important}
+#ratopolisLobbyTest .rl-play{min-height:clamp(43px,8vh,56px)!important;border:1px solid #f4d477!important;border-radius:10px!important;background:linear-gradient(180deg,#f4cf67 0%,#c58a2e 100%)!important;color:#302315!important;font-size:clamp(14px,1.55vw,18px)!important;letter-spacing:1.2px!important;text-shadow:0 1px rgba(255,255,255,.35);box-shadow:0 3px 0 #75491f,0 8px 20px rgba(0,0,0,.26)!important}
+#ratopolisLobbyTest .rl-play:disabled{filter:grayscale(.45);opacity:.72!important}
+#ratopolisLobbyTest .rm-nav,#ratopolisLobbyTest #rmHome{position:absolute!important;z-index:5!important;left:calc(clamp(174px,20vw,250px) + clamp(24px,3vw,42px))!important;right:clamp(12px,2vw,28px)!important;bottom:clamp(12px,2vh,22px)!important;width:auto!important;max-width:760px!important;margin:0!important;padding:8px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important;max-height:none!important;border:1px solid rgba(241,207,117,.56)!important;border-radius:14px!important;background:linear-gradient(180deg,rgba(12,37,31,.94),rgba(5,22,20,.94))!important;box-shadow:0 10px 30px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.10)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#ratopolisLobbyTest .rm-nav.hidden,#ratopolisLobbyTest #rmHome.hidden{display:none!important}
+#ratopolisLobbyTest .rm-nav .rm-btn,#ratopolisLobbyTest #rmHome .rm-btn{display:flex!important;min-width:0!important;min-height:54px!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:3px!important;padding:5px 3px!important;border:1px solid rgba(238,211,142,.22)!important;border-radius:9px!important;background:linear-gradient(180deg,rgba(66,91,69,.92),rgba(28,53,43,.98))!important;color:#f8edca!important;font-size:10px!important;font-weight:900!important;letter-spacing:.35px!important;text-align:center!important;box-shadow:inset 0 1px rgba(255,255,255,.10),0 2px 4px rgba(0,0,0,.24)!important;transition:transform .12s ease,border-color .12s ease,filter .12s ease}
+#ratopolisLobbyTest .rm-nav .rm-btn:active,#ratopolisLobbyTest #rmHome .rm-btn:active{transform:translateY(2px);filter:brightness(1.18)}
+#ratopolisLobbyTest .rm-nav .rm-btn.rm-primary{background:linear-gradient(180deg,#f4d477,#bd842c)!important;color:#302315!important;border-color:#ffe7a0!important}
+#ratopolisLobbyTest .rm-nav .rm-ico,#ratopolisLobbyTest #rmHome .rm-ico{font-size:clamp(17px,2.2vw,23px)!important;line-height:1}
+#ratopolisLobbyTest .rm-nav .rm-lbl,#ratopolisLobbyTest #rmHome .rm-lbl{font-size:clamp(8px,.85vw,10px)!important;line-height:1.05!important;white-space:nowrap!important}
+#ratopolisLobbyTest #rmHome{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#ratopolisLobbyTest #rmHome .rm-home-title{grid-column:1/-1;color:#ffe18a;font-size:11px;font-weight:1000;text-align:left;padding:0 4px 3px}
+#rlWorldLabel{background:linear-gradient(135deg,rgba(13,42,33,.92),rgba(22,65,48,.88))!important;border:1px solid rgba(244,211,129,.7)!important;color:#ffe6a0!important;box-shadow:0 7px 24px rgba(0,0,0,.25)!important;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+#rlWorldLabel span{color:#d9e5c9!important}
+#rlNotice{background:rgba(8,28,25,.88)!important;border:1px solid rgba(242,211,130,.45)!important;box-shadow:0 8px 25px rgba(0,0,0,.3)!important;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+@media(max-width:700px){
+ #ratopolisLobbyTest .rm-nav,#ratopolisLobbyTest #rmHome{left:calc(clamp(158px,25vw,190px) + 12px)!important;right:10px!important;bottom:9px!important;padding:5px!important;gap:4px!important}
+ #ratopolisLobbyTest .rm-nav .rm-btn,#ratopolisLobbyTest #rmHome .rm-btn{min-height:47px!important;padding:3px 1px!important}
+ #ratopolisLobbyTest .rm-nav .rm-ico,#ratopolisLobbyTest #rmHome .rm-ico{font-size:17px!important}
+ #ratopolisLobbyTest .rm-nav .rm-lbl,#ratopolisLobbyTest #rmHome .rm-lbl{font-size:7px!important;letter-spacing:0!important}
+}
+@media(max-height:430px){
+ #ratopolisLobbyTest .rm-nav,#ratopolisLobbyTest #rmHome{bottom:6px!important;padding:4px!important}
+ #ratopolisLobbyTest .rm-nav .rm-btn,#ratopolisLobbyTest #rmHome .rm-btn{min-height:42px!important}
+ #ratopolisLobbySide{gap:5px!important}
+ #ratopolisLobbySide .rl-logo{font-size:16px!important}
+}
+@media(prefers-reduced-motion:reduce){#ratopolisLobbyTest .rm-nav .rm-btn,#ratopolisLobbyTest #rmHome .rm-btn{transition:none}}
+</style>
+
 </body></html>
 
 <style>
