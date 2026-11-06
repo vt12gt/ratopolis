@@ -441,8 +441,11 @@ async function refreshRadioOnAir(){
   const expected=Math.max(0,(state.paused?Number(state.pausedPositionMs||0):Date.now()-Number(state.startedAt||Date.now()))/1000);
   const currentKey=audio.dataset.radioKey||'';
   if(currentKey!==state.key){
-   audio.pause();audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.currentTime=expected;
-  }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>3){
+    const wasPlaying=!audio.paused;
+    audio.pause();audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;
+    try{audio.currentTime=expected}catch(e){}
+    if(wasPlaying&&radioUserStarted&&!state.paused){try{await audio.play()}catch(e){$('radioPlay').textContent='▶ Ouvir'}}
+   }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>3){
    try{audio.currentTime=expected}catch(e){}
   }
   audio.loop=state.repeatMode==='track'||state.loop===true;
@@ -474,9 +477,9 @@ async function toggleRadio(){
  const audio=$('radioAudio');
  if(!radioOnAirState?.active){await refreshRadioOnAir();if(!radioOnAirState?.active){showToast('A rádio está fora do ar no momento.');return}}
  if(audio.paused){
-  try{radioUserStarted=true;await refreshRadioOnAir();await audio.play();$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture')}
-  catch(e){showToast('Toque novamente para iniciar a rádio.')}
- }else{radioUserStarted=false;audio.pause();$('radioPlay').textContent='▶ Ouvir'}
+   try{radioUserStarted=true;if(!audio.src||audio.dataset.radioKey!==radioOnAirState?.key)await refreshRadioOnAir();await audio.play();$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture')}
+   catch(e){radioUserStarted=false;showToast('Não foi possível iniciar. Toque novamente para ouvir.')}
+  }else{radioUserStarted=false;audio.pause();$('radioPlay').textContent='▶ Ouvir'}
 }
 $('radioVolume').addEventListener('input',e=>$('radioAudio').volume=Number(e.target.value));
 configureRadio();
