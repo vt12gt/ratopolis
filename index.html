@@ -200,8 +200,8 @@ button:disabled{opacity:.55;cursor:wait}
 .avatar-approve{background:#236c50;color:white}.avatar-reject{background:#7b3347;color:white}
 .avatar-queue-empty{text-align:center;padding:25px 12px;color:#bca9d0;font-size:12px}
 
-/* Rádio: player compacto, persistente e adaptável */
-.radio-dock{left:12px;top:78px;bottom:auto;z-index:30;width:min(390px,calc(100vw - 24px));max-width:390px;min-height:58px;padding:9px 11px;gap:10px;border:1px solid #b78b48;border-radius:17px;background:linear-gradient(115deg,#21172df5,#100e19f7);box-shadow:0 8px 28px #0009,0 0 18px #d49b3b20;backdrop-filter:blur(14px)}
+/* Rádio no fluxo do portal: fica abaixo do cabeçalho e nunca cobre o chat/conteúdo */
+.radio-dock{position:relative;z-index:4;left:auto;right:auto;top:auto;bottom:auto;width:min(470px,calc(100% - 24px));max-width:470px;min-height:58px;margin:10px auto 14px;padding:9px 11px;gap:10px;border:1px solid #b78b48;border-radius:17px;background:linear-gradient(115deg,#21172df5,#100e19f7);box-shadow:0 8px 28px #0009,0 0 18px #d49b3b20;backdrop-filter:blur(14px)}
 .radio-disc{width:40px;height:40px;flex:0 0 40px;position:relative}
 .radio-disc:after{content:"";position:absolute;inset:5px;border:1px solid #fff8;border-radius:50%}
 .radio-info b{font-size:10px;letter-spacing:.09em;color:#f8d98f}
@@ -213,12 +213,15 @@ button:disabled{opacity:.55;cursor:wait}
 #radioPlay.needs-gesture{width:auto;padding:0 12px;white-space:nowrap;font-size:10px}
 .radio-dock.radio-playing .radio-disc{animation:radioSpin 5s linear infinite}
 @keyframes radioSpin{to{transform:rotate(360deg)}}
-@media(max-width:1199px){.radio-dock{left:10px;top:70px;bottom:auto;width:min(360px,calc(100vw - 20px));max-width:360px}}
-@media(max-width:480px){.radio-dock{left:8px;top:66px;bottom:auto;width:calc(100vw - 16px);max-width:none;min-height:54px;padding:7px 9px}.radio-disc{width:35px;height:35px;flex-basis:35px}.radio-info small{max-width:clamp(90px,30vw,150px);font-size:9px}.radio-controls input{width:48px}}
+@media(max-width:480px){.radio-dock{width:calc(100% - 16px);max-width:none;min-height:54px;margin:8px auto 12px;padding:7px 9px}.radio-disc{width:35px;height:35px;flex-basis:35px}.radio-info small{max-width:clamp(90px,30vw,150px);font-size:9px}.radio-controls input{width:48px}}
 </style>
 </head>
 <body>
 <header class="topbar"><div class="topinner"><div class="brand"><div class="logo">🐭</div><div>RATÓPOLIS<small>PORTAL OFICIAL</small></div></div><div class="top-actions"><span class="pill" id="connectionPill">API v34</span><button class="ghost" onclick="go('account')" id="topAccount">Entrar</button></div></div></header>
+<div class="radio-dock" aria-label="Rádio Ratópolis">
+ <div class="radio-disc">♫</div><div class="radio-info"><b>RÁDIO RATÓPOLIS</b><small id="radioTrack">Nossa programação está sendo preparada</small></div>
+ <div class="radio-controls"><button id="radioPlay" type="button" onclick="toggleRadio()" title="Ativar rádio" disabled>▶ Ouvir</button><input id="radioVolume" type="range" min="0" max="1" step=".05" value=".7" aria-label="Volume da rádio"><audio id="radioAudio" preload="none"></audio></div>
+</div>
 <main class="shell">
 <section id="home" class="page active">
  <div class="hero"><div class="eyebrow">Seu mundo. Sua toca.</div><h1>Bem-vindo a <span style="color:var(--gold)">Ratópolis</span></h1><p>Entre na comunidade, escolha sua sala e prepare-se para correr. Nas salas vazias, você pode escolher ser Shaman ou Rato; cada sala mantém apenas um Shaman.</p><div class="actions"><button class="goldbtn play-cta" onclick="playGame()">▶ JOGAR</button><a class="ghost" href="./pwa/" style="display:inline-flex;align-items:center;text-decoration:none">📲 Abrir / instalar app</a><button class="ghost" onclick="go('ranking');loadPlayers()">Ver jogadores ↗</button></div></div>
@@ -246,10 +249,7 @@ button:disabled{opacity:.55;cursor:wait}
  <aside class="chat-roster"><div class="roster-title">NA TOCA <span id="rosterCount">0</span></div><button type="button" class="roster-categories-toggle" id="rosterCategoriesToggle" aria-expanded="false" onclick="toggleRosterCategories()">☰ Categorias</button><div class="roster-tabs collapsed" id="rosterTabs"><button class="roster-filter active" onclick="setRosterFilter('all',this)">Todos</button><button class="roster-filter" onclick="setRosterFilter('members',this)">Membros</button><button class="roster-filter" onclick="setRosterFilter('staff',this)">Moderação</button><button class="roster-filter" onclick="setRosterFilter('banned',this)">🚫 Banidos</button></div><div id="chatRoster" class="roster-list"><div class="roster-empty">Aguardando participantes…</div></div></aside></div>
  <div class="chat-note" id="chatIdentity">Visitante · sem destaque</div></aside>
 <button class="chat-toggle" id="chatToggle" onclick="toggleCommunityChat()">💬 Chat da Toca</button>
-<div class="radio-dock" aria-label="Rádio Ratópolis">
- <div class="radio-disc">♫</div><div class="radio-info"><b>RÁDIO RATÓPOLIS</b><small id="radioTrack">Nossa programação está sendo preparada</small></div>
- <div class="radio-controls"><button id="radioPlay" type="button" onclick="toggleRadio()" title="Ativar rádio" disabled>▶ Ouvir</button><input id="radioVolume" type="range" min="0" max="1" step=".05" value=".7" aria-label="Volume da rádio"><audio id="radioAudio" preload="none"></audio></div>
-</div>
+
 
 <div class="badge-picker-backdrop hidden" id="badgePicker" role="dialog" aria-modal="true" aria-labelledby="badgePickerTitle" onclick="if(event.target===this)closeBadgePicker()">
  <section class="badge-picker">
@@ -452,8 +452,8 @@ async function refreshRadioOnAir(){
   $('radioTrack').textContent=(state.paused?'⏸ PAUSADA · ':'🔴 AO VIVO · ')+track.name+(state.programName?' · '+state.programName:'');
   $('radioPlay').disabled=false;
   if(state.paused){if(!audio.paused)audio.pause();$('radioPlay').textContent='▶'}
-  else if(radioUserStarted&&!document.hidden&&audio.paused){
-   try{audio.currentTime=expected;await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){$('radioPlay').textContent='▶'}
+  else if(!state.paused&&radioUserStarted&&!document.hidden&&audio.paused){
+   try{audio.currentTime=expected;await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){$('radioPlay').textContent='▶ Ouvir'}
   }
  }catch(error){console.warn('Sincronização da rádio:',error.message)}
 }
@@ -469,7 +469,7 @@ function configureRadio(){
  audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
  audio.addEventListener('ended',async()=>{const state=radioOnAirState;if(!radioUserStarted||!state?.active||!state.playlistMode||state.loop)return;try{await fetch(RADIO_API_URL+'/api/playlist/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:state.key,startedAt:state.startedAt})});await refreshRadioOnAir();if(radioUserStarted&&audio.paused&&radioOnAirState?.active){await audio.play();$('radioPlay').textContent='Ⅱ'}}catch(e){console.warn('Avanço automático da rádio:',e.message)}});
- loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;$('radioPlay').textContent='▶ Ativar';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioTrack').textContent='Toque em Ativar para ouvir ao vivo';}}});
+ loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active&&!radioOnAirState.paused){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;$('radioPlay').textContent='▶ Ativar';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioTrack').textContent='Toque em Ativar para ouvir ao vivo';}}});
  if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);if(!radioListenerTimer)radioListenerTimer=setInterval(sendRadioHeartbeat,20000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRadioOnAir()});
 }
