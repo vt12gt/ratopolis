@@ -148,7 +148,7 @@ button:disabled{opacity:.55;cursor:wait}
 <aside class="community-chat" id="communityChat" aria-label="Chat público Ratópolis">
  <div class="chat-head"><div><strong>💬 Chat da Toca</strong><div class="chat-online" id="chatConnection">● preparando conexão</div></div><button class="ghost" style="padding:5px 8px" onclick="toggleCommunityChat(false)" aria-label="Fechar chat">×</button></div>
  <div class="chat-layout"><section class="chat-conversation"><div class="chat-log" id="chatLog" aria-live="polite"><div class="chat-msg"><b>🐭 Ratópolis</b><div>Bem-vindo ao Chat da Toca!</div><small>Sistema</small></div></div>
- <form class="chat-compose" id="communityChatForm"><input id="communityChatInput" maxlength="250" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem"><button type="submit">➤</button></form></section>
+ <form class="chat-compose" id="communityChatForm"><input id="communityChatInput" maxlength="250" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem"><button type="submit">➤</button></form><div class="chat-note">🎵 Para pedir uma música à equipe: <b>#RadioPedido</b> nome da música - artista</div></section>
  <aside class="chat-roster"><div class="roster-title">NA TOCA <span id="rosterCount">0</span></div><div id="chatRoster" class="roster-list"><div class="roster-empty">Aguardando participantes…</div></div></aside></div>
  <div class="chat-note" id="chatIdentity">Visitante · sem destaque</div></aside>
 <button class="chat-toggle" id="chatToggle" onclick="toggleCommunityChat()">💬 Chat da Toca</button>
@@ -198,7 +198,10 @@ const communitySessionRestore = restoreSession();
 
 /* Chat público Ratópolis: Worker de prévia isolado, com convidados e contas autenticadas. */
 const CHAT_API_URL = 'https://ratopolis-community-chat-preview.juniorgmj69.workers.dev';
-const RADIO_STREAM_URL = ''; // A transmissão será ligada quando houver áudio próprio/licenciado.
+const RADIO_API_URL = 'https://ratopolis-radio-stream.juniorgmj69.workers.dev';
+let radioTracks = [];
+let radioTrackIndex = 0;
+let radioLibraryLoaded = false;
 let communitySocket = null;
 let communityReconnect = null;
 let communityConnectId = 0;
@@ -210,8 +213,46 @@ function showCommunityHistory(history){const log=$('chatLog');log.replaceChildre
 function renderChatRoster(users){const list=$('chatRoster');if(!list)return;const safe=Array.isArray(users)?users:[];$('rosterCount').textContent=String(safe.length);list.replaceChildren();if(!safe.length){const empty=document.createElement('div');empty.className='roster-empty';empty.textContent='Ninguém online';list.append(empty);return}const order={spadmin:0,admin:1,gm:2,moderador:3,player:4,guest:5};safe.forEach(u=>{u.role=({spadm:'spadmin',adm:'admin',mod:'moderador'})[String(u.role||'guest').toLowerCase()]||u.role||'guest'});safe.sort((a,b)=>(order[a.role]??9)-(order[b.role]??9)||String(a.nickname).localeCompare(String(b.nickname)));for(const u of safe){const row=document.createElement('div');row.className='roster-user';row.dataset.role=u.role||'guest';const dot=document.createElement('span');dot.className='roster-dot';const info=document.createElement('div');info.style.minWidth='0';const name=document.createElement('div');name.className='roster-name';name.textContent=u.nickname||'Visitante';const role=document.createElement('small');role.className='roster-role';role.textContent=chatRoleLabel(u.role);info.append(name,role);row.append(dot,info);list.append(row)}}
 async function connectCommunityChat(){try{const savedChatToken=localStorage.getItem('ratopolis_session_token')||'';if(savedChatToken)sessionToken=savedChatToken;}catch(e){}if(currentPlayer&&!sessionToken){$('chatIdentity').textContent='Conta conectada · sincronizando sessão…';$('chatConnection').textContent='● aguardando autenticação';clearTimeout(communityReconnect);communityReconnect=setTimeout(connectCommunityChat,1500);return;}const connectId=++communityConnectId;clearTimeout(communityReconnect);if(communitySocket){try{communitySocket.onclose=null;communitySocket.close()}catch{}communitySocket=null}const nick=currentPlayer?String(val(currentPlayer,'nickname','apelido','nick','name')||'Jogador'):guestNickname();$('chatIdentity').textContent=currentPlayer?nick+' · conta autenticada':'Visitante · '+nick;$('chatConnection').textContent='● conectando…';try{const headers={'Content-Type':'application/json'};if(sessionToken)headers.Authorization='Bearer '+sessionToken;const ticketResponse=await fetch(CHAT_API_URL+'/api/ticket',{method:'POST',headers,body:JSON.stringify({nickname:nick})});const ticket=await ticketResponse.json();if(connectId!==communityConnectId)return;if(!ticketResponse.ok||!ticket.ok)throw new Error(ticket.error||'Não foi possível entrar no chat');const socket=new WebSocket(ticket.websocket+'?ticket='+encodeURIComponent(ticket.ticket));communitySocket=socket;socket.onopen=()=>{if(connectId===communityConnectId)$('chatConnection').textContent='● conectado'};socket.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.type==='ready'){showCommunityHistory(d.history);renderChatRoster(d.users||[]);$('chatConnection').textContent='● '+(d.online||0)+' online'}else if(d.type==='chat_message'){const m=d.message||{};addCommunityMessage(m.nickname||'Visitante',m.text||'',m.verified===true,m.createdAt?new Date(m.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Agora',m.role||'guest')}else if(d.type==='presence'){renderChatRoster(d.users||[]);$('chatConnection').textContent='● '+(d.online||0)+' online'}else if(d.type==='error')showToast(d.message||'Não foi possível enviar a mensagem.')}catch(err){}};socket.onclose=()=>{if(connectId!==communityConnectId)return;$('chatConnection').textContent='● reconectando…';renderChatRoster([]);communityReconnect=setTimeout(connectCommunityChat,5000)};socket.onerror=()=>{if(socket.readyState!==WebSocket.CLOSED)socket.close()}}catch(err){if(connectId!==communityConnectId)return;if(String(err.message||'').includes('invalid_or_expired_session')&&sessionToken){$('chatConnection').textContent='● sessão do chat recusada · conta mantida';console.warn('O Worker do chat recusou o token; a sessão principal Ratópolis foi preservada.');showToast('O chat não validou sua sessão. Sua conta continua conectada; estamos tentando novamente.');communityReconnect=setTimeout(connectCommunityChat,20000);return;}$('chatConnection').textContent='● falha: '+String(err.message||'conexão').slice(0,90);communityReconnect=setTimeout(connectCommunityChat,7000);console.warn('Chat Ratópolis:',err.message)}}
 $('communityChatForm').addEventListener('submit',e=>{e.preventDefault();const input=$('communityChatInput'),message=input.value.trim();if(!message)return;if(!communitySocket||communitySocket.readyState!==WebSocket.OPEN){showToast('Conectando ao chat. Tente novamente em instantes.');return;}communitySocket.send(JSON.stringify({type:'chat_message',text:message}));input.value=''});
-function configureRadio(){const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);if(RADIO_STREAM_URL){audio.src=RADIO_STREAM_URL;$('radioPlay').disabled=false;$('radioTrack').textContent='Transmissão Ratópolis · ao vivo'}else{$('radioPlay').disabled=true;$('radioTrack').textContent='Programação musical em preparação · áudio próprio/licenciado'} }
-async function toggleRadio(){const audio=$('radioAudio');if(!RADIO_STREAM_URL)return;if(audio.paused){try{await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){showToast('Não foi possível iniciar a transmissão.')}}else{audio.pause();$('radioPlay').textContent='▶'}}
+function setRadioTrack(index,autoplay=false){
+ if(!radioTracks.length)return;
+ radioTrackIndex=(index+radioTracks.length)%radioTracks.length;
+ const track=radioTracks[radioTrackIndex],audio=$('radioAudio');
+ audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(track.key);
+ $('radioTrack').textContent=track.name+' · '+(radioTrackIndex+1)+'/'+radioTracks.length;
+ $('radioPlay').disabled=false;
+ if(autoplay)audio.play().then(()=>$('radioPlay').textContent='Ⅱ').catch(()=>{$('radioPlay').textContent='▶';showToast('Toque novamente para iniciar a rádio.')});
+}
+async function loadRadioLibrary(){
+ if(radioLibraryLoaded)return radioTracks;
+ $('radioTrack').textContent='Conectando à biblioteca da Rádio Ratópolis…';
+ try{
+  const response=await fetch(RADIO_API_URL+'/api/tracks',{cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok||!data.ok)throw new Error(data.error||'Biblioteca indisponível');
+  radioTracks=Array.isArray(data.tracks)?data.tracks.filter(t=>t&&t.key):[];
+  radioLibraryLoaded=true;
+  if(!radioTracks.length){$('radioPlay').disabled=true;$('radioTrack').textContent='Aguardando músicas cadastradas no painel da rádio';return radioTracks}
+  setRadioTrack(0,false);
+  $('radioTrack').textContent=radioTracks[0].name+' · biblioteca compartilhada';
+ }catch(error){
+  $('radioPlay').disabled=true;
+  $('radioTrack').textContent='Rádio indisponível · toque para tentar novamente';
+  console.warn('Biblioteca da Rádio Ratópolis:',error.message);
+ }
+ return radioTracks;
+}
+function configureRadio(){
+ const audio=$('radioAudio');
+ audio.volume=Number($('radioVolume').value);
+ audio.addEventListener('ended',()=>setRadioTrack(radioTrackIndex+1,true));
+ audio.addEventListener('error',()=>{$('radioTrack').textContent='Falha ao carregar a faixa. Tentando a próxima…';if(radioTracks.length>1)setRadioTrack(radioTrackIndex+1,true)});
+ loadRadioLibrary();
+}
+async function toggleRadio(){
+ const audio=$('radioAudio');
+ if(!radioTracks.length){await loadRadioLibrary();if(!radioTracks.length){showToast('A biblioteca ainda não tem músicas disponíveis.');return}setRadioTrack(0,false)}
+ if(audio.paused){try{await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){showToast('Não foi possível iniciar a transmissão.')}}else{audio.pause();$('radioPlay').textContent='▶'}
+}
 $('radioVolume').addEventListener('input',e=>$('radioAudio').volume=Number(e.target.value));
 configureRadio();
 communitySessionRestore.finally(()=>connectCommunityChat());
