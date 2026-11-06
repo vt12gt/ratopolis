@@ -43,7 +43,7 @@ if(d.type==="moderate"){
  if(!target||!["mute","unmute","ban","unban"].includes(action))return;
  let targetRole=null;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target)targetRole=a.role||"guest"}catch{}}
  if(["spadmin","admin","gm"].includes(targetRole)){send(s,{type:"error",message:"A equipe não pode moderar outro membro da equipe."});return}
- if(action==="mute"||action==="ban")moderation[target]={...(moderation[target]||{}),[action]:{by:p.playerId,nickname:p.nickname,at:now}};
+ if(action==="mute"||action==="ban"){let targetNickname=target;for(const sock of sockets())try{const a=sock.deserializeAttachment();if(a?.playerId===target)targetNickname=a.nickname||target}catch{}moderation[target]={...(moderation[target]||{}),[action]:{by:p.playerId,nickname:p.nickname,nicknameTarget:targetNickname,at:now}};}
  else if(action==="unmute")delete moderation[target]?.mute;
  else if(action==="unban")delete moderation[target]?.ban;
  await this.ctx.storage.put("moderation",moderation);
