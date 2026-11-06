@@ -46,7 +46,7 @@ export class Room{
 }
 export default{async fetch(request,env){
  const u=new URL(request.url);if(request.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
- if(u.pathname==="/health")return json({ok:true,service:"ratopolis-room-server",version:"v6.1.0-ws-hibernation-roster-fix",storage:"durable-objects",roomModel:"dynamic",maxPlayers:MAX_ROOM_PLAYERS,matchTimeoutMs:20000});
+ if(u.pathname==="/health")return json({ok:true,service:"ratopolis-room-server",version:"v6.1.1-staff-presence-announcements",storage:"durable-objects",roomModel:"dynamic",maxPlayers:MAX_ROOM_PLAYERS,matchTimeoutMs:20000});
  if(!["/api/admin/community-presence","/api/admin/community-announcement","/api/lobby/join","/api/lobby/state","/api/lobby/leave","/api/rooms/create","/api/rooms/list","/api/rooms/match","/api/rooms/session-replaced","/api/rooms/join","/api/rooms/leave","/api/rooms/state","/api/rooms/role","/api/rooms/finish","/api/rooms/ws-ticket","/ws"].includes(u.pathname))return json({ok:false,error:"not_found"},404);
  const token=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim();
  const directory=env.ROOMS.get(env.ROOMS.idFromName("RATOPOLIS_DIRECTORY"));
