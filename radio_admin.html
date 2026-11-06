@@ -104,7 +104,7 @@ function renderCloudTracks(){
   const info=document.createElement('span');info.className='name';const b=document.createElement('b');b.textContent=t.name;const small=document.createElement('small');small.textContent=(t.size/1048576).toFixed(2)+' MB · '+new Date(t.uploadedAt).toLocaleDateString('pt-BR');info.append(b,small);
   const play=document.createElement('button');play.className='btn';play.textContent='▶ Ouvir';play.onclick=()=>{const url=RADIO_API+'/audio/'+encodeURIComponent(t.key);$('preview').src=url;$('preview').play().catch(()=>{});$('nowName').textContent=t.name;$('nowType').textContent='Biblioteca compartilhada'};
   const live=document.createElement('button');live.className='btn';live.textContent='📡 Ativar na rádio';live.onclick=()=>activateRadioTrack(t.key);
-  row.append(num,info,play,live);if(currentPermissions.manageRadioLibrary===true){const del=document.createElement('button');del.className='btn danger';del.textContent='Excluir';del.onclick=()=>deleteCloudTrack(t.key);row.append(del)}box.append(row)
+  row.append(num,info,play,live);if(currentPermissions.manageRadioLibrary===true){const rename=document.createElement('button');rename.className='btn';rename.textContent='Renomear';rename.onclick=()=>renameCloudTrack(t.key,t.name);const del=document.createElement('button');del.className='btn danger';del.textContent='Excluir';del.onclick=()=>deleteCloudTrack(t.key);row.append(rename,del)}box.append(row)
  })
 }
 
@@ -172,6 +172,7 @@ async function uploadCloudFiles(ev){
   toast('Envio parcial: '+sent+' salvo(s), '+failed+' falha(s). Veja o detalhe abaixo do botão.');
  }
 }
+async function renameCloudTrack(key,currentName){const value=prompt('Novo nome para este áudio:',currentName||'');if(!value||!value.trim())return;try{const r=await fetch(RADIO_API+'/api/tracks/'+encodeURIComponent(key),{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({name:value.trim()})});await readApiResponse(r);toast('Nome do áudio atualizado.');await loadCloudTracks()}catch(e){toast('Não foi possível renomear: '+e.message)}}
 async function deleteCloudTrack(key){
  if(!confirm('Excluir este áudio da biblioteca compartilhada?'))return;
  try{const r=await fetch(RADIO_API+'/api/tracks/'+encodeURIComponent(key),{method:'DELETE',headers:{Authorization:'Bearer '+token}});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao excluir');toast('Áudio excluído.');loadCloudTracks()}catch(e){toast('Não foi possível excluir: '+e.message)}
