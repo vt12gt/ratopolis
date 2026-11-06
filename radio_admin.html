@@ -97,7 +97,8 @@ async function uploadCloudFiles(ev){
  $('uploadStatus').textContent='Verificando arquivos salvos no R2…';
  const listOk=await loadCloudTracks();
  const missing=uploadedKeys.filter(key=>!cloudTracks.some(track=>track.key===key));
- if(!listOk||missing.length){failed+=missing.length|| (sent?1:0);errors.push(!listOk?'Não foi possível confirmar a listagem do R2.':missing.length+' arquivo(s) não apareceram na biblioteca após o envio.');sent-=missing.length|| (listOk?0:0);}
+ if(!listOk){failed+=sent;sent=0;errors.push('Não foi possível confirmar a listagem do R2.');}
+ else if(missing.length){failed+=missing.length;sent-=missing.length;errors.push(missing.length+' arquivo(s) não apareceram na biblioteca após o envio.');}
  if(failed===0&&sent===files.length){
   $('uploadStatus').textContent=sent+' áudio(s) enviado(s) e confirmado(s) no R2.';
   toast(sent+' áudio(s) salvo(s) na biblioteca.');
