@@ -1,6 +1,6 @@
 # Ratópolis — implantação manual do chat e presença
 
-## Arquivos preparados
+## Implantação realizada em 06/11/2026\n\n- Portal principal atualizado na branch `main`; Pages publica em https://vt12gt.github.io/ratopolis/ .\n- Worker `ratopolis-room-server-v1` atualizado na Cloudflare (deployment `12d97ecc4649427ebab81dd94b0734cb`).\n- Worker `ratopolis-community-chat-preview` atualizado na Cloudflare (deployment `2d6ec788ce714242864c2894ad9d6f08`).\n- Cron configurado: `0 3,15 * * *` (00h e 12h de Brasília).\n\n## Arquivos preparados
 
 1. Portal atualizado (branch `portal-comunidade-preview`): `index.html`
    - Curtidas no roster do chat da comunidade.
@@ -56,7 +56,7 @@ Publique o `index.html` desta branch no Pages/portal oficial e publique o arquiv
 
 ## Observações importantes
 
-- Nenhum Worker foi publicado automaticamente nesta atualização. A implantação é manual.
+- Os dois Workers já foram implantados na Cloudflare e o Cron já está configurado.
 - Ban/mute e curtidas usam o identificador da conta quando autenticada. Convidados recebem ID efêmero; banimento persistente de convidado não é garantido.
 - DM é somente online e não fica armazenada no servidor.
 - A limpeza do histórico roda somente depois que o Cron for configurado.
