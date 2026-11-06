@@ -217,6 +217,30 @@ button:disabled{opacity:.55;cursor:wait}
 .radio-dock.radio-playing .radio-disc{animation:radioSpin 5s linear infinite}
 @keyframes radioSpin{to{transform:rotate(360deg)}}
 @media(max-width:480px){.radio-dock{width:calc(100% - 16px);max-width:none;min-height:54px;margin:8px auto 12px;padding:7px 9px}.radio-disc{width:35px;height:35px;flex-basis:35px}.radio-info small{max-width:clamp(90px,30vw,150px);font-size:9px}.radio-controls input{width:48px}}
+
+/* Ajuste mobile: conversa ocupa o espaço, ferramentas ficam compactas */
+.community-chat,.chat-layout,.chat-conversation{min-height:0}
+.chat-conversation{overflow:hidden}
+.chat-log{min-height:110px;overscroll-behavior:contain;scrollbar-gutter:stable}
+.chat-compose{flex:0 0 auto;align-items:center;padding:8px;gap:6px}
+.chat-compose input{min-height:44px;font-size:14px}
+.chat-compose button{min-width:42px;min-height:44px}
+.chat-actions{flex:0 0 auto;display:flex;flex-wrap:nowrap;gap:6px;max-width:100%;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:6px 8px;scrollbar-width:thin;overscroll-behavior-x:contain}
+.chat-actions button{flex:0 0 auto;padding:7px 9px;font-size:10px;min-height:34px}
+.chat-note{display:none}
+.game-presence-panel{flex:0 0 auto;max-height:100px}
+@media(max-width:600px){
+ .community-chat{width:calc(100vw - 20px)!important;max-width:none;right:10px;left:10px;bottom:112px!important;height:min(70dvh,560px)!important;max-height:calc(100dvh - 190px);border-radius:18px}
+ .chat-layout{flex:1;min-height:0}
+ .chat-conversation{flex:1 1 0;min-width:0}
+ .chat-log{flex:1 1 0;min-height:120px;padding:9px;gap:7px}
+ .chat-msg{font-size:13px;line-height:1.4;padding:9px 10px}
+ .chat-roster{width:94px;flex:0 0 94px}
+ .roster-title{padding:9px 6px;font-size:9px}
+ .chat-tabs{flex:0 0 auto;padding:6px 8px}
+ .chat-actions{max-height:48px}
+ .chat-toggle{bottom:76px}
+}
 </style>
 </head>
 <body>
@@ -490,7 +514,7 @@ async function sendRadioHeartbeat(){
 function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
  audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
- audio.addEventListener('pause',()=>{$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
+ audio.addEventListener('pause',()=>{const live=radioUserStarted&&radioOnAirState?.active&&!radioOnAirState?.paused;if(live){$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');return}$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
  audio.addEventListener('ended',async()=>{const state=radioOnAirState;if(!radioUserStarted||!state?.active||!state.playlistMode||state.loop)return;try{await fetch(RADIO_API_URL+'/api/playlist/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:state.key,startedAt:state.startedAt})});await refreshRadioOnAir();if(radioUserStarted&&audio.paused&&radioOnAirState?.active){await audio.play();$('radioPlay').textContent='Ⅱ'}}catch(e){console.warn('Avanço automático da rádio:',e.message)}});
  loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active&&!radioOnAirState.paused){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;$('radioPlay').textContent='▶ Ativar';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioTrack').textContent='Toque em Ativar para ouvir ao vivo';}}});
  if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);if(!radioListenerTimer)radioListenerTimer=setInterval(sendRadioHeartbeat,20000);
