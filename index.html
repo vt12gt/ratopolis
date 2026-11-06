@@ -433,6 +433,7 @@ function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
  audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{$('radioPlay').textContent='▶'});
+ audio.addEventListener('ended',async()=>{const state=radioOnAirState;if(!radioUserStarted||!state?.active||!state.playlistMode||state.loop)return;try{await fetch(RADIO_API_URL+'/api/playlist/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:state.key,startedAt:state.startedAt})});await refreshRadioOnAir();if(radioUserStarted&&audio.paused&&radioOnAirState?.active){await audio.play();$('radioPlay').textContent='Ⅱ'}}catch(e){console.warn('Avanço automático da rádio:',e.message)}});
  loadRadioLibrary().then(refreshRadioOnAir);
  if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);if(!radioListenerTimer)radioListenerTimer=setInterval(sendRadioHeartbeat,20000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRadioOnAir()});
