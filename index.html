@@ -437,39 +437,48 @@ async function loadRadioLibrary(){
   console.warn('Biblioteca da Rádio Ratópolis:',error.message);return [];
  }
 }
+let radioRefreshPromise=null;
 async function refreshRadioOnAir(){
- try{
-  const response=await fetch(RADIO_API_URL+'/api/on-air',{cache:'no-store'});
-  const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Estado indisponível');
-  const state=data.state||{active:false};radioOnAirState=state;
-  const audio=$('radioAudio');
-  if(!state.active){
-   if(!audio.paused){audio.pause();audio.removeAttribute('src');audio.load()}
-   $('radioPlay').textContent='▶';$('radioPlay').disabled=true;
-   $('radioTrack').textContent='🔴 Aguardando a programação da Rádio Ratópolis';
-   return;
-  }
-  if(!radioTracks.length)await loadRadioLibrary();
-  const track=radioTracks.find(t=>t.key===state.key);
-  if(!track){$('radioPlay').disabled=true;$('radioTrack').textContent='Faixa no ar, mas não apareceu na biblioteca';return}
-  const expected=Math.max(0,(state.paused?Number(state.pausedPositionMs||0):Date.now()-Number(state.startedAt||Date.now()))/1000);
-  const currentKey=audio.dataset.radioKey||'';
-  if(currentKey!==state.key){
-    const wasPlaying=!audio.paused;
+ if(radioRefreshPromise)return radioRefreshPromise;
+ radioRefreshPromise=(async()=>{
+  try{
+   const response=await fetch(RADIO_API_URL+'/api/on-air',{cache:'no-store'});
+   const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Estado indisponível');
+   const state=data.state||{active:false};radioOnAirState=state;
+   const audio=$('radioAudio'),button=$('radioPlay'),dock=button.closest('.radio-dock');
+   if(!state.active){
+    if(!audio.paused)audio.pause();
+    if(audio.getAttribute('src')){audio.removeAttribute('src');audio.dataset.radioKey='';audio.load()}
+    button.textContent='▶';button.disabled=true;dock.classList.remove('radio-playing');
+    $('radioTrack').textContent='🔴 Aguardando a programação da Rádio Ratópolis';return;
+   }
+   if(!radioTracks.length)await loadRadioLibrary();
+   const track=radioTracks.find(t=>t.key===state.key);
+   if(!track){button.disabled=true;$('radioTrack').textContent='Faixa no ar, mas não apareceu na biblioteca';return}
+   const expected=Math.max(0,(state.paused?Number(state.pausedPositionMs||0):Date.now()-Number(state.startedAt||Date.now()))/1000);
+   const currentKey=audio.dataset.radioKey||'';
+   if(currentKey!==state.key){
+    const wasPlaying=!audio.paused&&radioUserStarted;
     audio.pause();audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;
+    audio.load();
     try{audio.currentTime=expected}catch(e){}
-    if(wasPlaying&&radioUserStarted&&!state.paused){try{await audio.play()}catch(e){$('radioPlay').textContent='▶ Ouvir'}}
-   }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>3){
-   try{audio.currentTime=expected}catch(e){}
-  }
-  audio.loop=state.repeatMode==='track'||state.loop===true;
-  $('radioTrack').textContent=(state.paused?'⏸ PAUSADA · ':'🔴 AO VIVO · ')+track.name+(state.programName?' · '+state.programName:'');
-  $('radioPlay').disabled=false;
-  if(state.paused){if(!audio.paused)audio.pause();$('radioPlay').textContent='▶'}
-  else if(!state.paused&&radioUserStarted&&!document.hidden&&audio.paused){
-   try{audio.currentTime=expected;await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){$('radioPlay').textContent='▶ Ouvir'}
-  }
- }catch(error){console.warn('Sincronização da rádio:',error.message)}
+    if(wasPlaying&&!state.paused){try{await audio.play()}catch(e){button.textContent='▶ Ouvir'}}
+   }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>12){
+    try{audio.currentTime=expected}catch(e){}
+   }
+   audio.loop=state.repeatMode==='track'||state.loop===true;
+   $('radioTrack').textContent=(state.paused?'⏸ PAUSADA · ':'🔴 AO VIVO · ')+track.name+(state.programName?' · '+state.programName:'');
+   button.disabled=false;
+   if(state.paused){
+    if(!audio.paused)audio.pause();
+    button.textContent='▶ Ouvir';dock.classList.remove('radio-playing');
+   }else if(radioUserStarted&&!document.hidden&&audio.paused){
+    try{if(Number.isFinite(expected)&&audio.duration&&expected<audio.duration)audio.currentTime=expected;await audio.play();button.textContent='Ⅱ'}
+    catch(e){button.textContent='▶ Ouvir'}
+   }
+  }catch(error){console.warn('Sincronização da rádio:',error.message)}
+ })();
+ try{return await radioRefreshPromise}finally{radioRefreshPromise=null}
 }
 let radioListenerTimer=null;
 let radioListenerId='';
