@@ -253,7 +253,7 @@ async function startLive(){
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);await waitRadioIce(pc);
   const transceiver=pc.getTransceivers().find(t=>t.sender.track&&t.sender.track.kind==='audio');
   if(!transceiver||transceiver.mid===null)throw new Error('Não foi possível preparar o canal de áudio.');
-  const setup=await radioApi('/api/live/publish',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sessionDescription:pc.localDescription,mid:transceiver.mid})});
+  const setup=await radioApi('/api/live/publish',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sessionDescription:{type:String(pc.localDescription.type),sdp:String(pc.localDescription.sdp||'')},mid:String(transceiver.mid)})});
   sessionId=setup.sessionId;if(!sessionId||!setup.sessionDescription?.sdp)throw new Error('O servidor não retornou a resposta de transmissão.');
   await pc.setRemoteDescription(setup.sessionDescription);
   await waitRadioConnected(pc);
