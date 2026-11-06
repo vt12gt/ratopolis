@@ -23,6 +23,8 @@ header{position:sticky;top:0;z-index:5;background:#100d1df2;border-bottom:1px so
 <section class="card span6"><div class="head"><div><h2>📢 Central de anúncios</h2><div class="muted">Locuções e comerciais em fila separada</div></div><span class="pill" id="adCount">0 anúncios</span></div><div class="row"><label class="btn gold" for="adFiles">＋ Adicionar anúncios</label><input class="hidden" id="adFiles" type="file" accept="audio/*" multiple onchange="addFiles(event,'ad')"></div><div id="adList" style="margin-top:12px"><div class="empty">Nenhum anúncio cadastrado.</div></div><div class="hint separate">Os anúncios não entram na playlist musical. A reprodução automática entre músicas e intervalos será controlada pela programação do servidor de rádio.</div></section>
 <section class="card span6"><div class="head"><h2>🗓️ Programação</h2><span class="pill">Configuração</span></div><div class="field"><label>Nome do programa</label><input type="text" id="programName" placeholder="Ex.: Manhã na Toca"></div><div class="row" style="margin-top:10px"><div class="field"><label>Início</label><input type="text" id="programStart" placeholder="08:00"></div><div class="field"><label>Fim</label><input type="text" id="programEnd" placeholder="10:00"></div></div><div class="row" style="margin-top:12px"><button class="btn" onclick="saveProgram()">Salvar programação</button><span class="muted" id="programStatus">Ainda não configurada</span></div></section>
 <section class="card span6"><div class="head"><h2>⚙️ Preferências da rádio</h2></div><div class="field"><label>Nome exibido para os ouvintes</label><input type="text" id="stationName" value="Rádio Ratópolis"></div><div class="field" style="margin-top:10px"><label>Intervalo desejado entre blocos de anúncios (minutos)</label><input type="number" id="adInterval" min="5" max="240" value="30"></div><div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings()">Salvar preferências</button><span class="muted" id="settingsStatus"></span></div></section>
+<section class="card span6"><div class="head"><div><h2>💌 Pedidos dos ouvintes</h2><div class="muted">Pedidos enviados pelo comando #RadioPedido no chat</div></div><button class="btn" onclick="loadRadioRequests()">↻ Atualizar</button></div><div class="row" style="margin-bottom:10px"><span class="pill" id="requestCount">0 pendentes</span><span class="muted">Atualização automática a cada 15 segundos</span></div><div id="radioRequestList"><div class="empty">Carregando pedidos…</div></div></section>
+<section class="card span6"><div class="head"><div><h2>▶️ Referências do YouTube</h2><div class="muted">Guardar links e pré-visualizar o player oficial</div></div><span class="pill">YouTube</span></div><div class="field"><label for="youtubeUrl">Link do vídeo ou música</label><input type="url" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=…"></div><div class="row" style="margin-top:10px"><button class="btn primary" onclick="previewYouTube()">Pré-visualizar</button><button class="btn" onclick="saveYouTubeLink()">Guardar referência</button></div><div id="youtubePreview" class="empty" style="margin-top:12px">A prévia oficial do YouTube aparecerá aqui.</div><div id="youtubeSaved" style="margin-top:10px"></div><div class="hint">O player oficial permanece visível e com os controles do YouTube. Não extraímos nem retransmitimos o áudio isolado do vídeo. Para tocar somente som na rádio, use um arquivo de áudio próprio/licenciado ou uma fonte de streaming autorizada.</div></section>
 </div>
 <div class="notice">Os arquivos selecionados nesta primeira versão são pré-escutados neste dispositivo. Para que playlist, anúncios, horários e transmissão sejam compartilhados com todos os ouvintes e demais administradores, é necessário conectar os endpoints de rádio no Worker/servidor de streaming.</div>
 </div>
@@ -31,8 +33,9 @@ header{position:sticky;top:0;z-index:5;background:#100d1df2;border-bottom:1px so
 'use strict';
 const ADMIN_API='https://ratopolis-admin-test.juniorgmj69.workers.dev';
 const PORTAL='https://vt12gt.github.io/ratopolis/portal_comunidade_preview.html';
+const CHAT_API='https://ratopolis-community-chat-preview.juniorgmj69.workers.dev';
 const $=id=>document.getElementById(id);
-let token='',music=[],ads=[],activeLive=false,previewUrls=[];
+let token='',music=[],ads=[],activeLive=false,previewUrls=[],radioPoller=null,youtubeRefs=[];
 try{token=localStorage.getItem('ratopolis_session_token')||''}catch(e){}
 function goPortal(){location.href=PORTAL}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2800)}
@@ -45,9 +48,53 @@ async function checkAccess(){
   const a=d&&d.data&&typeof d.data==='object'?{...d,...d.data}:d;
   const p=a.permissoes||a.permissions||{};
   if(!r.ok||a.ok===false||!(a.autorizado===true||a.authorized===true)||p.viewAdminPanel!==true)throw new Error('Sua conta não possui permissão para acessar a administração da rádio.');
-  $('gate').classList.add('hidden');$('app').classList.remove('hidden');$('who').textContent=a.nickname||a.nick||a.usuario||'Administrador';return true;
+  $('gate').classList.add('hidden');$('app').classList.remove('hidden');$('who').textContent=a.nickname||a.nick||a.usuario||'Administrador';loadRadioRequests();if(!radioPoller)radioPoller=setInterval(loadRadioRequests,15000);renderYoutubeSaved();return true;
  }catch(e){$('gateMsg').textContent=e.message;$('retry').classList.remove('hidden');return false}
 }
+
+function formatRequestTime(ts){try{return new Date(ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return 'Agora'}}
+async function loadRadioRequests(){
+ const box=$('radioRequestList');if(!box)return;
+ try{const r=await fetch(CHAT_API+'/api/radio/requests',{headers:{Authorization:'Bearer '+token,Accept:'application/json'}});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao carregar pedidos');renderRadioRequests(Array.isArray(d.requests)?d.requests:[])}
+ catch(e){box.innerHTML='<div class="empty">Não foi possível carregar os pedidos. Verifique sua conexão e permissão.</div>'}
+}
+function renderRadioRequests(items){
+ const box=$('radioRequestList'),pending=items.filter(x=>x.status==='pending').length;$('requestCount').textContent=pending+' pendentes';
+ box.replaceChildren();if(!items.length){box.innerHTML='<div class="empty">Ainda não há pedidos. Os comandos #RadioPedido enviados no chat aparecerão aqui.</div>';return}
+ items.slice().reverse().forEach(item=>{
+  const row=document.createElement('div');row.className='track';row.style.alignItems='flex-start';
+  const info=document.createElement('div');info.className='name';
+  const title=document.createElement('b');title.textContent=item.requested||'Pedido sem descrição';
+  const meta=document.createElement('small');meta.textContent=(item.nickname||'Ouvinte')+' · '+formatRequestTime(item.createdAt);
+  const status=document.createElement('small');status.textContent=({pending:'⏳ Pendente',done:'✓ Atendido',rejected:'✕ Recusado'})[item.status]||item.status;
+  info.append(title,meta,status);row.append(info);
+  if(item.status==='pending'){const done=document.createElement('button');done.className='btn';done.textContent='Atendido';done.onclick=()=>updateRadioRequest(item.id,'done');const reject=document.createElement('button');reject.className='btn danger';reject.textContent='Recusar';reject.onclick=()=>updateRadioRequest(item.id,'rejected');row.append(done,reject)}
+  box.append(row)
+ })
+}
+async function updateRadioRequest(id,status){
+ try{const r=await fetch(CHAT_API+'/api/radio/requests',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({id,status})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao atualizar pedido');toast('Pedido atualizado.');loadRadioRequests()}catch(e){toast('Não foi possível atualizar o pedido.')}
+}
+function getYouTubeId(value){
+ try{const u=new URL(value);if(u.hostname==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||'';if(u.hostname.endsWith('youtube.com')){if(u.pathname==='/watch')return u.searchParams.get('v')||'';const m=u.pathname.match(/^\/(embed|shorts)\/([^/?]+)/);return m?m[2]:''}}catch{}return ''
+}
+function previewYouTube(){
+ const url=$('youtubeUrl').value.trim(),id=getYouTubeId(url),box=$('youtubePreview');box.replaceChildren();
+ if(!id){box.textContent='Link do YouTube inválido. Cole um link youtube.com ou youtu.be.';box.className='empty';return}
+ const frame=document.createElement('iframe');frame.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id);frame.title='Prévia oficial do YouTube';frame.width='100%';frame.height='250';frame.style.border='0';frame.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';frame.allowFullscreen=true;box.className='';box.append(frame)
+}
+function saveYouTubeLink(){
+ const url=$('youtubeUrl').value.trim(),id=getYouTubeId(url);if(!id){toast('Informe um link válido do YouTube.');return}
+ try{youtubeRefs=JSON.parse(localStorage.getItem('radio_youtube_refs')||'[]')}catch{youtubeRefs=[]}
+ if(!youtubeRefs.some(x=>x.id===id)){youtubeRefs.push({id,url});localStorage.setItem('radio_youtube_refs',JSON.stringify(youtubeRefs))}
+ renderYoutubeSaved();toast('Link guardado como referência.');previewYouTube()
+}
+function renderYoutubeSaved(){
+ try{youtubeRefs=JSON.parse(localStorage.getItem('radio_youtube_refs')||'[]')}catch{youtubeRefs=[]}
+ const box=$('youtubeSaved');if(!box)return;box.replaceChildren();if(!youtubeRefs.length){box.innerHTML='<div class="muted">Nenhum link guardado ainda.</div>';return}
+ youtubeRefs.forEach((item,i)=>{const row=document.createElement('div');row.className='track';const a=document.createElement('a');a.href='https://www.youtube.com/watch?v='+encodeURIComponent(item.id);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Abrir referência '+(i+1)+' no YouTube';a.style.color='#d5a6ff';a.style.flex='1';const del=document.createElement('button');del.className='btn danger';del.textContent='Remover';del.onclick=()=>{youtubeRefs.splice(i,1);localStorage.setItem('radio_youtube_refs',JSON.stringify(youtubeRefs));renderYoutubeSaved()};row.append(a,del);box.append(row)})
+}
+
 function addFiles(ev,type){
  const target=type==='music'?music:ads;
  for(const f of [...ev.target.files]){if(!f.type.startsWith('audio/'))continue;target.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),name:f.name,file:f,url:URL.createObjectURL(f)})}
