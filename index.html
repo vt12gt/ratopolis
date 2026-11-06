@@ -241,6 +241,19 @@ button:disabled{opacity:.55;cursor:wait}
  .chat-actions{max-height:48px}
  .chat-toggle{bottom:76px}
 }
+
+/* Cartão de participante expansível ao toque: nome e informações legíveis */
+.roster-user{transition:background .18s ease,border-color .18s ease,box-shadow .18s ease;align-items:stretch}
+.roster-user-top{min-width:0;align-items:center}
+.roster-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.25}
+.roster-user.menu-open{padding:10px 8px;min-height:76px;display:block;background:linear-gradient(145deg,#39234f,#1c1428);border:1px solid #b77aff;box-shadow:0 5px 16px #0007}
+.roster-user.menu-open .roster-user-top{align-items:flex-start;gap:7px}
+.roster-user.menu-open .roster-name{font-size:12px;font-weight:900;line-height:1.3;white-space:normal;overflow-wrap:anywhere;color:#fff}
+.roster-user.menu-open .roster-role{font-size:9px;line-height:1.3;white-space:normal}
+.roster-user.menu-open .roster-menu{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 1px;padding:8px;background:#120d1c;border-radius:10px}
+.roster-user.menu-open .roster-menu button{max-width:100%;white-space:normal;line-height:1.25;font-size:10px;padding:7px 8px}
+.roster-user:not(.menu-open) .roster-name{font-size:10px}
+@media(max-width:600px){.roster-user{padding:8px 6px}.roster-user.menu-open{padding:10px 8px}.roster-user.menu-open .roster-avatar{width:34px;height:34px;flex-basis:34px}}
 </style>
 </head>
 <body>
