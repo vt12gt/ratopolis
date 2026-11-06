@@ -438,17 +438,18 @@ async function refreshRadioOnAir(){
   if(!radioTracks.length)await loadRadioLibrary();
   const track=radioTracks.find(t=>t.key===state.key);
   if(!track){$('radioPlay').disabled=true;$('radioTrack').textContent='Faixa no ar, mas não apareceu na biblioteca';return}
-  const expected=Math.max(0,(Date.now()-Number(state.startedAt||Date.now()))/1000);
+  const expected=Math.max(0,(state.paused?Number(state.pausedPositionMs||0):Date.now()-Number(state.startedAt||Date.now()))/1000);
   const currentKey=audio.dataset.radioKey||'';
   if(currentKey!==state.key){
    audio.pause();audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.currentTime=expected;
-  }else if(!audio.paused&&Math.abs(audio.currentTime-expected)>3){
+  }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>3){
    try{audio.currentTime=expected}catch(e){}
   }
-  audio.loop=state.loop===true;
-  $('radioTrack').textContent='🔴 AO VIVO · '+track.name;
+  audio.loop=state.repeatMode==='track'||state.loop===true;
+  $('radioTrack').textContent=(state.paused?'⏸ PAUSADA · ':'🔴 AO VIVO · ')+track.name+(state.programName?' · '+state.programName:'');
   $('radioPlay').disabled=false;
-  if(radioUserStarted&&!document.hidden&&audio.paused){
+  if(state.paused){if(!audio.paused)audio.pause();$('radioPlay').textContent='▶'}
+  else if(radioUserStarted&&!document.hidden&&audio.paused){
    try{audio.currentTime=expected;await audio.play();$('radioPlay').textContent='Ⅱ'}catch(e){$('radioPlay').textContent='▶'}
   }
  }catch(error){console.warn('Sincronização da rádio:',error.message)}
