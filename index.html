@@ -201,7 +201,7 @@ button:disabled{opacity:.55;cursor:wait}
 .avatar-queue-empty{text-align:center;padding:25px 12px;color:#bca9d0;font-size:12px}
 
 /* Rádio: player compacto, persistente e adaptável */
-.radio-dock{left:12px;bottom:76px;z-index:30;width:min(390px,calc(100vw - 24px));max-width:390px;min-height:58px;padding:9px 11px;gap:10px;border:1px solid #b78b48;border-radius:17px;background:linear-gradient(115deg,#21172df5,#100e19f7);box-shadow:0 8px 28px #0009,0 0 18px #d49b3b20;backdrop-filter:blur(14px)}
+.radio-dock{left:12px;top:78px;bottom:auto;z-index:30;width:min(390px,calc(100vw - 24px));max-width:390px;min-height:58px;padding:9px 11px;gap:10px;border:1px solid #b78b48;border-radius:17px;background:linear-gradient(115deg,#21172df5,#100e19f7);box-shadow:0 8px 28px #0009,0 0 18px #d49b3b20;backdrop-filter:blur(14px)}
 .radio-disc{width:40px;height:40px;flex:0 0 40px;position:relative}
 .radio-disc:after{content:"";position:absolute;inset:5px;border:1px solid #fff8;border-radius:50%}
 .radio-info b{font-size:10px;letter-spacing:.09em;color:#f8d98f}
@@ -213,8 +213,8 @@ button:disabled{opacity:.55;cursor:wait}
 #radioPlay.needs-gesture{width:auto;padding:0 12px;white-space:nowrap;font-size:10px}
 .radio-dock.radio-playing .radio-disc{animation:radioSpin 5s linear infinite}
 @keyframes radioSpin{to{transform:rotate(360deg)}}
-@media(max-width:1199px){.radio-dock{left:10px;bottom:calc(68px + env(safe-area-inset-bottom));width:min(360px,calc(100vw - 20px));max-width:360px}}
-@media(max-width:480px){.radio-dock{left:8px;bottom:calc(66px + env(safe-area-inset-bottom));width:calc(100vw - 16px);max-width:none;min-height:54px;padding:7px 9px}.radio-disc{width:35px;height:35px;flex-basis:35px}.radio-info small{max-width:clamp(90px,30vw,150px);font-size:9px}.radio-controls input{width:48px}}
+@media(max-width:1199px){.radio-dock{left:10px;top:70px;bottom:auto;width:min(360px,calc(100vw - 20px));max-width:360px}}
+@media(max-width:480px){.radio-dock{left:8px;top:66px;bottom:auto;width:calc(100vw - 16px);max-width:none;min-height:54px;padding:7px 9px}.radio-disc{width:35px;height:35px;flex-basis:35px}.radio-info small{max-width:clamp(90px,30vw,150px);font-size:9px}.radio-controls input{width:48px}}
 </style>
 </head>
 <body>
@@ -403,7 +403,7 @@ function setRadioTrack(index,autoplay=false){
  if(!radioTracks.length)return;
  radioTrackIndex=(index+radioTracks.length)%radioTracks.length;
  const track=radioTracks[radioTrackIndex],audio=$('radioAudio');
- audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(track.key);
+ audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(track.key);audio.dataset.radioKey=track.key;
  $('radioTrack').textContent=track.name+' · biblioteca compartilhada';
  $('radioPlay').disabled=false;
  if(autoplay)audio.play().then(()=>$('radioPlay').textContent='Ⅱ').catch(()=>{$('radioPlay').textContent='▶';showToast('Toque em Play para ouvir a rádio.')});
