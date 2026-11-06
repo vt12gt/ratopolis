@@ -64,9 +64,9 @@ function showApiError(box,label,e){
  box.replaceChildren();const el=document.createElement('div');el.className='empty';el.style.color='#ffb1c0';el.textContent=label+': '+(e&&e.message?e.message:String(e));box.append(el);
 }
 async function loadCloudTracks(){
- const box=$('cloudTrackList');if(!box)return;box.innerHTML='<div class="empty">Consultando armazenamento…</div>';
- try{const r=await fetch(RADIO_API+'/api/tracks',{headers:{Accept:'application/json'},cache:'no-store'});const d=await readApiResponse(r);cloudTracks=d.tracks||[];renderCloudTracks()}
- catch(e){showApiError(box,'Falha na biblioteca (Worker/R2)',e)}
+ const box=$('cloudTrackList');if(!box)return false;box.innerHTML='<div class="empty">Consultando armazenamento…</div>';
+ try{const r=await fetch(RADIO_API+'/api/tracks',{headers:{Accept:'application/json'},cache:'no-store'});const d=await readApiResponse(r);if(!r.ok||d.ok!==true||!Array.isArray(d.tracks))throw new Error(d.error||'Resposta inválida do armazenamento R2');cloudTracks=d.tracks;renderCloudTracks();return true}
+ catch(e){showApiError(box,'Falha na biblioteca (Worker/R2)',e);return false}
 }
 function renderCloudTracks(){
  $('cloudCount').textContent=cloudTracks.length+' arquivos';const box=$('cloudTrackList');box.replaceChildren();
@@ -81,7 +81,7 @@ function renderCloudTracks(){
 }
 async function uploadCloudFiles(ev){
  const files=[...ev.target.files];ev.target.value='';if(!files.length)return;
- let sent=0,failed=0;const errors=[];
+ let sent=0,failed=0;const errors=[],uploadedKeys=[];
  for(let i=0;i<files.length;i++){
   const file=files[i];
   if(!file.type.startsWith('audio/')){failed++;errors.push(file.name+': formato não reconhecido como áudio');continue}
@@ -90,12 +90,14 @@ async function uploadCloudFiles(ev){
   try{
    const r=await fetch(RADIO_API+'/api/upload?name='+encodeURIComponent(file.name),{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type||'application/octet-stream'},body:file});
    const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch{d={error:raw}}
-   if(!r.ok||d.ok!==true||!d.track?.key)throw new Error('HTTP '+r.status+' — '+(d.error||d.message||'o servidor não confirmou o armazenamento'));
-   sent++;
+   if(!r.ok||d.ok!==true||d.verified!==true||!d.track?.key)throw new Error('HTTP '+r.status+' — '+(d.error||d.message||'o R2 não confirmou a gravação'));
+   uploadedKeys.push(d.track.key);sent++;
   }catch(e){failed++;errors.push(file.name+': '+e.message)}
  }
  $('uploadStatus').textContent='Verificando arquivos salvos no R2…';
- await loadCloudTracks();
+ const listOk=await loadCloudTracks();
+ const missing=uploadedKeys.filter(key=>!cloudTracks.some(track=>track.key===key));
+ if(!listOk||missing.length){failed+=missing.length|| (sent?1:0);errors.push(!listOk?'Não foi possível confirmar a listagem do R2.':missing.length+' arquivo(s) não apareceram na biblioteca após o envio.');sent-=missing.length|| (listOk?0:0);}
  if(failed===0&&sent===files.length){
   $('uploadStatus').textContent=sent+' áudio(s) enviado(s) e confirmado(s) no R2.';
   toast(sent+' áudio(s) salvo(s) na biblioteca.');
