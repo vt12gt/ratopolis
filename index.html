@@ -194,7 +194,7 @@ $('recoveryForm').addEventListener('submit',async event=>{event.preventDefault()
 
 setForm('login');
 async function restoreSession(){if(!sessionToken){return;}try{const me=await api('/api/me',{method:'GET',token:sessionToken});const player=unwrapPlayer(me);if(!player)throw new Error('Perfil não retornado');renderPlayer(player);setStatus('authStatus','Sessão restaurada e perfil confirmado.','good');}catch(error){sessionToken='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}currentPlayer=null;$('profileNav').classList.add('hidden');$('profilePlayBtn').classList.add('hidden');$('adminPanelBtn').classList.add('hidden');}}
-restoreSession();
+const communitySessionRestore = restoreSession();
 
 /* Chat público Ratópolis: Worker de prévia isolado, com convidados e contas autenticadas. */
 const CHAT_API_URL = 'https://ratopolis-community-chat-preview.juniorgmj69.workers.dev';
