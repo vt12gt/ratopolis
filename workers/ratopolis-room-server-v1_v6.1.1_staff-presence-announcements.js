@@ -50,6 +50,17 @@ export default{async fetch(request,env){
  if(!["/api/admin/community-presence","/api/admin/community-announcement","/api/lobby/join","/api/lobby/state","/api/lobby/leave","/api/rooms/create","/api/rooms/list","/api/rooms/match","/api/rooms/session-replaced","/api/rooms/join","/api/rooms/leave","/api/rooms/state","/api/rooms/role","/api/rooms/finish","/api/rooms/ws-ticket","/ws"].includes(u.pathname))return json({ok:false,error:"not_found"},404);
  const token=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim();
  const directory=env.ROOMS.get(env.ROOMS.idFromName("RATOPOLIS_DIRECTORY"));
+ if(u.pathname==="/api/community/presence"){
+  if(!token)return json({ok:false,error:"authentication_required"},401);
+  let authResponse;try{const authRequest=new Request("https://auth.internal/api/me",{headers:{Authorization:"Bearer "+token}});const fallbackRequest=new Request(new URL("/api/me",String(env.AUTH_API||"").replace(/\\/+$/,"")+"/"),{headers:{Authorization:"Bearer "+token}});authResponse=env.AUTH_SERVICE?await env.AUTH_SERVICE.fetch(authRequest):await fetch(fallbackRequest)}catch{return json({ok:false,error:"auth_service_unavailable"},503)}
+  if(!authResponse.ok)return json({ok:false,error:"invalid_session"},401);
+  const auth=await authResponse.json().catch(()=>({}));if(auth?.ok===false)return json({ok:false,error:"invalid_session"},401);
+  const payload=auth?.data&&typeof auth.data==="object"?auth.data:auth;const user=auth.jogador||auth.usuario||auth.user||auth.player||auth.profile||auth.perfil||payload.jogador||payload.usuario||payload.user||payload.player||payload.profile||payload.perfil||payload;
+  const playerId=String(user.id||user.playerId||user.player_id||user.user_id||user.userId||user.conta_id||user.id_usuario||"");if(!playerId)return json({ok:false,error:"account_identity_missing"},401);
+  const idx=await (await directory.fetch("https://directory/directory/list")).json().catch(()=>({rooms:[]}));const codes=[...new Set(["LOBBY",...(idx.rooms||[]).map(x=>String(x.code||"").toUpperCase()).filter(x=>/^[A-Z0-9]{4,8}$/.test(x))])];const players=[];
+  for(const roomCode of codes){try{const stub=env.ROOMS.get(env.ROOMS.idFromName(roomCode));const rr=await stub.fetch("https://room/state",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});const d=await rr.json().catch(()=>({}));for(const p of d.players||[])if(Date.now()-(Number(p.lastSeen)||0)<60000)players.push({playerId:String(p.id),nickname:String(p.nickname||"Jogador"),room:roomCode,lastSeen:Number(p.lastSeen)||0})}catch{}}
+  return json({ok:true,players,roomsChecked:codes.length,updatedAt:Date.now()});
+ }
  if(u.pathname==="/api/admin/community-presence"||u.pathname==="/api/admin/community-announcement"){
   const bearer=request.headers.get("Authorization")||"";if(!bearer.startsWith("Bearer "))return json({ok:false,error:"authentication_required"},401);
   let adminResponse;try{adminResponse=await fetch("https://ratopolis-admin-test.juniorgmj69.workers.dev/api/admin/me",{headers:{Authorization:bearer,Accept:"application/json"}})}catch{return json({ok:false,error:"admin_auth_unavailable"},502)}
