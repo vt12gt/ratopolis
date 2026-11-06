@@ -387,12 +387,19 @@ async function refreshRadioOnAir(){
   }
  }catch(error){console.warn('Sincronização da rádio:',error.message)}
 }
+let radioListenerTimer=null;
+let radioListenerId='';
+try{radioListenerId=localStorage.getItem('ratopolis_radio_listener_id')||'';if(!radioListenerId){radioListenerId='listener_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('ratopolis_radio_listener_id',radioListenerId)}}catch{radioListenerId='listener_'+Math.random().toString(36).slice(2)+Date.now().toString(36)}
+async function sendRadioHeartbeat(){
+ const audio=$('radioAudio');if(!radioUserStarted||audio.paused||!radioOnAirState?.active)return;
+ try{await fetch(RADIO_API_URL+'/api/listeners/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:radioListenerId})})}catch(e){}
+}
 function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
- audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ'});
+ audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{$('radioPlay').textContent='▶'});
  loadRadioLibrary().then(refreshRadioOnAir);
- if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);
+ if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);if(!radioListenerTimer)radioListenerTimer=setInterval(sendRadioHeartbeat,20000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRadioOnAir()});
 }
 async function toggleRadio(){
