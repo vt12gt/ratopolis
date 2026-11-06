@@ -55,10 +55,18 @@ async function checkAccess(){
 
 const RADIO_API='https://ratopolis-radio-stream.juniorgmj69.workers.dev';
 let cloudTracks=[];
+async function readApiResponse(r){
+ const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch{d={raw}};
+ if(!r.ok||d.ok===false){const detail=d.error||d.message||d.raw||r.statusText||'resposta inválida';throw new Error('HTTP '+r.status+' — '+String(detail).slice(0,350))}
+ return d;
+}
+function showApiError(box,label,e){
+ box.replaceChildren();const el=document.createElement('div');el.className='empty';el.style.color='#ffb1c0';el.textContent=label+': '+(e&&e.message?e.message:String(e));box.append(el);
+}
 async function loadCloudTracks(){
- const box=$('cloudTrackList');if(!box)return;
- try{const r=await fetch(RADIO_API+'/api/tracks');const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao listar');cloudTracks=d.tracks||[];renderCloudTracks()}
- catch(e){box.innerHTML='<div class="empty">Não foi possível carregar a biblioteca compartilhada.</div>'}
+ const box=$('cloudTrackList');if(!box)return;box.innerHTML='<div class="empty">Consultando armazenamento…</div>';
+ try{const r=await fetch(RADIO_API+'/api/tracks',{headers:{Accept:'application/json'},cache:'no-store'});const d=await readApiResponse(r);cloudTracks=d.tracks||[];renderCloudTracks()}
+ catch(e){showApiError(box,'Falha na biblioteca (Worker/R2)',e)}
 }
 function renderCloudTracks(){
  $('cloudCount').textContent=cloudTracks.length+' arquivos';const box=$('cloudTrackList');box.replaceChildren();
@@ -87,9 +95,9 @@ async function deleteCloudTrack(key){
 }
 function formatRequestTime(ts){try{return new Date(ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return 'Agora'}}
 async function loadRadioRequests(){
- const box=$('radioRequestList');if(!box)return;
- try{const r=await fetch(CHAT_API+'/api/radio/requests',{headers:{Authorization:'Bearer '+token,Accept:'application/json'}});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Falha ao carregar pedidos');renderRadioRequests(Array.isArray(d.requests)?d.requests:[])}
- catch(e){box.innerHTML='<div class="empty">Não foi possível carregar os pedidos. Verifique sua conexão e permissão.</div>'}
+ const box=$('radioRequestList');if(!box)return;box.innerHTML='<div class="empty">Consultando pedidos do chat…</div>';
+ try{const r=await fetch(CHAT_API+'/api/radio/requests',{headers:{Authorization:'Bearer '+token,Accept:'application/json'},cache:'no-store'});const d=await readApiResponse(r);renderRadioRequests(Array.isArray(d.requests)?d.requests:[])}
+ catch(e){showApiError(box,'Falha nos pedidos (Worker do chat/autorizações)',e)}
 }
 function renderRadioRequests(items){
  const box=$('radioRequestList'),pending=items.filter(x=>x.status==='pending').length;$('requestCount').textContent=pending+' pendentes';
