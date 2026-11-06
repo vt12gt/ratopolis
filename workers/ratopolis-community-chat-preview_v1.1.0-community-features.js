@@ -77,8 +77,8 @@ if(d.type==="voice_signal"){if(!p.verified){send(s,{type:"error",message:"Chamad
 if(d.type==="private_message"){
  if(!p.verified){send(s,{type:"error",message:"Mensagens privadas são exclusivas de membros logados."});return}
  const target=String(d.to||"");const body=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);
- if(!target||!body)return;let delivered=false;
- for(const sock of sockets()){let a;try{a=sock.deserializeAttachment()}catch{}if(a?.playerId===target){send(sock,{type:"private_message",from:p.playerId,nickname:p.nickname,text:body,createdAt:now});delivered=true}}
+ if(!target||!body)return;let delivered=false,recipientGuest=false;
+ for(const sock of sockets()){let a;try{a=sock.deserializeAttachment()}catch{}if(a?.playerId===target){if(!a.verified){recipientGuest=true;continue}send(sock,{type:"private_message",from:p.playerId,nickname:p.nickname,text:body,createdAt:now});delivered=true}}if(recipientGuest&&!delivered){send(s,{type:"error",message:"Convidados recebem apenas mensagens públicas. PV é exclusivo de membros logados."});return}
  send(s,{type:"private_message_sent",to:target,delivered,text:body,createdAt:now});return;
 }
 if(d.type==="like"){
