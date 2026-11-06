@@ -80,7 +80,7 @@ async function stopRadioBroadcast(){
 }
 async function readApiResponse(r){
  const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch{d={raw}};
- if(!r.ok||d.ok===false){const detail=d.error||d.message||d.raw||r.statusText||'resposta inválida';throw new Error('HTTP '+r.status+' — '+String(detail).slice(0,350))}
+ if(!r.ok||d.ok===false){const detail=d.message||d.error||d.raw||r.statusText||'resposta inválida';throw new Error('HTTP '+r.status+' — '+String(detail).slice(0,350))}
  return d;
 }
 function showApiError(box,label,e){
