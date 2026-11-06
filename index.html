@@ -579,6 +579,7 @@ async function refreshRadioLive(){
   $('radioTrack').textContent='🎙️ LOCUÇÃO AO VIVO · '+(live.title||'Rádio Ratópolis');
   if(radioUserStarted){try{await $('radioLiveAudio').play()}catch(e){showToast('A locução está conectada. Toque em Ouvir para liberar o áudio.')}} 
  }catch(error){console.warn('Locução ao vivo:',error.message);if(radioLivePc&&['failed','closed'].includes(radioLivePc.connectionState))closeRadioLiveReceiver()}
+ catch(error){console.warn('Locução ao vivo:',error.message);if(radioLivePc&&!radioLiveActive)closeRadioLiveReceiver()}
  finally{radioLiveBusy=false}
 }
 let radioListenerTimer=null;
@@ -590,7 +591,7 @@ async function sendRadioHeartbeat(){
 }
 function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
- const liveAudio=$('radioLiveAudio');liveAudio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar locução';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
+ const liveAudio=$('radioLiveAudio');liveAudio.volume=Number($('radioVolume').value);liveAudio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar locução';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
  liveAudio.addEventListener('pause',()=>{if(radioLiveActive){$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ouvir locução';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')}});
  audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{const live=radioUserStarted&&radioOnAirState?.active&&!radioOnAirState?.paused;if(live){$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');return}$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
@@ -614,7 +615,7 @@ async function toggleRadio(){
   catch(e){radioUserStarted=false;showToast('Não foi possível iniciar. Toque novamente para ouvir.')}
  }else{radioUserStarted=false;audio.pause();$('radioPlay').textContent='▶ Ouvir'}
 }
-$('radioVolume').addEventListener('input',e=>$('radioAudio').volume=Number(e.target.value));
+$('radioVolume').addEventListener('input',e=>{$('radioAudio').volume=Number(e.target.value);$('radioLiveAudio').volume=Number(e.target.value)});
 configureRadio();
 communitySessionRestore.finally(()=>{connectCommunityChat();refreshGamePresence();gamePresenceTimer=setInterval(refreshGamePresence,15000)});
 
