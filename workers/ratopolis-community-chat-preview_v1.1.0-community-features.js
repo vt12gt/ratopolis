@@ -20,6 +20,9 @@ const staff=["spadmin","admin","gm"].includes(p.role);
 const send=(sock,obj)=>{try{if(sock.readyState===WebSocket.OPEN)sock.send(JSON.stringify(obj))}catch{}};
 const sockets=()=>this.ctx.getWebSockets();
 const moderation=(await this.ctx.storage.get("moderation"))||{};
+if(d.type==="voice_join"){const room=String(d.room||"");if(!/^(public|pv:[^\\s]{1,260})$/.test(room))return;if(p.voiceRoom&&p.voiceRoom!==room){for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.voiceRoom===p.voiceRoom)send(sock,{type:"voice_peer_left",playerId:p.playerId})}catch{}}}p.voiceRoom=room;s.serializeAttachment(p);const peers=[];for(const sock of sockets()){if(sock===s)continue;try{const a=sock.deserializeAttachment();if(a?.voiceRoom===room){peers.push(a.playerId);send(sock,{type:"voice_peers",peers:[p.playerId]})}}catch{}}send(s,{type:"voice_peers",peers});return}
+if(d.type==="voice_leave"){const room=p.voiceRoom;if(room){delete p.voiceRoom;s.serializeAttachment(p);for(const sock of sockets()){if(sock===s)continue;try{const a=sock.deserializeAttachment();if(a?.voiceRoom===room)send(sock,{type:"voice_peer_left",playerId:p.playerId})}catch{}}}return}
+if(d.type==="voice_signal"){const target=String(d.to||"");if(!target||!p.voiceRoom)return;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target&&a?.voiceRoom===p.voiceRoom){send(sock,{type:"voice_signal",from:p.playerId,signal:d.signal});break}}catch{}}return}
 if(d.type==="private_message"){
  const target=String(d.to||"");const body=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);
  if(!target||!body)return;let delivered=false;
@@ -62,6 +65,6 @@ if(/^#aviso\b/i.test(text)){if(!staff){send(s,{type:"error",message:"O comando #
 const message={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified,role:p.role||"guest",text,createdAt:now};
 const h=(await this.ctx.storage.get("history"))||[];h.push(message);await this.ctx.storage.put("history",h.slice(-100));this.broadcast({type:"chat_message",message});
 }
-async webSocketClose(){this.presence()}
+async webSocketClose(s){const p=s.deserializeAttachment();if(p?.voiceRoom){for(const sock of this.ctx.getWebSockets()){try{const a=sock.deserializeAttachment();if(a?.voiceRoom===p.voiceRoom) sock.send(JSON.stringify({type:"voice_peer_left",playerId:p.playerId}))}catch{}}}this.presence()}
 async webSocketError(){this.presence()}
 }
