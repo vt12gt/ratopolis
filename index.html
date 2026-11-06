@@ -339,7 +339,7 @@ $('badgePhotoInput').addEventListener('change',async e=>{
   const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
   let blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.58));
   if(!blob)blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.65));
-  if(!blob||blob.size>18000){const smaller=await createImageBitmap(file);canvas.width=128;canvas.height=128;const c=canvas.getContext('2d');c.drawImage(smaller,0,0,128,128);smaller.close();blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.42))}
+  if(!blob||blob.size>17500){const smaller=await createImageBitmap(file);canvas.width=128;canvas.height=128;const c=canvas.getContext('2d');c.drawImage(smaller,0,0,128,128);smaller.close();blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.42))}
   if(!blob||blob.size>18000){showToast('Essa foto ficou grande demais. Escolha outra imagem.');return}
   const reader=new FileReader();reader.onload=()=>{badgePickerImage=reader.result;$('badgePickerImagePreview').src=badgePickerImage;$('badgePickerImagePreview').hidden=false;$('badgePickerPreview').hidden=true;showToast('Foto pronta. Confira e salve o avatar.')};reader.readAsDataURL(blob);
  }catch(err){showToast('Não foi possível preparar essa foto. Tente outra imagem.')}
