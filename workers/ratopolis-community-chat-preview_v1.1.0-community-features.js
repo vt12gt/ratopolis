@@ -50,8 +50,8 @@ if(d.type==="review_avatar"){
  const target=String(d.target||"");const decision=String(d.decision||"");if(!target||!["approve","reject"].includes(decision))return;
  const pending=await this.ctx.storage.get("avatarPending:"+target);if(!pending?.image){send(s,{type:"avatar_result",ok:false,message:"Esta solicitação não está mais pendente."});return}
  await this.ctx.storage.delete("avatarPending:"+target);
- if(decision==="approve"){await this.ctx.storage.put("avatarImage:"+target,pending.image);await this.ctx.storage.delete("customBadges:"+target);await this.ctx.storage.put("avatarChanged:"+target,now);this.broadcast({type:"custom_badge",target,badge:null,avatarImage:pending.image});send(s,{type:"avatar_result",ok:true,message:"Foto aprovada e publicada."})}
- else send(s,{type:"avatar_result",ok:true,message:"Foto recusada. O membro poderá enviar outra solicitação."});
+ if(decision==="approve"){await this.ctx.storage.put("avatarImage:"+target,pending.image);await this.ctx.storage.delete("customBadges:"+target);await this.ctx.storage.put("avatarChanged:"+target,now);this.broadcast({type:"custom_badge",target,badge:null,avatarImage:pending.image});send(s,{type:"avatar_result",ok:true,message:"Foto aprovada e publicada."});for(const sock of sockets())try{if(sock.deserializeAttachment()?.playerId===target)send(sock,{type:"avatar_result",ok:true,message:"Sua foto foi aprovada e já está no seu perfil. A próxima troca será liberada em 7 dias."})}catch{}}
+ else{send(s,{type:"avatar_result",ok:true,message:"Foto recusada. O membro poderá enviar outra solicitação."});for(const sock of sockets())try{if(sock.deserializeAttachment()?.playerId===target)send(sock,{type:"avatar_result",ok:false,message:"Sua foto não foi aprovada. Escolha outra imagem que respeite as regras da comunidade."})}catch{}}
  this.broadcast({type:"avatar_queue_updated"});return
 }
 if(d.type==="report_avatar"){
