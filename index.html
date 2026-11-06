@@ -578,8 +578,7 @@ async function refreshRadioLive(){
   const music=$('radioAudio');if(!music.paused)music.pause();
   $('radioTrack').textContent='🎙️ LOCUÇÃO AO VIVO · '+(live.title||'Rádio Ratópolis');
   if(radioUserStarted){try{await $('radioLiveAudio').play()}catch(e){showToast('A locução está conectada. Toque em Ouvir para liberar o áudio.')}} 
- }catch(error){console.warn('Locução ao vivo:',error.message);if(radioLivePc&&['failed','closed'].includes(radioLivePc.connectionState))closeRadioLiveReceiver()}
- catch(error){console.warn('Locução ao vivo:',error.message);if(radioLivePc&&!radioLiveActive)closeRadioLiveReceiver()}
+ }catch(error){console.warn('Locução ao vivo:',error.message);if(radioLivePc&&!radioLiveActive)closeRadioLiveReceiver()}
  finally{radioLiveBusy=false}
 }
 let radioListenerTimer=null;
