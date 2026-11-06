@@ -52,7 +52,7 @@ export default{async fetch(request,env){
  const directory=env.ROOMS.get(env.ROOMS.idFromName("RATOPOLIS_DIRECTORY"));
  if(u.pathname==="/api/community/presence"){
   if(!token)return json({ok:false,error:"authentication_required"},401);
-  let authResponse;try{const authRequest=new Request("https://auth.internal/api/me",{headers:{Authorization:"Bearer "+token}});const fallbackRequest=new Request(new URL("/api/me",String(env.AUTH_API||"").replace(/\\/+$/,"")+"/"),{headers:{Authorization:"Bearer "+token}});authResponse=env.AUTH_SERVICE?await env.AUTH_SERVICE.fetch(authRequest):await fetch(fallbackRequest)}catch{return json({ok:false,error:"auth_service_unavailable"},503)}
+  let authResponse;try{const authRequest=new Request("https://auth.internal/api/me",{headers:{Authorization:"Bearer "+token}});authResponse=await env.AUTH_SERVICE.fetch(authRequest)}catch{return json({ok:false,error:"auth_service_unavailable"},503)}
   if(!authResponse.ok)return json({ok:false,error:"invalid_session"},401);
   const auth=await authResponse.json().catch(()=>({}));if(auth?.ok===false)return json({ok:false,error:"invalid_session"},401);
   const payload=auth?.data&&typeof auth.data==="object"?auth.data:auth;const user=auth.jogador||auth.usuario||auth.user||auth.player||auth.profile||auth.perfil||payload.jogador||payload.usuario||payload.user||payload.player||payload.profile||payload.perfil||payload;
