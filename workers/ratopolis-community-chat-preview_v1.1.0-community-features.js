@@ -36,10 +36,23 @@ if(d.type==="set_own_badge"||d.type==="set_own_avatar_image"){
  }
  const image=String(d.image||"");
  if(!/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(image)||image.length>24000){send(s,{type:"avatar_result",ok:false,message:"A foto precisa ser JPG, PNG ou WebP e ter até 35 KB após a compressão."});return}
- await this.ctx.storage.put("avatarImage:"+p.playerId,image);await this.ctx.storage.delete("customBadges:"+p.playerId);
- await this.ctx.storage.put("avatarChanged:"+p.playerId,now);
- this.broadcast({type:"custom_badge",target:p.playerId,badge:null,avatarImage:image});
- send(s,{type:"avatar_result",ok:true,message:"Foto de perfil atualizada. Você poderá trocar novamente em 7 dias."});return
+ await this.ctx.storage.put("avatarPending:"+p.playerId,{playerId:p.playerId,nickname:p.nickname,image,submittedAt:now});
+ send(s,{type:"avatar_result",ok:true,pending:true,message:"Foto enviada para aprovação da administração. Seu avatar atual continuará aparecendo até a aprovação."});
+ for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a&&["spadmin","admin"].includes(a.role))send(sock,{type:"avatar_pending_notice",nickname:p.nickname})}catch{}}return
+}
+if(d.type==="get_avatar_queue"){
+ if(!["spadmin","admin"].includes(p.role)){send(s,{type:"error",message:"Apenas SpAdmin e Admin podem aprovar fotos."});return}
+ const pending=[];for(const [key,value] of await this.ctx.storage.list({prefix:"avatarPending:"})){if(value?.image)pending.push({playerId:value.playerId,nickname:value.nickname,image:value.image,submittedAt:value.submittedAt})}
+ send(s,{type:"avatar_queue",items:pending.sort((a,b)=>a.submittedAt-b.submittedAt)});return
+}
+if(d.type==="review_avatar"){
+ if(!["spadmin","admin"].includes(p.role)){send(s,{type:"error",message:"Apenas SpAdmin e Admin podem revisar fotos."});return}
+ const target=String(d.target||"");const decision=String(d.decision||"");if(!target||!["approve","reject"].includes(decision))return;
+ const pending=await this.ctx.storage.get("avatarPending:"+target);if(!pending?.image){send(s,{type:"avatar_result",ok:false,message:"Esta solicitação não está mais pendente."});return}
+ await this.ctx.storage.delete("avatarPending:"+target);
+ if(decision==="approve"){await this.ctx.storage.put("avatarImage:"+target,pending.image);await this.ctx.storage.delete("customBadges:"+target);await this.ctx.storage.put("avatarChanged:"+target,now);this.broadcast({type:"custom_badge",target,badge:null,avatarImage:pending.image});send(s,{type:"avatar_result",ok:true,message:"Foto aprovada e publicada."})}
+ else send(s,{type:"avatar_result",ok:true,message:"Foto recusada. O membro poderá enviar outra solicitação."});
+ this.broadcast({type:"avatar_queue_updated"});return
 }
 if(d.type==="report_avatar"){
  const target=String(d.target||"");if(!target||target===p.playerId)return;
@@ -58,16 +71,18 @@ if(d.type==="remove_avatar"){
  send(s,{type:"avatar_result",ok:true,message:"Avatar removido pela equipe."});return
 }
 
-if(d.type==="voice_join"){const room=String(d.room||"");if(!/^(public|pv:[^\\s]{1,260})$/.test(room))return;if(p.voiceRoom&&p.voiceRoom!==room){for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.voiceRoom===p.voiceRoom)send(sock,{type:"voice_peer_left",playerId:p.playerId})}catch{}}}p.voiceRoom=room;s.serializeAttachment(p);const peers=[];for(const sock of sockets()){if(sock===s)continue;try{const a=sock.deserializeAttachment();if(a?.voiceRoom===room){peers.push(a.playerId)}}catch{}}send(s,{type:"voice_peers",peers});if(room.startsWith("pv:")){const targets=decodeURIComponent(room.slice(3)).split("|");for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId!==p.playerId&&targets.includes(a?.playerId))send(sock,{type:"voice_invite",from:p.playerId,nickname:p.nickname,room})}catch{}}}return}
+if(d.type==="voice_join"){if(!p.verified){send(s,{type:"error",message:"Chamadas de voz são exclusivas de membros logados."});return}const room=String(d.room||"");if(!/^(public|pv:[^\\s]{1,260})$/.test(room))return;if(p.voiceRoom&&p.voiceRoom!==room){for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.voiceRoom===p.voiceRoom)send(sock,{type:"voice_peer_left",playerId:p.playerId})}catch{}}}p.voiceRoom=room;s.serializeAttachment(p);const peers=[];for(const sock of sockets()){if(sock===s)continue;try{const a=sock.deserializeAttachment();if(a?.voiceRoom===room){peers.push(a.playerId)}}catch{}}send(s,{type:"voice_peers",peers});if(room.startsWith("pv:")){const targets=decodeURIComponent(room.slice(3)).split("|");for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId!==p.playerId&&targets.includes(a?.playerId))send(sock,{type:"voice_invite",from:p.playerId,nickname:p.nickname,room})}catch{}}}return}
 if(d.type==="voice_leave"){const room=p.voiceRoom;if(room){delete p.voiceRoom;s.serializeAttachment(p);for(const sock of sockets()){if(sock===s)continue;try{const a=sock.deserializeAttachment();if(a?.voiceRoom===room)send(sock,{type:"voice_peer_left",playerId:p.playerId})}catch{}}}return}
-if(d.type==="voice_signal"){const target=String(d.to||"");if(!target||!p.voiceRoom)return;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target&&a?.voiceRoom===p.voiceRoom){send(sock,{type:"voice_signal",from:p.playerId,signal:d.signal});break}}catch{}}return}
+if(d.type==="voice_signal"){if(!p.verified){send(s,{type:"error",message:"Chamadas de voz são exclusivas de membros logados."});return}const target=String(d.to||"");if(!target||!p.voiceRoom)return;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target&&a?.voiceRoom===p.voiceRoom){send(sock,{type:"voice_signal",from:p.playerId,signal:d.signal});break}}catch{}}return}
 if(d.type==="private_message"){
+ if(!p.verified){send(s,{type:"error",message:"Mensagens privadas são exclusivas de membros logados."});return}
  const target=String(d.to||"");const body=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);
  if(!target||!body)return;let delivered=false;
  for(const sock of sockets()){let a;try{a=sock.deserializeAttachment()}catch{}if(a?.playerId===target){send(sock,{type:"private_message",from:p.playerId,nickname:p.nickname,text:body,createdAt:now});delivered=true}}
  send(s,{type:"private_message_sent",to:target,delivered,text:body,createdAt:now});return;
 }
 if(d.type==="like"){
+ if(!p.verified){send(s,{type:"error",message:"Curtidas são exclusivas de membros logados."});return}
  const target=String(d.target||"");if(!target||target===p.playerId)return;
  const key="likes:"+target,liked=(await this.ctx.storage.get(key))||{};
  if(liked[p.playerId])delete liked[p.playerId];else liked[p.playerId]=true;
@@ -98,7 +113,7 @@ if(mod.ban){send(s,{type:"moderation_blocked",kind:"ban",message:"Seu acesso ao 
 if(mod.mute){send(s,{type:"moderation_blocked",kind:"mute",message:"Você pode acompanhar o chat, mas não pode enviar mensagens no momento."});return}
 const text=d.text.replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);if(!text)return;
 const rateKey="chatRate:"+p.playerId;const rate=(await this.ctx.storage.get(rateKey))||{times:[],lastText:"",lastTextAt:0};rate.times=(rate.times||[]).filter(t=>now-t<10000);if(now-(rate.times.at(-1)||0)<1200){send(s,{type:"error",message:"Calma! Aguarde um instante antes de enviar outra mensagem."});return}if(rate.times.length>=5){send(s,{type:"error",message:"Você enviou mensagens demais. Aguarde 10 segundos para continuar."});return}const normalized=text.toLocaleLowerCase("pt-BR").replace(/\s+/g," ").trim();if(normalized===rate.lastText&&now-(rate.lastTextAt||0)<60000){send(s,{type:"error",message:"Mensagem repetida bloqueada para evitar spam."});return}rate.times.push(now);rate.lastText=normalized;rate.lastTextAt=now;await this.ctx.storage.put(rateKey,rate);p.lastMessageAt=now;s.serializeAttachment(p);
-if(/^#radiopedido\b/i.test(text)){const requested=text.replace(/^#radiopedido\s*/i,"").trim().slice(0,180);if(!requested){send(s,{type:"error",message:"Depois de #RadioPedido, escreva o nome da música e do artista."});return}const requests=(await this.ctx.storage.get("radioRequests"))||[];const item={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified===true,requested,createdAt:now,status:"pending"};requests.push(item);await this.ctx.storage.put("radioRequests",requests.slice(-300));this.broadcast({type:"chat_message",message:{id:crypto.randomUUID(),nickname:"Rádio Ratópolis",verified:true,role:"admin",text:"🎵 Pedido musical enviado à equipe: "+requested,createdAt:now}});this.broadcast({type:"radio_request_received",request:item});return}
+if(/^#radiopedido\b/i.test(text)){if(!p.verified){send(s,{type:"error",message:"Pedidos de música são exclusivos de membros logados."});return}const requested=text.replace(/^#radiopedido\s*/i,"").trim().slice(0,180);if(!requested){send(s,{type:"error",message:"Depois de #RadioPedido, escreva o nome da música e do artista."});return}const requests=(await this.ctx.storage.get("radioRequests"))||[];const item={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified===true,requested,createdAt:now,status:"pending"};requests.push(item);await this.ctx.storage.put("radioRequests",requests.slice(-300));this.broadcast({type:"chat_message",message:{id:crypto.randomUUID(),nickname:"Rádio Ratópolis",verified:true,role:"admin",text:"🎵 Pedido musical enviado à equipe: "+requested,createdAt:now}});this.broadcast({type:"radio_request_received",request:item});return}
 if(/^#aviso\b/i.test(text)){if(!staff){send(s,{type:"error",message:"O comando #Aviso é exclusivo da equipe."});return}const notice=text.replace(/^#aviso\s*/i,"").trim().slice(0,220);if(!notice){send(s,{type:"error",message:"Escreva o texto após #Aviso."});return}this.broadcast({type:"announcement",nickname:p.nickname,role:p.role,text:notice,createdAt:now});return}
 const message={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified,role:p.role||"guest",text,createdAt:now};
 const h=(await this.ctx.storage.get("history"))||[];h.push(message);await this.ctx.storage.put("history",h.slice(-100));this.broadcast({type:"chat_message",message});
