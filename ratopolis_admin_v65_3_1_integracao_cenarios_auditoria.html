@@ -88,7 +88,17 @@ html.ratopolis-admin-lock #ratopolisAdminGate{display:flex!important}
 <div id="v62-player-tools"><div class="field"><label for="v62-player-search">Buscar jogador</label><input id="v62-player-search" type="search" placeholder="Nickname ou ID"></div><div class="field"><label for="v62-player-role">Função</label><select id="v62-player-role"><option value="">Todas as funções</option><option value="spadm">SpAdmin</option><option value="adm">ADM</option><option value="gm">GM</option><option value="mod">Mod</option><option value="editor">Editor</option><option value="divulgador">Divulgador</option><option value="player">Player / Jogador</option></select></div><div class="field"><label for="v62-player-status-filter">Status</label><select id="v62-player-status-filter"><option value="">Todos os status</option><option value="ativo">Ativo</option><option value="active">Active</option><option value="inativo">Inativo</option><option value="suspenso">Suspenso</option><option value="restrito">Restrito</option><option value="pendente">Pendente</option></select></div><div class="field"><label for="v62-player-sort">Ordenar por</label><select id="v62-player-sort"><option value="name-asc">Nickname · A–Z</option><option value="name-desc">Nickname · Z–A</option><option value="level-desc">Nível · maior primeiro</option><option value="level-asc">Nível · menor primeiro</option><option value="xp-desc">XP · maior primeiro</option></select></div><button type="button" id="v62-player-clear">Limpar filtros</button></div>
 <div id="v62-player-count" aria-live="polite">Nenhum jogador carregado.</div>
 <div class="tablewrap" id="v62-player-table-wrap"><table><thead><tr><th>Nickname</th><th>Função</th><th>Status</th><th>Nível</th><th>XP</th><th>VIP</th><th>ID</th><th>Perfil</th></tr></thead><tbody id="v59-real-players-body"><tr><td colspan="8">Nenhuma consulta realizada.</td></tr></tbody></table></div>
-<section id="v62-player-details" hidden aria-live="polite"><div class="sectionhead"><div><h4 style="margin:0">Perfil do jogador selecionado</h4><div class="muted" id="v62-profile-subtitle">Os dados abaixo vêm da resposta do servidor.</div></div><button type="button" id="v62-profile-close">Fechar perfil</button></div><dl id="v62-profile-fields"></dl><section id="v62-role-manager" hidden style="margin-top:14px;padding:12px;border:1px solid #665329;border-radius:10px;background:#201b12"><h4 style="margin:0 0 8px">Gerenciar cargo da equipe</h4><p class="muted" style="margin:0 0 10px">Somente ADM/SpAdmin podem salvar. SpAdmin é protegido e não pode ser atribuído por aqui. Toda alteração é validada e registrada no servidor.</p><div class="filters" style="grid-template-columns:minmax(0,1fr) auto"><div class="field"><label for="v62-role-select">Novo cargo</label><select id="v62-role-select"><option value="player">Player · jogador comum</option><option value="mod">Mod · moderador</option><option value="gm">GM · equipe de jogo</option><option value="adm">ADM · administrador</option><option value="editor">Editor · cria e edita cenários</option><option value="divulgador">Divulgador · redes sociais</option></select></div><button type="button" class="gold" id="v62-role-save">Salvar cargo</button></div><div id="v62-role-status" role="status" class="muted" aria-live="polite"></div></section><p class="foot">O perfil é somente leitura, exceto pela alteração de cargo, que é enviada ao servidor e registrada na auditoria.</p></section>
+<section id="v62-player-details" hidden aria-live="polite"><div class="sectionhead"><div><h4 style="margin:0">Perfil do jogador selecionado</h4><div class="muted" id="v62-profile-subtitle">Os dados abaixo vêm da resposta do servidor.</div></div><button type="button" id="v62-profile-close">Fechar perfil</button></div><dl id="v62-profile-fields"></dl><section id="v66-password-manager" hidden style="margin-top:14px;padding:12px;border:1px solid #6e5ce6;border-radius:10px;background:#15152b">
+<h4 style="margin:0 0 8px">Gerenciamento de senhas · SpAdmin</h4>
+<p class="muted" style="margin:0 0 10px">Defina uma nova senha para esta conta. A senha atual nunca é exibida. Todas as sessões ativas da conta serão encerradas após a redefinição.</p>
+<div class="filters" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+<div class="field"><label for="v66-new-password">Nova senha (mínimo 8 caracteres)</label><input id="v66-new-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder="Digite a nova senha"></div>
+<div class="field"><label for="v66-confirm-password">Confirmar nova senha</label><input id="v66-confirm-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder="Digite novamente"></div>
+</div>
+<button type="button" class="gold" id="v66-reset-password">Redefinir senha desta conta</button>
+<div id="v66-password-status" role="status" aria-live="polite" class="muted" style="margin-top:9px"></div>
+</section>
+<section id="v62-role-manager" hidden style="margin-top:14px;padding:12px;border:1px solid #665329;border-radius:10px;background:#201b12"><h4 style="margin:0 0 8px">Gerenciar cargo da equipe</h4><p class="muted" style="margin:0 0 10px">Somente ADM/SpAdmin podem salvar. SpAdmin é protegido e não pode ser atribuído por aqui. Toda alteração é validada e registrada no servidor.</p><div class="filters" style="grid-template-columns:minmax(0,1fr) auto"><div class="field"><label for="v62-role-select">Novo cargo</label><select id="v62-role-select"><option value="player">Player · jogador comum</option><option value="mod">Mod · moderador</option><option value="gm">GM · equipe de jogo</option><option value="adm">ADM · administrador</option><option value="editor">Editor · cria e edita cenários</option><option value="divulgador">Divulgador · redes sociais</option></select></div><button type="button" class="gold" id="v62-role-save">Salvar cargo</button></div><div id="v62-role-status" role="status" class="muted" aria-live="polite"></div></section><p class="foot">O perfil é somente leitura, exceto pela alteração de cargo, que é enviada ao servidor e registrada na auditoria.</p></section>
 <p class="foot">A lista usa a sessão local <code>ratopolis_session_token</code> e o endpoint <code>GET /api/admin/users</code>. Se o servidor negar acesso ou usar outro formato, o erro será mostrado sem inventar dados.</p>
 </section><p class="foot">A alteração de cargo nesta seção atualiza a conta real no servidor e gera auditoria. As demais ações demonstrativas não alteram jogadores reais.</p></section>
 <section id="page-moderation" class="page hidden"><div class="sectionhead"><div><h2>Central de moderação</h2><div class="muted">Casos, prioridades, responsáveis e histórico das decisões.</div></div><button id="newReport" class="primary">＋ Nova denúncia</button></div><div class="grid"><div class="stat"><div class="label">Casos abertos</div><div class="value" id="modOpen">0</div></div><div class="stat"><div class="label">Em análise</div><div class="value" id="modReview">0</div></div><div class="stat"><div class="label">Alta prioridade</div><div class="value" id="modHigh">0</div></div><div class="stat"><div class="label">Resolvidos</div><div class="value" id="modResolved">0</div></div></div><div class="filters"><div class="field"><label>Buscar caso/jogador/motivo</label><input id="modSearch" placeholder="Nickname, denúncia ou ID"></div><div class="field"><label>Status</label><select id="modStatus"><option value="">Todos</option><option>Aberta</option><option>Em análise</option><option>Resolvida</option><option>Arquivada</option></select></div><div class="field"><label>Prioridade</label><select id="modPriority"><option value="">Todas</option><option>Alta</option><option>Normal</option><option>Baixa</option></select></div><div class="field"><label>Responsável</label><select id="modAssigned"><option value="">Todos</option><option>SpAdmin</option><option>ADM</option><option>GM</option><option>Mod</option><option>Editor</option><option>Não atribuído</option></select></div></div><div id="reports" class="list"></div><p class="foot">Tudo é demonstração local. Avisos, silenciamentos e restrições não são enviados ao servidor do jogo.</p></section>
@@ -539,7 +549,7 @@ auditLog('Painel v65.3 aberto');render();
  const details=document.getElementById('v62-player-details'),detailFields=document.getElementById('v62-profile-fields'),detailSubtitle=document.getElementById('v62-profile-subtitle'),closeDetails=document.getElementById('v62-profile-close');
  const roleManager=document.getElementById('v62-role-manager'),roleSelect=document.getElementById('v62-role-select'),roleSave=document.getElementById('v62-role-save'),roleStatus=document.getElementById('v62-role-status');
  if(!btn||!status||!body)return;
- let users=[],canManageRoles=false,selectedUserIndex=-1;
+ let users=[],canManageRoles=false,canManagePasswords=false,selectedUserIndex=-1;
  const esc=v=>String(v==null?'—':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const value=(o,keys)=>{for(const k of keys){if(o&&o[k]!==undefined&&o[k]!==null&&o[k]!=='')return o[k]}return '—'};
  const norm=v=>String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -553,7 +563,7 @@ auditLog('Painel v65.3 aberto');render();
   const entries=Object.entries(u);detailSubtitle.textContent='Perfil: '+nickOf(u)+' · ID '+idOf(u);
   detailFields.innerHTML=entries.length?entries.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(typeof v==='object'&&v!==null?JSON.stringify(v):k==='role'?roleLabel(v):v)+'</dd></div>').join(''):'<div><dt>Dados</dt><dd>O servidor não retornou campos para este perfil.</dd></div>';
   const targetRole=roleOf(u);if(roleSelect)roleSelect.value=['spadm'].includes(targetRole)?'player':targetRole;
-  if(roleManager){roleManager.hidden=!canManageRoles||targetRole==='spadm';}
+  if(roleManager){roleManager.hidden=!canManageRoles||targetRole==='spadm';}\n  const passwordManager=document.getElementById('v66-password-manager');if(passwordManager){passwordManager.hidden=!canManagePasswords||targetRole==='spadm';}\n  const passwordStatus=document.getElementById('v66-password-status');if(passwordStatus)passwordStatus.textContent=passwordManager&&!passwordManager.hidden?'Ação exclusiva do SpAdmin. A redefinição encerra as sessões anteriores.':'';
   if(roleStatus)roleStatus.textContent=canManageRoles?'Cargo atual: '+roleLabel(targetRole)+'. A alteração será validada pelo servidor.':'Somente leitura para esta conta.';
   details.hidden=false;details.scrollIntoView({behavior:'smooth',block:'nearest'});
  }
@@ -578,6 +588,26 @@ auditLog('Painel v65.3 aberto');render();
   }catch(err){users=[];body.innerHTML='<tr><td colspan="8">Não foi possível carregar os jogadores reais.</td></tr>';count.textContent='Consulta não disponível.';status.textContent='Falha na consulta: '+String(err&&err.message||err)+' Nenhuma alteração foi feita.';}
   finally{btn.disabled=false;btn.textContent='Atualizar jogadores reais';}
  }
+ async function resetPassword(){
+  if(!canManagePasswords||selectedUserIndex<0||!users[selectedUserIndex])return;
+  const target=users[selectedUserIndex];
+  if(roleOf(target)==='spadm')return;
+  const password=document.getElementById('v66-new-password'),confirmPassword=document.getElementById('v66-confirm-password'),passwordStatus=document.getElementById('v66-password-status'),passwordButton=document.getElementById('v66-reset-password');
+  const next=password?.value||'',confirm=confirmPassword?.value||'';
+  if(next.length<8||next.length>128){if(passwordStatus)passwordStatus.textContent='A senha precisa ter entre 8 e 128 caracteres.';return;}
+  if(next!==confirm){if(passwordStatus)passwordStatus.textContent='As duas senhas não conferem.';return;}
+  if(!window.confirm('Redefinir a senha de '+nickOf(target)+'? Todas as sessões desta conta serão encerradas.'))return;
+  passwordButton.disabled=true;passwordButton.textContent='Redefinindo…';if(passwordStatus)passwordStatus.textContent='Enviando solicitação protegida ao servidor…';
+  try{
+   const token=localStorage.getItem(TOKEN_KEY)||'';if(!token)throw new Error('Sessão não encontrada. Entre novamente pelo portal.');
+   const res=await fetch('https://ratopolis-password-admin.juniorgmj69.workers.dev/api/admin/users/password-reset',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({user_id:idOf(target),password:next}),cache:'no-store'});
+   const raw=await res.text();let data;try{data=JSON.parse(raw)}catch(_){data={erro:raw||'Resposta não JSON'}};
+   if(!res.ok||data.ok!==true)throw new Error((data.erro||data.error||('HTTP '+res.status))+' (HTTP '+res.status+')');
+   password.value='';confirmPassword.value='';
+   if(passwordStatus)passwordStatus.textContent='Senha redefinida com sucesso para '+(data.jogador?.nickname||nickOf(target))+'. Todas as sessões anteriores foram encerradas e a ação foi registrada na auditoria.';
+  }catch(err){if(passwordStatus)passwordStatus.textContent='Não foi possível redefinir a senha: '+String(err&&err.message||err);}
+  finally{passwordButton.disabled=false;passwordButton.textContent='Redefinir senha desta conta';}
+ }
  async function changeRole(){
   if(!canManageRoles||selectedUserIndex<0||!users[selectedUserIndex])return;
   const target=users[selectedUserIndex],newRole=roleSelect?.value||'';
@@ -601,7 +631,7 @@ auditLog('Painel v65.3 aberto');render();
  clear&&clear.addEventListener('click',()=>{search.value='';roleFilter.value='';statusFilter.value='';if(sortFilter)sortFilter.value='name-asc';render()});
  body.addEventListener('click',e=>{const b=e.target.closest('[data-profile-index]');if(b)showProfile(Number(b.getAttribute('data-profile-index')))});
  closeDetails&&closeDetails.addEventListener('click',()=>{details.hidden=true});
- roleSave&&roleSave.addEventListener('click',changeRole);
+ roleSave&&roleSave.addEventListener('click',changeRole);\n const resetPasswordButton=document.getElementById('v66-reset-password');resetPasswordButton&&resetPasswordButton.addEventListener('click',resetPassword);
 })();
 </script>
 
