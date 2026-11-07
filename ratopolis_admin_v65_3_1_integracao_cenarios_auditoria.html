@@ -579,8 +579,8 @@ auditLog('Painel v65.3 aberto');render();
   btn.disabled=true;btn.textContent='Carregando…';status.textContent='Consultando o Worker administrativo com a sessão disponível…';body.innerHTML='<tr><td colspan="8">Carregando…</td></tr>';users=[];details.hidden=true;
   try{
    let token='';try{token=localStorage.getItem(TOKEN_KEY)||''}catch(e){}if(!token)throw new Error('Token não encontrado neste endereço. Abra o portal publicado, entre na conta e depois abra o painel no mesmo domínio.');
-   canManageRoles=false;
-   try{const mr=await fetch(API+'/api/admin/me',{headers:{'Authorization':'Bearer '+token,'Accept':'application/json'},cache:'no-store'});const md=await mr.json();canManageRoles=mr.ok&&md.ok===true&&md.permissoes&&md.permissoes.manageStaff===true;}catch(_){canManageRoles=false;}
+   canManageRoles=false;canManagePasswords=false;
+   try{const mr=await fetch(API+'/api/admin/me',{headers:{'Authorization':'Bearer '+token,'Accept':'application/json'},cache:'no-store'});const md=await mr.json();canManageRoles=mr.ok&&md.ok===true&&md.permissoes&&md.permissoes.manageStaff===true;canManagePasswords=mr.ok&&md.ok===true&&String(md.role||'').toLowerCase()==='spadm';}catch(_){canManageRoles=false;canManagePasswords=false;}
    const res=await fetch(API+'/api/admin/users',{method:'GET',headers:{'Authorization':'Bearer '+token,'Accept':'application/json'},cache:'no-store'});const raw=await res.text();let data;try{data=JSON.parse(raw)}catch(e){data={erro:raw||'Resposta não JSON'}};
    if(!res.ok||data.ok!==true)throw new Error((data.erro||data.error||('HTTP '+res.status))+' (HTTP '+res.status+')');
    const candidates=[data.jogadores,data.users,data.usuarios,data.results,data.data&&data.data.jogadores,data.data&&data.data.users,data.data&&data.data.usuarios,data.data&&data.data.results];users=candidates.find(Array.isArray)||[];
