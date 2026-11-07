@@ -288,7 +288,7 @@ async function startLive(){
   liveHeartbeatTimer=setInterval(async()=>{try{await radioApi('/api/live/heartbeat',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sessionId:liveSessionId,leaseId:liveLeaseId})})}catch(e){console.warn('Sinal de vida da locução:',e.message)}},20000);
   updateLiveUi(true);startLiveElapsedTimer(Date.now());toast('🎙️ Você está ao vivo para os ouvintes!');
  }catch(e){
-  if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());stopLiveMusic();
+  if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());stopLiveMusic();if(liveAudioContext){liveAudioContext.close().catch(()=>{});liveAudioContext=null;liveGainNode=null}
   if(sessionId||leaseId){try{await radioApi('/api/live/stop',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({sessionId,leaseId:leaseId||liveLeaseId})})}catch{}}liveLeaseId=''
   updateLiveUi(false,e.message||'Não foi possível iniciar a locução.');toast('Falha ao entrar ao vivo: '+(e.message||'erro desconhecido'));
  }finally{liveStarting=false;$('goLive').disabled=!!livePublisherPc}
