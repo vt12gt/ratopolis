@@ -189,16 +189,17 @@ async function loadRadioRequests(){
  catch(e){showApiError(box,'Falha nos pedidos (Worker do chat/autorizações)',e)}
 }
 function renderRadioRequests(items){
- const box=$('radioRequestList'),pending=items.filter(x=>x.status==='pending').length;$('requestCount').textContent=pending+' pendentes';
+ const box=$('radioRequestList'),open=items.filter(x=>x.status==='pending'||x.status==='approved').length;$('requestCount').textContent=open+' em aberto';
  box.replaceChildren();if(!items.length){box.innerHTML='<div class="empty">Ainda não há pedidos. Os comandos #RadioPedido enviados no chat aparecerão aqui.</div>';return}
  items.slice().reverse().forEach(item=>{
   const row=document.createElement('div');row.className='track';row.style.alignItems='flex-start';
   const info=document.createElement('div');info.className='name';
   const title=document.createElement('b');title.textContent=item.requested||'Pedido sem descrição';
   const meta=document.createElement('small');meta.textContent=(item.nickname||'Ouvinte')+' · '+formatRequestTime(item.createdAt);
-  const status=document.createElement('small');status.textContent=({pending:'⏳ Pendente',done:'✓ Atendido',rejected:'✕ Recusado'})[item.status]||item.status;
+  const status=document.createElement('small');status.textContent=({pending:'⏳ Recebido · aguardando aprovação',approved:'✓ Aprovado · aguardando execução',done:'🎵 Atendido',rejected:'✕ Recusado'})[item.status]||item.status;
   info.append(title,meta,status);row.append(info);
-  if(item.status==='pending'){const done=document.createElement('button');done.className='btn';done.textContent='Atendido';done.onclick=()=>updateRadioRequest(item.id,'done');const reject=document.createElement('button');reject.className='btn danger';reject.textContent='Recusar';reject.onclick=()=>updateRadioRequest(item.id,'rejected');row.append(done,reject)}
+  if(item.status==='pending'){const approve=document.createElement('button');approve.className='btn';approve.textContent='Aprovar';approve.onclick=()=>updateRadioRequest(item.id,'approved');row.append(approve)}
+  if(item.status==='pending'||item.status==='approved'){const done=document.createElement('button');done.className='btn';done.textContent='Marcar atendido';done.onclick=()=>updateRadioRequest(item.id,'done');const reject=document.createElement('button');reject.className='btn danger';reject.textContent='Recusar';reject.onclick=()=>updateRadioRequest(item.id,'rejected');row.append(done,reject)}
   box.append(row)
  })
 }
