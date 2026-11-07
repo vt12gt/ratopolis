@@ -529,6 +529,18 @@ async function loadRadioLibrary(){
   console.warn('Biblioteca da Rádio Ratópolis:',error.message);return [];
  }
 }
+function seekRadioAudioToLive(audio,state,expected){
+ if(!audio||!state?.key||!Number.isFinite(expected))return;
+ const apply=()=>{
+  if(audio.dataset.radioKey!==state.key||radioOnAirState?.key!==state.key||radioOnAirState?.paused)return;
+  const duration=Number(audio.duration);
+  const target=Number.isFinite(duration)&&duration>0?Math.min(Math.max(0,expected),Math.max(0,duration-0.25)):Math.max(0,expected);
+  if(!Number.isFinite(target))return;
+  try{if(Math.abs((Number(audio.currentTime)||0)-target)>0.75)audio.currentTime=target}catch(e){}
+ };
+ if(audio.readyState>=1)apply();
+ else audio.addEventListener('loadedmetadata',apply,{once:true});
+}
 let radioRefreshPromise=null;
 async function refreshRadioOnAir(){
  if(radioRefreshPromise)return radioRefreshPromise;
@@ -554,10 +566,12 @@ async function refreshRadioOnAir(){
     const wasPlaying=!audio.paused&&radioUserStarted;
     audio.pause();audio.src=RADIO_API_URL+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;
     audio.load();
-    try{audio.currentTime=expected}catch(e){}
+    seekRadioAudioToLive(audio,state,expected);
     if(wasPlaying&&!state.paused){try{await audio.play()}catch(e){button.textContent='▶ Ouvir'}}
-   }else if(!state.paused&&!audio.paused&&Math.abs(audio.currentTime-expected)>12){
-    try{audio.currentTime=expected}catch(e){}
+   }else if(!state.paused){
+    // O ouvinte pode estar pausado localmente, mas a programação continua no servidor.
+    // Atualizamos o ponto de reprodução mesmo enquanto o áudio está silenciado.
+    if(audio.paused||Math.abs(audio.currentTime-expected)>12)seekRadioAudioToLive(audio,state,expected);
    }
    audio.loop=state.repeatMode==='track'||state.loop===true;
    $('radioTrack').textContent=(state.paused?'⏸ PAUSADA · ':'🔴 AO VIVO · ')+track.name+(state.programName?' · '+state.programName:'');if($('radioWindowBackdrop')?.classList.contains('open'))renderRadioWindow();
@@ -612,9 +626,9 @@ async function sendRadioHeartbeat(){
 }
 function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
- const liveAudio=$('radioLiveAudio');liveAudio.volume=Number($('radioVolume').value);liveAudio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar locução';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
- liveAudio.addEventListener('pause',()=>{if(radioLiveActive){$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ouvir locução';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')}});
- audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
+ const liveAudio=$('radioLiveAudio');liveAudio.volume=Number($('radioVolume').value);liveAudio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
+ liveAudio.addEventListener('pause',()=>{if(radioLiveActive){$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Retomar do ponto atual ao vivo';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')}});
+ audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{const live=radioUserStarted&&radioOnAirState?.active&&!radioOnAirState?.paused;if(live){$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar rádio';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');return}$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
  audio.addEventListener('ended',async()=>{const state=radioOnAirState;if(!radioUserStarted||!state?.active||!state.playlistMode||state.loop)return;try{await fetch(RADIO_API_URL+'/api/playlist/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:state.key,startedAt:state.startedAt})});await refreshRadioOnAir();if(radioUserStarted&&audio.paused&&radioOnAirState?.active){await audio.play();$('radioPlay').textContent='Ⅱ'}}catch(e){console.warn('Avanço automático da rádio:',e.message)}});
  loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active&&!radioOnAirState.paused){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;$('radioPlay').textContent='▶ Ativar';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioTrack').textContent='Toque em Ativar para ouvir ao vivo';}}});
@@ -626,15 +640,31 @@ async function toggleRadio(){
  await refreshRadioLive();
  if(radioLiveActive){
   const liveAudio=$('radioLiveAudio');
-  if(liveAudio.paused){try{radioUserStarted=true;await liveAudio.play();$('radioPlay').textContent='Ⅱ'}catch(e){showToast('Toque novamente para ouvir a locução.')}}else{radioUserStarted=false;liveAudio.pause();$('radioPlay').textContent='▶ Ouvir'}
+  if(liveAudio.paused){
+   try{radioUserStarted=true;await liveAudio.play();$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar só neste aparelho'}
+   catch(e){showToast('Toque novamente para ouvir a locução ao vivo.')}
+  }else{
+   radioUserStarted=false;liveAudio.pause();$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Retomar do ponto atual ao vivo'
+  }
   return;
  }
  const audio=$('radioAudio');
  if(!radioOnAirState?.active){await refreshRadioOnAir();if(!radioOnAirState?.active){showToast('A rádio está fora do ar no momento.');return}}
  if(audio.paused){
-  try{radioUserStarted=true;if(!audio.src||audio.dataset.radioKey!==radioOnAirState?.key)await refreshRadioOnAir();await audio.play();$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture')}
-  catch(e){radioUserStarted=false;showToast('Não foi possível iniciar. Toque novamente para ouvir.')}
- }else{radioUserStarted=false;audio.pause();$('radioPlay').textContent='▶ Ouvir'}
+  try{
+   radioUserStarted=true;
+   // Busca o relógio atual do servidor antes de retomar; nunca reutiliza o ponto antigo do aparelho.
+   await refreshRadioOnAir();
+   const state=radioOnAirState;
+   if(!state?.active||state.paused)throw new Error('A programação está pausada no estúdio.');
+   const expected=Math.max(0,(Date.now()-Number(state.startedAt||Date.now()))/1000);
+   seekRadioAudioToLive(audio,state,expected);
+   await audio.play();$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar só neste aparelho';
+  }catch(e){radioUserStarted=false;showToast(e?.message==='A programação está pausada no estúdio.'?e.message:'Não foi possível retomar a transmissão. Toque novamente para ouvir.')}
+ }else{
+  // Pausa apenas a saída de áudio deste ouvinte. Não envia comando de pausa ao servidor.
+  radioUserStarted=false;audio.pause();$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Retomar do ponto atual ao vivo'
+ }
 }
 $('radioVolume').addEventListener('input',e=>{$('radioAudio').volume=Number(e.target.value);$('radioLiveAudio').volume=Number(e.target.value)});
 configureRadio();
