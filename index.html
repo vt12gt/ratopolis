@@ -587,7 +587,7 @@ async function refreshRadioLive(){
   }
   if(radioLiveSessionId===live.sessionId&&radioLivePc&&radioLivePc.connectionState!=='failed'&&radioLivePc.connectionState!=='closed')return;
   closeRadioLiveReceiver();
-  const pc=new RTCPeerConnection();radioLivePc=pc;radioLiveSessionId=live.sessionId;
+  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});radioLivePc=pc;radioLiveSessionId=live.sessionId;
   pc.ontrack=event=>{const audio=$('radioLiveAudio');audio.srcObject=event.streams&&event.streams[0]?event.streams[0]:new MediaStream([event.track]);if(radioUserStarted)audio.play().catch(()=>showToast('Toque em Ouvir para liberar o áudio ao vivo.'))};
   const response=await fetch(RADIO_API_URL+'/api/live/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
   const sub=await response.json();if(!response.ok||!sub.ok)throw new Error(sub.message||sub.error||'Não foi possível conectar à locução');
