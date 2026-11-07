@@ -573,7 +573,7 @@ async function refreshRadioOnAir(){
  })();
  try{return await radioRefreshPromise}finally{radioRefreshPromise=null}
 }
-async function waitRadioSubscriberIce(pc){if(pc.iceGatheringState==='complete')return;await new Promise(resolve=>{const done=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',done);resolve()}};pc.addEventListener('icegatheringstatechange',done);setTimeout(resolve,12000)})}
+async function waitRadioSubscriberIce(pc){if(pc.iceGatheringState==='complete')return;await new Promise((resolve,reject)=>{let finished=false;const done=()=>{if(finished||pc.iceGatheringState!=='complete')return;finished=true;clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',done);resolve()};const timer=setTimeout(()=>{if(finished)return;finished=true;pc.removeEventListener('icegatheringstatechange',done);reject(new Error('A conexão de áudio não concluiu a coleta ICE em 20 segundos.'))},20000);pc.addEventListener('icegatheringstatechange',done);done()})}
 function closeRadioLiveReceiver(){if(radioLivePc){radioLivePc.ontrack=null;radioLivePc.close();radioLivePc=null}radioLiveSessionId='';radioLiveActive=false;const a=$('radioLiveAudio');if(a){a.pause();a.srcObject=null}}
 async function refreshRadioLive(){
  if(radioLiveBusy)return;radioLiveBusy=true;
@@ -593,8 +593,8 @@ async function refreshRadioLive(){
   const sub=await response.json();if(!response.ok||!sub.ok)throw new Error(sub.message||sub.error||'Não foi possível conectar à locução');
   if(sub.sessionId!==radioLiveSessionId)throw new Error('A locução mudou durante a conexão; tentando novamente.');
   await pc.setRemoteDescription(sub.sessionDescription);
-  const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await waitRadioSubscriberIce(pc);
-  const done=await fetch(RADIO_API_URL+'/api/live/subscribe/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sub.sessionId,sessionDescription:pc.localDescription})});
+  const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await waitRadioSubscriberIce(pc);const localAnswer=pc.localDescription;if(!localAnswer?.sdp?.startsWith('v=0')||!localAnswer.sdp.includes('m=audio ')||!localAnswer.sdp.includes('a=candidate:'))throw new Error('A resposta WebRTC do ouvinte ficou incompleta; conexão não finalizada.');
+  const done=await fetch(RADIO_API_URL+'/api/live/subscribe/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sub.sessionId,sessionDescription:localAnswer})});
   const result=await done.json();if(!done.ok||!result.ok)throw new Error(result.message||result.error||'Falha ao concluir conexão de áudio');
   radioLiveActive=true;
   const music=$('radioAudio');if(!music.paused)music.pause();
