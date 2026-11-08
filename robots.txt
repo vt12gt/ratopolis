@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /radio_admin.html
+Disallow: /radio_stats.html
+Disallow: /ratopolis_admin_
+Disallow: /workers/
+Disallow: /backups/
+
+Sitemap: https://vt12gt.github.io/ratopolis/sitemap.xml
