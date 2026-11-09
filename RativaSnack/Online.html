@@ -903,7 +903,7 @@ function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  else if(f.type===8){s.magnetT=skillVal(s,'magnet','dur');s.magnetPow=4;pts=40;if(!s.isBot)earn(75,'Tanque')}
  else{s.multT=skillVal(s,'mult','dur');pts=15}
  if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
-function eat(s){if(!s.alive)return;const rr=s.radius+5;
+function eat(s){if(!s.alive||((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)))return;const rr=s.radius+5;
  for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)}}}
 function dropFood(s){for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}}
 
