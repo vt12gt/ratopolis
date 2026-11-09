@@ -69,3 +69,11 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 1. Criar rota protegida de consulta/paginação da auditoria administrativa no Worker, com autorização específica e sem permitir edição/exclusão de logs.
 2. Validar identidade compartilhada entre RativaPolis e RativaSnack antes de chamar o diretório de contas de totalmente global.
 3. Migrar os demais módulos gerais um a um, preservando a versão antiga até teste concluído.
+
+
+## Auditoria administrativa — 2026-11-09
+- Criada a tela `Admin/PortalAdmin/Auditoria/index.html`, com paginação e filtros por texto/ação.
+- Criada a rota `GET /api/admin/audit` no Worker ativo `ratopolis-api-dev-v30` (v39.3-audit-readonly-dev).
+- A rota exige sessão autenticada e cargo exatamente `spadm` ou `adm`; usa consultas parametrizadas, retorna registros da tabela `ratopolis_audit_logs` e não disponibiliza edição/exclusão.
+- A consulta de auditoria não gera evento de auditoria próprio para evitar recursão/inchaço do histórico.
+- O código fonte do repositório foi sincronizado com o Worker ativo, preservando as mudanças de termos, privacidade, locutor e demais endpoints.
