@@ -1731,7 +1731,7 @@ function drawRemotePlayersOnCanvas(){
  const getRemote=window.__ratopolisGetRemotePlayers;if(typeof getRemote!=='function')return;
  const list=getRemote();if(!Array.isArray(list)||!list.length)return;
  const localPlayer=player,localNickname=playerNickname;
- ctx.save();try{for(const p of list){if(!p||String(p.id)===String(window.ratopolisPlayerId||window.playerId||''))continue;if(Number.isFinite(Number(p.phase))&&Number(p.phase)!==Number(level))continue;const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y))continue;player={...localPlayer,x,y,w:Number(p.w)||localPlayer.w,h:Number(p.h)||localPlayer.h,vx:Number(p.vx)||0,vy:Number(p.vy)||0,onGround:p.onGround===true,facing:Number(p.facing)||1};playerNickname=String(p.nickname||'Jogador').slice(0,18);try{drawMouse(x,y);}catch(err){console.warn('[RativaPolis] rato remoto:',err);}}}finally{player=localPlayer;playerNickname=localNickname;ctx.restore();}
+ ctx.save();try{for(const p of list){if(!p||String(p.id)===String(window.ratopolisPlayerId||window.playerId||''))continue;if(!p.npc&&Number.isFinite(Number(p.phase))&&Number(p.phase)!==Number(level))continue;const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y))continue;player={...localPlayer,x,y,w:Number(p.w)||localPlayer.w,h:Number(p.h)||localPlayer.h,vx:Number(p.vx)||0,vy:Number(p.vy)||0,onGround:p.onGround===true,facing:Number(p.facing)||1};playerNickname=String(p.nickname||'Jogador').slice(0,18);try{drawMouse(x,y);}catch(err){console.warn('[RativaPolis] rato remoto:',err);}}}finally{player=localPlayer;playerNickname=localNickname;ctx.restore();}
 }
 function drawMouse(x,y){
 ctx.save();
@@ -3496,7 +3496,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  async function api(path,body,token){
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),path==='/api/rooms/match'?2500:12000);
+  const timeout=setTimeout(()=>controller.abort(),path==='/api/rooms/match'?12000:12000);
   try{
    const response=await fetch(ROOMS_API+path,{
     method:'POST',mode:'cors',cache:'no-store',signal:controller.signal,
