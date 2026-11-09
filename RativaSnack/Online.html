@@ -1268,13 +1268,29 @@ function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
 let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[];
 function drawRemoteRankingPage(){
- const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pages=5,pageSize=10;
+ const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10;
  if(!list)return;
+ const pages=Math.max(1,Math.ceil(remoteRankPlayers.length/pageSize));
+ remoteRankPage=Math.max(1,Math.min(pages,remoteRankPage));
  const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
- const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- list.innerHTML=players.length?players.map((p,i)=>'<div class="online-rank-row"><i>'+(start+i+1)+'º</i><b>'+esc(p.nickname||p.display_name||p.nick||p.username||p.public_id||p.id||'Jogador')+'</b><span>'+Math.max(0,Number(p.score)||0).toLocaleString('pt-BR')+' pts</span><small>'+(p.public_id?'ID '+esc(p.public_id)+' · ':'')+Math.max(0,Number(p.games_played)||0)+' partidas</small></div>').join(''):'<div class="rank-empty">Ainda não há jogadores nesta página.</div>';
- let pager=document.getElementById('remoteRankPager');
- if(pager)pager.innerHTML='<button class="tgs" data-act="rankpage:prev" '+(remoteRankPage===1?'disabled':'')+'>‹ Anterior</button><b>Página '+remoteRankPage+' de 5</b><button class="tgs" data-act="rankpage:next" '+(remoteRankPage===5?'disabled':'')+'>Próxima ›</button>';
+ list.replaceChildren();
+ list.style.display='flex';list.style.flexDirection='column';list.style.gap='5px';list.style.minHeight='54px';list.style.maxHeight='260px';list.style.overflowY='auto';
+ if(!players.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
+ players.forEach((p,i)=>{
+  const row=document.createElement('div');row.className='online-rank-row';
+  const pos=document.createElement('i');pos.textContent=(start+i+1)+'º';
+  const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||p.public_id||p.id||'Jogador';
+  const score=document.createElement('span');score.textContent=Math.max(0,Number(p.score??p.best_score??p.total_score??p.points)||0).toLocaleString('pt-BR')+' pts';
+  const detail=document.createElement('small');detail.textContent=(p.public_id?'ID '+p.public_id+' · ':'')+Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
+  row.append(pos,nick,score,detail);list.append(row);
+ });
+ if(pager){
+  pager.replaceChildren();
+  const prev=document.createElement('button');prev.className='tgs';prev.dataset.act='rankpage:prev';prev.textContent='‹ Anterior';prev.disabled=remoteRankPage===1;
+  const label=document.createElement('b');label.textContent='Página '+remoteRankPage+' de '+pages;
+  const next=document.createElement('button');next.className='tgs';next.dataset.act='rankpage:next';next.textContent='Próxima ›';next.disabled=remoteRankPage===pages;
+  pager.append(prev,label,next);
+ }
  if(meta)meta.textContent=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores encontrados';
 }
 async function loadRemoteRanking(period){
