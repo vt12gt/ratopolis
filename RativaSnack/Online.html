@@ -964,12 +964,22 @@ function olShowDeathSummary(){
  if(olDeathModeExempt())return false;
  if(!mpOnline)return false;
  running=false;paused=false;document.body.classList.remove('playing');releaseDrag();syncMusic();$('pause').classList.add('hidden');
- olDeathActive=true;olDeathTimer=6;if(olDeathInterval)clearInterval(olDeathInterval);
- let el=document.getElementById('olDeathSummary');if(!el){el=document.createElement('div');el.id='olDeathSummary';el.style.cssText='position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,24,.92);color:#fff;font-family:system-ui';document.body.appendChild(el)}
+ olDeathActive=true;olDeathTimer=5;
+ const el=document.getElementById('olDeathSummary')||document.createElement('div');
+ el.id='olDeathSummary';el.style.cssText='position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,24,.92);color:#fff;font-family:system-ui';
+ if(!el.parentNode)document.body.appendChild(el);
  const detail=lastKiller&&lastKiller.name?('Eliminado por '+lastKiller.name):causeText||'Você foi eliminado';
- el.innerHTML='<div style="width:min(460px,100%);padding:22px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">💥🐭</div><h2 style="margin:8px 0;color:#ffd166">VOCÊ FOI ELIMINADO</h2><p style="margin:0 0 14px;color:#d7c9ff">'+olEsc(detail)+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>PONTOS</small><h2>'+Math.floor(score)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TAMANHO</small><h2>'+Math.floor(player&&player.length||0)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>ABATES</small><h2>'+kills+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TEMPO</small><h2>'+fmtTime(gameTime)+'</h2></div></div><p style="margin:14px 0 0;color:#ffe08a">Tempo para reviver: <b id="olDeathCount" style="font-size:25px;color:#ffd166">6</b>s</p><p id="olReviveHint" style="margin:5px 0 14px;color:#cbbbe6;font-size:12px">Aguarde o temporizador. Depois, aperte SAIR para voltar ao Lobby.</p>'+mpB('SAIR','olExitToLobby()','background:#8d2639;color:#fff;width:100%;margin-top:6px')+'</div>';
- olDeathInterval=setInterval(()=>{if(!olDeathActive){clearInterval(olDeathInterval);olDeathInterval=0;return}olDeathTimer=Math.max(0,olDeathTimer-1);const count=document.getElementById('olDeathCount');if(count)count.textContent=String(olDeathTimer);if(olDeathTimer===0){clearInterval(olDeathInterval);olDeathInterval=0;const hint=document.getElementById('olReviveHint');if(hint)hint.textContent='Tempo para reviver encerrado. Aperte SAIR para voltar ao Lobby.'}},1000);
+ el.innerHTML='<div style="width:min(460px,100%);padding:22px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">💥🐭</div><h2 style="margin:8px 0;color:#ffd166">VOCÊ FOI ELIMINADO</h2><p style="margin:0 0 14px;color:#d7c9ff">'+olEsc(detail)+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>PONTOS</small><h2>'+Math.floor(score)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TAMANHO</small><h2>'+Math.floor(player&&player.length||0)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>ABATES</small><h2>'+kills+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TEMPO</small><h2>'+fmtTime(gameTime)+'</h2></div></div><p style="margin:14px 0 0;color:#ffe08a">Resumo da partida • <b id="olDeathCount" style="font-size:25px;color:#ffd166">5</b>s</p></div>';
  return true;
+}
+function olFinishDeathSummary(){
+ if(!olDeathActive)return;
+ olDeathActive=false;olDeathTimer=0;
+ const el=document.getElementById('olDeathSummary');if(el)el.remove();
+ // Mantém a partida/sessão Online ativa: primeiro oferece o revive, sem encerrar a sala.
+ running=true;paused=false;
+ if(canRevive()){offerRevive();return}
+ endGame('dead');
 }
 function olFinishDeathExit(){
  if(!olDeathActive)return;
@@ -1086,11 +1096,11 @@ function goalTick(){if(!goalActive()||!player||!player.alive||!running)return;le
 function goalHud(){const ge=$('goal');if(goalActive()&&player&&running&&!ended){const t=goalTarget(),p0=goalTarget(goalIdx-1),c=goalCur(),txt='🎯 '+(mode==='survival'?fmtTime(t):t+' pts'),pct=Math.max(0,Math.min(100,Math.round((c-p0)/(t-p0)*100)));ge.classList.remove('hidden');if(ge._t!==txt){ge._t=txt;$('goalT').textContent=txt}if(ge._p!==pct){ge._p=pct;$('goalB').style.width=pct+'%'}}else ge.classList.add('hidden')}
 /* ===== Continuar após perder ===== */
 const reviveCost=()=>Math.min(200,30+Math.floor(score/40)*5);
-const canRevive=()=>revived<1&&(mode==='quick'||mode==='survival'||mode==='infinite')&&gameTime>=20&&player.length>=12&&eco.cheese>=reviveCost();
-function offerRevive(){paused=true;releaseDrag();syncBoostBtn();const n=Math.max(10,Math.floor(player.length*.6));$('reviveTxt').textContent=`Volte com tamanho ${n} e escudo por 3 s. Sua pontuação (${score}) é mantida.`;$('reviveYes').textContent='CONTINUAR • 🧀 '+reviveCost();const b=$('rvB');b.style.animation='none';void b.offsetWidth;b.style.animation='';$('revive').classList.remove('hidden');clearTimeout(reviveTimer);reviveTimer=setTimeout(declineRevive,6000)}
+const canRevive=()=>revived<1&&(mode==='quick'||mode==='survival'||mode==='infinite')&&gameTime>=20&&player.length>=12&&(mpOnline&&ol.token?true:eco.cheese>=reviveCost());
+function offerRevive(){paused=true;releaseDrag();syncBoostBtn();const n=Math.max(10,Math.floor(player.length*.6));$('reviveTxt').textContent=`Volte com tamanho ${n} e escudo por 3 s. Sua pontuação (${score}) é mantida.`;$('reviveYes').textContent=mpOnline&&ol.token?'REVIVER • GRÁTIS':'CONTINUAR • 🧀 '+reviveCost();const b=$('rvB');b.style.animation='none';void b.offsetWidth;b.style.animation='';$('revive').classList.remove('hidden');clearTimeout(reviveTimer);reviveTimer=setTimeout(declineRevive,6000)}
 function declineRevive(){clearTimeout(reviveTimer);if($('revive').classList.contains('hidden'))return;$('revive').classList.add('hidden');paused=false;endGame('dead')}
 function doRevive(){clearTimeout(reviveTimer);if($('revive').classList.contains('hidden'))return;$('revive').classList.add('hidden');
- if(!spend(reviveCost(),'Continuar')){paused=false;endGame('dead');return}
+ if(!(mpOnline&&ol.token)&&!spend(reviveCost(),'Continuar')){paused=false;endGame('dead');return}
  const old=player;let x=0,y=0,t=0;do{x=rand(300,worldW-300);y=rand(300,worldH-300);t++}while(t<25&&snakes.some(q=>q.alive&&q!==old&&Math.hypot(q.x-x,q.y-y)<300));
  const np=mkSnake(x,y,Math.atan2(worldH/2-y,worldW/2-x),prefs.color,'Você',false,Math.max(10,Math.floor(old.length*.6)),null);applyCosmetics(np);np.shield=3;np.kills=old.kills;
  player=np;rebuildSnakes();revived++;dyingT=0;lastKiller=null;causeText='';
@@ -1122,7 +1132,7 @@ function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);a
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
 function syncBoostBtn(){bb.classList.toggle('hidden',!(running&&!paused&&!ended&&player&&player.alive));mm.classList.toggle('hidden',!(running&&!ended&&player));lb.classList.toggle('hidden',!(running&&!ended&&player));$('pause').classList.toggle('hidden',!(mpOnline&&running&&!ended))}
 function update(dt){
- if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathExit();return}
+ if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathSummary();return}
  if(!running||paused)return;
  if(mpRole==='client'){mpClientTick(dt);return}if(mpRole==='host')mpHostTick(dt);secretTick();wbTick();
  if(player.alive)gameTime+=dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
