@@ -8,7 +8,7 @@ Este diretório é a entrada do Admin Geral e reúne os módulos administrativos
 - `Radio/radio_admin.html`: painel de controle da rádio.
 - `Radio/radio_stats.html`: estatísticas e relatório de audiência.
 
-## Migração do painel legado
+## Módulos disponíveis\n\n- `Equipe/index.html`: consulta de contas da equipe e alteração de cargos via Worker administrativo existente, com validação no servidor e auditoria de mudanças de cargo.\n\n## Migração do painel legado
 
 O painel administrativo antigo do RativaPolis reúne funções compartilhadas e funções específicas do jogo no mesmo HTML. A separação está sendo feita por etapas, sem remover o painel legado antes de testar cada substituição.
 
