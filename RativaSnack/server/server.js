@@ -100,8 +100,10 @@ function extractRatopolisPlayer(data) {
     if (!user || typeof user !== 'object') continue;
     const id = user.id ?? user.user_id ?? user.userId;
     const nick = user.nickname ?? user.nick ?? user.username ?? user.nome;
+    const level = Number(user.level ?? user.nivel ?? user.nível ?? 1) || 1;
+    const xp = Number(user.xp ?? user.experience ?? 0) || 0;
     if (id != null && String(id).trim() && nick != null && String(nick).trim()) {
-      return { id: String(id), nick: String(nick) };
+      return { id: String(id), nick: String(nick), level, xp };
     }
   }
   return null;
@@ -123,6 +125,7 @@ function roomPlayers(room) {
   return [...room.players.values()].map(p => ({
     id: p.id,
     nick: p.nick,
+    level: p.level || 1,
     online: !!(p.ws && p.ws.readyState === WebSocket.OPEN)
   }));
 }
@@ -181,8 +184,9 @@ function startCountdown(room) {
 function addPlayer(room, user, ws) {
   const old = room.players.get(user.id);
   if (old && old.reconnectTimer) clearTimeout(old.reconnectTimer);
-  const player = old || { id: user.id, nick: user.nick, ws: null, reconnectTimer: null, slot: room.players.size };
+  const player = old || { id: user.id, nick: user.nick, level: user.level || 1, ws: null, reconnectTimer: null, slot: room.players.size };
   player.nick = user.nick;
+  player.level = user.level || 1;
   player.ws = ws;
   player.reconnectTimer = null;
   room.players.set(user.id, player);
