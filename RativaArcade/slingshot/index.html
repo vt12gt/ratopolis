@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="slingshot.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Slingshot — Free Online Archery Target Game</title>
+<meta name="description" content="Play Slingshot free in your browser. Pull back the band, follow the dotted trajectory and release to hit the rings — bullseye is 100 points. 5 arrows per level, endless levels, works on mobile and desktop.">
+<meta name="keywords" content="slingshot,archery game,slingshot game,target shooting,physics game,free online game,html5 game,browser game,mobile game,no install">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Slingshot — Free Online Archery Target Game">
+<meta property="og:description" content="Pull, aim, release. A dotted arc shows exactly where your arrow will fly — hit the bullseye for 100.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏹</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #101a2b 0%, #24405c 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px 12px 4px; user-select: none;
+  }
+  .panel {
+    position: relative;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .stat {
+    flex: 1; background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 4px 8px; text-align: center; color: #fff; min-width: 0;
+  }
+  .stat small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px; opacity: .55; white-space: nowrap; }
+  .stat span { font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer;
+  }
+  /* 画布 900×540：宽度同时受可用高度反推约束，否则矮视口下 wrap 被压扁、画布被裁。
+     必须两行（svh + vh），只写 svh 会让旧浏览器整条 calc 作废。 */
+  .wrap {
+    width: min(900px, 100%, max(200px, calc((100svh - 268px) * 1.6667)));
+    width: min(900px, 100%, max(200px, calc((100vh  - 268px) * 1.6667)));
+    margin: 0 auto; border-radius: 12px; overflow: hidden;
+    line-height: 0; touch-action: none;
+  }
+  canvas { display: block; width: 100%; height: auto; touch-action: none; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; }
+  .actions button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; letter-spacing: 1px; font-family: inherit;
+    transition: transform .12s ease;
+  }
+  .actions button:active { transform: scale(.96); }
+  .btn-primary { background: #4a90ff; color: #fff; box-shadow: 0 4px 0 #2a63bd; }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 18px;
+    background: rgba(10, 20, 32, .86); backdrop-filter: blur(3px); color: #fff; z-index: 6;
+  }
+  .hidden { display: none !important; }
+  .over-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 13px; opacity: .78; line-height: 1.65; }
+  .final-line { font-size: 15px; font-weight: 700; }
+  .final-line b { font-size: 22px; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .over-btns { display: flex; gap: 8px; margin-top: 6px; width: 100%; }
+  .over-btns button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+  }
+  .icon-big { font-size: 40px; }
+  .footer {
+    margin-top: 10px; color: rgba(255,255,255,.5); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a { color: rgba(255,255,255,.78); text-decoration: none; display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; }
+  .footer a:hover { color: #ffd76e; }
+  /* 手机横屏(视口高 ≤560px)纵向极紧：这里挖的都是「非触控目标」的纵向浪费，
+     footer 被 max-width:460px 折成 2~3 行是最肥的一块。触控目标尺寸一律不动。 */
+  @media (orientation: landscape) and (max-height: 560px) {
+    body { padding: 6px 8px 2px; }
+    .panel { padding: 8px; }
+    /* 224 = 实测「除画布外的一切」：body 上下内边距 8 + 面板内边距 16 + 顶栏 30
+       + 上间距 5 + 按钮行 44 + 间距 6 + 页脚上边距 10 + 页脚两行（站点三键 44 + 链接行 44）= 219，
+       留 5px 余量。原来写 196 会让页面在 844×390 / 1280×560 纵向溢出 23px、页脚被裁掉。 */
+    .wrap { width: min(900px, 100%, max(180px, calc((100svh - 224px) * 1.6667))); }
+    .wrap { width: min(900px, 100%, max(180px, calc((100vh  - 224px) * 1.6667))); }
+    .footer { max-width: none; line-height: 1.5; }
+    .footer a { line-height: 44px; }
+    .topbar { gap: 6px; margin-bottom: 5px; }
+    .stat { padding: 1px 6px; }
+    .stat small { font-size: 8px; }
+    .stat span { font-size: 13px; }
+    .actions { margin-top: 6px; }
+    .actions button { min-height: 44px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="topbar">
+    <div class="stat"><small data-i18n="slingshot.hudLevel">LEVEL</small><span id="hud-level">1</span></div>
+    <div class="stat"><small data-i18n="slingshot.hudScore">SCORE</small><span id="hud-score">0</span></div>
+    <div class="stat"><small data-i18n="slingshot.hudArrows">ARROWS</small><span id="hud-arrows">5</span></div>
+    <div class="stat"><small data-i18n="slingshot.hudTargets">TARGETS</small><span id="hud-targets">0</span></div>
+    <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  </div>
+
+  <div class="wrap" id="wrap">
+    <canvas id="game" width="900" height="540"></canvas>
+  </div>
+
+  <div class="actions">
+    <button class="btn-ghost" id="btn-restart" data-i18n="slingshot.restart">RESTART LEVEL</button>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="over-title" id="over-title"></div>
+    <div class="final-line" id="final-line"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="over-sub" id="over-best"></div>
+    <div class="over-btns">
+      <button class="btn-primary" id="btn-next" data-i18n="slingshot.next">NEXT LEVEL</button>
+      <button class="btn-primary hidden" id="btn-again" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share2" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🏹</div>
+    <div class="over-title" data-i18n="slingshot.title">SLINGSHOT</div>
+    <div class="over-sub" data-i18n-html="slingshot.tip">Drag back from the slingshot and release to fire.<br><b>Bullseye 100</b> · middle ring 50 · outer ring 25.<br>Clear every target before the arrows run out.</div>
+    <div class="over-sub" id="start-best"></div>
+    <button class="btn-primary" id="btn-start" data-i18n="common.start" style="margin-top:6px;padding:12px 28px;">START</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var W = 900, H = 540;
+  var GY = 490;                 // 地面线
+  var AX = 140, AY = 380;       // 弹弓锚点（弓弦交汇处）
+  var MAXPULL = 95;             // 最大拉伸像素
+  var MAXSPEED = 17.2;          // 满力初速（px/帧）
+  var GRAV = 0.46;              // 重力（px/帧²）
+  var STORE_KEY = 'slingshot_best_v1';
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+  var overTitleEl = document.getElementById('over-title');
+  var newRecordEl = document.getElementById('new-record');
+
+  var level = 1, score = 0, arrows = 5, arrowsInit = 5;
+  var targets = [], targetsInit = [];
+  var particles = [], pops = [];
+  var levelStartScore = 0;
+  var started = false, cleared = false, gameOver = false, endKey = null;
+  var best = 0, bestLevel = 1;
+  var aiming = false, pointerId = null;
+  var aim = { angle: 45, power: 0.62 };
+  var arrow = { active: false, x: AX, y: AY, vx: 0, vy: 0, acc: 0, trail: [] };
+  var blockedRect = null;
+
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (raw && typeof raw === 'object') {
+      best = raw.best || 0;
+      bestLevel = raw.level || 1;
+    } else if (typeof raw === 'number') { best = raw; }
+  } catch (e) { best = 0; bestLevel = 1; }
+
+  // ===== 音效 =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    pull:  function () { beep(210, 0.04, 'sine', 0.03); },
+    shoot: function () { beep(700, 0.09, 'triangle', 0.07); },
+    hit:   function (n) { beep(n >= 100 ? 900 : 520, 0.1, n >= 100 ? 'triangle' : 'square', 0.07); },
+    land:  function () { beep(110, 0.09, 'sawtooth', 0.04); },
+    win:   function () {
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+        setTimeout(function () { beep(f, 0.2, 'triangle', 0.09); }, i * 95);
+      });
+    },
+    over:  function () {
+      [392, 330, 262].forEach(function (f, i) {
+        setTimeout(function () { beep(f, 0.24, 'sawtooth', 0.07); }, i * 150);
+      });
+    }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== 关卡 =====
+  // 槽位式布靶：两排各 3 个固定槽，槽内随机抖动。
+  // 早先写的是「随机撒点 + 重叠就重试」，在细长的地面带上会连续失败 600 次都放不下 3 个靶
+  // （实测只生成出 2 个）—— 生成器退化成稀疏世界，和过马路的空世界是同一类事故。
+  function makeLevel(lv) {
+    var n = Math.min(2 + lv, 6);
+    var rBase = Math.max(24, 46 - (lv - 1) * 2.6);
+    var x0 = 360 + Math.min(80, (lv - 1) * 10);
+    var x1 = 740 + Math.min(20, (lv - 1) * 4);
+    var spanA = (x1 - x0) / 3;
+    var slots = [], s;
+    for (s = 0; s < 3; s++) slots.push({ x: x0 + (s + 0.5) * spanA, row: 0 });
+    for (s = 0; s < 3; s++) slots.push({ x: x0 + 22 + (s + 0.5) * ((x1 - x0 - 44) / 3), row: 1 });
+    var i, tmp, j;
+    for (i = slots.length - 1; i > 0; i--) { j = (Math.random() * (i + 1)) | 0; tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp; }
+    var list = [];
+    for (i = 0; i < slots.length && list.length < n; i++) {
+      if (slots[i].row === 1 && lv < 2) continue;          // 第 1 关全部落在地面
+      var r = rBase * (0.85 + Math.random() * 0.3);
+      var jitter = (spanA - r * 2 - 34) * 0.5;
+      if (jitter < 0) jitter = 0;
+      var x = slots[i].x + (Math.random() * 2 - 1) * jitter;
+      var y = slots[i].row === 0 ? (GY - r) : (GY - 152 - Math.random() * 96);
+      if (y - r < 26) y = 26 + r;
+      if (x - r < 12) x = 12 + r;
+      if (x + r > W - 12) x = W - 12 - r;
+      list.push({ x: x, y: y, r: r, hit: false, fade: 0, wob: Math.random() * 6.28 });
+    }
+    // 遮挡：立在两个地面槽之间的空档上，保证不会把任何靶子藏起来（藏掉靶子 = 变相削减关卡）
+    // 遮挡：立在弹弓与靶阵之间的射手隔板。必须放在「靶阵左侧的空档」，不能放进两个靶之间 ——
+    // 地面靶直径 ~82px、槽距 ~123px，靶间空档最窄只剩 5px，塞 26px 的墙必然与靶子重叠
+    // （实测按「靶间空档」找位置时一堵都放不下，关卡等于没有遮挡）。
+    blockedRect = null;
+    if (lv >= 3) {
+      var hgt = 150 + Math.min(60, (lv - 3) * 15);
+      var lx = Math.min(x0 - 62, 340);
+      blockedRect = { x: lx - 13, y: GY - hgt, w: 26, h: hgt };
+    }
+    return list;
+  }
+  function cloneTargets(list) {
+    return list.map(function (t) { return { x: t.x, y: t.y, r: t.r, hit: false, fade: 0, wob: t.wob }; });
+  }
+  function aliveCount() {
+    var n = 0;
+    for (var i = 0; i < targets.length; i++) if (!targets[i].hit) n++;
+    return n;
+  }
+  function ringPoints(dist, r) {
+    if (dist <= r * 0.34) return 100;
+    if (dist <= r * 0.66) return 50;
+    if (dist <= r) return 25;
+    return 0;
+  }
+  function hitsBlocked(x, y) {
+    return !!blockedRect && x > blockedRect.x && x < blockedRect.x + blockedRect.w &&
+           y > blockedRect.y && y < blockedRect.y + blockedRect.h;
+  }
+
+  // ===== 物理 =====
+  function simPath(vx, vy, maxSteps, stopAtTarget) {
+    var pts = [], x = AX, y = AY, ux = vx, uy = vy, i, reason = 'fly', mind = Infinity;
+    for (i = 0; i < maxSteps; i++) {
+      uy += GRAV; x += ux; y += uy;
+      pts.push({ x: x, y: y });
+      if (y >= GY) { reason = 'ground'; break; }
+      if (x > W + 60 || x < -60) { reason = 'out'; break; }
+      if (hitsBlocked(x, y)) { reason = 'block'; break; }
+      if (stopAtTarget) {
+        var t = stopAtTarget, dd = Math.hypot(x - t.x, y - t.y);
+        if (dd < mind) mind = dd;
+        if (dd <= t.r) { reason = 'hit'; break; }
+      } else {
+        for (var k = 0; k < targets.length; k++) {
+          var tg = targets[k];
+          if (!tg.hit && Math.hypot(x - tg.x, y - tg.y) <= tg.r) { reason = 'hit'; break; }
+        }
+        if (reason === 'hit') break;
+      }
+    }
+    return { pts: pts, reason: reason, mind: mind };
+  }
+  function velocityFromAim() {
+    var rad = aim.angle * Math.PI / 180, v = MAXSPEED * aim.power;
+    return { vx: Math.cos(rad) * v, vy: -Math.sin(rad) * v };
+  }
+  function launch() {
+    if (arrow.active || gameOver || cleared || !arrows || !started) return false;
+    if (aim.power < 0.08) return false;
+    var v = velocityFromAim();
+    arrow.active = true; arrow.x = AX; arrow.y = AY; arrow.vx = v.vx; arrow.vy = v.vy; arrow.acc = 0; arrow.trail = [];
+    arrows--;
+    sfx.shoot();
+    refreshHud();
+    return true;
+  }
+  function popText(x, y, txt, color) {
+    pops.push({ x: x, y: y, txt: txt, life: 60, color: color });
+  }
+  function burst(x, y, color) {
+    for (var i = 0; i < 12; i++) {
+      var a = Math.random() * 6.283, s = 1 + Math.random() * 3.4;
+      particles.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1, life: 34, color: color });
+    }
+  }
+
+  // 单帧积分 = 预判轨迹 simPath() 的同一步长，所以「虚线画到哪里，箭就飞到哪里」。
+  // 不做子步进（子步进会让预判线与真实落点分叉），改用「整数帧累加器」保证 dt 抖动时
+  // 每一步仍恰好是一帧 —— 既精确又不可能穿透靶子（最小靶径 ~40px > 单帧位移 ~17px）。
+  function stepArrow() {
+    arrow.vy += GRAV;
+    arrow.x += arrow.vx;
+    arrow.y += arrow.vy;
+    if (hitsBlocked(arrow.x, arrow.y)) {
+      burst(arrow.x, arrow.y, '#b8c4d4');
+      arrow.active = false;
+      return;
+    }
+    for (var i = 0; i < targets.length; i++) {
+      var t = targets[i];
+      if (t.hit) continue;
+      var d = Math.hypot(arrow.x - t.x, arrow.y - t.y);
+      if (d <= t.r) {
+        var pts = ringPoints(d, t.r);
+        t.hit = true; t.fade = 1;
+        score += pts;
+        popText(t.x, t.y - t.r - 6, '+' + pts, pts >= 100 ? '#ffd76e' : '#9fe8b0');
+        burst(t.x, t.y, pts >= 100 ? '#ffd76e' : '#7fd8ff');
+        sfx.hit(pts);
+        arrow.active = false;
+        return;
+      }
+    }
+    if (arrow.y >= GY) { arrow.x = Math.min(arrow.x, W - 4); arrow.y = GY; arrow.active = false; sfx.land(); return; }
+    if (arrow.x > W + 40 || arrow.x < -40) { arrow.active = false; }
+  }
+  function update(dt) {
+    var i;
+    if (arrow.active) {
+      arrow.acc = (arrow.acc || 0) + dt;
+      var guard = 0;
+      while (arrow.active && arrow.acc >= 1 && guard++ < 16) {
+        arrow.acc -= 1;
+        stepArrow();
+        if (arrow.trail.length === 0 ||
+            Math.hypot(arrow.x - arrow.trail[arrow.trail.length - 1].x, arrow.y - arrow.trail[arrow.trail.length - 1].y) > 6) {
+          arrow.trail.push({ x: arrow.x, y: arrow.y });
+          if (arrow.trail.length > 80) arrow.trail.shift();
+        }
+      }
+      if (arrow.acc >= 1) arrow.acc = 0;
+      if (!arrow.active) {
+        if (aliveCount() === 0) winLevel();
+        else if (arrows <= 0) loseGame();
+        else { aim.power = 0.62; aim.angle = 45; }
+        refreshHud();
+      }
+    }
+    for (i = targets.length - 1; i >= 0; i--) {
+      if (targets[i].hit && targets[i].fade > 0) {
+        targets[i].fade -= 0.035 * dt;
+        if (targets[i].fade <= 0) { targets.splice(i, 1); }
+      }
+    }
+    for (i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.vy += 0.22 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+    for (i = pops.length - 1; i >= 0; i--) {
+      pops[i].y -= 0.7 * dt; pops[i].life -= dt;
+      if (pops[i].life <= 0) pops.splice(i, 1);
+    }
+  }
+
+  // ===== 渲染 =====
+  function drawBg() {
+    var g = ctx.createLinearGradient(0, 0, 0, GY);
+    g.addColorStop(0, '#182a44'); g.addColorStop(0.62, '#2b4f74'); g.addColorStop(1, '#48789f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, GY);
+    ctx.fillStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath(); ctx.arc(760, 88, 40, 0, 6.283); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.09)';
+    ctx.beginPath(); ctx.arc(760, 88, 58, 0, 6.283); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.05)';
+    for (var i = 0; i < 4; i++) {
+      var cx = 90 + i * 230, cy = 70 + (i % 2) * 40;
+      ctx.beginPath(); ctx.arc(cx, cy, 46, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 46, cy + 10, 34, 0, 6.283); ctx.fill();
+    }
+  }
+  function drawGround() {
+    var g = ctx.createLinearGradient(0, GY, 0, H);
+    g.addColorStop(0, '#3d6b45'); g.addColorStop(1, '#22402a');
+    ctx.fillStyle = g; ctx.fillRect(0, GY, W, H - GY);
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, GY); ctx.lineTo(W, GY); ctx.stroke();
+  }
+  function drawBlocked() {
+    if (!blockedRect) return;
+    var b = blockedRect;
+    var g = ctx.createLinearGradient(b.x, 0, b.x + b.w, 0);
+    g.addColorStop(0, '#8d8377'); g.addColorStop(0.5, '#b3a695'); g.addColorStop(1, '#6f665b');
+    ctx.fillStyle = g; ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    for (var y = b.y + 8; y < b.y + b.h; y += 22) ctx.fillRect(b.x + 2, y, b.w - 4, 3);
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 2;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+  }
+  function drawTargets(t) {
+    var me = performance.now() * 0.001;
+    for (var i = 0; i < targets.length; i++) {
+      var g = targets[i];
+      ctx.save();
+      ctx.globalAlpha = g.hit ? Math.max(0, g.fade) : 1;
+      var sc = g.hit ? (1 + (1 - g.fade) * 0.5) : 1;
+      ctx.translate(g.x, g.y); ctx.scale(sc, sc);
+      var bob = g.hit ? 0 : Math.sin(me * 2 + g.wob) * 1.5;
+      ctx.translate(0, bob);
+      // 支架
+      ctx.strokeStyle = '#6b5a45'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(0, g.r * 0.8); ctx.lineTo(0, GY - g.y + 4); ctx.stroke();
+      var rings = [[1, '#f2f4f8'], [0.66, '#e8524a'], [0.34, '#ffd76e']];
+      for (var k = 0; k < rings.length; k++) {
+        ctx.fillStyle = rings[k][1];
+        ctx.beginPath(); ctx.arc(0, 0, g.r * rings[k][0], 0, 6.283); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(20,26,36,.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, 0, g.r, 0, 6.283); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, g.r * 0.66, 0, 6.283); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, g.r * 0.34, 0, 6.283); ctx.stroke();
+      ctx.restore();
+    }
+  }
+  function drawSling() {
+    var rc = canvas.getBoundingClientRect();
+    // 拉伸量按屏幕像素画（和手指位移一致），再换算回世界坐标 —— 否则手机上
+    // 手指移了 60px，画布上的弓弦只被拉开 22px，看起来像没拉动。
+    var pull = aim.power * pullMax() * (W / Math.max(1, rc.width));
+    var rad = aim.angle * Math.PI / 180;
+    var px = AX - Math.cos(rad) * pull, py = AY + Math.sin(rad) * pull;
+    if (arrow.active) { px = AX; py = AY; pull = 0; }
+    ctx.strokeStyle = '#7a5a33'; ctx.lineWidth = 11; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(AX, GY); ctx.lineTo(AX, AY + 6); ctx.stroke();
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(AX, AY + 8); ctx.lineTo(AX - 20, AY - 34); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(AX, AY + 8); ctx.lineTo(AX + 20, AY - 34); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(AX - 20, AY - 34); ctx.lineTo(px, py); ctx.lineTo(AX + 20, AY - 34); ctx.stroke();
+    if (!arrow.active && started && !gameOver && !cleared && arrows > 0) {
+      ctx.fillStyle = '#ffd76e';
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, 6.283); ctx.fill();
+    }
+  }
+  function drawGuide() {
+    if (arrow.active || gameOver || cleared || !started || arrows <= 0) return;
+    var v = velocityFromAim();
+    var res = simPath(v.vx, v.vy, 260, null);
+    var pts = res.pts, i;
+    if (!pts.length) return;
+    ctx.save();
+    ctx.setLineDash([7, 9]);
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(AX, AY);
+    for (i = 0; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.62)';
+    for (i = 6; i < pts.length; i += 12) {
+      ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, 2.6, 0, 6.283); ctx.fill();
+    }
+    var last = pts[pts.length - 1];
+    ctx.strokeStyle = res.reason === 'hit' ? '#ffd76e' : 'rgba(255,255,255,.45)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(last.x, last.y, 7, 0, 6.283); ctx.stroke();
+    // 力度条 + 角度（只用数字，语言无关）
+    var bx = 26, by = 26;
+    ctx.fillStyle = 'rgba(0,0,0,.32)';
+    ctx.fillRect(bx - 6, by - 6, 176, 26);
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.fillRect(bx, by, 130, 14);
+    ctx.fillStyle = aim.power > 0.82 ? '#ff7a5c' : (aim.power > 0.5 ? '#ffd76e' : '#8fe08f');
+    ctx.fillRect(bx, by, 130 * aim.power, 14);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(Math.round(aim.angle) + '°', bx + 138, by + 13);
+  }
+  function drawArrow() {
+    if (!arrow.active && arrow.trail.length === 0) return;
+    ctx.strokeStyle = 'rgba(255,240,180,.35)'; ctx.lineWidth = 2;
+    if (arrow.trail.length > 1) {
+      ctx.beginPath(); ctx.moveTo(arrow.trail[0].x, arrow.trail[0].y);
+      for (var i = 1; i < arrow.trail.length; i++) ctx.lineTo(arrow.trail[i].x, arrow.trail[i].y);
+      ctx.stroke();
+    }
+    if (!arrow.active) return;
+    var a = Math.atan2(arrow.vy, arrow.vx);
+    ctx.save(); ctx.translate(arrow.x, arrow.y); ctx.rotate(a);
+    ctx.strokeStyle = '#f2e6c8'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-22, 0); ctx.lineTo(6, 0); ctx.stroke();
+    ctx.fillStyle = '#e8524a';
+    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(2, -5); ctx.lineTo(2, 5); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#8fe08f'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-22, 0); ctx.lineTo(-15, -5); ctx.moveTo(-22, 0); ctx.lineTo(-15, 5); ctx.stroke();
+    ctx.restore();
+  }
+  function drawFx() {
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      ctx.globalAlpha = Math.max(0, p.life / 34);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+    }
+    ctx.globalAlpha = 1;
+    ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+    for (var j = 0; j < pops.length; j++) {
+      var q = pops[j];
+      ctx.globalAlpha = Math.min(1, q.life / 34);
+      ctx.fillStyle = q.color;
+      ctx.fillText(q.txt, q.x, q.y);
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawBg(); drawGround(); drawBlocked();
+    drawTargets();
+    drawGuide(); drawSling(); drawArrow(); drawFx();
+  }
+
+  // ===== 主循环 =====
+  var last = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);              // ★ 先排帧：单帧异常最多丢一帧，不会永久冻死
+    var dt = Math.min((now - last) / 16.666, 2.5);
+    last = now;
+    update(dt);
+    draw();
+  }
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+
+  // ===== HUD / 文案 =====
+  function refreshBest() {
+    document.getElementById('hud-level').textContent = level;
+    document.getElementById('start-best').textContent = best > 0
+      ? t('common.bestScore', { n: best })
+      : t('slingshot.first');
+    document.getElementById('over-best').textContent = best > 0
+      ? t('common.bestScore', { n: best })
+      : '';
+  }
+  function refreshHud() {
+    document.getElementById('hud-score').textContent = score;
+    document.getElementById('hud-arrows').textContent = arrows;
+    document.getElementById('hud-targets').textContent = aliveCount();
+  }
+  function refreshOver() {
+    if (endKey) overTitleEl.textContent = t(endKey);
+    if (!endKey) return;
+    document.getElementById('final-line').innerHTML =
+      t('slingshot.final', { n: score, m: level });
+  }
+  function refreshAll() { refreshBest(); refreshHud(); refreshOver(); }
+  WG.onChange(refreshAll);
+
+  // ===== 流程 =====
+  function newLevel(lv, keepScore) {
+    level = lv;
+    targets = makeLevel(lv);
+    targetsInit = cloneTargets(targets);
+    arrowsInit = targets.length + 2;                  // 3 靶 = 5 发
+    arrows = arrowsInit;
+    arrow.active = false; arrow.acc = 0; arrow.trail = [];
+    particles = []; pops = [];
+    cleared = false; gameOver = false; endKey = null;
+    if (!keepScore) score = 0;
+    levelStartScore = score;
+    aim.angle = 45; aim.power = 0.62;
+    overOverlay.classList.add('hidden');
+    newRecordEl.classList.add('hidden');
+    if (lv > bestLevel) { bestLevel = lv; }
+    saveBest();
+    refreshAll();
+  }
+  function restartLevel() {
+    if (!targetsInit.length) return;
+    targets = cloneTargets(targetsInit);
+    arrows = arrowsInit;
+    score = levelStartScore;
+    arrow.active = false; arrow.acc = 0; arrow.trail = [];
+    particles = []; pops = [];
+    cleared = false; gameOver = false; endKey = null;
+    overOverlay.classList.add('hidden');
+    startOverlay.classList.add('hidden');
+    started = true;
+    aim.angle = 45; aim.power = 0.62;
+    refreshAll();
+  }
+  function saveBest() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ best: best, level: bestLevel })); } catch (e) {}
+  }
+  function winLevel() {
+    if (cleared || gameOver) return;
+    cleared = true;
+    endKey = 'slingshot.cleared';
+    sfx.win();
+    if (aliveCount() === 0 && targets.length) { /* 全部淡出后即可 */ }
+    var rec = false;
+    if (score > best) { best = score; rec = true; saveBest(); }
+    newRecordEl.classList.toggle('hidden', !rec);
+    document.getElementById('btn-next').classList.remove('hidden');
+    document.getElementById('btn-again').classList.add('hidden');
+    refreshAll();
+    overOverlay.classList.remove('hidden');
+  }
+  function loseGame() {
+    if (cleared || gameOver) return;
+    gameOver = true;
+    endKey = 'slingshot.over';
+    sfx.over();
+    var rec = false;
+    if (score > best) { best = score; rec = true; saveBest(); }
+    newRecordEl.classList.toggle('hidden', !rec);
+    document.getElementById('btn-next').classList.add('hidden');
+    document.getElementById('btn-again').classList.remove('hidden');
+    refreshAll();
+    overOverlay.classList.remove('hidden');
+  }
+  function begin() {
+    if (started) return;
+    started = true;
+    startOverlay.classList.add('hidden');
+  }
+
+  // ===== 输入：指针 / 触摸（统一 pointer 事件，浏览器会自动把 touch 映射成 pointer） =====
+  // 拉伸量按「屏幕像素」算，不按世界像素：画布在手机上只有 ~340×204，
+  // 若按世界坐标换算，满力只需手指移动 36px，力度分辨率极差（1px ≈ 3% 力度）。
+  // 0.28 倍的系数保证满力位移恰好落在锚点下方的可用竖直空间里（锚点在 70% 高度处）。
+  var PULL_MIN = 48, PULL_MAX = 130;
+  function pullMax() {
+    var r = canvas.getBoundingClientRect();
+    var m = (r.height || 0) * 0.28;
+    if (!(m > 0)) return MAXPULL;
+    return Math.max(PULL_MIN, Math.min(PULL_MAX, m));
+  }
+  function applyPullClient(cx, cy) {
+    var r = canvas.getBoundingClientRect();
+    if (!(r.width > 0) || !(r.height > 0)) return;
+    var ax = r.left + (AX / W) * r.width, ay = r.top + (AY / H) * r.height;
+    var dx = ax - cx, dy = ay - cy;                 // 拉伸向量（指向发射方向）
+    var len = Math.hypot(dx, dy);
+    if (len < 5) { aim.power = 0; return; }
+    var mx = pullMax();
+    var deg = Math.atan2(-dy, dx) * 180 / Math.PI;
+    if (deg < 3) deg = 3;                           // 别让玩家朝天或朝地平线射
+    if (deg > 87) deg = 87;
+    aim.power = Math.min(len, mx) / mx;
+    aim.angle = deg;
+  }
+  canvas.addEventListener('pointerdown', function (e) {
+    if (gameOver || cleared) return;
+    e.preventDefault();
+    begin();
+    if (arrow.active || arrows <= 0) return;
+    aiming = true; pointerId = e.pointerId;
+    applyPullClient(e.clientX, e.clientY);
+    sfx.pull();
+    if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!aiming) return;
+    if (pointerId !== null && e.pointerId !== undefined && e.pointerId !== pointerId) return;
+    e.preventDefault();
+    applyPullClient(e.clientX, e.clientY);
+  });
+  function endAim(e) {
+    if (!aiming) return;
+    if (pointerId !== null && e && e.pointerId !== undefined && e.pointerId !== pointerId) return;
+    aiming = false; pointerId = null;
+    if (aim.power < 0.08) { aim.power = 0.62; return; }   // 轻点取消，不放空箭
+    launch();
+  }
+  canvas.addEventListener('pointerup', endAim);
+  canvas.addEventListener('pointercancel', function (e) {
+    if (!aiming) return;
+    aiming = false; pointerId = null;
+    aim.power = 0.62;
+  });
+  // click 兜底：某些环境只派发 click，没有 pointer 序列
+  canvas.addEventListener('click', function (e) {
+    if (gameOver || cleared || arrow.active || aiming) return;
+    begin();
+    var r = canvas.getBoundingClientRect();
+    if (Math.abs(e.clientX - (r.left + (AX / W) * r.width)) < 8 &&
+        Math.abs(e.clientY - (r.top + (AY / H) * r.height)) < 8) return;
+    applyPullClient(e.clientX, e.clientY);
+    if (aim.power >= 0.08) launch();
+  });
+
+  // ===== 输入：键盘 =====
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    if (k === 'arrowleft' || k === 'a') { aim.angle = Math.min(87, aim.angle + 2); e.preventDefault(); return; }
+    if (k === 'arrowright' || k === 'd') { aim.angle = Math.max(3, aim.angle - 2); e.preventDefault(); return; }
+    if (k === 'arrowup' || k === 'w') { aim.power = Math.min(1, aim.power + 0.05); e.preventDefault(); return; }
+    if (k === 'arrowdown' || k === 's') { aim.power = Math.max(0, aim.power - 0.05); e.preventDefault(); return; }
+    if (k === ' ' || k === 'enter') {
+      begin();
+      if (gameOver || cleared) { return; }
+      launch();
+      e.preventDefault(); return;
+    }
+    if (k === 'r') { restartLevel(); e.preventDefault(); return; }
+  });
+
+  document.getElementById('btn-start').addEventListener('click', begin);
+  document.getElementById('btn-restart').addEventListener('click', function () { begin(); restartLevel(); });
+  document.getElementById('btn-next').addEventListener('click', function () { newLevel(level + 1, true); });
+  document.getElementById('btn-again').addEventListener('click', function () { newLevel(1, false); startOverlay.classList.add('hidden'); });
+
+  function shareText() {
+    return t('slingshot.share', { n: score, m: level, url: location.href });
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.getElementById('btn-share2').addEventListener('click', function () {
+    var full = shareText(), btn = document.getElementById('btn-share2');
+    function done() {
+      btn.textContent = t('common.copied');
+      setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+
+  newLevel(1, false);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
