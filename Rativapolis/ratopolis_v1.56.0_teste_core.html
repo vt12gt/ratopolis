@@ -3963,16 +3963,18 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 #rmNav #rmSettings{background:linear-gradient(135deg,#52656c,#34464c);color:#fff}
 #rmNav #rmFriends{background:linear-gradient(135deg,#397c85,#24555e);color:#fff}
 #rmHome{display:none!important}
-#rmGlobalChat{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;display:flex!important;flex-direction:column!important;background:rgba(10,32,24,.25)!important;border:0!important;box-shadow:none!important}
-#rmGlobalChat .rm-gchat-log{flex:1!important;min-height:0!important;max-height:none!important}
-#rpChatTabs{display:flex;gap:5px;flex:0 0 auto}
+#rmGlobalChat{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:clamp(220px,38vh,390px)!important;max-height:none!important;margin:0!important;display:flex!important;flex-direction:column!important;background:rgba(10,32,24,.25)!important;border:0!important;box-shadow:none!important;min-height:0!important}
+#rmGlobalChat .rm-gchat-log{flex:1!important;min-height:70px!important;max-height:none!important}
+#rpChatTabs{display:flex;gap:5px;flex:0 0 auto;margin:4px 0}
 #rpChatTabs button{flex:1;min-width:0;border:1px solid #78977e;border-radius:8px;padding:7px 4px;background:#173d2c;color:#fff6dc;font-size:11px;font-weight:900}
 #rpChatTabs button[aria-selected="true"]{background:#ffcf55;color:#173526;border-color:#ffcf55}
-#rpChatRoomTab,#rpChatWorldTab,#rpChatTocaTab{display:flex;flex:1;min-height:0;flex-direction:column}
+#rpChatWorldTab,#rpChatRoomTab,#rpChatTocaTab{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
 #rpChatWorldTab[hidden],#rpChatRoomTab[hidden],#rpChatTocaTab[hidden]{display:none!important}
-#rpChatTocaFrame{width:100%;height:100%;min-height:0;flex:1;border:0;border-radius:8px;background:#100d1d}
-#chatPanel{gap:6px!important}
-#chatPanel #chatHead{flex:0 0 auto}
+#rpChatRoomTab #chatLog{flex:1;min-height:60px;max-height:none;overflow:auto}
+#rpChatRoomTab #chatHead{flex:0 0 auto}
+#rpChatRoomTab #chatForm{flex:0 0 auto}
+#rpChatTocaFrame{width:100%;height:100%;min-height:180px;flex:1;border:0;border-radius:8px;background:#100d1d}
+#chatPanel{display:none!important}
 @media(max-width:560px){#rpChatTabs button{font-size:10px;padding:6px 2px}}
 </style>
 <script id="rativapolis-menu-chat-v1561">
@@ -3991,8 +3993,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    renderGuildPage();document.getElementById('guildPage').classList.remove('hidden');
   });
   addButton('rmShop','🎨','LOJA · SKINS',function(){
-   document.getElementById('start').classList.add('hidden');
-   openWardrobe('shop',true);
+   document.getElementById('start').classList.add('hidden');openWardrobe('shop',true);
   });
   addButton('rmTitles','👑','TÍTULOS',function(){
    openTitlesChallenges(true);
@@ -4001,39 +4002,38 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   const oldTitles=document.getElementById('rmAchievements');
   if(oldTitles)oldTitles.querySelector('.rm-lbl').textContent='CONQUISTAS';
   ['menuPlay','rmGuild','rmFriends','rmTitles','rmAchievements','rmShop','rmSettings'].forEach(function(id){const b=document.getElementById(id);if(b)nav.appendChild(b);});
-  // O menu antigo deixa de exibir ranking/Meu Lar/Mini Game; os recursos legados permanecem no código.
-  const panel=document.getElementById('chatPanel');
-  const chatHead=document.getElementById('chatHead'),chatLog=document.getElementById('chatLog'),chatForm=document.getElementById('chatForm');
+  // As três abas ficam dentro do painel de chat visível no menu; nenhum chat é escondido por um ancestral .hidden.
   const world=document.getElementById('rmGlobalChat');
-  if(panel&&chatHead&&chatLog&&chatForm&&world&&!document.getElementById('rpChatTabs')){
-   const tabs=document.createElement('div');tabs.id='rpChatTabs';tabs.setAttribute('role','tablist');tabs.innerHTML=
-    '<button type="button" role="tab" data-chat-tab="room" aria-selected="true">CHAT DA SALA</button>'+
-    '<button type="button" role="tab" data-chat-tab="world" aria-selected="false">CHAT DO MUNDO</button>'+
-    '<button type="button" role="tab" data-chat-tab="toca" aria-selected="false">CHAT DA TOCA</button>';
-   const room=document.createElement('div');room.id='rpChatRoomTab';
-   room.append(chatHead,chatLog,chatForm);
-   const worldTab=document.createElement('div');worldTab.id='rpChatWorldTab';worldTab.hidden=true;worldTab.appendChild(world);
+  const roomHead=document.getElementById('chatHead'),roomLog=document.getElementById('chatLog'),roomForm=document.getElementById('chatForm');
+  const roomToggle=document.getElementById('chatToggle');
+  if(world&&roomHead&&roomLog&&roomForm&&!document.getElementById('rpChatTabs')){
+   const tabs=document.createElement('div');tabs.id='rpChatTabs';tabs.setAttribute('role','tablist');
+   tabs.innerHTML='<button type="button" role="tab" data-chat-tab="world" aria-selected="true">CHAT DO MUNDO</button><button type="button" role="tab" data-chat-tab="room" aria-selected="false">CHAT DA SALA</button><button type="button" role="tab" data-chat-tab="toca" aria-selected="false">CHAT DA TOCA</button>';
+   const worldBody=document.createElement('div');worldBody.id='rpChatWorldTab';
+   Array.from(world.children).forEach(function(node){if(node!==worldBody)worldBody.appendChild(node);});
+   const roomBody=document.createElement('div');roomBody.id='rpChatRoomTab';roomBody.hidden=true;
+   roomBody.append(roomHead,roomLog,roomForm);
    const toca=document.createElement('div');toca.id='rpChatTocaTab';toca.hidden=true;
    const frame=document.createElement('iframe');frame.id='rpChatTocaFrame';frame.title='Chat da Toca — Comunidade RativaGames';frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';frame.src='https://vt12gt.github.io/RativaGames/';
+   toca.appendChild(frame);
+   world.append(tabs,worldBody,roomBody,toca);
+   function selectTab(name){
+    worldBody.hidden=name!=='world';roomBody.hidden=name!=='room';toca.hidden=name!=='toca';
+    tabs.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.chatTab===name));});
+    if(name==='room'&&roomToggle&&roomToggle.getAttribute('aria-expanded')==='true')roomToggle.click();
+    if(name==='toca'&&frame.contentWindow){try{frame.contentWindow.toggleCommunityChat?.(true);}catch(_){}}
+   }
+   tabs.addEventListener('click',function(e){const b=e.target.closest('[data-chat-tab]');if(b)selectTab(b.dataset.chatTab);});
    frame.addEventListener('load',function(){
     try{
      const d=frame.contentDocument;if(!d)return;
      let css=d.getElementById('rativa-toca-embed-style');
      if(!css){css=d.createElement('style');css.id='rativa-toca-embed-style';d.head.appendChild(css);}
      css.textContent='html,body{margin:0!important;width:100%!important;height:100%!important;overflow:hidden!important;background:#100d1d!important}body>*:not(#communityChat){display:none!important}#communityChat{display:flex!important;position:fixed!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important;z-index:999999!important}#communityChat.hidden{display:flex!important}#chatToggle{display:none!important}';
-     if(typeof frame.contentWindow.toggleCommunityChat==='function')frame.contentWindow.toggleCommunityChat(true);
+     frame.contentWindow.toggleCommunityChat?.(true);
     }catch(e){console.warn('Chat da Toca incorporado:',e);}
    });
-   toca.appendChild(frame);
-   panel.insertBefore(tabs,panel.firstChild);panel.append(room,worldTab,toca);
-   function selectTab(name){
-    room.hidden=name!=='room';worldTab.hidden=name!=='world';toca.hidden=name!=='toca';
-    tabs.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.chatTab===name));});
-    if(name==='toca'&&frame.contentWindow){try{frame.contentWindow.toggleCommunityChat(true);}catch(_){}}
-   }
-   tabs.addEventListener('click',function(e){const b=e.target.closest('[data-chat-tab]');if(b)selectTab(b.dataset.chatTab);});
-   panel.style.width='min(520px,68vw)';panel.style.height='min(360px,72dvh)';
-   selectTab('room');
+   selectTab('world');
   }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
