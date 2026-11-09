@@ -10,6 +10,7 @@ const ROLE_RANK = { spadm: 5, adm: 4, gm: 3, mod: 2, editor: 1.5, divulgador: 1.
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:8158",
   "https://ratopolis-cadastro-teste.pages.dev",
+  "https://rativa-ids-preview.pages.dev",
   "https://vt12gt.github.io"
 ]);
 
