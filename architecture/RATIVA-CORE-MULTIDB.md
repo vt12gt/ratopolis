@@ -33,15 +33,24 @@ Os Workers `ratopolis-api-dev-v30` e `rato-snack-api-dev` estavam ligados à mes
 
 O repositório `RativaGames` contém o Worker e o HTML do Rativapolis, mas não foi localizado um repositório independente de backend chamado Rativapolis. Portanto, a separação da autenticação do Polis também requer adaptação do Worker existente.
 
-## Migração segura — ainda não executada
+## Migração inicial de dados em desenvolvimento
 
-1. Fazer backup verificável da D1 atual e registrar contagens por tabela.
-2. Preparar schemas completos do Snack e Polis nas D1s isoladas.
-3. Migrar registros de jogo por script idempotente, preservando IDs legados via `legacy_user_id`.
-4. Não copiar credenciais ou sessões do Portal para os jogos. Criar fluxo próprio de autenticação/recuperação para cada jogo.
-5. Validar contagens, FKs, rankings, inventários, recordes e totais de moeda antes/depois.
-6. Testar concorrência na geração dos IDs, login, logout, expiração e revogação de sessões.
-7. Trocar os bindings dos Workers de jogo somente após homologação e com rollback preparado.
+Foi feita uma cópia controlada da D1 atual para as D1s isoladas, sem apagar nem alterar registros na origem. Não foram copiadas senhas, hashes de senha, e-mails, tokens ou sessões. Cada registro migrado mantém o vínculo antigo em `legacy_user_id`, recebe um novo UUID interno e um ID público de jogo.
+
+- **Snack:** 2 contas com perfil, 2 perfis, 6 itens de inventário e 1 ciclo de ranking. As tabelas de conquistas, recordes e snapshots estavam vazias na origem.
+- **Polis:** 19 contas, 19 perfis, 51 eventos de recompensa, 5 cenários, 6 versões, 1 revisão, 45 itens no registro, 31 itens no catálogo e 1 presente. As tabelas de compras, inventário da loja, VIP pago, resgates, eventos e ledger estavam vazias na origem.
+- Verificação `PRAGMA foreign_key_check`: zero violações nas duas bases após a cópia.
+
+A cópia está em desenvolvimento e ainda não atende jogadores porque os Workers atuais continuam autenticando pela D1 antiga. Nenhum usuário foi obrigado a redefinir senha nem teve sua conta alterada na origem.
+
+## Próximas etapas obrigatórias antes de produção
+
+1. Criar backup verificável da D1 original e registrar contagens completas por tabela.
+2. Integrar os Workers do Snack e Polis aos novos bancos e implementar cadastro/login/sessões independentes.
+3. Criar fluxo de vinculação/recuperação para os jogadores migrados; não copiar credenciais nem sessões do Portal.
+4. Validar contagens, FKs, rankings, inventários, recordes, moedas e cenários antes/depois.
+5. Testar concorrência na geração dos IDs, login, logout, expiração e revogação de sessões.
+6. Trocar bindings/rotas dos Workers de jogo somente após homologação e com rollback preparado.
 
 ## Camada Rativa Core
 
