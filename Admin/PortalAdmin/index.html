@@ -25,8 +25,18 @@ footer{margin-top:25px;font-size:12px;color:#8291ad}
 <article class="card"><h2>Equipe e permissões</h2><p>Consultar contas da equipe e alterar cargos usando a API administrativa existente, com autorização e registro no servidor.</p><a class="action" href="./Equipe/index.html">Abrir equipe</a></article><article class="card"><h2>Comunidade</h2><p>Moderar membros conectados, consultar banimentos, revisar fotos e denúncias de avatar e publicar comunicados em tempo real.</p><a class="action" href="./Comunidade/index.html">Abrir comunidade</a></article><article class="card"><h2>Auditoria</h2><p>Consultar o histórico de ações registradas no banco, com filtros, paginação e acesso restrito a SpAdmin e ADM. Sem edição ou exclusão.</p><a class="action" href="./Auditoria/index.html">Abrir auditoria</a></article>
 <article class="card"><h2>Rádio</h2><p>Ferramentas administrativas da rádio do portal e consulta das estatísticas disponíveis.</p><a class="action" href="./Radio/radio_admin.html">Abrir administração</a></article>
 <article class="card"><h2>Estatísticas da rádio</h2><p>Relatórios e indicadores de audiência disponíveis no módulo atual.</p><a class="action secondary" href="./Radio/radio_stats.html">Abrir estatísticas</a></article>
-<article class="card"><h2>Ranking</h2><p>Consultar em tempo real a classificação geral por XP e o ranking por nível, com busca e paginação direto na API central.</p><a class="action" href="./Ranking/index.html">Abrir ranking</a></article><article class="card"><h2>Premiações</h2><p>Simular a reserva de 60% para o Top 5, configurar percentuais por posição e consultar as regras mensais de entrega.</p><a class="action" href="./Premiacoes/index.html">Abrir premiações</a></article>
+<article class="card"><h2>Ranking</h2><p>Consultar em tempo real a classificação geral por XP e o ranking por nível, com busca e paginação direto na API central.</p><a class="action" href="./Ranking/index.html">Abrir ranking</a></article><article class="card" id="prizesCard" hidden><h2>Premiações</h2><p>Simular a reserva de 60% para o Top 5, configurar percentuais por posição e consultar as regras mensais de entrega.</p><a class="action" href="./Premiacoes/index.html">Abrir premiações</a></article>
 <article class="card"><h2>Admin RativaPolis</h2><p>O painel atual do jogo permanece preservado enquanto as funções compartilhadas são extraídas com segurança.</p><a class="action secondary" href="../RativaPolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html">Abrir painel RativaPolis</a></article>
 </section>
 <footer>RativaGames · Portal público único na raiz do repositório. Nunca compartilhe tokens, senhas ou links de sessão administrativa.</footer>
-</main></body></html>
+</main>
+<script>
+(()=>{'use strict';
+const card=document.getElementById('prizesCard'),token=localStorage.getItem('ratopolis_session_token')||'';
+if(!token)return;
+fetch('https://ratopolis-api-dev-v30.juniorgmj69.workers.dev/api/admin/me',{headers:{Accept:'application/json',Authorization:'Bearer '+token},cache:'no-store'})
+.then(r=>r.json().then(data=>({ok:r.ok,data})))
+.then(({ok,data})=>{const role=String(data.role||data.papel||'').toLowerCase();if(ok&&data.autorizado===true&&data.permissoes?.viewAdminPanel===true&&['spadm','adm'].includes(role)){card.hidden=false;card.style.display='';}})
+.catch(()=>{});
+})();
+</script></body></html>
