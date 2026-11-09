@@ -940,7 +940,7 @@ function olMsg(m){
   case 'joined':ol.hostId=m.host;ol.isHost=m.isHost;ol.players=m.players;if(ol.view)olRoomView();break;
   case 'roster':ol.players=m.players;if(ol.view)olRoomView();break;
   case 'countdown':if(ol.view)olRoomView('A partida começa em '+Math.round(m.ms/1000)+' s…');break;
-  case 'start':ol.view=false;ol.mode=m.mode||ol.mode||'quick';if(m.authoritative){mpServerAuthoritative=true;mpRole='client';mpOnline=true;mpClose();startGame0(ol.mode||'quick');showToast('☁️ Partida simulada pelo servidor',2.5)}else if(ol.isHost){if(mpRole!=='host')olHostStart(ol.mode)}else if(mpRole!=='client'){mpOnline=true;mpClientMsg({data:JSON.stringify({start:1,mode:ol.mode})});olHello()}break;
+  case 'start':ol.view=false;ol.mode=m.mode||ol.mode||'quick';if(m.authoritative){mpServerAuthoritative=true;mpRole='client';mpOnline=true;mpClose();startGame0(ol.mode||'quick');olSend({t:'appearance',color:prefs.color,skin:prefs.skin,rat:prefs.rat});showToast('☁️ Partida simulada pelo servidor',2.5)}else if(ol.isHost){if(mpRole!=='host')olHostStart(ol.mode)}else if(mpRole!=='client'){mpOnline=true;mpClientMsg({data:JSON.stringify({start:1,mode:ol.mode})});olHello()}break;
   case 'state':if(mpServerAuthoritative&&mpRole==='client')mpApply(m);break;
   case 'peer_join':{if(!ol.isHost)break;let c=mpConns.find(x=>x.uid===m.id);if(!c){c={pc:null,dc:olDC(m.id),open:true,nick:m.nick,ang:0,boost:0,uid:m.id,slot:m.slot};mpConns.push(c)}c.open=true;c.nick=m.nick;c.slot=m.slot;if(mpRole==='host'&&running)olSlotBind(c);break}
   case 'peer_offline':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=false;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].alive=false}break}
