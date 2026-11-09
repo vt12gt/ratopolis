@@ -313,6 +313,72 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .cols2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.scol{min-width:0}.seg.s button{padding:5px 5px;font-size:10.5px}.srow{gap:6px}.srow>span{font-size:11px}
 @media(max-height:340px){.shopL .pvc{display:none}.shopInfo b{font-size:15px}.shopInfo small{display:none}.srow{min-height:28px;padding:2px 7px}.scol{gap:4px}}
 .evtchip{max-width:28vw}.evtchip b{font-size:2.8vh;line-height:1.05;white-space:normal;text-align:left;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Integração de ranking e doações recuperada do fluxo v99 */
+.rkfull{grid-template-columns:1fr;grid-auto-rows:auto;align-content:start;overflow-y:auto}.online-rank{display:flex;flex-direction:column;gap:7px;min-height:0;background:#1b1230;border:1px solid #ffffff18;border-radius:12px;padding:9px}.rank-period{flex:none}.rank-period button{font-size:12px;padding:8px}.rank-meta{color:#c8b8df;font-size:10px;text-align:left}.online-rank-list{display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto}.rank-pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 2px}.rank-pager b{font-size:11px;color:#ffe08a}.rank-pager button:disabled{opacity:.35;pointer-events:none}
+.online-rank-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:5px;align-items:center;padding:6px 7px;border-bottom:1px solid #ffffff14;background:#ffffff08;border-radius:7px;font-size:12px}.online-rank-row i{font-style:normal;color:#ffe08a;font-weight:900}.online-rank-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}.online-rank-row span{color:#ffe08a;font-weight:900}.online-rank-row small{grid-column:2/-1;color:#b9a8d0;text-align:left;font-size:9px}.rank-empty{color:#cbbddd;font-size:12px;padding:12px;text-align:center}.rkl{padding:7px 9px;overflow:hidden}.rkr{display:flex;gap:6px;font-size:12px;padding:2px 0;border-bottom:1px solid #ffffff14}.rkr i{font-style:normal;width:22px;color:#d9ccff}.rkr span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkr b{color:#ffe08a}.rkr.f b{color:#ffd84a}
+.rkr2{min-height:0;display:flex;flex-direction:column}.cells2,.cells{display:grid;gap:5px;min-height:0}.cells2{grid-template-columns:repeat(3,1fr);flex:1}.cells{grid-template-columns:repeat(6,1fr);grid-auto-rows:1fr;align-content:stretch}
+.cells div,.cells2 div{padding:3px 5px;display:flex;flex-direction:column;justify-content:center;text-align:left;min-width:0}.cells small,.cells2 small{font-size:9px;color:#d9ccff;text-transform:uppercase;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cells b,.cells2 b{font-size:14px;color:#ffe08a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist{grid-template-columns:1fr 1fr;grid-auto-rows:1fr}.hist div{display:flex;align-items:center;gap:8px;padding:4px 10px;font-size:12px}.hist span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hist .pos{color:#9dffb0}.hist .neg{color:#ff9fb2}.hist small{color:#d9ccff}
+.cols2{grid-template-columns:1fr 1fr;gap:6px 18px;align-content:start}.scol{display:flex;flex-direction:column;gap:6px;min-height:0}.srow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 9px;font-size:12px;font-weight:800;min-height:34px}.srow>span{flex:1;min-width:0}.seg.s{flex:none;gap:3px}.seg.s button{padding:5px 7px;font-size:11px;min-height:28px;flex:none}
+.tgs{border:1px solid #7f5fd0;background:#1d1146;color:#d9ccff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:900;font-family:inherit;min-height:28px}.tgs.on{background:#6b4a14;border-color:#ffd84a;color:#ffe08a}
+.vis{grid-template-columns:34% 1fr;gap:12px}.vl{display:flex;flex-direction:column;gap:6px;justify-content:center}.vl .pvc{width:100%;height:auto;aspect-ratio:260/84;margin:0}.vl small{font-size:10.5px;color:#d9ccff;text-align:center}.vr{display:flex;flex-direction:column;gap:6px;min-height:0}.tabs.s{margin:0;gap:4px;align-items:center}.tabs.s button{min-height:30px;padding:5px 8px;font-size:11px;flex:1 0 auto}
+.chipg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:6px}.chipg.cols6{grid-template-columns:repeat(6,1fr)}.chipg button{font-size:12px;min-height:0;padding:3px}.chipg .sw{width:auto;height:auto;aspect-ratio:1;max-height:100%;margin:auto}
+.pg{display:flex;align-items:center;gap:4px;flex:none}.pg button{width:30px;height:30px;border-radius:8px;border:1px solid #7f5fd0;background:#1d1146;color:#ffe08a;font-size:18px;font-weight:900;padding:0;font-family:inherit}.pg i{font-style:normal;font-size:11px;color:#e7dcff;min-width:28px;text-align:center}
+.shopHead{flex:none}.shopLay{grid-template-columns:minmax(140px,36%) 1fr}.shopGrid{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);overflow:hidden;gap:6px;padding:0}.shopGrid .scard{padding:3px 3px 4px;display:flex;flex-direction:column;min-height:0}.shopGrid .scard canvas{flex:1;min-height:0;object-fit:contain}.shopGrid .scard b{font-size:10.5px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.shopGrid .scard small{font-size:10px}
+.shopL{overflow:hidden}
+@media(max-height:380px){.nx{display:none!important}.card .big{font-size:20px}.tile b{font-size:24px}.ei{font-size:40px}.srow{min-height:30px;padding:3px 8px}.card{padding:5px 7px}.play{min-height:38px}}
+@media(max-width:600px){.cells{grid-template-columns:repeat(4,1fr)}}
+button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight:900;cursor:pointer;text-align:left}.wn{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.wn small{font-size:2.1vh;color:#ffd84a;letter-spacing:.04em}.wn b{font-size:4.2vh;line-height:1.05;max-width:20vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evtchip{height:100%;padding:0 1.8vw;display:flex;align-items:center;gap:.8vw;position:relative;font-size:3.2vh;max-width:24vw}.evtchip span{font-size:5vh}.evtchip b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hero-d{display:none!important}
+#nickHud{font-size:clamp(14px,2.6vw,22px)}
+#nick{z-index:25}#nick input,.dlg input{width:100%;padding:12px;border-radius:12px;border:2px solid #ffd84a;background:#fff;color:#2a1760;font-size:20px;font-weight:800;text-align:center;font-family:inherit;user-select:text;-webkit-user-select:text;touch-action:auto;outline:none}#nick input.bad{border-color:#ff5d73}
+.tutl{text-align:left;font-size:14px;line-height:1.4;color:#f1eaff}.tutl p{margin:0 0 7px}
+@media(max-height:420px){.tutl{font-size:13px}.tutl p{margin-bottom:4px}}
+
+.vis{grid-template-columns:minmax(0,34%) minmax(0,1fr)}.vr{min-width:0}.tabs.s{overflow:hidden}.tabs.s button{flex:1 1 0;min-width:0;padding:5px 3px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cols2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.scol{min-width:0}.seg.s button{padding:5px 5px;font-size:10.5px}.srow{gap:6px}.srow>span{font-size:11px}
+@media(max-height:340px){.shopL .pvc{display:none}.shopInfo b{font-size:15px}.shopInfo small{display:none}.srow{min-height:28px;padding:2px 7px}.scol{gap:4px}}
+.evtchip{max-width:28vw}.evtchip b{font-size:2.8vh;line-height:1.05;white-space:normal;text-align:left;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Controle do jogo: no Online vira um único botão SAIR; no Offline mantém a pausa */
+#pause.online-exit{right:calc(env(safe-area-inset-right) + 14px);left:auto;top:calc(env(safe-area-inset-top) + 42px);width:auto;min-width:88px;height:42px;min-height:42px;padding:0 17px;border:1px solid #ffd66b;border-radius:14px;background:linear-gradient(180deg,#ffcf5b 0%,#e58a25 52%,#b94d20 100%);color:#35160b;box-shadow:inset 0 1px 0 #fff9,0 3px 0 #713014,0 6px 14px #0008;font-size:13px;font-weight:1000;letter-spacing:1px;line-height:1;z-index:8;text-shadow:0 1px 0 #fff5}
+#pause.online-exit:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #fff6,0 1px 0 #713014,0 3px 8px #0008}
+
+/* Entrada e conexão Online */
+.ol-screen{width:min(520px,100%);margin:auto;padding:26px 22px;border:1px solid #a98cff88;border-radius:24px;background:radial-gradient(ellipse at 50% 0%,#6244a8 0%,#2b1a55 52%,#170f30 100%);box-shadow:0 24px 70px #000b,inset 0 1px #ffffff25;text-align:center;color:#fff}
+.ol-screen .ol-mark{font-size:42px;filter:drop-shadow(0 5px 8px #0008)}
+.ol-screen h2{margin:8px 0;color:#ffe08a;font-size:22px;font-weight:1000;letter-spacing:.4px}
+.ol-screen p{margin:9px 0;color:#e2d8f8;font-size:13px;line-height:1.5}
+.ol-screen .ol-spinner{width:48px;height:48px;margin:16px auto;border:4px solid #ffffff26;border-top-color:#ffd34e;border-right-color:#c69aff;border-radius:50%;animation:olspin .8s linear infinite}
+.ol-screen .ol-steps{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:15px}
+.ol-screen .ol-steps span{padding:6px 9px;border:1px solid #ffffff22;border-radius:20px;background:#ffffff0d;color:#d9cafa;font-size:10px}
+.ol-screen .ol-player{display:inline-flex;align-items:center;gap:8px;margin:12px auto 4px;padding:9px 15px;border:1px solid #ffd66b66;border-radius:14px;background:#ffda7b18;color:#ffe08a;font-weight:900}
+.ol-screen .ol-action{display:block;width:100%;margin-top:14px;padding:12px 14px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffdf71,#e99b2d);color:#351b0a;font-weight:1000}
+
+.ol-screen .ol-action{margin-top:10px}.ol-screen .ol-action:active{transform:scale(.99)}#rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){#game{visibility:hidden!important}#rotateNotice{display:flex!important}}.portal-rank-link{display:block;margin:10px auto 0;text-align:center;text-decoration:none;color:#f0e7fb;width:100%;}
+
+/* v82 — ranking em duas colunas e central de doações no lobby online */
+/* Ranking: uma linha por jogador, sem sobreposição entre colunas */
+.online-rank-list.rank-one-column{display:grid;grid-template-columns:minmax(0,1fr);grid-auto-flow:row;grid-auto-rows:minmax(36px,auto);gap:5px;max-height:none;min-height:0;overflow:visible;align-content:start;width:100%;box-sizing:border-box}
+.rank-one-column .online-rank-row{display:grid;grid-template-columns:30px minmax(0,1fr) max-content;grid-template-rows:minmax(24px,auto);gap:6px;align-items:center;min-width:0;width:100%;box-sizing:border-box;padding:6px 9px;overflow:hidden}
+.rank-one-column .online-rank-row i{grid-column:1;grid-row:1;white-space:nowrap}
+.rank-one-column .online-rank-row b{grid-column:2;grid-row:1;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.rank-one-column .online-rank-row span{grid-column:3;grid-row:1;white-space:nowrap;text-align:right;font-size:11px}
+.rank-one-column .online-rank-row small{display:none}
+.online-rank{min-width:0;width:100%;box-sizing:border-box}
+.rank-pager{gap:6px;flex-wrap:wrap;min-width:0}
+.rank-pager{gap:5px;flex-wrap:wrap}.rank-pager button{min-width:34px;padding:7px 9px}
+.donation-sheet{display:block!important;overflow-y:auto!important;max-height:calc(100dvh - 100px);padding:2px 3px 10px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.donation-total{padding:18px 12px;border:1px solid #76509a;border-radius:14px;background:linear-gradient(135deg,#171020,#302044);display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;margin-bottom:10px}
+.donation-total small{font-size:10px;font-weight:900;letter-spacing:.7px;color:#e1baff}.donation-total strong{font-size:clamp(28px,7vw,42px);color:#ffe18a;line-height:1.1}.donation-total span{font-size:10px;color:#c8b7d9}
+.donation-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px}.donation-methods article,.donation-reasons article,.donation-funds article{padding:10px;border-radius:10px;background:#1a1025;border:1px solid #ffffff1b;display:flex;flex-direction:column;gap:5px;min-width:0}.donation-methods b{font-size:14px}.donation-methods small,.donation-reasons small{color:#c8b7d9;font-size:10px;line-height:1.35}.donation-methods button{padding:10px 5px;font-size:12px;margin-top:3px}
+.donation-label{display:block;text-align:left;font-size:12px;font-weight:800;margin:10px 0 5px}.donation-sheet input{width:100%;max-width:240px;padding:10px;border:1px solid #60467b;border-radius:9px;background:#100d1d;color:#fff;font-size:17px}
+.donation-info{margin-top:12px;text-align:left}.donation-info h3{font-size:15px;margin:12px 0 7px}.donation-info p,.donation-disclaimer{font-size:11px;line-height:1.45;color:#c8b7d9}.donation-reasons{display:grid;grid-template-columns:1fr 1fr;gap:6px}.donation-reasons article{font-size:17px}.donation-reasons b{font-size:11px}.donation-funds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.donation-funds small{font-size:9px;color:#c8b7d9}.donation-funds b{font-size:clamp(13px,3vw,19px);color:#ffe18a;overflow-wrap:anywhere}.donation-info h4{font-size:12px;margin:12px 0 4px}.donation-weeks{display:grid;gap:7px;margin-top:8px}.donation-weeks>div{display:grid;grid-template-columns:60px minmax(30px,1fr) auto;align-items:center;gap:7px;font-size:10px}.donation-weeks i{height:8px;background:#38294d;border-radius:8px;overflow:hidden}.donation-weeks i b{display:block;width:0;height:100%;background:#a66bff}.donation-weeks strong{font-size:10px}.donation-disclaimer{margin-top:12px;padding:9px;background:#100d1d;border-radius:9px}
+@media(max-width:420px){.donation-funds{grid-template-columns:1fr}.donation-methods button{font-size:10px}.rank-two-column .online-rank-row{padding:5px 3px}.rank-two-column .online-rank-row b{font-size:10px}}
+
+
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -346,7 +412,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
-  <button class="b3d sq" data-act="donate:portal"><span>💜</span>Doações</button>
+  <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
   <button class="b3d sq" data-sheet="online"><span>📶</span>Conectar Multiplayer</button>
   <button class="b3d sq" data-sheet="custom"><span>🎨</span>Visual</button>
  </div>
@@ -942,30 +1008,6 @@ const rwReady=()=>{wkEnsure();return WEEK.some((g,i)=>!(prog.wkClaim>>i&1)&&g.v(
 function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,card=(t,v,T,done,act,rw)=>{const r=!done&&v>=T;return {k:rk(r,done),h:`<div class="mc2${r?' rdy':''}"><b>${t}</b><div class="bar"><i style="width:${Math.min(100,Math.round(v/T*100))}%"></i></div><small>${done?'✓ Resgatado':Math.min(v,T)+'/'+T}</small>${r?`<button class="tgs on" data-act="${act}">Resgatar ${rw}</button>`:`<em>${rw}</em>`}</div>`}},
  W=WEEK.map((g,i)=>card(g.n,g.v(),g.t,prog.wkClaim>>i&1,'wkc:'+i,'+'+g.c+' 🧀 +'+g.x+' XP')).sort((a,b)=>a.k-b.k),M=MARCOS.map((m,i)=>card(m.n,m.v(),m.t,prog.mkClaim>>i&1,'mkc:'+i,'+'+m.c+' 🧀'+(m.rat?' + 🐀':''))).sort((a,b)=>a.k-b.k);
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
-/* ===== Integração oficial RativaGames: ranking e doações ===== */
-const RATO_SNACK_API='https://rato-snack-api-dev.juniorgm69.workers.dev';
-const RATIVA_PORTAL='https://vt12gt.github.io/RativaGames/';
-let cloudRankPeriod='best';
-function cloudRankEsc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-async function loadCloudRankList(period,target,statusId){
- const box=document.getElementById(target),status=document.getElementById(statusId);if(!box)return;
- box.innerHTML='<p class="note">Carregando…</p>';
- try{const r=await fetch(RATO_SNACK_API+'/api/rato-snack/leaderboard?period='+encodeURIComponent(period)+'&limit=20',{cache:'no-store'});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'HTTP '+r.status);
- const players=Array.isArray(d.players)?d.players:[];
- box.innerHTML=players.length?players.map((p,i)=>'<div class="rkr"><i>'+(i+1)+'º</i><span>'+cloudRankEsc(p.nickname||p.display_name||'Jogador')+' <small>'+Number(p.games_played||p.games_count||0).toLocaleString('pt-BR')+' partidas</small></span><b>'+Number(p.score||p.total_score||0).toLocaleString('pt-BR')+'</b></div>').join(''):'<p class="note">Ainda não há resultados registrados.</p>';
- if(status)status.textContent=(period==='best'?'Melhor pontuação individual':period==='monthly'?'Ranking mensal':'Ranking permanente')+(d.cycle?' · ciclo '+d.cycle.key:'')+' · '+players.length+' jogador(es)';
- }catch(e){box.innerHTML='<p class="note">Ranking indisponível: '+cloudRankEsc(e.message)+'</p>';if(status)status.textContent='Não foi possível consultar o ranking.'}
-}
-async function loadCloudRanking(){
- const list=document.getElementById('cloudRankList');if(!list)return;
- document.querySelectorAll('[data-act^="cloudrank:"]').forEach(b=>{b.classList.toggle('on',b.dataset.act==='cloudrank:'+cloudRankPeriod)});
- await loadCloudRankList(cloudRankPeriod,'cloudRankList','cloudRankStatus');
- await loadCloudRankList('top5','cloudRankTop5','cloudRankStatus');
-}
-async function syncCloudBestScore(){
- if(!ol.token||!Number.isFinite(Number(bestQuick)))return false;
- try{const r=await fetch(RATO_SNACK_API+'/api/rato-snack/save',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ol.token},body:JSON.stringify({save:{stats,prog,eco,bestQuick:Number(bestQuick)||0}}),cache:'no-store'});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'HTTP '+r.status);return true}catch(e){console.warn('RativaSnack: falha ao sincronizar recorde',e);return false}
-}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
 const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
 let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,players:[],tries:0,bye:false,view:false};
@@ -976,6 +1018,7 @@ function olSave(){try{localStorage.removeItem('ratoSnackOnline')}catch(e){}}
 function olClearExpired(){ol.token='';ol.id='';ol.nick='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}}
 const olHttp=u=>u.replace(/^ws/,'http').replace(/\/+$/,''),olWs=u=>u.replace(/^http/,'ws').replace(/\/+$/,'');
 async function olApi(path,body,tok){const token=tok===undefined?ol.token:tok;const hasBody=body!==undefined&&body!==null;const r=await fetch(olHttp(ol.url)+path,{method:hasBody?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:hasBody?JSON.stringify(body):undefined,cache:'no-store'});let j={};try{j=await r.json()}catch(e){}return Object.assign({s:r.status},j)}
+function olSaveRecord(kind){if(!mpOnline||!ol.token||!ol.inRoom)return;const finalSize=Math.max(0,Math.floor(player?player.length:0));const payload={mode,size:finalSize,total_size:finalSize,score:Math.max(0,Math.floor(score)),duration_ms:Math.max(0,Math.floor(gameTime*1000)),result:kind==='win'?'win':'finish',details:{mode,kills,food:foodEaten,size:finalSize,total_size:finalSize,special_kills:specialKills}};olApi('/api/rato-snack/records',payload,ol.token).then(r=>{if(r.s===409)showToast('Ranking protegido: resultado aguardando validação do servidor.',4);else if(r.s!==201&&r.s!==200)showToast('Não foi possível registrar a pontuação no servidor.',4)}).catch(e=>showToast('Falha ao enviar pontuação ao servidor.',4))}
 async function olConnect(){if(ol.ws&&ol.ws.readyState===1)return;const issued=await olApi('/api/ws-ticket',{},ol.token);if(issued.s!==200||!issued.ticket)throw new Error('sessao_invalida');return new Promise((res,rej)=>{let done=false;const ws=new WebSocket(olWs(ol.url)+'/ws?ticket='+encodeURIComponent(issued.ticket));ol.ws=ws;
  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}if(m.t==='hello'&&!done){done=true;res()}olMsg(m)};ws.onerror=()=>{if(!done){done=true;rej(new Error('conexao'))}};ws.onclose=ev=>{if(ol.ws===ws)ol.ws=null;if(!done){done=true;rej(new Error('fechada'))}olClosed(ev.code)}})}
 function olSend(o){if(ol.ws&&ol.ws.readyState===1){ol.ws.send(JSON.stringify(o));return true}return false}
@@ -1179,7 +1222,7 @@ function endGame(kind){if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole
  const m=mode==='quick'?score:mode==='survival'?gameTime:score,prev=roundPrevBest,isRec=m>prev&&m>0;
  stats.games++;stats.kills+=kills;stats.food+=foodEaten;stats.time+=gameTime;stats.bestSize=Math.max(stats.bestSize,player.length);stats.bestKills=Math.max(stats.bestKills,kills);
  if(mode==='survival'&&isRec)stats.bestTime=gameTime;if(mode==='challenge'&&isRec)stats.bestChallenge=score;if(mode==='quick'&&isRec){bestQuick=score;bestDirty=true}if((mode==='team'||mode==='boss'||mode==='infinite'||mode==='daily')&&isRec)prog.mrec[mode]=score;
- saveStats();flushSave();if(mpOnline)syncCloudBestScore();countRound(kind);
+ saveStats();flushSave();if(mpOnline)syncCloudBestScore();olSaveRecord(kind);countRound(kind);
  let title='Fim de jogo!',text='';
  if(kind==='win'){title='Vitória! 🏆';text=mode==='boss'?`Você derrotou o Rei Rato em ${fmtTime(gameTime)}!`:mode==='team'?teamTxt('win'):`Você eliminou ${kills} ratos em ${fmtTime(gameTime)}.`}
  else if(kind==='time'){title='Tempo esgotado!';text=mode==='team'?teamTxt('time'):`Você eliminou ${kills} de ${M.goal} ratos.`}
@@ -1238,7 +1281,44 @@ function shopDraw(){const Z={skin:1.25,acc:2.4,tail:1};const dr=(cid,ov,z)=>{con
 function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,id))return '';if(it[3])return '🔒 Item exclusivo de nível.';if(Date.now()<buyLock)return '⏳ Aguarde...';if(eco.cheese<it[1])return '🧀 Faltam '+(it[1]-eco.cheese)+' queijos.';buyLock=Date.now()+600;
  if(!spend(it[1],'Loja: '+it[0],()=>{eco.own[c][id]=1;prefs[c]=id}))return '🧀 Saldo insuficiente.';savePrefs();return '✅ '+it[0]+' é seu e já está equipado!'}
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
-let sheetName='';
+let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[],remoteRankUpdatedAt='';
+function drawRemoteRankingPage(){
+ const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10,pages=5;
+ if(!list)return;
+ remoteRankPage=Math.max(1,Math.min(pages,remoteRankPage));
+ const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
+ list.replaceChildren();list.className='online-rank-list rank-two-column';
+ list.style.display='grid';list.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';list.style.gridTemplateRows='repeat(5,minmax(28px,auto))';list.style.gridAutoFlow='column';list.style.maxHeight='none';list.style.minHeight='0';list.style.overflow='visible';list.style.width='100%';
+ if(!remoteRankPlayers.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
+ // Dez jogadores por página: posições 1–5 na coluna esquerda e 6–10 na direita.
+ players.forEach((p,i)=>{
+  const row=document.createElement('div');row.className='online-rank-row';
+  const pos=document.createElement('i');pos.textContent=(start+i+1)+'.';
+  const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||'Jogador';
+  const score=document.createElement('span');score.textContent=Math.max(0,Number(p.score??p.best_score??p.total_score??p.points)||0).toLocaleString('pt-BR')+' pts';
+  const detail=document.createElement('small');detail.textContent=Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
+  row.append(pos,nick,score,detail);list.append(row);
+ });
+ if(pager){
+  pager.replaceChildren();
+  for(let n=1;n<=5;n++){const b=document.createElement('button');b.className='tgs'+(remoteRankPage===n?' on':'');b.textContent=String(n);b.dataset.act='rankpage:page:'+n;b.setAttribute('aria-label','Página '+n);pager.append(b);}
+ }
+ if(meta){const base=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • 5 páginas de 10';const stamp=remoteRankPeriod==='monthly'&&remoteRankUpdatedAt?' • atualizada '+new Date(remoteRankUpdatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' (Brasília) • a cada 2 dias':'';meta.textContent=base+stamp;}
+}
+async function loadRemoteRanking(period){
+ remoteRankPeriod=period==='monthly'?'monthly':'best';remoteRankPage=1;
+ const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta');if(!list)return;
+ list.textContent='Carregando classificação…';if(meta)meta.textContent='Consultando o servidor oficial…';
+ document.querySelectorAll('.rank-period button').forEach(b=>b.classList.toggle('on',b.dataset.act==='rperiod:'+remoteRankPeriod));
+ try{
+  const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
+  const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
+  if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
+  remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||(Number(b.games_played??b.games_count??0)-Number(a.games_played??a.games_count??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
+  remoteRankUpdatedAt=remoteRankPeriod==='monthly'&&data.updated_at?data.updated_at:'';
+  drawRemoteRankingPage();
+ }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
+}
 function renderSheet(name){sheetName=name;let h='';
  const sg=(act,arr,cur)=>`<div class="seg s">${arr.map((t,i)=>`<button class="${i===cur?'on':''}" data-act="${act}:${i}">${t}</button>`).join('')}</div>`;
  const tgs=(act,on)=>`<button class="tgs${on?' on':''}" data-act="${act}">${on?'Ligado':'Desligado'}</button>`;
@@ -1257,8 +1337,20 @@ function renderSheet(name){sheetName=name;let h='';
  else if(name==='ach'){const cats=[...new Set(ACH.map(a=>a.cat))];if(!(achCat>=0&&achCat<cats.length))achCat=0;const cn=cats[achCat],rk=a=>prog.achR[a.id]?0:prog.ach[a.id]?1:2,list=ACH.filter(a=>a.cat===cn).sort((a,b)=>rk(a)-rk(b)),a0=list.find(a=>a.id===achSel)||list[0],catRdy=c=>ACH.some(a=>a.cat===c&&prog.achR[a.id]);
  const st=prog.achR[a0.id]?'🎁 Pronta! Toque em Coletar':prog.ach[a0.id]?'✓ Conquistada':a0.d+(a0.p?' ('+Math.min(a0.t,Math.floor(a0.p()))+'/'+a0.t+')':''),got=ACH.filter(a=>prog.ach[a.id]).length;
  h=`<div class="achw"><div class="achnav"><button data-act="acat:-5" aria-label="Voltar 5 abas">⏪</button><button data-act="acat:-1" aria-label="Aba anterior">◀</button><b>${cn} • ${list.filter(x=>prog.ach[x.id]).length}/${list.length}${catRdy(cn)?' 🔴':''}</b><button data-act="acat:1" aria-label="Próxima aba">▶</button><button data-act="acat:5" aria-label="Avançar 5 abas">⏩</button></div><div class="achg2">${list.map(a=>`<button class="ab${prog.ach[a.id]?' got':''}${prog.achR[a.id]?' rdy':''}${a.id===a0.id?' sel':''}" data-act="asel:${a.id}">${a.i}<i class="tn">${a.no||''}</i></button>`).join('')}</div><div class="achd"><b>${a0.i} ${a0.n}</b><span>${st}</span>${prog.achR[a0.id]?`<button class="tgs on" data-act="acol:${a0.id}">Coletar +${a0.xp} XP +${a0.ch||Math.round(a0.xp/2)} 🧀</button>`:`<span>+${a0.xp} XP</span>`}<small>${got}/${ACH.length} coletadas</small></div></div>`}
- else if(name==='ranking'){const rows=[['⚡ Rápida',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['📏 Tamanho',stats.bestSize],['⚔️ Abates',stats.bestKills],['🔥 Sequência',prog.bestStreak],['🍽️ Comidas',prog.bestFood],['🧀 Queijos',prog.bestCheese]];
-  h=`<div class="fit rk"><div class="rkl"><div class="lbl">Top 5 partidas deste aparelho</div>${prog.top.map((t,i)=>`<div class="rkr${i===0?' f':''}"><i>${i+1}º</i><span>${MICON[t.m]||''} ${MODES[t.m].name}</span><b>${t.s}</b></div>`).join('')||'<p class="note">Jogue para entrar no ranking.</p>'}</div><div class="rkr2"><div class="lbl">Recordes pessoais</div><div class="cells2">${rows.map(r=>`<div><small>${r[0]}</small><b>${r[1]}</b></div>`).join('')}</div></div></div><div class="rkr2" style="margin-top:12px"><div class="lbl">🏆 Ranking RativaGames · Online</div><div class="seg s"><button data-act="cloudrank:best" class="on">Melhor</button><button data-act="cloudrank:monthly">Mensal</button><button data-act="cloudrank:total">Total</button></div><div id="cloudRankList" class="rank-live-list"><p class="note">Carregando ranking…</p></div><p id="cloudRankStatus" class="note">Classificação oficial da conta RativaGames.</p><div class="lbl" style="margin-top:10px">🏅 Top 5 da apuração</div><div id="cloudRankTop5" class="rank-live-list"><p class="note">Carregando Top 5…</p></div></div><button class="tgs on" style="margin-top:12px;width:100%" data-act="donate:portal">💜 Apoiar a RativaGames · Doações Pix/cartão</button><p class="note">O melhor resultado é sincronizado na conta. Mensal e total consideram partidas online aceitas pelo servidor.</p>`}
+ else if(name==='ranking'){
+  h=`<div class="fit rkfull"><div class="online-rank"><div class="lbl">🏆 Classificação oficial RativaSnack</div><div class="seg rank-period"><button class="${remoteRankPeriod==='best'?'on':''}" data-act="rperiod:best">🏆 Melhor pontuação</button><button class="${remoteRankPeriod==='monthly'?'on':''}" data-act="rperiod:monthly">📅 Mensal</button></div><small id="remoteRankMeta" class="rank-meta">Carregando classificação…</small><div id="remoteRankList" class="online-rank-list">Carregando jogadores…</div><div id="remoteRankPager" class="rank-pager"></div></div></div><p class="note">Aqui aparece somente a classificação dos jogadores. Suas conquistas e recordes pessoais ficam em Estatísticas.</p>`} else if(name==='donations'){
+  h=`<div class="fit donation-sheet"><div class="mgrid donation-scroll">
+   <div class="donation-total"><small>💜 TOTAL CONFIRMADO DE DOAÇÕES</small><strong id="snackDonationTotal">Carregando…</strong><span id="snackDonationUpdated">Somente pagamentos aprovados</span></div>
+   <div class="donation-methods"><article><b>⚡ PIX</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonatePix">Doar com Pix</button></article><article><b>💳 CARTÃO</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonateCard">Doar com cartão</button></article></div>
+   <label class="donation-label" for="snackDonationAmount">Valor da doação (R$)</label><input id="snackDonationAmount" type="number" min="1" max="10000" step="0.01" value="5.00">
+   <div class="notice" id="snackDonationNotice">As doações são voluntárias. Somente pagamentos confirmados pelo Mercado Pago entram no total público.</div>
+   <div class="donation-info"><h3>💜 Por que fazer uma doação?</h3><div class="donation-reasons"><article>🖥️ <b>Manter os servidores</b><small>Hospedagem, banco de dados, conexão e infraestrutura dos jogos.</small></article><article>🛠️ <b>Desenvolver novidades</b><small>Correções, mapas, eventos, recursos e melhorias de segurança.</small></article><article>📻 <b>Fortalecer a comunidade</b><small>Rádio, feed, chat, rankings e espaços para os jogadores.</small></article><article>🏆 <b>Incentivar competições</b><small>Eventos e campeonatos com regras e resultados transparentes.</small></article></div>
+   <h3>📊 Prestação de contas</h3><p>O total arrecadado é atualizado com pagamentos aprovados. A divisão abaixo é uma previsão de destinação, não comprovação de despesas ou repasses realizados.</p>
+   <div class="donation-funds"><article><small>Total recebido</small><b id="snackDonationAuditTotal">—</b></article><article><small>Destinação planejada · 60%</small><b id="snackDonationPrize">—</b></article><article><small>Operação e infraestrutura · 40%</small><b id="snackDonationProject">—</b></article></div>
+   <h4>Histórico semanal</h4><small id="snackDonationAuditUpdated">Aguardando dados do servidor</small><div class="donation-weeks"><div><span>Semana 1</span><i><b id="snackDonationBar1"></b></i><strong id="snackDonationWeek1">—</strong></div><div><span>Semana 2</span><i><b id="snackDonationBar2"></b></i><strong id="snackDonationWeek2">—</strong></div><div><span>Semana 3</span><i><b id="snackDonationBar3"></b></i><strong id="snackDonationWeek3">—</strong></div></div>
+   <p class="donation-disclaimer">A doação é voluntária e não garante moedas, itens, VIP, vantagem competitiva ou tratamento especial dentro do jogo. Não envie dinheiro por fora do checkout oficial.</p></div>
+  </div></div>`;
+ }
  else if(name==='records'){const c=[['Partidas',stats.games],['Eliminações',stats.kills],['Queijos comidos',stats.food],['Tempo total',fmtTime(stats.time)],['Maior tamanho',stats.bestSize],['Máx. abates',stats.bestKills],['Maior sequência',prog.bestStreak],['Rivais especiais',prog.specials],['Nível',lvlInfo(prog.xp).l+' • '+prog.xp+' XP'],['🧀 Saldo',eco.cheese],['🧀 Ganhos',eco.earned],['🧀 Gastos',eco.spent],['⚡ Rápida',bestQuick],['⏳ Sobrev.',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite]];
   h=`<div class="fit cells">${c.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`}
  else if(name==='hist'){h=`<div class="fit hist">${eco.hist.slice(-10).reverse().map(x=>`<div><span>${x.s}</span><b class="${x.d>0?'pos':'neg'}">${x.d>0?'+':''}${x.d}</b><small>→ ${x.b}</small></div>`).join('')||'<p class="note">Nenhuma transação ainda.</p>'}</div>`}
@@ -1274,16 +1366,45 @@ function renderSheet(name){sheetName=name;let h='';
   h=`<div class="fit vis"><div class="vl"><canvas id="pvc" width="360" height="170" class="pvc"></canvas><small>Só muda a aparência; não dá vantagem.</small></div><div class="vr"><div class="tabs s">${Object.keys(T).map(k=>`<button class="${k===custTab?'on':''}" data-act="tab:${k}">${T[k][0]}</button>`).join('')}${pgBar('vis',P)}</div><div class="chipg${custTab==='cor'?' cols6':''}">${chips}</div></div></div>`}
  else{h=`<div class="fit hc">${[['🕹️ Controle','Arraste o dedo na direção que quer ir. Segure ⚡ para acelerar.'],['⚠️ Regras','Bater na parede ou em outro corpo elimina. No choque frontal o maior vence.'],['🧀 Queijos','Coma para crescer. Eliminar ratos solta queijos e dá moedas.'],['⚡ Poderes','Velocidade, ímã, escudo, ×2 e crescimento. Evolua na Loja.'],['🎮 Modos','Rápida, Sobrevivência, Desafio, Equipes, Chefe e Infinito.'],['🐭 Rivais','Guloso, Caçador, Cauteloso… e especiais: 👑 Rei, 👻 Fantasma, 🦏 Tanque.']  ,['📊 Desempenho',perfTxt()],['⬆️ Atualização','Versão '+VERSION+'. '+updTxt()],['📈 Estatísticas','Eliminações '+stats.kills+' • Queijos comidos '+stats.food+' • Maior tamanho '+stats.bestSize+' • Melhor sobrevivência '+Math.floor(stats.bestTime)+' s']].map(c=>`<div class="card"><b>${c[0]}</b><small>${c[1]}</small></div>`).join('')}</div>`}
  $('sheetBody').classList.toggle('fix',name==='shop');$('sheetBody').innerHTML=tabBar(name)+h;if(name==='gallery')$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},1.7*d)});
- if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw()}
+ if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw();if(name==='ranking')loadRemoteRanking(remoteRankPeriod);if(name==='donations')loadSnackDonations()}
+const SNACK_DONATION_API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+const snackMoney=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+async function loadSnackDonations(){
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=v};
+ const pix=$('snackDonatePix'),card=$('snackDonateCard');
+ if(pix)pix.onclick=()=>startSnackDonation('pix');if(card)card.onclick=()=>startSnackDonation('card');
+ try{
+  const response=await fetch(SNACK_DONATION_API+'/api/donations/public-summary',{cache:'no-store'}),data=await response.json();
+  if(!response.ok||!data.ok)throw new Error('summary_unavailable');
+  const total=Number(data.total_brl)||0;set('snackDonationTotal',snackMoney(total));set('snackDonationAuditTotal',snackMoney(total));set('snackDonationPrize',snackMoney(total*.6));set('snackDonationProject',snackMoney(total*.4));
+  const updated=data.updated_at?new Date(data.updated_at).toLocaleString('pt-BR'):'Atualização não informada';set('snackDonationUpdated','Atualizado: '+updated);set('snackDonationAuditUpdated','Última atualização: '+updated);
+  const weeks=Array.isArray(data.weekly)?data.weekly.slice(-3):[],values=[0,0,0];weeks.forEach((w,i)=>values[3-weeks.length+i]=Number(w.total_brl)||0);const max=Math.max(1,...values);
+  values.forEach((v,i)=>{set('snackDonationWeek'+(i+1),snackMoney(v));const bar=$('snackDonationBar'+(i+1));if(bar)bar.style.width=(v/max*100)+'%'});
+ }catch(e){set('snackDonationTotal','Indisponível');set('snackDonationUpdated','Não foi possível consultar os dados públicos.');set('snackDonationNotice','Não foi possível carregar o resumo de doações. Tente novamente mais tarde.')}
+}
+async function startSnackDonation(method){
+ const note=$('snackDonationNotice'),amount=Number($('snackDonationAmount')?.value);
+ if(!ol.token){if(note)note.textContent='Entre no Portal RativaGames e abra o jogo novamente para fazer uma doação.';return}
+ if(!Number.isFinite(amount)||amount<1||amount>10000){if(note)note.textContent='Informe um valor entre R$ 1,00 e R$ 10.000,00.';return}
+ const buttons=[$('snackDonatePix'),$('snackDonateCard')];buttons.forEach(b=>{if(b)b.disabled=true});
+ if(note)note.textContent='Conectando ao checkout seguro do Mercado Pago…';
+ try{
+  const response=await fetch(SNACK_DONATION_API+'/api/donations/checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ol.token},body:JSON.stringify({amount,method})});
+  const data=await response.json();if(!response.ok||!data.ok||!data.checkout_url)throw new Error(data.erro||'Não foi possível iniciar o pagamento.');
+  if(note)note.textContent='Checkout criado. Abrindo o Mercado Pago…';location.assign(data.checkout_url);
+ }catch(e){if(note)note.textContent=e.message||'Falha ao iniciar a doação. Tente novamente.';buttons.forEach(b=>{if(b)b.disabled=false})}
+}
 const GROUP={shop:'loja',items:'loja',skills:'loja',ranking:'rank',records:'rank',hist:'rank',settings:'cfg',controls:'cfg',custom:'cfg',gallery:'cfg',help:'cfg',challenges:'des',missions:'des',events:'des',daily:'des',ach:'des',rewards:'des'};
 const GTABS={loja:[['shop','🎨 Cosméticos'],['items','🛒 Itens'],['skills','🧬 Habilidades']],rank:[['ranking','🏆 Ranking'],['records','📊 Estatísticas'],['hist','🧾 Queijos']],cfg:[['settings','⚙️ Ajustes'],['controls','🕹️ Controles'],['custom','🎨 Visual'],['gallery','🖼️ Galeria'],['help','❓ Ajuda']],des:[['challenges','🎯 Missões'],['events','🌟 Evento'],['daily','🎁 Diária'],['ach','🏅 Conquistas'],['rewards','🗓️ Semana']]};
 function tabBar(n){const g=GROUP[n];if(!g)return '';const cur=n==='missions'?'challenges':n;return '<div class="tabs top">'+GTABS[g].map(t=>`<button class="${t[0]===cur?'on':''}" data-act="go:${t[0]}">${t[1]}${t[0]==='daily'&&dailyAvail()?' •':''}${t[0]==='events'&&(seasReady()||wbReady())?' 🔴':''}${t[0]==='rewards'&&rwReady()?' 🔴':''}${t[0]==='ach'&&achReady()?' 🔴':''}${t[0]==='challenges'&&ladReady()?' 🔴':''}</button>`).join('')+'</div>'}
-function openSheet(n){renderSheet(n);$('menu').classList.add('hidden');$('sheet').classList.remove('hidden');if(n==='ranking')loadCloudRanking()}
+function openSheet(n){renderSheet(n);$('menu').classList.add('hidden');$('sheet').classList.remove('hidden')}
 function bkExport(){try{flushSave()}catch(e){}const d={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ratoSnack')===0&&!/\.(corrupt|bak)$/.test(k))d[k]=localStorage.getItem(k)}}catch(e){}
  if(!Object.keys(d).length){gAlert('Nada para exportar neste navegador.');return}
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'rato_snack',v:15,t:Date.now(),data:d})],{type:'application/json'}));a.download='rato_snack_backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 function bkImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.app!=='rato_snack'||!o.data||typeof o.data!=='object')throw 0;const ks=Object.keys(o.data).filter(k=>k.indexOf('ratoSnack')===0&&typeof o.data[k]==='string'&&!/\.(corrupt|bak)$/.test(k));if(!ks.length)throw 0;gConfirm('Importar o backup? Isso substitui o progresso atual deste aparelho.',()=>{importing=true;for(const k of ks)localStorage.setItem(k,o.data[k]);location.reload()})}catch(e){importing=false;gAlert('Arquivo de backup inválido.')}};r.readAsText(f)};inp.click()}
 function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=act.slice(0,i),v=act.slice(i+1);
+ if(k==='rperiod'&&['best','monthly'].includes(v)){loadRemoteRanking(v);return}
+ if(k==='rankpage'){if(v==='prev'||v==='next')remoteRankPage=Math.max(1,Math.min(5,remoteRankPage+(v==='next'?1:-1)));else if(v.startsWith('page:'))remoteRankPage=Math.max(1,Math.min(5,Number(v.slice(5))||1));drawRemoteRankingPage();return}
  if(k==='color'&&PLAYER_COLORS.includes(v))prefs.color=v;else if(k==='skin'&&SKINS[v]&&owns('skin',v))prefs.skin=v;
  else if(k==='face'&&FACES[v])prefs.face=v;else if(k==='acc'&&ACCS[v]&&owns('acc',v))prefs.acc=v;else if(k==='tail'&&TAILS[v]&&owns('tail',v))prefs.tail=v;else if(k==='tab'&&['cor','corpo','acc','cauda','rato','hat','cloth'].includes(v)){custTab=v;pgState.vis=0;renderSheet(sheetName);return}
  else if(k==='sel'){const[c,id]=v.split(':');if(CAT[c]&&CAT[c][id]){shopCat=c;shopSel=id;pendingBuy='';shopMsg='';renderSheet('shop')}return}
