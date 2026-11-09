@@ -6,6 +6,29 @@
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#121a2e;--line:#2b3855;--txt:#edf2ff;--muted:#aab6ce;--gold:#ffc857;--purple:#9b87ff;--green:#78dfad;--red:#ff8585}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2742 0,#0b1020 55%);color:var(--txt);font:14px system-ui,sans-serif;min-height:100vh}main{width:min(1120px,100%);margin:auto;padding:24px 16px 48px}.top,.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-size:21px;font-weight:950}.brand span{color:var(--gold)}a{color:#c6bbff}.btn,button,input{font:inherit}.btn,button{border:0;border-radius:9px;padding:10px 13px;background:var(--purple);color:#111426;font-weight:850;cursor:pointer;text-decoration:none}.secondary{background:#293753!important;color:var(--txt)!important}button:disabled{opacity:.45;cursor:not-allowed}h1{font-size:clamp(26px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);line-height:1.55}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-top:15px}.notice{padding:13px;border-radius:10px;background:#282313;border:1px solid #665329;color:#ffe3a0;line-height:1.55}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-top:14px}.stat{background:#0e1628;border:1px solid var(--line);border-radius:11px;padding:14px}.stat span{display:block;color:var(--muted);font-size:12px}.stat b{font-size:25px;display:block;margin-top:5px}.field{display:grid;gap:6px;min-width:180px;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:750}.field input{width:100%;background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:11px;min-width:0}.tablewrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:500px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}td input{width:105px;background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:9px}.rank{font-weight:950;color:var(--gold)}.result{font-weight:900;font-variant-numeric:tabular-nums}.good{color:var(--green)}.bad{color:var(--red)}.terms li{margin:9px 0;line-height:1.55}.small{font-size:12px;color:var(--muted);line-height:1.6}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.sourcebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0e1628}.pill{display:inline-block;border-radius:30px;padding:5px 9px;background:#293753;color:#dce5fb;font-size:11px;font-weight:850}
+
+/* Ajustes próprios para telas móveis do portal administrativo */
+@media(max-width:700px){
+ html,body{max-width:100%;overflow-x:hidden}
+ main{width:100%;max-width:100%;padding:12px 10px 28px!important}
+ .top,.row,.toolbar,.filters,.actions,.sourcebar,.pager{gap:8px;flex-wrap:wrap}
+ .panel,.hero{padding:12px!important;border-radius:12px}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ .stat{min-width:0;padding:10px!important}
+ .stat strong,.stat b{font-size:20px!important;overflow-wrap:anywhere}
+ input,select,textarea{box-sizing:border-box;max-width:100%;min-width:0}
+ button,.btn{min-height:40px;max-width:100%;white-space:normal}
+ .table,.tablewrap,.table-wrap,.table-container{width:100%;max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+ table{width:100%;min-width:500px;font-size:11px}
+ th,td{padding:8px 7px!important;overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+ main{padding:9px 7px 22px!important}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .stat strong,.stat b{font-size:18px!important}
+ h1{font-size:23px!important}
+ .panel,.hero{padding:10px!important}
+}
 </style>
 </head>
 <body><div id="gate" style="max-width:760px;margin:12vh auto;padding:24px;background:#121a2e;border:1px solid #2b3855;border-radius:16px;color:#edf2ff;font:15px system-ui,sans-serif;line-height:1.6">Verificando autorização administrativa…</div><main id="app" style="display:none">
