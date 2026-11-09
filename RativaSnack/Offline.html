@@ -333,7 +333,8 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .entry-btn:active{transform:translateY(2px);box-shadow:0 3px 0 #0003}
 .entry-foot{font-size:10px;color:#bdaed1;margin-top:15px}
 @media(orientation:landscape) and (max-height:420px){.entry-card{padding:12px 20px}.entry-logo{font-size:34px;margin-bottom:4px}.entry-card h1{font-size:25px}.entry-card .subtitle{margin:4px auto 10px}.entry-actions{grid-template-columns:repeat(3,1fr);gap:7px}.entry-btn{min-height:68px;padding:8px;gap:5px;flex-direction:column;justify-content:center;text-align:center;font-size:12px}.entry-btn span{font-size:21px}.entry-btn small{font-size:9px}.entry-foot{margin-top:7px}}
-</style></head>
+
+#expandGame{position:fixed;right:12px;top:68px;z-index:99990;width:42px;height:42px;border:1px solid #ffffff55;border-radius:12px;background:#211638dd;color:#fff;font-size:23px;font-weight:900;box-shadow:0 3px 12px #0008;display:none;align-items:center;justify-content:center}body.playing #expandGame{display:flex}#rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){body.playing #rotateNotice{display:flex}}</style></head>
 <body>
 <div class="overlay hidden" id="entryGate" style="display:none!important;position:fixed!important;inset:0!important;z-index:2147483647!important;"><div class="entry-card">
  <div class="entry-logo">🐭🧀</div><h1>RATO SNACK</h1>
@@ -347,7 +348,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
 <div class="pill"><small>Pontuação</small><strong id="score">0</strong></div><div class="pill"><small>Tamanho</small><strong id="size">8</strong></div><div class="pill"><small>Abates</small><strong id="kills">0</strong></div><div class="pill"><small id="timeLbl">Tempo</small><strong id="timeval">0:00</strong></div><div class="pill"><small>Recorde</small><strong id="best">0</strong></div></div></div>
-<div id="goal" class="hidden"><span id="goalT"></span><div class="gbar"><i id="goalB"></i></div></div><div class="tip" id="tip">Arraste o dedo na arena para guiar • segure ⚡ para acelerar 🧀</div><div class="toast hidden" id="toast"></div><div class="bonus hidden" id="bonus"></div><button id="pause" class="hidden">Ⅱ</button><button id="emoteB" class="hidden" aria-label="Emotes">😀</button><div id="emoteW" class="hidden"></div><div id="mini">Coma queijos • Evite ratos e paredes</div></div>
+<div id="goal" class="hidden"><span id="goalT"></span><div class="gbar"><i id="goalB"></i></div></div><div class="tip" id="tip">Arraste o dedo na arena para guiar • segure ⚡ para acelerar 🧀</div><div class="toast hidden" id="toast"></div><div class="bonus hidden" id="bonus"></div><button id="expandGame" class="hidden" type="button" aria-label="Expandir tela" title="Expandir tela" onclick="expandGameScreen()">⛶</button><button id="pause" class="hidden">Ⅱ</button><button id="emoteB" class="hidden" aria-label="Emotes">😀</button><div id="emoteW" class="hidden"></div><div id="mini">Coma queijos • Evite ratos e paredes</div></div>
 
 <div class="overlay hidden" id="menu"><div class="m2">
 <div class="m2top">
@@ -1178,7 +1179,7 @@ function update(dt){
  lbT-=dt;if(lbT<=0){lbT=.4;refreshLb()}
  hudT-=dt;if(hudT<=0){hudT=.1;updateHud()}}
 
-function endGame(kind){if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
+function endGame(kind){document.body.classList.remove('playing');if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
  if(ended)return;if(player.alive)refreshLb();ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));
  const M=MODES[mode];
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
@@ -1210,15 +1211,17 @@ function applyRevenge(){if(!pendingRevenge)return;const r=pendingRevenge;pending
  if(b){b.rival=true;showToast('🎯 Revanche: '+b.name+' está marcado!',3)}}
 
 function startGame0(m){
+ document.body.classList.add('playing');
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
  running=true;paused=false;ended=false;releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
+function expandGameScreen(){try{const el=document.documentElement;if(document.fullscreenElement){if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});return}if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);$('pauseStats').innerHTML=[['Pontos',score],['Tamanho',player.length],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;paused=!paused;if(paused){releaseDrag();player.boostActive=false;fillPause()}$('paused').classList.toggle('hidden',!paused);$('pause').textContent=paused?'▶':'Ⅱ';if(paused)flushSave();syncBoostBtn();syncMusic()}
-function toMenu(){if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
+function toMenu(){document.body.classList.remove('playing');if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
 
 /* ============ Menu, personalização, recordes, ajustes ============ */
 function menuInfo(){ensureOwn();dotsUpdate();$('modeName').textContent=MICON[mode]+' '+MODES[mode].name;$('modeDesc').textContent=MODES[mode].desc+(mode==='daily'?(prog.dcDay===today()?' Hoje: '+prog.dcBest+' pts. Volte amanhã para um novo desafio.':' Disponível hoje: uma tentativa por dia!'):'');$('startBest').textContent='Recorde: '+fmtBest()+' • 🧀 '+eco.cheese;$('bestN').textContent=(mode==='quick'?bestQuick:fmtBest().replace(' pts',''));$('coinN').textContent=eco.cheese;updateHud(true);drawPreview('pvm');menuProg()}
@@ -1488,4 +1491,4 @@ $('game').classList.add('ready');init();menuInfo();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
 })();
-</script></body></html>
+</script><div id="rotateNotice"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>Gire o celular</h2><p>O RativaSnack foi feito para jogar na horizontal. Vire o aparelho para continuar a partida.</p></div></div></body></html>
