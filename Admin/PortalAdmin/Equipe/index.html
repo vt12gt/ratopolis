@@ -48,7 +48,7 @@ h1{font-size:clamp(25px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);li
  const TOKEN_KEY='ratopolis_session_token';
  const $=id=>document.getElementById(id);
  const state={token:'',role:'',permissions:{},users:[]};
- const roles=[['player','Jogador'],['divulgador','Divulgador'],['editor','Editor'],['mod','Moderador'],['gm','Game Master'],['adm','Administrador']];
+ const roles=[['player','Jogador',1],['divulgador','Divulgador',1.25],['editor','Editor',1.5],['locutor','Locutor',1.1],['mod','Moderador',2],['gm','Game Master',3],['adm','Administrador',4]];
  const labels={spadm:'SpAdmin',adm:'ADM',gm:'GM',mod:'Moderador',editor:'Editor',divulgador:'Divulgador',player:'Jogador'};
  function status(msg,kind){$('status').textContent=msg;$('status').style.borderLeftColor=kind==='ok'?'var(--green)':kind==='bad'?'var(--red)':'var(--gold)';}
  async function request(path,options={}){
@@ -59,13 +59,13 @@ h1{font-size:clamp(25px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);li
   if(!response.ok||data.ok===false)throw new Error(data.erro||('Falha HTTP '+response.status));
   return data;
  }
- function canManage(){return state.permissions.manageStaff===true&&(state.role==='spadm'||state.role==='adm');}
+ function canManage(){return state.role==='spadm'||state.role==='adm';}
  function render(){
   $('total').textContent=state.users.length;
   $('staff').textContent=state.users.filter(u=>u.role&&u.role!=='player').length;
   $('myrole').textContent=labels[state.role]||state.role||'—';
   const body=$('rows');body.replaceChildren();
-  const users=state.users.filter(u=>u.role!=='player').sort((a,b)=>(a.nickname||'').localeCompare(b.nickname||''));
+  const users=[...state.users].sort((a,b)=>(a.nickname||'').localeCompare(b.nickname||''));
   if(!users.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='Nenhuma conta de equipe encontrada.';tr.append(td);body.append(tr);return;}
   for(const user of users){
    const tr=document.createElement('tr');
@@ -73,10 +73,10 @@ h1{font-size:clamp(25px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);li
    const id=document.createElement('td');id.textContent=user.id;
    const role=document.createElement('td');const pill=document.createElement('span');pill.className='role';pill.textContent=labels[user.role]||user.role;role.append(pill);
    const action=document.createElement('td');
-   if(canManage()&&user.role!=='spadm'){
+   if(canManage()&&user.role!=='spadm'&&(state.role==='spadm'||({spadm:5,adm:4,gm:3,mod:2,editor:1.5,divulgador:1.25,locutor:1.1,player:1}[user.role]||0)<(state.role==='spadm'?5:4))){
     const wrap=document.createElement('div');wrap.className='action';
     const select=document.createElement('select');select.setAttribute('aria-label','Novo cargo para '+(user.nickname||user.id));
-    for(const [value,label] of roles){const opt=document.createElement('option');opt.value=value;opt.textContent=label;opt.selected=value===user.role;select.append(opt);}
+    for(const [value,label,rank] of roles){if(value==='adm'&&state.role!=='spadm')continue;if(value==='player'||rank<(state.role==='spadm'?5:4)){const opt=document.createElement('option');opt.value=value;opt.textContent=label;opt.selected=value===user.role;select.append(opt);}}
     const btn=document.createElement('button');btn.textContent='Salvar';btn.addEventListener('click',()=>changeRole(user,select.value,btn));
     wrap.append(select,btn);action.append(wrap);
    }else{action.textContent=user.role==='spadm'?'Conta protegida': 'Somente leitura';}
@@ -103,7 +103,7 @@ h1{font-size:clamp(25px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);li
   try{
    const me=await request('/api/admin/me');state.role=String(me.role||'').toLowerCase();state.permissions=me.permissoes||me.permissions||{};
    if(!me.autorizado||me.permissoes?.viewAdminPanel!==true){throw new Error('Esta conta não tem autorização para abrir a administração.');}
-   if(!canManage()){status('Acesso somente leitura. Seu cargo não possui permissão manageStaff.','bad');}
+   if(!canManage()){status('Acesso somente leitura. Somente SpAdmin e ADM podem alterar cargos.','bad');}
    await loadUsers();
   }catch(e){status('Acesso negado ou sessão inválida: '+e.message,'bad');$('rows').innerHTML='<tr><td colspan="4">Não foi possível carregar a equipe.</td></tr>';}
  }
