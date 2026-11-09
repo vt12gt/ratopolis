@@ -82,7 +82,7 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 ## Auditoria ampliada — 2026-11-09
 - Confirmado que RativaSnack compartilha a identidade central: `RativaSnack/server/server.js` usa o Worker central para `/api/login` e `/api/me`; `rato-snack-api-dev` valida `ratopolis_sessions` e `ratopolis_users` no mesmo D1.
 - O módulo Equipe do Admin Geral agora descreve corretamente o escopo global das contas compartilhadas. O painel específico do RativaSnack ainda não existe; a pasta `Admin/RativaSnack` fica reservada para operações próprias do jogo.
-- Worker principal atualizado para `v39.4-audit-radio-coverage` (a rota de consulta permanece `GET /api/admin/audit`): a allowlist da auditoria agora aceita eventos de envio de áudio, atualização da fila e controles da rádio, com checagem da permissão correspondente.
+- Worker principal atualizado para `v39.5-global-role-precedence` (a rota de consulta permanece `GET /api/admin/audit`): a allowlist da auditoria agora aceita eventos de envio de áudio, atualização da fila e controles da rádio, com checagem da permissão correspondente.
 - Worker `ratopolis-radio-stream` atualizado para `v1.1.1-audit-complete`: upload de áudio, alteração da fila, avanço manual, pausa/retomada/repetição/embaralhamento passam a enviar eventos à auditoria central. Renomear/excluir faixas, playlists nomeadas, programação, anúncios, reprodução e locução já tinham registros.
 - `ratopolis-password-admin` já registra redefinições de senha como `admin_password_reset` na mesma tabela central.
 - A moderação da comunidade foi integrada ao D1 central por binding direto do Worker/Durable Object; eventos ficam em fila persistente se a gravação no D1 falhar e são reenviados na limpeza agendada.
@@ -97,3 +97,5 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 - A moderação de chat foi restringida a SpAdmin, ADM e GM, conforme a mensagem de permissão existente; locutor continua podendo publicar avisos, mas não banir ou silenciar.
 - A tela de auditoria agora exibe como alvo o nickname/chave de jogador presente nos detalhes quando o evento não possui `target_user_id` relacional.
 - Feed posts e ações comuns de jogadores não são misturados ao histórico administrativo. O feed continua sendo conteúdo de jogadores, não operação de staff.
+
+- Correção adicional na autenticação central: cargos globais diferentes de `player` prevalecem sobre uma função de locutor da rádio, evitando que ADM/SpAdmin sejam rebaixados ao consultar permissões globais.
