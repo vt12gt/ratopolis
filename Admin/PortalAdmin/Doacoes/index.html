@@ -1,5 +1,28 @@
 <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Doações | Admin RativaGames</title><style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#edf2ff;font:14px system-ui}main{max-width:1150px;margin:auto;padding:22px 14px}.hero,.panel,.stat{background:#121a2e;border:1px solid #2b3855;border-radius:15px;padding:16px;margin:12px 0}.gold{color:#ffc857}.stats,.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.stat strong{display:block;font-size:25px;margin-top:5px}.muted{color:#aab6ce}.table{overflow:auto}table{border-collapse:collapse;width:100%;min-width:500px}td,th{text-align:left;padding:9px;border-bottom:1px solid #2b3855;font-size:12px}th{color:#aab6ce}.money{color:#ffda80;font-weight:bold}input,button{padding:10px;border-radius:9px;border:1px solid #394967;background:#18243a;color:white}button{cursor:pointer;background:#7860d7;font-weight:bold}.status{padding:12px;border-radius:9px;background:#332b18;color:#ffdf91}.event{padding:8px 0;border-bottom:1px solid #2b3855;font-size:12px}a{color:#c7b7ff}
+
+/* Ajustes próprios para telas móveis do portal administrativo */
+@media(max-width:700px){
+ html,body{max-width:100%;overflow-x:hidden}
+ main{width:100%;max-width:100%;padding:12px 10px 28px!important}
+ .top,.row,.toolbar,.filters,.actions,.sourcebar,.pager{gap:8px;flex-wrap:wrap}
+ .panel,.hero{padding:12px!important;border-radius:12px}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ .stat{min-width:0;padding:10px!important}
+ .stat strong,.stat b{font-size:20px!important;overflow-wrap:anywhere}
+ input,select,textarea{box-sizing:border-box;max-width:100%;min-width:0}
+ button,.btn{min-height:40px;max-width:100%;white-space:normal}
+ .table,.tablewrap,.table-wrap,.table-container{width:100%;max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+ table{width:100%;min-width:500px;font-size:11px}
+ th,td{padding:8px 7px!important;overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+ main{padding:9px 7px 22px!important}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .stat strong,.stat b{font-size:18px!important}
+ h1{font-size:23px!important}
+ .panel,.hero{padding:10px!important}
+}
 </style><main><header><b>RATIVA<span class="gold">GAMES</span></b> · <a href="../index.html">Central Admin</a></header>
 <section class="hero"><small class="gold">FINANCEIRO · ÁREA RESTRITA</small><h1>💜 Painel de Doadores</h1><p class="muted">Ranking, pagamentos e auditoria. O ranking considera apenas pagamentos aprovados em BRL. Painel somente leitura para SpAdmin e ADM.</p></section>
 <div id="status" class="status">Validando acesso…</div><section class="stats" id="stats" hidden><div class="stat">Total aprovado<strong id="total">R$ 0,00</strong></div><div class="stat">Pagamentos aprovados<strong id="approved">0</strong></div><div class="stat">Pendentes<strong id="pending">0</strong></div><div class="stat">Recusados<strong id="rejected">0</strong></div></section>
