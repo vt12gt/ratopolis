@@ -23,7 +23,7 @@ export default {async fetch(request,env){
  if(!env.PORTAL_DB||!env.POLIS_DB)return json({ok:false,error:"database_binding_missing"},503,headers);
  const url=new URL(request.url),path=url.pathname.replace(/\/+$/,"")||"/";
  if(request.method==="GET"&&["/","/health","/api/rativapolis/health"].includes(path)){
-  try{const [portal,polis]=await Promise.all([env.PORTAL_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_profiles").first()]);return json({ok:true,service:"rativapolis-api",version:VERSION,environment:"development",identity:"rativa-games-portal",databases:{portal_users:Number(portal?.total||0),polis_users:Number(polis?.total||0),polis_profiles:Number(polis?.total||0)}},200,headers);}catch{return json({ok:false,error:"database_check_failed"},503,headers);}
+  try{const [portal,polis,profiles]=await Promise.all([env.PORTAL_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_profiles").first()]);return json({ok:true,service:"rativapolis-api",version:VERSION,environment:"development",identity:"rativa-games-portal",databases:{portal_users:Number(portal?.total||0),polis_users:Number(polis?.total||0),polis_profiles:Number(profiles?.total||0)}},200,headers);}catch{return json({ok:false,error:"database_check_failed"},503,headers);}
  }
  if(request.method!=="GET")return json({ok:false,error:"method_not_allowed"},405,headers);
  if(path==="/api/rativapolis/rankings"||path==="/api/rativapolis/rankings/level"){
