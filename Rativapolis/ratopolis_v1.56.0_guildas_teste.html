@@ -1041,7 +1041,8 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   "applicationCategory": "Game"
 }
 </script>
-<style id="rpStaffPresenceAnimations">@keyframes rpStaffToastIn{from{opacity:0;transform:translateX(22px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}</style></head>
+<style id="rpStaffPresenceAnimations">@keyframes rpStaffToastIn{from{opacity:0;transform:translateX(22px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}</style><style id="rativa-guild-live-notifications">@keyframes guildToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}#guildLiveToasts>div{pointer-events:none}</style>
+</head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
  <div style="width:min(520px,100%);padding:26px;border:2px solid #d7b84d;border-radius:22px;background:#09251c;box-shadow:0 15px 60px #0009">
@@ -4167,9 +4168,28 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(!r.ok||d.ok===false){const map={portal_authentication_required:'Sua sessão expirou. Entre novamente no RativaGames.',already_in_guild:'Você já pertence a uma guilda.',not_in_guild:'Você ainda não pertence a uma guilda.',invalid_guild_name:'O nome deve ter de 3 a 24 caracteres.',invalid_guild_tag:'A tag deve ter de 3 a 5 letras ou números.',duplicate_or_conflict:'Nome, tag ou ação já utilizada. Confira os dados.',insufficient_cheese:'Você não tem queijo suficiente.',guild_full:'A guilda atingiu o limite de membros.',player_not_found:'Jogador não encontrado. Confira o nickname ou ID.',player_already_in_guild:'Esse jogador já está em uma guilda.',permission_denied:'Seu cargo não permite essa ação.',leader_only:'Somente o líder pode fazer isso.',transfer_leadership_first:'Transfira a liderança antes de sair.',guild_bank_or_permission:'Saldo do banco insuficiente ou permissão negada.',insufficient_guild_bank:'O banco da guilda não tem queijo suficiente.'};throw new Error(map[d.error]||d.error||d.erro||('Falha HTTP '+r.status));}
   return d;
  }
+ let guildSnapshotReady=false;
+ function guildChangeToast(message){
+  let host=document.getElementById('guildLiveToasts');
+  if(!host){host=document.createElement('div');host.id='guildLiveToasts';host.setAttribute('aria-live','polite');host.style.cssText='position:fixed;z-index:13050;right:14px;bottom:18px;display:flex;flex-direction:column;gap:8px;max-width:min(360px,90vw);pointer-events:none';document.body.appendChild(host);}
+  const item=document.createElement('div');item.textContent=message;item.style.cssText='padding:11px 14px;border:1px solid #d9b64f;border-radius:12px;background:#102f23;color:#ffdf7b;box-shadow:0 8px 28px #0009;font:800 12px system-ui;animation:guildToastIn .22s ease-out';host.appendChild(item);while(host.children.length>4)host.firstChild.remove();setTimeout(()=>item.remove(),5200);
+ }
+ function detectGuildChanges(previous,next){
+  if(!guildSnapshotReady||!previous||!next)return;
+  const oldG=previous.guild||{},newG=next.guild||{};
+  if(Number(newG.bank_cheese)>Number(oldG.bank_cheese))guildChangeToast('🧀 O banco da guilda recebeu queijo!');
+  if(Number(newG.xp)>Number(oldG.xp))guildChangeToast('⭐ Sua guilda ganhou experiência!');
+  if(Number(newG.members)>Number(oldG.members))guildChangeToast('👥 Um novo membro entrou na guilda!');
+  const oldInv=new Set((previous.invites||[]).map(x=>String(x.id)));
+  if((next.invites||[]).some(x=>!oldInv.has(String(x.id))))guildChangeToast('📨 Você recebeu um convite de guilda!');
+  const oldDone=new Set((previous.missions||[]).filter(x=>x.status==='completed').map(x=>String(x.id)));
+  if((next.missions||[]).some(x=>x.status==='completed'&&!oldDone.has(String(x.id))))guildChangeToast('🏆 Uma missão coletiva foi concluída!');
+  const oldMembers=new Set((previous.members||[]).map(x=>String(x.public_id)));
+  if((next.members||[]).some(x=>!oldMembers.has(String(x.public_id))))guildChangeToast('🐭 Um jogador entrou para a equipe!');
+ }
  async function load(){
   notice('Sincronizando com o servidor...');
-  try{data=await api('/api/guilds/me');render();notice('Dados sincronizados com o servidor.');}
+  try{const previous=data;const next=await api('/api/guilds/me');detectGuildChanges(previous,next);data=next;guildSnapshotReady=true;render();notice('Dados sincronizados com o servidor.');}
   catch(e){$('guildBody').innerHTML='<div class="guildx-empty">⚠️ '+esc(e.message)+'</div>';notice('Não foi possível carregar a guilda.');}
  }
  function tabs(list){$('guildTabs').innerHTML=list.map(x=>'<button type="button" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join('');}
