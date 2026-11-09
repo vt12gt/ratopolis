@@ -3962,6 +3962,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 #rmNav #rmAchievements{background:linear-gradient(135deg,#287b57,#17543b);color:#fff}
 #rmNav #rmSettings{background:linear-gradient(135deg,#52656c,#34464c);color:#fff}
 #rmNav #rmFriends{background:linear-gradient(135deg,#397c85,#24555e);color:#fff}
+#rmNav #rmRanking{display:flex!important;visibility:visible!important;grid-column:auto;background:linear-gradient(135deg,#bd963d,#80601f);color:#fff!important}
 #rmHome{display:none!important}
 #rmGlobalChat{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:clamp(220px,38vh,390px)!important;max-height:none!important;margin:0!important;display:flex!important;flex-direction:column!important;background:rgba(10,32,24,.25)!important;border:0!important;box-shadow:none!important;min-height:0!important}
 #rmGlobalChat .rm-gchat-log{flex:1!important;min-height:70px!important;max-height:none!important}
@@ -4001,7 +4002,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   });
   const oldTitles=document.getElementById('rmAchievements');
   if(oldTitles)oldTitles.querySelector('.rm-lbl').textContent='CONQUISTAS';
-  ['menuPlay','rmGuild','rmFriends','rmTitles','rmAchievements','rmShop','rmSettings'].forEach(function(id){const b=document.getElementById(id);if(b)nav.appendChild(b);});
+  const rankingButton=document.getElementById('rmRanking');if(rankingButton){rankingButton.classList.remove('legacy-hidden');rankingButton.hidden=false;rankingButton.removeAttribute('aria-hidden');rankingButton.removeAttribute('tabindex');}
+  ['menuPlay','rmGuild','rmFriends','rmRanking','rmTitles','rmAchievements','rmShop','rmSettings'].forEach(function(id){const b=document.getElementById(id);if(b)nav.appendChild(b);});
   // As três abas ficam dentro do painel de chat visível no menu; nenhum chat é escondido por um ancestral .hidden.
   const world=document.getElementById('rmGlobalChat');
   const roomHead=document.getElementById('chatHead'),roomLog=document.getElementById('chatLog'),roomForm=document.getElementById('chatForm');
