@@ -2287,47 +2287,38 @@ document.getElementById('soundBtn').addEventListener('click',()=>{soundEnabled=!
 document.getElementById('musicBtn').addEventListener('click',()=>{musicEnabled=!musicEnabled;try{localStorage.setItem('ratopolis_music_v1959',musicEnabled?'on':'off')}catch(_e){}updateMusicButton();if(musicEnabled){startMusic()}else stopMusic();});updateMusicButton();
 function openTitlesChallenges(fromMenu=false){const panel=document.getElementById('achievements');panel.dataset.fromMenu=fromMenu?'1':'0';document.getElementById('closeAchievements').textContent=fromMenu?'← VOLTAR AO MENU':'← VOLTAR AO JOGO';renderAchievements();panel.classList.remove('hidden');if(fromMenu)document.getElementById('start').classList.add('hidden');}
 document.getElementById('achievementBtn').addEventListener('click',()=>openTitlesChallenges(false));
-/* Retorno do ranking: função global para clique, toque e acessibilidade. */
-window.__rativaCloseRanking=function(event){
- if(event){event.preventDefault();event.stopPropagation();}
- const page=document.getElementById('rankingPage'),menu=document.getElementById('start');
- if(page){page.classList.add('hidden');page.setAttribute('aria-hidden','true');}
- if(menu){menu.classList.remove('hidden');menu.removeAttribute('aria-hidden');}
-};
-document.getElementById('closeRanking').onclick=window.__rativaCloseRanking;
-document.querySelector('#rankingPage .ranking-back-top').onclick=window.__rativaCloseRanking;
+/* Retorno do ranking — correção robusta para toque e clique em Android */
 (function(){
- const page=document.getElementById('rankingPage');if(!page)return;
+ const page=document.getElementById('rankingPage');
+ const menu=document.getElementById('start');
+ if(!page||!menu)return;
+ window.__rativaCloseRanking=function(event){
+  if(event){event.preventDefault();event.stopPropagation();if(event.stopImmediatePropagation)event.stopImmediatePropagation();}
+  page.classList.add('hidden');
+  page.setAttribute('aria-hidden','true');
+  page.style.setProperty('display','none','important');
+  menu.classList.remove('hidden');
+  menu.removeAttribute('aria-hidden');
+  menu.style.removeProperty('display');
+  menu.style.removeProperty('visibility');
+  menu.style.removeProperty('pointer-events');
+  menu.style.setProperty('display','flex','important');
+  menu.style.setProperty('visibility','visible','important');
+  menu.style.setProperty('pointer-events','auto','important');
+ };
  page.querySelectorAll('.ranking-back-top,#closeRanking').forEach(function(button){
-  button.setAttribute('onclick','window.__rativaCloseRanking(event)');
-  button.style.cssText+=';touch-action:manipulation!important;pointer-events:auto!important;position:relative;z-index:2147483000;cursor:pointer';
+  button.type='button';
+  button.style.setProperty('touch-action','manipulation','important');
+  button.style.setProperty('pointer-events','auto','important');
+  button.addEventListener('click',window.__rativaCloseRanking,{capture:true});
   button.addEventListener('touchend',window.__rativaCloseRanking,{capture:true,passive:false});
-  button.addEventListener('pointerup',window.__rativaCloseRanking,{capture:true});
  });
  document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest&&event.target.closest('#rankingPage .ranking-back-top,#rankingPage #closeRanking');
   if(button)window.__rativaCloseRanking(event);
  },true);
-})();
-/* v1.56.0 teste-core — retorno resiliente ao menu em toque/click no Android */
-(function(){
- const page=document.getElementById('rankingPage');
- const menu=document.getElementById('start');
- if(!page||!menu)return;
- function backToMainMenu(){
-   page.classList.add('hidden');
-   page.setAttribute('aria-hidden','true');
-   menu.classList.remove('hidden');
-   menu.removeAttribute('aria-hidden');
- }
- page.querySelectorAll('.ranking-back-top,#closeRanking').forEach(function(button){
-   button.style.touchAction='manipulation';
-   button.style.pointerEvents='auto';
-   button.addEventListener('pointerup',function(e){e.preventDefault();backToMainMenu();},{capture:true});
-   button.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();backToMainMenu();},{capture:true});
- });
- window.addEventListener('keydown',function(e){
-   if(e.key==='Escape'&&!page.classList.contains('hidden'))backToMainMenu();
+ window.addEventListener('keydown',function(event){
+  if(event.key==='Escape'&&!page.classList.contains('hidden'))window.__rativaCloseRanking(event);
  },true);
 })();
 document.getElementById('closeGuild').addEventListener('click',()=>{document.getElementById('guildPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
