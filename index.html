@@ -538,6 +538,8 @@ button:disabled{opacity:.55;cursor:wait}
 'use strict';
 const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const RATIVA_CORE_API='https://rativa-core-dev.juniorgmj69.workers.dev';
+const RATIVA_POLIS_API='https://rativapolis-api-dev.juniorgmj69.workers.dev';
+const RATO_SNACK_API='https://rato-snack-api-dev.juniorgmj69.workers.dev';
 const ADMIN_API = 'https://ratopolis-admin-test.juniorgmj69.workers.dev';
 const ADMIN_PANEL_URL = 'https://vt12gt.github.io/RativaGames/Admin/RativaPolis/ratopolis_admin_v65_3_1_integracao_cenarios_auditoria.html';
 const GAME='https://vt12gt.github.io/RativaGames/ratopolis_v1.56.0.html';
@@ -584,22 +586,26 @@ async function loadThreeGameLevels(){if(!sessionToken||!currentPlayer)return;con
 }
 async function loadPublicGameIds(){
  if(!sessionToken||!currentPlayer)return;
- const polis=$('profilePolisPublicId'),snack=$('profileSnackPublicId');
- if(polis)polis.textContent='ID: consultando…';
- if(snack)snack.textContent='ID: consultando…';
+ const token=sessionToken,polis=$('profilePolisPublicId'),snack=$('profileSnackPublicId');
+ if(polis)polis.textContent='ID: preparando…';
+ if(snack)snack.textContent='ID: preparando…';
+ const headers={Authorization:'Bearer '+token,Accept:'application/json'};
+ const results=await Promise.allSettled([
+  fetch(RATIVA_POLIS_API+'/api/profile',{method:'GET',headers,cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||d.erro||'Falha ao preparar RativaPolis');return d.jogador?.public_id||d.jogador?.id||null;}),
+  fetch(RATO_SNACK_API+'/api/rato-snack/profile',{method:'GET',headers,cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'Falha ao preparar RativaSnack');return d.identity?.public_id||null;})
+ ]);
+ if(polis)polis.textContent=results[0].status==='fulfilled'&&results[0].value?'ID: '+results[0].value:'ID: indisponível no momento';
+ if(snack)snack.textContent=results[1].status==='fulfilled'&&results[1].value?'ID: '+results[1].value:'ID: indisponível no momento';
  try{
-  const response=await fetch(RATIVA_CORE_API+'/api/core/me',{method:'GET',headers:{Authorization:'Bearer '+sessionToken,Accept:'application/json'},cache:'no-store'});
+  const response=await fetch(RATIVA_CORE_API+'/api/core/me',{method:'GET',headers,cache:'no-store'});
   const data=await response.json();
-  if(!response.ok||data.ok===false)throw new Error(data.error||'Falha ao consultar IDs dos jogos');
+  if(!response.ok||data.ok===false)throw new Error(data.error||'Falha ao consultar identidade central');
   const games=data.games||{};
   const rp=games.rativapolis?.public_id||null,rs=games.rativasnack?.public_id||null;
-  if(polis)polis.textContent='ID: '+(rp||'ainda não vinculado');
-  if(snack)snack.textContent='ID: '+(rs||'ainda não vinculado');
+  if(polis)polis.textContent='ID: '+(rp||'indisponível no momento');
+  if(snack)snack.textContent='ID: '+(rs||'indisponível no momento');
   if(data.identity?.public_id){$('profileId').textContent='ID: '+data.identity.public_id;$('profileIdMirror').textContent=data.identity.public_id;}
- }catch{
-  if(polis)polis.textContent='ID: indisponível no momento';
-  if(snack)snack.textContent='ID: indisponível no momento';
- }
+ }catch(error){console.warn('Não foi possível consolidar os IDs dos jogos:',error.message);}
 }
 function resetPersonalProfile(){const form=$('personalProfileForm');if(form)form.reset();['personalFullName','personalBirthDate','personalWhatsapp'].forEach(id=>{const el=$(id);if(el){el.disabled=false;el.readOnly=false}});const status=$('personalProfileStatus');if(status)status.textContent='PREENCHER';const save=$('personalProfileSave');if(save){save.disabled=false;save.textContent='Salvar meus dados'}const hint=$('personalProfileHint');if(hint)hint.textContent='Nome e nascimento ficam bloqueados após o primeiro salvamento. O WhatsApp poderá ser atualizado.';if($('personalProfileMessage'))setStatus('personalProfileMessage','');}
 async function loadPersonalProfile(){if(!sessionToken||!currentPlayer)return;try{const data=await api('/api/profile/personal',{method:'GET',token:sessionToken});const p=data.profile||{};const hasIdentity=!!(p.full_name&&p.birth_date);$('personalFullName').value=p.full_name||'';$('personalBirthDate').value=p.birth_date||'';$('personalWhatsapp').value=p.whatsapp||'';$('personalFullName').readOnly=hasIdentity;$('personalBirthDate').readOnly=hasIdentity;$('personalFullName').disabled=hasIdentity;$('personalBirthDate').disabled=hasIdentity;$('personalWhatsapp').readOnly=false;$('personalWhatsapp').disabled=false;$('personalProfileStatus').textContent=hasIdentity?'IDENTIDADE CONFIRMADA':'PREENCHER';$('personalProfileSave').textContent=hasIdentity?'Atualizar WhatsApp':'Salvar dados pessoais';$('personalProfileHint').textContent=hasIdentity?'Nome completo e nascimento estão bloqueados. Somente o WhatsApp pode ser atualizado.':'Confira seu nome e sua data com atenção: depois de salvar, esses dois dados não poderão ser alterados pelo perfil.';if(hasIdentity){$('personalFullName').title='Dado registrado e bloqueado';$('personalBirthDate').title='Dado registrado e bloqueado';}}catch(error){setStatus('personalProfileMessage','Não foi possível carregar seus dados pessoais: '+error.message,'bad');}}
