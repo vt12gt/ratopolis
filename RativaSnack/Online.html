@@ -941,6 +941,30 @@ const rwReady=()=>{wkEnsure();return WEEK.some((g,i)=>!(prog.wkClaim>>i&1)&&g.v(
 function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,card=(t,v,T,done,act,rw)=>{const r=!done&&v>=T;return {k:rk(r,done),h:`<div class="mc2${r?' rdy':''}"><b>${t}</b><div class="bar"><i style="width:${Math.min(100,Math.round(v/T*100))}%"></i></div><small>${done?'✓ Resgatado':Math.min(v,T)+'/'+T}</small>${r?`<button class="tgs on" data-act="${act}">Resgatar ${rw}</button>`:`<em>${rw}</em>`}</div>`}},
  W=WEEK.map((g,i)=>card(g.n,g.v(),g.t,prog.wkClaim>>i&1,'wkc:'+i,'+'+g.c+' 🧀 +'+g.x+' XP')).sort((a,b)=>a.k-b.k),M=MARCOS.map((m,i)=>card(m.n,m.v(),m.t,prog.mkClaim>>i&1,'mkc:'+i,'+'+m.c+' 🧀'+(m.rat?' + 🐀':''))).sort((a,b)=>a.k-b.k);
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
+/* ===== Integração oficial RativaGames: ranking e doações ===== */
+const RATO_SNACK_API='https://rato-snack-api-dev.juniorgm69.workers.dev';
+const RATIVA_PORTAL='https://vt12gt.github.io/RativaGames/';
+let cloudRankPeriod='best';
+function cloudRankEsc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+async function loadCloudRankList(period,target,statusId){
+ const box=document.getElementById(target),status=document.getElementById(statusId);if(!box)return;
+ box.innerHTML='<p class="note">Carregando…</p>';
+ try{const r=await fetch(RATO_SNACK_API+'/api/rato-snack/leaderboard?period='+encodeURIComponent(period)+'&limit=20',{cache:'no-store'});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'HTTP '+r.status);
+ const players=Array.isArray(d.players)?d.players:[];
+ box.innerHTML=players.length?players.map((p,i)=>'<div class="rkr"><i>'+(i+1)+'º</i><span>'+cloudRankEsc(p.nickname||p.display_name||'Jogador')+' <small>'+Number(p.games_played||p.games_count||0).toLocaleString('pt-BR')+' partidas</small></span><b>'+Number(p.score||p.total_score||0).toLocaleString('pt-BR')+'</b></div>').join(''):'<p class="note">Ainda não há resultados registrados.</p>';
+ if(status)status.textContent=(period==='best'?'Melhor pontuação individual':period==='monthly'?'Ranking mensal':'Ranking permanente')+(d.cycle?' · ciclo '+d.cycle.key:'')+' · '+players.length+' jogador(es)';
+ }catch(e){box.innerHTML='<p class="note">Ranking indisponível: '+cloudRankEsc(e.message)+'</p>';if(status)status.textContent='Não foi possível consultar o ranking.'}
+}
+async function loadCloudRanking(){
+ const list=document.getElementById('cloudRankList');if(!list)return;
+ document.querySelectorAll('[data-act^="cloudrank:"]').forEach(b=>{b.classList.toggle('on',b.dataset.act==='cloudrank:'+cloudRankPeriod)});
+ await loadCloudRankList(cloudRankPeriod,'cloudRankList','cloudRankStatus');
+ await loadCloudRankList('top5','cloudRankTop5','cloudRankStatus');
+}
+async function syncCloudBestScore(){
+ if(!ol.token||!Number.isFinite(Number(bestQuick)))return false;
+ try{const r=await fetch(RATO_SNACK_API+'/api/rato-snack/save',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ol.token},body:JSON.stringify({save:{stats,prog,eco,bestQuick:Number(bestQuick)||0}}),cache:'no-store'});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'HTTP '+r.status);return true}catch(e){console.warn('RativaSnack: falha ao sincronizar recorde',e);return false}
+}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
 const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
 let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,players:[],tries:0,bye:false,view:false};
@@ -1154,7 +1178,7 @@ function endGame(kind){if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole
  const m=mode==='quick'?score:mode==='survival'?gameTime:score,prev=roundPrevBest,isRec=m>prev&&m>0;
  stats.games++;stats.kills+=kills;stats.food+=foodEaten;stats.time+=gameTime;stats.bestSize=Math.max(stats.bestSize,player.length);stats.bestKills=Math.max(stats.bestKills,kills);
  if(mode==='survival'&&isRec)stats.bestTime=gameTime;if(mode==='challenge'&&isRec)stats.bestChallenge=score;if(mode==='quick'&&isRec){bestQuick=score;bestDirty=true}if((mode==='team'||mode==='boss'||mode==='infinite'||mode==='daily')&&isRec)prog.mrec[mode]=score;
- saveStats();flushSave();countRound(kind);
+ saveStats();flushSave();if(mpOnline)syncCloudBestScore();countRound(kind);
  let title='Fim de jogo!',text='';
  if(kind==='win'){title='Vitória! 🏆';text=mode==='boss'?`Você derrotou o Rei Rato em ${fmtTime(gameTime)}!`:mode==='team'?teamTxt('win'):`Você eliminou ${kills} ratos em ${fmtTime(gameTime)}.`}
  else if(kind==='time'){title='Tempo esgotado!';text=mode==='team'?teamTxt('time'):`Você eliminou ${kills} de ${M.goal} ratos.`}
@@ -1233,7 +1257,7 @@ function renderSheet(name){sheetName=name;let h='';
  const st=prog.achR[a0.id]?'🎁 Pronta! Toque em Coletar':prog.ach[a0.id]?'✓ Conquistada':a0.d+(a0.p?' ('+Math.min(a0.t,Math.floor(a0.p()))+'/'+a0.t+')':''),got=ACH.filter(a=>prog.ach[a.id]).length;
  h=`<div class="achw"><div class="achnav"><button data-act="acat:-5" aria-label="Voltar 5 abas">⏪</button><button data-act="acat:-1" aria-label="Aba anterior">◀</button><b>${cn} • ${list.filter(x=>prog.ach[x.id]).length}/${list.length}${catRdy(cn)?' 🔴':''}</b><button data-act="acat:1" aria-label="Próxima aba">▶</button><button data-act="acat:5" aria-label="Avançar 5 abas">⏩</button></div><div class="achg2">${list.map(a=>`<button class="ab${prog.ach[a.id]?' got':''}${prog.achR[a.id]?' rdy':''}${a.id===a0.id?' sel':''}" data-act="asel:${a.id}">${a.i}<i class="tn">${a.no||''}</i></button>`).join('')}</div><div class="achd"><b>${a0.i} ${a0.n}</b><span>${st}</span>${prog.achR[a0.id]?`<button class="tgs on" data-act="acol:${a0.id}">Coletar +${a0.xp} XP +${a0.ch||Math.round(a0.xp/2)} 🧀</button>`:`<span>+${a0.xp} XP</span>`}<small>${got}/${ACH.length} coletadas</small></div></div>`}
  else if(name==='ranking'){const rows=[['⚡ Rápida',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['📏 Tamanho',stats.bestSize],['⚔️ Abates',stats.bestKills],['🔥 Sequência',prog.bestStreak],['🍽️ Comidas',prog.bestFood],['🧀 Queijos',prog.bestCheese]];
-  h=`<div class="fit rk"><div class="rkl"><div class="lbl">Top 5 partidas</div>${prog.top.map((t,i)=>`<div class="rkr${i===0?' f':''}"><i>${i+1}º</i><span>${MICON[t.m]||''} ${MODES[t.m].name}</span><b>${t.s}</b></div>`).join('')||'<p class="note">Jogue para entrar no ranking.</p>'}</div><div class="rkr2"><div class="lbl">Recordes pessoais</div><div class="cells2">${rows.map(r=>`<div><small>${r[0]}</small><b>${r[1]}</b></div>`).join('')}</div></div></div><p class="note">Ranking deste aparelho (não é online).</p>`}
+  h=`<div class="fit rk"><div class="rkl"><div class="lbl">Top 5 partidas deste aparelho</div>${prog.top.map((t,i)=>`<div class="rkr${i===0?' f':''}"><i>${i+1}º</i><span>${MICON[t.m]||''} ${MODES[t.m].name}</span><b>${t.s}</b></div>`).join('')||'<p class="note">Jogue para entrar no ranking.</p>'}</div><div class="rkr2"><div class="lbl">Recordes pessoais</div><div class="cells2">${rows.map(r=>`<div><small>${r[0]}</small><b>${r[1]}</b></div>`).join('')}</div></div></div><div class="rkr2" style="margin-top:12px"><div class="lbl">🏆 Ranking RativaGames · Online</div><div class="seg s"><button data-act="cloudrank:best" class="on">Melhor</button><button data-act="cloudrank:monthly">Mensal</button><button data-act="cloudrank:total">Total</button></div><div id="cloudRankList" class="rank-live-list"><p class="note">Carregando ranking…</p></div><p id="cloudRankStatus" class="note">Classificação oficial da conta RativaGames.</p><div class="lbl" style="margin-top:10px">🏅 Top 5 da apuração</div><div id="cloudRankTop5" class="rank-live-list"><p class="note">Carregando Top 5…</p></div></div><button class="tgs on" style="margin-top:12px;width:100%" data-act="donate:portal">💜 Apoiar a RativaGames · Doações Pix/cartão</button><p class="note">O melhor resultado é sincronizado na conta. Mensal e total consideram partidas online aceitas pelo servidor.</p>`}
  else if(name==='records'){const c=[['Partidas',stats.games],['Eliminações',stats.kills],['Queijos comidos',stats.food],['Tempo total',fmtTime(stats.time)],['Maior tamanho',stats.bestSize],['Máx. abates',stats.bestKills],['Maior sequência',prog.bestStreak],['Rivais especiais',prog.specials],['Nível',lvlInfo(prog.xp).l+' • '+prog.xp+' XP'],['🧀 Saldo',eco.cheese],['🧀 Ganhos',eco.earned],['🧀 Gastos',eco.spent],['⚡ Rápida',bestQuick],['⏳ Sobrev.',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite]];
   h=`<div class="fit cells">${c.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`}
  else if(name==='hist'){h=`<div class="fit hist">${eco.hist.slice(-10).reverse().map(x=>`<div><span>${x.s}</span><b class="${x.d>0?'pos':'neg'}">${x.d>0?'+':''}${x.d}</b><small>→ ${x.b}</small></div>`).join('')||'<p class="note">Nenhuma transação ainda.</p>'}</div>`}
@@ -1253,7 +1277,7 @@ function renderSheet(name){sheetName=name;let h='';
 const GROUP={shop:'loja',items:'loja',skills:'loja',ranking:'rank',records:'rank',hist:'rank',settings:'cfg',controls:'cfg',custom:'cfg',gallery:'cfg',help:'cfg',challenges:'des',missions:'des',events:'des',daily:'des',ach:'des',rewards:'des'};
 const GTABS={loja:[['shop','🎨 Cosméticos'],['items','🛒 Itens'],['skills','🧬 Habilidades']],rank:[['ranking','🏆 Ranking'],['records','📊 Estatísticas'],['hist','🧾 Queijos']],cfg:[['settings','⚙️ Ajustes'],['controls','🕹️ Controles'],['custom','🎨 Visual'],['gallery','🖼️ Galeria'],['help','❓ Ajuda']],des:[['challenges','🎯 Missões'],['events','🌟 Evento'],['daily','🎁 Diária'],['ach','🏅 Conquistas'],['rewards','🗓️ Semana']]};
 function tabBar(n){const g=GROUP[n];if(!g)return '';const cur=n==='missions'?'challenges':n;return '<div class="tabs top">'+GTABS[g].map(t=>`<button class="${t[0]===cur?'on':''}" data-act="go:${t[0]}">${t[1]}${t[0]==='daily'&&dailyAvail()?' •':''}${t[0]==='events'&&(seasReady()||wbReady())?' 🔴':''}${t[0]==='rewards'&&rwReady()?' 🔴':''}${t[0]==='ach'&&achReady()?' 🔴':''}${t[0]==='challenges'&&ladReady()?' 🔴':''}</button>`).join('')+'</div>'}
-function openSheet(n){renderSheet(n);$('menu').classList.add('hidden');$('sheet').classList.remove('hidden')}
+function openSheet(n){renderSheet(n);$('menu').classList.add('hidden');$('sheet').classList.remove('hidden');if(n==='ranking')loadCloudRanking()}
 function bkExport(){try{flushSave()}catch(e){}const d={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ratoSnack')===0&&!/\.(corrupt|bak)$/.test(k))d[k]=localStorage.getItem(k)}}catch(e){}
  if(!Object.keys(d).length){gAlert('Nada para exportar neste navegador.');return}
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'rato_snack',v:15,t:Date.now(),data:d})],{type:'application/json'}));a.download='rato_snack_backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
@@ -1290,7 +1314,7 @@ function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=a
  else if(k==='lc'){ladderClaim(+v);menuInfo();renderSheet(sheetName);return}
  else if(k==='ss'){renderSheet('season');return}
  else if(k==='ssc'){if(ssClaim(+v))sfx('bonus');menuInfo();renderSheet('season');return}
- else if(k==='mp'){mpOpen();return}
+ else if(k==='cloudrank'&&['best','monthly','total'].includes(v)){cloudRankPeriod=v;loadCloudRanking();return}else if(k==='donate'&&v==='portal'){window.open('https://vt12gt.github.io/RativaGames/?open=shop','_blank','noopener');return}else if(k==='mp'){mpOpen();return}
  else if(k==='bk'){if(v==='export')bkExport();else bkImport();return}
  else if(k==='tog'&&(v==='sfx'||v==='music'||v==='fullscreen'||v==='boostLeft'||v==='vib'||v==='stickLeft'||v==='arrows'||v==='bigtxt'||v==='cblind'||v==='autoq')){prefs[v]=!prefs[v];if(v==='bigtxt'||v==='cblind')applyA11y();bb.classList.toggle('left',prefs.boostLeft);if(v==='sfx'||v==='music'){ensureAudio();applyVolumes();if(v==='sfx'&&prefs.sfx)sfx('bonus')}}
  savePrefs();renderSheet(sheetName)}
