@@ -1,4 +1,4 @@
-const VERSION = "v39.4-audit-radio-coverage";
+const VERSION = "v39.5-global-role-precedence";
 const ENVIRONMENT = "development";
 const SESSION_DAYS = 7;
 const PBKDF2_ITERATIONS = 100000;
@@ -252,7 +252,7 @@ export default {
 
       if (path === "/api/players" && method === "GET") {
         etapaAtual = "busca dos jogadores";
-        const result = await env.DB.prepare(`SELECT u.id, u.nickname, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
+        const result = await env.DB.prepare(`SELECT u.id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
         return reply({ ok: true, jogadores: result.results });
       }
 
@@ -932,7 +932,7 @@ export default {
         const actor = await authenticate(request, env);
         if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
         if (ROLE_RANK[actor.role] < ROLE_RANK.mod) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
-        const result = await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, u.created_at, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
+        const result = await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, u.created_at, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
         return reply({ ok: true, jogadores: result.results });
       }
 
@@ -947,7 +947,7 @@ export default {
         if (ROLE_RANK[actor.role] < ROLE_RANK.adm) return reply({ ok: false, erro: "Somente SpAdmin e ADM podem gerenciar cargos." }, 403);
         if (newRole === "spadm") return reply({ ok: false, erro: "O cargo SpAdmin nao pode ser atribuido por esta rota." }, 403);
         if (ROLE_RANK[newRole] >= ROLE_RANK[actor.role]) return reply({ ok: false, erro: "Voce nao pode atribuir um cargo igual ou superior ao seu." }, 403);
-        const target = await env.DB.prepare("SELECT u.id, u.nickname, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE u.id = ? AND u.status = 'active' LIMIT 1").bind(targetId).first();
+        const target = await env.DB.prepare("SELECT u.id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE u.id = ? AND u.status = 'active' LIMIT 1").bind(targetId).first();
         if (!target) return reply({ ok: false, erro: "Jogador ativo nao encontrado." }, 404);
         if (target.role === "spadm") return reply({ ok: false, erro: "O SpAdmin protegido nao pode ser alterado por esta rota." }, 403);
         if (ROLE_RANK[target.role] >= ROLE_RANK[actor.role]) return reply({ ok: false, erro: "Voce nao pode alterar um usuario com cargo igual ou superior ao seu." }, 403);
@@ -1186,7 +1186,7 @@ async function authenticate(request, env) {
   const token = getBearer(request);
   if (!token) return null;
   const tokenHash = await sha256(token);
-  return await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
+  return await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
 }
 function safeJson(value, fallback) { try { return JSON.parse(value); } catch { return fallback; } }
 function getBearer(request) {
