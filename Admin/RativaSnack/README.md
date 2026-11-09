@@ -1,7 +1,7 @@
 # Administração do RativaSnack
 
-Na revisão atual do repositório não foi localizado um painel administrativo próprio do RativaSnack.
+Na revisão atual não foi localizado um painel administrativo próprio do RativaSnack. Esta pasta fica reservada para as ferramentas específicas do jogo, como partidas, estatísticas, ranking, recompensas e moderação.
 
-Esta pasta fica reservada para o futuro painel do jogo. Quando ele existir, deverá conter somente ferramentas específicas do RativaSnack, como partidas, estatísticas, ranking, recompensas e moderação do próprio jogo.
+**Integração confirmada:** o servidor Node do RativaSnack encaminha login e validação de sessão para o Worker central do RativaPolis. A API do RativaSnack também consulta ratopolis_sessions e ratopolis_users no mesmo D1. Assim, contas e identidade são compartilhadas com a RativaGames e os cargos globais são administrados em Admin/PortalAdmin/Equipe.
 
-Não reutilizar nem copiar o painel RativaPolis como se fosse um painel RativaSnack. A autenticação compartilhada e as permissões globais deverão ser integradas ao Admin Geral da RativaGames.
+Não copiar o painel RativaPolis como se fosse um painel RativaSnack. Quando houver operações administrativas próprias do Snack, elas deverão ter endpoints autorizados no servidor e registrar os eventos na auditoria central antes de serem expostas no painel Admin/RativaSnack.
