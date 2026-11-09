@@ -980,7 +980,10 @@ function olFinishDeathExit(){
  mpOnline=false;mpPending=false;try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=mpPC=null;
  for(const c of mpConns){try{if(c.dc)c.dc.close();if(c.pc)c.pc.close()}catch(_){}}
  mpConns.length=0;mpSlots.length=0;mpRole=null;
- olBeginLeave(()=>{try{olHome()}catch(e){onlineServerOnly=true;mpBox('<div class="ol-screen"><div class="ol-mark">🐭🌐</div><h2>LOBBY ONLINE</h2><p>Você saiu da partida. Reconecte para continuar.</p>'+mpB('Voltar ao Lobby','olHome()')+'</div>')}});
+ // Envia a saída ao servidor, mas não prende a navegação esperando o ACK.
+ // O Lobby é aberto imediatamente; a confirmação/limpeza do socket acontece em segundo plano.
+ try{olBeginLeave()}catch(e){olFinalizeLeave()}
+ try{olHome()}catch(e){onlineServerOnly=true;mpBox('<div class="ol-screen"><div class="ol-mark">🐭🌐</div><h2>LOBBY ONLINE</h2><p>Você saiu da partida. A conexão da sala está sendo encerrada.</p>'+mpB('Voltar ao Lobby','olHome()')+'</div>')}
 }
 /* ---- telas ---- */
 const olIn=(id,ph,t)=>`<input id="${id}" type="${t||'text'}" placeholder="${ph}" autocomplete="off" autocapitalize="off" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid #7f5fd0;background:#1b1140;color:#fff;font-size:14px;box-sizing:border-box">`,olBack=mpB('Voltar','mpHome()','background:#5b2f48;color:#fff'),olVal=id=>{const e=mpEl(id);return e?String(e.value||'').trim():''};
