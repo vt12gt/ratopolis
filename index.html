@@ -335,7 +335,7 @@ button:disabled{opacity:.55;cursor:wait}
 </script>
 </head>
 <body>
-<header class="topbar"><div class="topinner"><div class="brand"><div class="logo">🐭</div><div>RATIVA GAMES<small>PORTAL OFICIAL</small></div></div><div class="top-actions"><button class="pill donation-total-pill" type="button" onclick="go('shop')" title="Total fictício de doações — demonstração">💜 Doações: R$ 1.250,00 <span aria-hidden="true">· DEMO</span></button><span class="pill connection-pill" id="connectionPill">PORTAL</span><button class="ghost" onclick="go('account')" id="topAccount">Entrar</button></div></div></header>
+<header class="topbar"><div class="topinner"><div class="brand"><div class="logo">🐭</div><div>RATIVA GAMES<small>PORTAL OFICIAL</small></div></div><div class="top-actions"><button class="pill donation-total-pill" type="button" onclick="go('shop')" title="Total fictício de doações — demonstração" id="donationTopTotal">💜 Doações: R$ 1.250,00 · DEMO</button><span class="pill connection-pill" id="connectionPill">PORTAL</span><button class="ghost" onclick="go('account')" id="topAccount">Entrar</button></div></div></header>
 <div class="radio-dock" aria-label="Rádio Rativa Games">
  <button class="radio-disc radio-open-trigger" type="button" onclick="openRadioWindow()" aria-label="Abrir rádio">♫</button><button class="radio-info radio-open-trigger" type="button" onclick="openRadioWindow()" style="border:0;background:none;color:inherit;text-align:left;padding:0"><b>RÁDIO RATIVA GAMES</b><small id="radioTrack">Nossa programação está sendo preparada</small></button>
  <div class="radio-controls"><button id="radioPlay" type="button" onclick="toggleRadio()" title="Ativar rádio" disabled>▶ Ouvir</button><button id="radioRequestOpenButton" type="button" onclick="openListenerRadioRequest()" title="Pedir uma música">🎵 Pedir</button><input id="radioVolume" type="range" min="0" max="1" step=".05" value=".7" aria-label="Volume da rádio"><audio id="radioAudio" preload="none"></audio><audio id="radioLiveAudio" autoplay playsinline></audio></div>
@@ -382,7 +382,7 @@ button:disabled{opacity:.55;cursor:wait}
 <div class="actions" style="margin-top:14px"><button class="primary" onclick="go('account')" id="profileLoginBtn">Entrar / criar conta</button><button class="goldbtn play-cta hidden" onclick="playGame()" id="profilePlayBtn">▶ JOGAR</button><button class="primary hidden" onclick="openAdminPanel()" id="adminPanelBtn">🛡️ Painel administrativo</button><button class="goldbtn hidden" onclick="openRadioAdmin()" id="radioAdminBtn">♫ Administração da rádio</button>
 <button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div><div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div></div></section>
 <section id="shop" class="page"><div class="section-head"><div><h2>💜 Apoie a RativaGames</h2><p>Sua contribuição ajuda a manter o projeto vivo e a construir novidades.</p></div><span class="tag goldtag">Doação voluntária</span></div>
- <article class="card"><div class="donation-hero-total" aria-label="Total fictício de doações: mil duzentos e cinquenta reais"><span>💜 TOTAL DE DOAÇÕES · DEMONSTRAÇÃO</span><strong>R$ 1.250,00</strong><small>VALOR SIMULADO · NÃO REPRESENTA DINHEIRO RECEBIDO</small></div><h3>Escolha como deseja contribuir</h3><p>Queremos facilitar o apoio à RativaGames. As opções previstas são Pix e cartão, com confirmação segura e registro vinculado à sua conta.</p><div class="grid" style="margin-top:12px"><div class="card" style="background:#100d1d"><div class="itememoji">⚡</div><h3>Doar com Pix</h3><p>Pagamento rápido, direto pelo aplicativo do seu banco.</p><button class="primary" id="donatePixBtn" type="button" onclick="requireDonationLogin('Pix')">Entrar para doar com Pix</button></div><div class="card" style="background:#100d1d"><div class="itememoji">💳</div><h3>Doar com cartão</h3><p>Contribua usando cartão por meio de um provedor de pagamento seguro.</p><button class="primary" id="donateCardBtn" type="button" onclick="requireDonationLogin('cartão')">Entrar para doar com cartão</button></div></div><div class="notice">🔐 Para contribuir, é necessário entrar na sua conta RativaGames. Depois do login, as opções de Pix e cartão ficam vinculadas à sua conta. Os pagamentos ainda estão em preparação e serão liberados quando a integração segura estiver pronta. Não envie dinheiro por fora do portal.</div></article>
+ <article class="card"><div class="donation-hero-total" aria-label="Total fictício de doações: mil duzentos e cinquenta reais"><span>💜 TOTAL DE DOAÇÕES · DEMONSTRAÇÃO</span><strong id="donationHeroAmount">R$ 1.250,00</strong><small>VALOR SIMULADO · NÃO REPRESENTA DINHEIRO RECEBIDO</small></div><h3>Escolha como deseja contribuir</h3><p>Queremos facilitar o apoio à RativaGames. As opções previstas são Pix e cartão, com confirmação segura e registro vinculado à sua conta.</p><div class="grid" style="margin-top:12px"><div class="card" style="background:#100d1d"><div class="itememoji">⚡</div><h3>Doar com Pix</h3><p>Pagamento rápido, direto pelo aplicativo do seu banco.</p><button class="primary" id="donatePixBtn" type="button" onclick="requireDonationLogin('Pix')">Entrar para doar com Pix</button></div><div class="card" style="background:#100d1d"><div class="itememoji">💳</div><h3>Doar com cartão</h3><p>Contribua usando cartão por meio de um provedor de pagamento seguro.</p><button class="primary" id="donateCardBtn" type="button" onclick="requireDonationLogin('cartão')">Entrar para doar com cartão</button></div></div><div class="notice">🔐 Para contribuir, é necessário entrar na sua conta RativaGames. Depois do login, as opções de Pix e cartão ficam vinculadas à sua conta. Os pagamentos ainda estão em preparação e serão liberados quando a integração segura estiver pronta. Não envie dinheiro por fora do portal.</div></article>
  <div class="section-head"><div><h2>Por que fazer uma doação?</h2><p>O apoio é voluntário e ajuda a comunidade inteira.</p></div></div>
  <div class="grid">
   <article class="card"><div class="itememoji">🖥️</div><h3>Manter os servidores</h3><p>Contribuir com os custos de hospedagem, banco de dados, conexão e infraestrutura necessária para os jogos e o portal funcionarem.</p></article>
@@ -394,15 +394,15 @@ button:disabled{opacity:.55;cursor:wait}
  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3 style="margin:0;color:#ffe18a">📊 Painel de auditoria financeira</h3><span style="display:inline-block;padding:5px 9px;border-radius:8px;background:#704d1c;color:#fff0b5;font-size:10px;font-weight:950;letter-spacing:.5px">DADOS FICTÍCIOS · DEMONSTRAÇÃO</span></div>
  <p style="margin:8px 0 12px;color:#e3d8ef">Prévia visual de como a prestação de contas poderá funcionar. Nenhum valor abaixo representa doação recebida, saldo bancário ou pagamento realizado.</p>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px">
-  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Total simulado recebido</small><strong style="display:block;color:#ffe18a;font-size:23px">R$ 1.250,00</strong></div>
-  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Fundo de premiação (60%)</small><strong style="display:block;color:#d6a5ff;font-size:23px">R$ 750,00</strong></div>
-  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Projeto e infraestrutura (40%)</small><strong style="display:block;color:#7df0bd;font-size:23px">R$ 500,00</strong></div>
+  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Total simulado recebido</small><strong id="donationAuditTotal" style="display:block;color:#ffe18a;font-size:23px">R$ 1.250,00</strong></div>
+  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Fundo de premiação (60%)</small><strong id="donationPrizeFund" style="display:block;color:#d6a5ff;font-size:23px">R$ 750,00</strong></div>
+  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Projeto e infraestrutura (40%)</small><strong id="donationProjectFund" style="display:block;color:#7df0bd;font-size:23px">R$ 500,00</strong></div>
  </div>
- <h4 style="margin:15px 0 7px;color:#fff">Histórico semanal de exemplo</h4>
+ <h4 style="margin:15px 0 7px;color:#fff">Histórico semanal de exemplo</h4><p style="margin:0 0 9px;color:#bdb0d5;font-size:11px">Última atualização demonstrativa: <strong id="donationAuditUpdated">08/11/2026</strong></p>
  <div style="display:grid;gap:8px">
-  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 1</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:61.5%;height:100%;background:#a66bff;border-radius:9px"></span></span><b>R$ 320,00</b></div>
-  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 2</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:78.8%;height:100%;background:#a66bff;border-radius:9px"></span></span><b>R$ 410,00</b></div>
-  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 3</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:100%;height:100%;background:#a66bff;border-radius:9px"></span></span><b>R$ 520,00</b></div>
+  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 1</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:61.5%;height:100%;background:#a66bff;border-radius:9px"></span></span><b id="donationWeek1">R$ 320,00</b></div>
+  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 2</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:78.8%;height:100%;background:#a66bff;border-radius:9px"></span></span><b id="donationWeek2">R$ 410,00</b></div>
+  <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;align-items:center;gap:8px;font-size:11px"><span>Semana 3</span><span style="height:9px;background:#38294d;border-radius:9px;overflow:hidden"><span style="display:block;width:100%;height:100%;background:#a66bff;border-radius:9px"></span></span><b id="donationWeek3">R$ 520,00</b></div>
  </div>
  <h4 style="margin:15px 0 7px;color:#fff">Simulação de distribuição do fundo de premiação</h4>
  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:#cdb9e4;text-align:left"><th style="padding:7px;border-bottom:1px solid #493064">Posição</th><th style="padding:7px;border-bottom:1px solid #493064">Percentual</th><th style="padding:7px;border-bottom:1px solid #493064;text-align:right">Valor fictício</th></tr></thead><tbody>
@@ -787,6 +787,33 @@ $('radioVolume').addEventListener('input',e=>{$('radioAudio').volume=Number(e.ta
 loadLiveRankings();setInterval(loadLiveRankings,15000);configureRadio();
 communitySessionRestore.finally(()=>{connectCommunityChat();if(sessionToken&&currentPlayer){refreshGamePresence();gamePresenceTimer=setInterval(refreshGamePresence,15000)}});
 
+</script>
+
+<script id="rativaDonationDemoSync">
+/* Fonte única dos números fictícios. Substituir por endpoint seguro após integração financeira. */
+(function(){
+ const demo = {
+  total:1250,
+  prizePercent:60,
+  projectPercent:40,
+  weeks:[320,410,520],
+  updatedAt:'08/11/2026'
+ };
+ const money = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
+ const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+ const prize = demo.total * demo.prizePercent / 100;
+ const project = demo.total * demo.projectPercent / 100;
+ setText('donationTopTotal','💜 Doações: '+money(demo.total)+' · DEMO');
+ setText('donationHeroAmount',money(demo.total));
+ setText('donationAuditTotal',money(demo.total));
+ setText('donationPrizeFund',money(prize));
+ setText('donationProjectFund',money(project));
+ setText('donationAuditUpdated',demo.updatedAt);
+ demo.weeks.forEach((amount,index)=>setText('donationWeek'+(index+1),money(amount)));
+ const bars=document.querySelectorAll('#donationAuditDemo .donation-week-bar');
+ const max=Math.max.apply(null,demo.weeks);
+ bars.forEach((bar,index)=>bar.style.width=(max?demo.weeks[index]/max*100:0)+'%');
+})();
 </script>
 </body>
 </html>
