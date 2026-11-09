@@ -194,3 +194,10 @@ O deploy foi aceito e o Worker mantém os bindings existentes: `PORTAL_DB` → `
 Após o deploy v2, foi executado um teste isolado diretamente na D1 Polis de desenvolvimento usando uma conta temporária e um evento de teste. O batch de concessão criou exatamente um evento, creditou 22 XP e 10 moedas e gravou uma linha de auditoria. A repetição do mesmo `event_id` não inseriu outro evento nem alterou o saldo (permaneceu em 22 XP e 10 moedas). A conta temporária, o perfil, o evento e a auditoria de teste foram removidos ao final. As consultas `EXPLAIN` das três instruções SQL também foram aceitas pelo D1.
 
 Limitação remanescente: não foi possível chamar o domínio público `workers.dev` a partir deste ambiente; a requisição foi bloqueada antes de alcançar o Worker. Portanto, ainda falta o smoke test HTTP com bearer real para validar a integração Portal → Worker → D1, respostas 401/201/409/429 e CORS no navegador. A cópia de teste do cliente permanece pendente até esse teste externo.
+
+
+### Cliente isolado de teste do Core Rativapolis
+
+Foi criada na branch de integração a cópia `Rativapolis/ratopolis_v1.56.0_teste_core.html`, derivada do cliente oficial `ratopolis_v1.56.0.html`. A única alteração funcional no HTML é a constante `PROGRESSION_API`, que aponta para `https://rativapolis-api-dev.juniorgmj69.workers.dev`. O endpoint de autenticação/Portal `/api/me`, a leitura de sessão e as demais APIs legadas foram preservadas. O HTML oficial na raiz não foi alterado.
+
+A cópia ainda não foi publicada no Pages nem testada com bearer real: as chamadas ao domínio `workers.dev` originadas deste ambiente são bloqueadas antes de chegar ao Worker. Para concluir o smoke test autenticado, abrir a cópia em uma origem autorizada (GitHub Pages `https://vt12gt.github.io`, após disponibilização da branch) com sessão válida do Portal e conferir leitura de progresso, concessão, repetição idempotente, rejeição de sessão inválida e limite diário. Não publicar nem trocar o cliente oficial até a conclusão desses testes.
