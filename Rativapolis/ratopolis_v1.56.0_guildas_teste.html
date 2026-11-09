@@ -4198,7 +4198,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   $('guildBody').innerHTML=invites.length?'<div class="guildx-list">'+invites.map(i=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(i.emblem||'🛡️')+' '+esc(i.name)+' ['+esc(i.tag)+']</strong><small>Convidado por '+esc(i.inviter)+' · expira '+esc(i.expires_at)+'</small></div><button class="guildx-btn" data-action="invite-accept" data-id="'+esc(i.id)+'">ACEITAR</button><button class="guildx-btn secondary" data-action="invite-decline" data-id="'+esc(i.id)+'">RECUSAR</button></div>').join('')+'</div>':empty('Nenhum convite pendente.');
  }
  async function loadExplore(q=''){
-  try{const d=await api('/api/guilds/search?q='+encodeURIComponent(q));exploreData=d.guilds||[];renderExplore();}
+  try{const d=await api('/api/guilds/search?q='+encodeURIComponent(q));exploreData=d.guilds||[];if(tab==='explore')renderExplore();}
   catch(e){notice(e.message);}
  }
  function renderExplore(){
@@ -4239,7 +4239,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  function renderSettings(){
   const g=data.guild,leader=g.my_role==='leader';
-  $('guildBody').innerHTML='<div class="guildx-card"><h3>📣 Mural da guilda</h3><form id="guildBulletinForm" class="guildx-form"><textarea id="guildBulletin" maxlength="220" placeholder="Comunicado para os membros">'+esc(g.bulletin||'')+'</textarea><button class="guildx-btn" '+(['leader','vice','general','officer'].includes(g.my_role)?'':'disabled')+'>SALVAR MURAL</button></form></div>'+(leader?'<div class="guildx-card"><h3>👑 Transferir liderança</h3><p>O atual líder passa a ser vice-líder.</p><form id="guildTransferForm" class="guildx-form"><select id="guildTransferTarget" class="guildx-field">'+(data.members||[]).filter(m=>m.role!=='leader').map(m=>'<option value="'+esc(m.public_id)+'">'+esc(m.nickname)+' · '+esc(m.role)+'</option>').join('')+'</select><button class="guildx-btn secondary">TRANSFERIR</button></form></div><div class="guildx-card"><h3>⚠️ Encerrar guilda</h3><p>Esta ação fecha a guilda e remove todos os vínculos de membros. O histórico financeiro permanece registrado.</p>'+btn('ENCERRAR GUILDA','close-guild','danger')+'</div>':'')+'<div class="guildx-card"><h3>🚪 Sair da guilda</h3><p>Se você for líder, transfira a liderança antes de sair quando houver outros membros.</p>'+btn('SAIR DA GUILDA','leave-guild','danger')+'</div>';
+  $('guildBody').innerHTML='<div class="guildx-card"><h3>📣 Mural da guilda</h3><form id="guildBulletinForm" class="guildx-form"><textarea id="guildBulletin" maxlength="220" placeholder="Comunicado para os membros">'+esc(g.bulletin||'')+'</textarea><button class="guildx-btn" '+(['leader','vice','general','officer'].includes(g.my_role)?'':'disabled')+'>SALVAR MURAL</button></form></div>'+(leader?'<div class="guildx-card"><h3>👑 Transferir liderança</h3><p>O atual líder passa a ser vice-líder.</p><form id="guildTransferForm" class="guildx-form"><select id="guildTransferTarget" class="guildx-field">'+(data.members||[]).filter(m=>m.role!=='leader').map(m=>'<option value="'+esc(m.public_id)+'">'+esc(m.nickname)+' · '+esc(m.role)+'</option>').join('')+'</select><button class="guildx-btn secondary">TRANSFERIR</button></form></div><div class="guildx-card"><h3>⚠️ Encerrar guilda</h3><p>Esta ação fecha a guilda e remove todos os vínculos de membros. O histórico financeiro permanece registrado.</p>'+btn('ENCERRAR GUILDA','close-guild','danger')+'</div>':'')+'<div class="guildx-card"><h3>🚪 Sair da guilda</h3><p>Se você for líder, transfira a liderança antes de sair quando houver outros membros.</p>'+btn('SAIR DA GUILDA','leave-guild','danger')+'</div>'+'<div class="guildx-card"><h3>📜 Histórico de administração</h3>'+((data.audit||[]).length?data.audit.map(a=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(a.actor)+' · '+esc(a.action)+'</strong><small>'+esc(a.target||'')+' · '+esc(a.details_json||'{}')+' · '+esc(a.created_at)+'</small></div></div>').join(''):empty('Nenhuma ação administrativa registrada.'))+'</div>';
  }
  async function refresh(){await load();}
  async function postAndRefresh(path,body,message){
@@ -4277,7 +4277,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(trigger){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();return;}
   if(e.target.closest('#guildBackTop')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();close();return;}
  },true);
- setInterval(function(){if(!page.classList.contains("hidden")&&document.visibilityState==="visible")load();},15000);
+ setInterval(function(){if(!page.classList.contains("hidden")&&document.visibilityState==="visible"&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))load();},15000);
  window.RativaGuilds={open,refresh:load};
 })();
 </script>
