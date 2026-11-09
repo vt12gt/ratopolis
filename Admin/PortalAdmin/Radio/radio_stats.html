@@ -3,6 +3,29 @@
 <style>
 :root{color-scheme:dark;--bg:#090611;--panel:#171027;--purple:#bd69ff;--gold:#ffd86b;--text:#fffaff;--muted:#bdb0d5;--line:#493064;--green:#71f5c0}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -18%,#51217b 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}.wrap{max-width:1100px;margin:auto;padding:22px 16px 60px}header{border-bottom:1px solid var(--line);background:#100d1df2;padding:14px 18px}.top{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.btn{border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:#251638;color:white;font-weight:800;text-decoration:none}.card{background:linear-gradient(145deg,#211438,#171027);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.metric{font-size:34px;font-weight:950;color:var(--gold)}.muted{color:var(--muted);font-size:12px}.chart{height:240px;width:100%;display:block}.error{color:#ff9bac}@media(max-width:650px){.grid{grid-template-columns:1fr}.metric{font-size:28px}}
+
+/* Ajustes próprios para telas móveis do portal administrativo */
+@media(max-width:700px){
+ html,body{max-width:100%;overflow-x:hidden}
+ main{width:100%;max-width:100%;padding:12px 10px 28px!important}
+ .top,.row,.toolbar,.filters,.actions,.sourcebar,.pager{gap:8px;flex-wrap:wrap}
+ .panel,.hero{padding:12px!important;border-radius:12px}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ .stat{min-width:0;padding:10px!important}
+ .stat strong,.stat b{font-size:20px!important;overflow-wrap:anywhere}
+ input,select,textarea{box-sizing:border-box;max-width:100%;min-width:0}
+ button,.btn{min-height:40px;max-width:100%;white-space:normal}
+ .table,.tablewrap,.table-wrap,.table-container{width:100%;max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+ table{width:100%;min-width:500px;font-size:11px}
+ th,td{padding:8px 7px!important;overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+ main{padding:9px 7px 22px!important}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .stat strong,.stat b{font-size:18px!important}
+ h1{font-size:23px!important}
+ .panel,.hero{padding:10px!important}
+}
 </style></head><body>
 <header><div class="top"><b>📊 ESTATÍSTICAS · RÁDIO RATÓPOLIS</b><a class="btn" href="radio_admin.html">Voltar ao estúdio</a></div></header>
 <main class="wrap"><h1>Relatório de audiência</h1><p class="muted">A contagem considera visitantes que apertaram Play e mantêm a rádio reproduzindo. Ouvintes são considerados ativos por até 90 segundos após o último sinal.</p>
