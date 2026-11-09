@@ -1286,7 +1286,7 @@ async function loadRemoteRanking(period){
   const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
   const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
-  remoteRankPlayers=Array.isArray(data.players)?data.players:[];
+  remoteRankPlayers=Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[];remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||String(a.nickname||a.display_name||a.public_id||'').localeCompare(String(b.nickname||b.display_name||b.public_id||''),'pt-BR'));
   if(meta&&remoteRankPeriod==='monthly'&&data.cycle&&data.cycle.key){const a=data.cycle.key.split('-');meta.textContent='Ciclo mensal: '+a[1]+'/'+a[0]+' • zera no próximo mês'}
   drawRemoteRankingPage();
  }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
