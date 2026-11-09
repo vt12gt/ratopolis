@@ -1,0 +1,22 @@
+name: Keep RativaSnack realtime server awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Ping Render health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl --silent --show-error --location --max-time 25 --output /tmp/rativasnack-health.json --write-out '%{http_code}' 'https://rato-snack-multiplayer.onrender.com/health')"
+          test "$status" = "200"
+          grep -q '"ok":true' /tmp/rativasnack-health.json
