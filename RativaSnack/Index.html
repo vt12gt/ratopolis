@@ -118,7 +118,8 @@ document.getElementById('goOnline').addEventListener('click',async e=>{
  const next='Online.html#ratopolis_token='+encodeURIComponent(portalToken)+'&ratopolis_nick='+encodeURIComponent(portalNick);
  location.href=next;
 });
-document.getElementById('goOffline').addEventListener('click',()=>{});\ndocument.getElementById('checkAuth').addEventListener('click',()=>{if(!portalToken){status('🔒 Conta não autenticada. Entre no Portal RativaGames para jogar Online.');return}if(onlineReady){status('🟢 Conta autenticada: '+(portalNick||'Jogador')+'.',true);return}validateConnection()});
+document.getElementById('goOffline').addEventListener('click',()=>{});
+document.getElementById('checkAuth').addEventListener('click',()=>{if(!portalToken){status('🔒 Conta não autenticada. Entre no Portal RativaGames para jogar Online.');return}if(onlineReady){status('🟢 Conta autenticada: '+(portalNick||'Jogador')+'.',true);return}validateConnection()});
 if(portalToken)validateConnection();
 else status('🟡 Sem sessão conectada. Você pode jogar Offline; para jogar Online, entre na sua conta RativaGames.');
 addEventListener('online',()=>{if(!portalToken){try{portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||''}catch(e){}}if(portalToken)validateConnection()});
