@@ -4209,7 +4209,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const API='https://rativapolis-api-dev.juniorgmj69.workers.dev';
  const page=document.getElementById('guildPage');if(!page||page.dataset.guildLive==='1')return;page.dataset.guildLive='1';
  page.innerHTML='<div class="guildx-modal"><header class="guildx-head"><div><div class="guildx-kicker">RATIVAPOLIS · COMUNIDADE</div><h2>🛡️ Guildas de Rativa</h2><p>Construa sua guilda, contribua com queijo e evolua em equipe.</p></div><button type="button" id="guildBackTop" class="guildx-close" aria-label="Fechar">×</button></header><div id="guildNotice" class="guildx-notice" aria-live="polite"></div><nav id="guildTabs" class="guildx-tabs"></nav><section id="guildBody" class="guildx-body"><div class="guildx-empty">Carregando guildas...</div></section></div>';
- let data=null,tab='overview',rankingPage=1,rankingData=[],exploreData=[],noticeTimer=null,membersExpanded=false,transactionsExpanded=false,donationPendingKey=null;
+ let data=null,tab='overview',rankingPage=1,rankingData=[],exploreData=[],noticeTimer=null,membersExpanded=false,transactionsExpanded=false,donationPendingKey=null,donationPendingAmount=null;
  const $=id=>document.getElementById(id);
  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const fmt=v=>Math.max(0,Number(v)||0).toLocaleString('pt-BR');
@@ -4343,8 +4343,9 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(form.id==='guildInviteForm'){await postAndRefresh('/api/guilds/invite',{player:$('guildInvitePlayer').value},'Convite enviado.');tab='members';}
   if(form.id==='guildDonateForm'){
    const submit=form.querySelector('button[type="submit"],button:not([type])');if(submit?.disabled)return;if(submit)submit.disabled=true;
-   donationPendingKey=donationPendingKey||key();
-   try{await api('/api/guilds/donate','POST',{amount:Number($('guildDonateAmount').value),idempotency_key:donationPendingKey});donationPendingKey=null;notice('Doação confirmada! Queijo enviado ao banco e CP atualizado.');await load();}
+   const amount=Number($('guildDonateAmount').value);if(donationPendingKey&&donationPendingAmount!==amount)donationPendingKey=null;
+   donationPendingKey=donationPendingKey||key();donationPendingAmount=amount;
+   try{await api('/api/guilds/donate','POST',{amount,idempotency_key:donationPendingKey});donationPendingKey=null;donationPendingAmount=null;notice('Doação confirmada! Queijo enviado ao banco e CP atualizado.');await load();}
    catch(err){notice(err.message+' · Se tentar novamente, a mesma operação será protegida.');}
    finally{if(submit)submit.disabled=false;tab='bank';}
   }
