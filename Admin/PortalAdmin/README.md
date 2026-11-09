@@ -1,21 +1,22 @@
 # Administração do Portal RativaGames
 
-Este diretório é a entrada do Admin Geral e reúne os módulos administrativos compartilhados do portal.
+Este diretório é a entrada do Admin Geral e reúne os módulos administrativos compartilhados da plataforma.
 
 ## Entrada
 
-- `index.html`: central de acesso aos módulos gerais atualmente disponíveis.
+- `index.html`: central de acesso aos módulos gerais.
+
+## Módulos
+
+- `Equipe/index.html`: gestão de cargos da base global de contas, compartilhada por RativaPolis e RativaSnack.
+- `Auditoria/index.html`: consulta somente leitura do histórico administrativo central, com filtros e paginação.
 - `Radio/radio_admin.html`: painel de controle da rádio.
 - `Radio/radio_stats.html`: estatísticas e relatório de audiência.
 
-## Módulos disponíveis\n\n- `Equipe/index.html`: consulta de contas da equipe e alteração de cargos via Worker administrativo existente, com validação no servidor e auditoria de mudanças de cargo.\n\n## Migração do painel legado
+## Auditoria e segurança
 
-O painel administrativo antigo do RativaPolis reúne funções compartilhadas e funções específicas do jogo no mesmo HTML. A separação está sendo feita por etapas, sem remover o painel legado antes de testar cada substituição.
+Os serviços centrais, rádio e comunidade gravam eventos administrativos na tabela `ratopolis_audit_logs`. A consulta é exclusiva de SpAdmin e ADM. A interface não oferece edição ou exclusão dos registros; as permissões de cada operação são validadas no servidor.
 
-O mapa de responsabilidades está em [SEPARACAO_PAINES.md](./SEPARACAO_PAINES.md).
+A migração do painel legado é feita por etapas. Telas locais/demo não são tratadas como operações reais e não devem ser removidas até existir substituto conectado ao servidor e testado.
 
-**Importante:** a central de entrada não substitui autenticação nem autorização no servidor. Gestão global de contas, equipe, permissões e auditoria só será considerada migrada quando os módulos e endpoints correspondentes estiverem funcionando e testados aqui.
-
-O portal público único continua sendo o `index.html` da raiz do repositório.
-
-- `Auditoria/index.html`: consulta somente leitura do histórico do banco; rota protegida por SpAdmin/ADM.
+O mapa de responsabilidades está em [SEPARACAO_PAINES.md](./SEPARACAO_PAINES.md). O portal público único continua sendo o `index.html` da raiz do repositório.
