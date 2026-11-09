@@ -874,7 +874,7 @@ function mpMk(o){const g=Array.isArray(o.g)?o.g:[],sg=[];for(let i=0;i+1<g.lengt
 function mpApply(m){if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==ARENA){ARENA=ARENAS[m.ar];OBS=ARENA.o.map(a=>({x:a[0]*worldW,y:a[1]*worldH,w:a[2]*worldW,h:a[3]*worldH,k:a[4]}))}
  if(!m.me)return;const me=mpMk(m.me);me.isBot=false;const os=(Array.isArray(m.o)?m.o:[]).slice(0,16).map(mpMk);player=me;bots=os;snakes=[me,...os];
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
- gameTime=mpN(m.t);score=Number.isFinite(+m.sc)?Math.max(0,+m.sc):me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
+ gameTime=mpN(m.gt??m.t);score=Number.isFinite(+m.sc)?Math.max(0,+m.sc):me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
 function mpClientTick(dt){if(!player)return;const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
  if(pointer.down&&pointer.hasDirection)mpAng=Math.atan2(pointer.dirY,pointer.dirX);
  mpAcc+=dt;if(mpAcc>=.05){mpAcc=0;const control={a:+mpAng.toFixed(3),b:boostHold&&!paused&&!resumeCountdown?1:0,p:!!(paused||resumeCountdown>0)};if(mpServerAuthoritative)olSend({t:'input',...control});else if(mpDC&&mpDC.readyState==='open')mpDC.send(JSON.stringify(control))}
