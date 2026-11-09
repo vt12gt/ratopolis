@@ -74,7 +74,7 @@ function loadAvatars(){if(!canReview())return;try{ask('get_avatar_queue')}catch(
 function loadReports(){if(!canReview())return;try{ask('get_avatar_reports')}catch(e){status(e.message,'bad')}}
 async function init(){state.token=localStorage.getItem(TOKEN_KEY)||'';if(!state.token){status('Nenhuma sessão encontrada. Entre no portal com uma conta autorizada e abra este módulo novamente.','bad');return}
 try{const me=await api('/api/admin/me');state.role=String(me.role||me.papel||'').toLowerCase();$('role').textContent=state.role.toUpperCase()||'—';if(!['spadm','adm','gm','mod','locutor'].includes(state.role))throw new Error('Seu cargo não possui acesso ao módulo de comunidade.');if(!canModerate()&&state.role!=='locutor'&&state.role!=='mod')throw new Error('Acesso não autorizado.');
-if(!canModerate())document.querySelector('[data-tab="members"]').classList.add('hidden');
+if(!canModerate()&&state.role!=='mod')document.querySelector('[data-tab="members"]').classList.add('hidden');
 if(!['spadm','adm','gm','locutor'].includes(state.role))document.querySelector('[data-tab="bans"]').classList.add('hidden');
 if(!canReview())document.querySelector('[data-tab="avatars"]').classList.add('hidden');
 if(!canReview())document.querySelector('[data-tab="reports"]').classList.add('hidden');
