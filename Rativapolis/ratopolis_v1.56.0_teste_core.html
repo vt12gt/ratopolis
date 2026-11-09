@@ -4039,6 +4039,34 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+
+<style id="rativapolis-chat-menu-visibility-fix">
+/* Correção definitiva: o container query antigo escondia o chat em menus baixos,
+   situação comum no celular em modo paisagem. */
+#start:not(.hidden) #rmGlobalChat{
+ display:flex!important;
+ visibility:visible!important;
+ opacity:1!important;
+ position:relative!important;
+ width:100%!important;
+ height:clamp(145px,32vh,270px)!important;
+ min-height:135px!important;
+ max-height:none!important;
+ flex:0 0 auto!important;
+ overflow:hidden!important;
+ margin:8px 0 4px!important;
+}
+#start:not(.hidden) #rmGlobalChat #rpChatTabs,
+#start:not(.hidden) #rmGlobalChat #rpChatWorldTab,
+#start:not(.hidden) #rmGlobalChat #rpChatRoomTab,
+#start:not(.hidden) #rmGlobalChat #rpChatTocaTab{
+ visibility:visible!important;
+}
+#start:not(.hidden) #rmGlobalChat .rm-gchat-log{min-height:45px!important}
+@container rm (max-height:280px){
+ #start:not(.hidden) #rmGlobalChat{display:flex!important;min-height:125px!important;height:125px!important;max-height:none!important}
+}
+</style>
 </body></html>
 
 <style>
