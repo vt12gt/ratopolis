@@ -318,23 +318,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 @media(max-width:420px){.donation-funds{grid-template-columns:1fr}.donation-methods button{font-size:10px}.rank-two-column .online-rank-row{padding:5px 3px}.rank-two-column .online-rank-row b{font-size:10px}}
 
 /* v83 — contenção do ranking e doações compactas em telas horizontais */
-#sheet .panel.wide{display:flex;flex-direction:column;overflow:hidden;min-height:0}
-#sheetBody{display:flex!important;flex-direction:column!important;min-height:0!important;overflow:hidden!important;gap:5px!important}
-#sheetBody>.tabs.top{flex:none}
-#sheetBody>.fit{flex:1 1 auto;min-height:0!important;max-height:100%;overflow:hidden!important}
-#sheetBody>.rkfull{display:grid!important;grid-template-rows:minmax(0,1fr) auto;gap:5px;align-content:stretch}
-#sheetBody>.rkfull>.online-rank{display:flex;flex-direction:column;min-height:0;max-height:100%;overflow:hidden;padding:6px;gap:4px}
-#sheetBody .online-rank-list.rank-two-column{flex:1 1 auto;min-height:0!important;height:100%;max-height:none!important;overflow:hidden!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:repeat(5,minmax(0,1fr))!important;grid-auto-flow:column!important;gap:4px!important;align-content:stretch}
-#sheetBody .rank-two-column .online-rank-row{display:grid!important;grid-template-columns:20px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important;align-items:center;min-height:0!important;height:100%;max-height:100%;overflow:hidden;padding:3px 4px!important;gap:0 4px!important;font-size:10px!important}
-#sheetBody .rank-two-column .online-rank-row i{grid-row:1/3;grid-column:1;font-size:10px}
-#sheetBody .rank-two-column .online-rank-row b{grid-column:2;grid-row:1;min-width:0;max-width:100%;font-size:10px!important;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#sheetBody .rank-two-column .online-rank-row span{grid-column:2;grid-row:2;font-size:9px!important;line-height:1.1;text-align:left;white-space:nowrap}
-#sheetBody .rank-two-column .online-rank-row small{display:none!important}
-#sheetBody .rank-pager{flex:none;padding:2px;min-height:30px;gap:5px}
-#sheetBody .rank-pager button{min-height:26px;padding:3px 9px}
-#sheetBody .rank-pager b{font-size:10px}
-#sheetBody>.rkfull+.note{display:none!important}
-#sheetBody>.rkfull .portal-rank-link{margin:0!important;padding:6px!important;min-height:30px}
 #sheetBody>.donation-sheet{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:6px!important;overflow:hidden!important;max-height:100%!important;height:100%;padding:0 2px 2px!important;align-content:stretch}
 #sheetBody .donation-total{grid-column:1;grid-row:1;padding:8px 10px!important;margin:0!important;gap:2px}
 #sheetBody .donation-total small{font-size:9px}
@@ -365,7 +348,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #sheetBody .donation-weeks strong{font-size:8px}
 #sheetBody .donation-disclaimer{font-size:8px;line-height:1.15;margin-top:4px;padding:4px}
 @media(max-height:430px){
- #sheet .panel.wide{padding:7px 10px!important}
  #sheetBody>.donation-sheet{gap:4px!important}
  #sheetBody .donation-info{padding:5px!important}
  #sheetBody .donation-reasons article{padding:3px!important}
@@ -1360,7 +1342,7 @@ function shopDraw(){drawPreview('pvs',{[shopCat]:shopSel});for(const id in CAT[s
 function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,id))return '';if(it[3])return '🔒 Item exclusivo de nível.';if(Date.now()<buyLock)return '⏳ Aguarde...';if(eco.cheese<it[1])return '🧀 Faltam '+(it[1]-eco.cheese)+' queijos.';buyLock=Date.now()+600;
  if(!spend(it[1],'Loja: '+it[0],()=>{eco.own[c][id]=1;prefs[c]=id}))return '🧀 Saldo insuficiente.';savePrefs();return '✅ '+it[0]+' é seu e já está equipado!'}
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
-let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[];
+let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[],remoteRankUpdatedAt='';
 function drawRemoteRankingPage(){
  const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10,pages=5;
  if(!list)return;
@@ -1383,7 +1365,7 @@ function drawRemoteRankingPage(){
   pager.replaceChildren();
   for(let n=1;n<=5;n++){const b=document.createElement('button');b.className='tgs'+(remoteRankPage===n?' on':'');b.textContent=String(n);b.dataset.act='rankpage:page:'+n;b.setAttribute('aria-label','Página '+n);pager.append(b);}
  }
- if(meta)meta.textContent=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • 5 páginas de 10';
+ if(meta){const base=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • 5 páginas de 10';const stamp=remoteRankPeriod==='monthly'&&remoteRankUpdatedAt?' • atualizada '+new Date(remoteRankUpdatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' (Brasília) • a cada 2 dias':'';meta.textContent=base+stamp;}
 }
 async function loadRemoteRanking(period){
  remoteRankPeriod=period==='monthly'?'monthly':'best';remoteRankPage=1;
@@ -1395,7 +1377,7 @@ async function loadRemoteRanking(period){
   const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
   remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
-  if(meta&&remoteRankPeriod==='monthly'&&data.cycle&&data.cycle.key){const a=data.cycle.key.split('-');meta.textContent='Ciclo mensal: '+a[1]+'/'+a[0]+' • zera no próximo mês'}
+  remoteRankUpdatedAt=remoteRankPeriod==='monthly'&&data.updated_at?data.updated_at:'';
   drawRemoteRankingPage();
  }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
 }
