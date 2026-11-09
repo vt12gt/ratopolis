@@ -1057,7 +1057,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   <button id="menuMyHome" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
   <button id="menuMiniGame" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
   <button id="rmFriends" class="rm-btn" type="button"><span class="rm-ico">👥</span><span class="rm-lbl">AMIGOS</span></button>
-  <button id="rmRanking" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🏆</span><span class="rm-lbl">RANKING</span></button>
+  <button id="rmRanking" class="rm-btn" type="button"><span class="rm-ico">🏆</span><span class="rm-lbl">RANKING</span></button>
   <button id="rmAchievements" class="rm-btn" type="button"><span class="rm-ico">🏅</span><span class="rm-lbl">CONQUISTAS</span></button>
   <button id="rmSettings" class="rm-btn" type="button"><span class="rm-ico">⚙️</span><span class="rm-lbl">CONFIGURAÇÕES</span></button>
  </nav>
@@ -3951,8 +3951,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 
 
 <style id="rativapolis-rebrand-v1561">
-#menuMyHome,#menuMiniGame,#rmRanking,#menuRooms,#homeVIP,#gameVIPBtn,#hudVip,#vipMiniGame,#rmVip,.rm-vip,.vip-panel{display:none!important}
-#rmNav .rm-btn.legacy-hidden{display:none!important}
+#menuMyHome,#menuMiniGame,#menuRooms,#homeVIP,#gameVIPBtn,#hudVip,#vipMiniGame,#rmVip,.rm-vip,.vip-panel{display:none!important}
+#rmNav .rm-btn.legacy-hidden:not(#rmRanking){display:none!important}
 #rmNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #rmNav #menuPlay{grid-column:1/-1}
 #rmNav .rm-btn{min-width:0}
