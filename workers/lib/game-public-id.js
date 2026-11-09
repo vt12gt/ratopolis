@@ -1,6 +1,6 @@
 const ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
-function randomSuffix(length = 7) {
+function randomSuffix(length = 5) {
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
   let out = "";
