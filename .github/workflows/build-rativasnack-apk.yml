@@ -1,0 +1,58 @@
+name: Build RativaSnack APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'RativaSnack/Index.html'
+      - 'RativaSnack/android/**'
+      - '.github/workflows/build-rativasnack-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/android-sdk:36
+      options: --user root
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Verify Android tools
+        run: |
+          java -version
+          sdkmanager --version
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Package current game Index.html inside APK
+        run: |
+          mkdir -p RativaSnack/android/app/src/main/assets/www
+          cp RativaSnack/Index.html RativaSnack/android/app/src/main/assets/www/index.html
+          test -s RativaSnack/android/app/src/main/assets/www/index.html
+
+      - name: Build debug APK
+        working-directory: RativaSnack/android
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RativaSnack-APK
+          path: RativaSnack/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
