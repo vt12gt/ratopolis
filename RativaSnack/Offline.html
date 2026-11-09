@@ -522,9 +522,9 @@ if(!MODES[prefs.mode])prefs.mode='quick';
 if(!(prefs.turn>=0&&prefs.turn<TURNS.length))prefs.turn=1;
 const validObj=t=>!!parseObj(t);
 const savePrefs=()=>writeKey('ratoSnackPrefs',JSON.stringify(prefs),validObj);
-const saveStats=()=>writeKey('ratoSnackStats',JSON.stringify(stats),validObj);
+const saveStats=()=>{const ok=writeKey('ratoSnackStats',JSON.stringify(stats),validObj);if(ok)SYNC.push({type:'stats'});return ok};
 // Recorde da partida rápida: marcado como pendente e gravado em pausa, fim, ocultar, pagehide e a cada 5 s (evita gravar a cada ponto).
-function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
+function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(bestDirty)bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9));SYNC.flush()}
 
 /* ===== CONFIGURAÇÃO ÚNICA de habilidades (11 níveis), loja e opções ===== */
 const SKILL_CFG={max:11,cost:{base:30,growth:1.35},list:{
@@ -549,7 +549,7 @@ function loadEco(){const o=readObj('ratoSnackEco')||{},e={cheese:numOk(o.cheese,
  if(!o.own){const eq={skin:prefs.skin,acc:prefs.acc,tail:prefs.tail};for(const c in eq)if(CAT[c][eq[c]])e.own[c][eq[c]]=1} // quem já usava um item mantém esse item
  return e}
 const eco=loadEco();
-const saveEco=()=>{ecoDirty=!writeKey('ratoSnackEco',JSON.stringify(eco),validObj)};
+const saveEco=()=>{ecoDirty=!writeKey('ratoSnackEco',JSON.stringify(eco),validObj);if(!ecoDirty)SYNC.push({type:'eco'})};
 function pushHist(d,src){eco.hist.push({t:Date.now(),d,s:src,b:eco.cheese});if(eco.hist.length>60)eco.hist.shift()}
 const GS={comida:1,poder:1,'eliminação':1,'rei da arena':1,'Rei Queijo':1,Tanque:1};let gRem=0;
 function earn(n,src){if((mode==='treino'||mpOnline||mpRole==='client')&&running&&!ended)return 0;if(bossDown&&bossWinT>0&&src==='comida'){n*=3;if(wbRun)wbPtsAdd(20)}const E=evtOf();if(src==='comida'&&E.id==='queijo')n*=2;if(src==='eliminação'&&E.id==='cacada')n*=2;if(src==='poder'&&E.id==='tesouro')n*=3;if(E.id==='cacadaouro'&&(src==='Rei Queijo'||src==='rei da arena'))n*=3;if(GS[src]&&running&&!ended){const v=n*DIFFS[prefs.diff].gain+gRem;n=Math.floor(v);gRem=v-n}else n=Math.floor(n);if(!(n>0))return 0;eco.cheese=Math.min(ECO_MAX,eco.cheese+n);eco.earned+=n;roundEarn[src]=(roundEarn[src]||0)+n;ecoDirty=true;return n}
@@ -569,9 +569,94 @@ async function mirrorIDB(force){const now=Date.now();if(!force&&now-idbT<3000)re
 async function restoreIDB(){try{if(HAD_SAVE)return;if(sessionStorage.getItem('ratoRestored'))return;
  const d=await idbOpen();if(!d)return;const rq=d.transaction('s').objectStore('s').get('snap');rq.onsuccess=()=>{d.close();const sn=rq.result;if(!sn||typeof sn!=='object'||!sn.ratoSnackStats)return;for(const k of SAVE_KEYS)if(typeof sn[k]==='string')try{localStorage.setItem(k,sn[k])}catch(e){}try{sessionStorage.setItem('ratoRestored','1')}catch(e){}location.reload()};rq.onerror=()=>d.close()}catch(e){}}
 restoreIDB();
-/* Sincronização futura com o Ratópolis: DESATIVADA. Sem rede, sem login. Ao ativar no futuro: enviar só eventos {id único, tipo, valor},
-   o servidor ignora ids repetidos (idempotente) e mantém o progresso mais recente. */
-const SYNC={enabled:false,endpoint:null,queue:[],push(){return false},flush(){return false}};
+/* Sincronização do progresso offline com a conta RativaGames.
+   O jogo continua salvando localmente; a nuvem só é atualizada quando a sessão é válida. */
+const SYNC=(()=>{
+ const endpoint='https://rato-snack-multiplayer.onrender.com';
+ const tokenKey='ratopolis_session_token',baseKey='ratoSnackSyncBaseV1';
+ let timer=0,busy=false,pending=false,lastNotice=0;
+ const clone=o=>JSON.parse(JSON.stringify(o||{}));
+ const readBase=()=>{try{return JSON.parse(localStorage.getItem(baseKey)||'null')}catch(e){return null}};
+ const writeBase=o=>{try{localStorage.setItem(baseKey,JSON.stringify(o))}catch(e){}};
+ const sumKeys=new Set(['games','kills','food','time','earned','spent','specials','wins','evDone','dcPlays','xp','cheese']);
+ function mergeNode(local,remote,base,path){
+  if(typeof local==='number'&&Number.isFinite(local)&&typeof remote==='number'&&Number.isFinite(remote)){
+   if(sumKeys.has(path)){
+    if(!base||typeof base!=='number')return Math.max(local,remote);
+    return Math.max(0,remote+Math.max(0,local-base));
+   }
+   return Math.max(local,remote);
+  }
+  if(typeof local==='boolean'||typeof remote==='boolean')return !!local||!!remote;
+  if(Array.isArray(local)||Array.isArray(remote)){
+   const la=Array.isArray(local)?local:[],ra=Array.isArray(remote)?remote:[];
+   if(path==='spk'||path==='bkv'){
+    const ba=Array.isArray(base)?base:[];
+    return Array.from({length:Math.max(la.length,ra.length,ba.length)},(_,i)=>{
+     const l=Number(la[i])||0,r=Number(ra[i])||0,b=Number(ba[i])||0;
+     return base?Math.max(0,r+Math.max(0,l-b)):Math.max(l,r);
+    });
+   }
+   if(path==='mTier')return Array.from({length:Math.max(la.length,ra.length)},(_,i)=>Math.max(Number(la[i])||0,Number(ra[i])||0));
+   const all=[...ra,...la],seen=new Set(),out=[];
+   for(const item of all){let key;try{key=JSON.stringify(item)}catch(e){continue}if(!seen.has(key)){seen.add(key);out.push(item)}}
+   if(path==='top')return out.sort((a,b)=>(Number(b&&b.s)||0)-(Number(a&&a.s)||0)).slice(0,5);
+   if(path==='xpLog'||path==='hist'||path==='evHist'||path==='wbHist')return out.slice(-200);
+   if(path==='missions'){
+    const by=new Map();for(const m of out){if(!m||!m.id)continue;const k=String(m.id)+':'+String(m.v||'');const p=by.get(k);if(!p)by.set(k,clone(m));else{p.p=Math.max(Number(p.p)||0,Number(m.p)||0);p.d=p.d||m.d?1:0;p.c=p.c||m.c?1:0}}
+    return Array.from(by.values()).slice(0,3);
+   }
+   return out.slice(-Math.max(la.length,ra.length,20));
+  }
+  if(local&&typeof local==='object'||remote&&typeof remote==='object'){
+   const l=local&&typeof local==='object'?local:{},r=remote&&typeof remote==='object'?remote:{},b=base&&typeof base==='object'?base:{},out={};
+   for(const k of new Set([...Object.keys(r),...Object.keys(l)])){
+    if(l[k]===undefined){out[k]=clone(r[k]);continue}
+    if(r[k]===undefined){out[k]=clone(l[k]);continue}
+    out[k]=mergeNode(l[k],r[k],b[k],k);
+   }
+   return out;
+  }
+  return local===undefined?remote:(remote===undefined?local:(local||remote));
+ }
+ function snapshot(){return{stats,prog,eco,bestQuick:Math.max(0,Number(bestQuick)||0)}}
+ function applySave(save){
+  if(save&&save.stats)Object.assign(stats,save.stats);
+  if(save&&save.prog)Object.assign(prog,save.prog);
+  if(save&&save.eco)Object.assign(eco,save.eco);
+  if(save&&Number.isFinite(Number(save.bestQuick)))bestQuick=Math.max(0,Math.min(1e9,Math.floor(Number(save.bestQuick))));
+  try{writeKey('ratoSnackStats',JSON.stringify(stats),validObj);writeKey('ratoSnackProg',JSON.stringify(prog),validObj);writeKey('ratoSnackEco',JSON.stringify(eco),validObj);writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9));mirrorIDB(true)}catch(e){}
+ }
+ async function run(){
+  if(busy||!pending||navigator.onLine===false)return false;
+  let token='';try{token=localStorage.getItem(tokenKey)||''}catch(e){}
+  if(!token)return false;
+  busy=true;pending=false;
+  try{
+   const headers={Authorization:'Bearer '+token,Accept:'application/json','Content-Type':'application/json'};
+   const meRes=await fetch(endpoint+'/api/me',{headers,cache:'no-store'});
+   if(meRes.status===401||meRes.status===403){pending=true;return false}
+   if(!meRes.ok)throw new Error('account_check_failed');
+   const [cloudRes]=await Promise.all([fetch(endpoint+'/api/rato-snack/save',{headers,cache:'no-store'})]);
+   if(!cloudRes.ok)throw new Error('cloud_read_failed');
+   const cloud=await cloudRes.json(),remote=cloud&&cloud.save&&typeof cloud.save==='object'?cloud.save:{};
+   const local=snapshot(),base=readBase();
+   const merged=mergeNode(local,remote,base,'root');
+   merged.bestQuick=Math.max(Number(local.bestQuick)||0,Number(remote.bestQuick)||0);
+   const saveRes=await fetch(endpoint+'/api/rato-snack/save',{method:'POST',headers,body:JSON.stringify({save:merged})});
+   const result=await saveRes.json().catch(()=>({}));
+   if(!saveRes.ok||!result.saved)throw new Error(result.error||'cloud_save_failed');
+   applySave(merged);writeBase(merged);
+   if(Date.now()-lastNotice>60000){lastNotice=Date.now();if(typeof showToast==='function')showToast('☁️ Progresso sincronizado com sua conta RativaGames!',3)}
+   return true;
+  }catch(e){pending=true;console.warn('RativaSnack: sincronização pendente',e);return false}
+  finally{busy=false;if(pending&&navigator.onLine!==false){clearTimeout(timer);timer=setTimeout(run,8000)}}
+ }
+ function push(){pending=true;if(navigator.onLine!==false){clearTimeout(timer);timer=setTimeout(run,1800)}}
+ function flush(){if(!pending)pending=true;clearTimeout(timer);if(navigator.onLine!==false)timer=setTimeout(run,250)}
+ addEventListener('online',()=>{if(pending)flush();else push()});
+ return{enabled:true,endpoint,queue:[],push,flush};
+})();
 
 function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[0]+a[1]*(L-1)}
 const skillCost=L=>Math.round(SKILL_CFG.cost.base*Math.pow(SKILL_CFG.cost.growth,L-1));
@@ -631,7 +716,7 @@ function ensureOwn(){let ch=false;const L=lvlInfo(prog.xp).l,DF={skin:'liso',acc
  for(const c in DF)if(!eco.own[c][prefs[c]]){prefs[c]=DF[c];ch=true}
  if(ch){ecoDirty=true;savePrefs()}}
 ensureOwn();
-const saveProg=()=>writeKey('ratoSnackProg',JSON.stringify(prog),validObj);
+const saveProg=()=>{const ok=writeKey('ratoSnackProg',JSON.stringify(prog),validObj);if(ok)SYNC.push({type:'progress'});return ok};
 const today=()=>Math.max(dayNum(),prog.lastDay); // relógio voltando nunca reabre recompensa
 function lvlInfo(xp){let lo=1,hi=LV_MAX;while(lo<hi){const m=(lo+hi+1)>>1;if(XP_TAB[m]<=xp)lo=m;else hi=m-1}return lo>=LV_MAX?{l:LV_MAX,cur:0,need:0,max:true}:{l:lo,cur:xp-XP_TAB[lo],need:xpNeed(lo)}}
 function addXp(n){const L0=lvlInfo(prog.xp).l;XP.grant(n,'jogo');const L1=lvlInfo(prog.xp).l;if(prog.lvlRw===undefined)prog.lvlRw=L0;let g=0;while(prog.lvlRw<L1&&g++<50){prog.lvlRw++;const r=10+Math.min(prog.lvlRw,100)*2+(prog.lvlRw%10===0?100:0);earn(r,'nível');showToast('🆙 Nível '+prog.lvlRw+'! +'+r+' 🧀',3)}}
@@ -1516,7 +1601,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventLis
 $('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;startGame(mode)};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=togglePause;$('resume').onclick=togglePause;$('restart').onclick=()=>startGame(mode);$('quit').onclick=toMenu;
 addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key&&e.key.toLowerCase()==='p'))togglePause()});
 document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidden){flushSave();if(running&&!paused&&player.alive)togglePause();try{if(ac)ac.suspend()}catch(e){}}else{try{if(ac&&prefs.music||ac&&prefs.sfx)ac.resume()}catch(e){}}syncMusic()});
-addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
+addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave();else if(SYNC.enabled)SYNC.flush()},5000);
 
 $('game').classList.add('ready');init();menuInfo();requestAnimationFrame(frame);startGame('quick');
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
