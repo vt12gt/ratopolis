@@ -1,0 +1,59 @@
+# Sistema de Guildas — RativaPolis
+
+## Implantação de desenvolvimento
+
+- API: `https://rativapolis-api-dev.juniorgmj69.workers.dev`
+- Worker: `rativapolis-api-dev-v5-guild-system`
+- Banco: `rativapolis-dev-isolated` (binding `POLIS_DB`)
+- Identidade: sessão do portal RativaGames; jogador vinculado por `game_users`.
+- Economia: saldo existente em `ratopolis_profiles.coins`; a interface o apresenta como queijo.
+- Cliente de teste: `Rativapolis/ratopolis_v1.56.0_guildas_teste.html`.
+
+## Rotas
+
+### GET
+- `/api/guilds/me` — perfil da guilda, membros, convites, solicitações, missões, extrato, doadores, loja e conquistas.
+- `/api/guilds/ranking?page=1&limit=20` — ranking global.
+- `/api/guilds/search?q=` — pesquisa de guildas.
+
+### POST
+- `/api/guilds/create`
+- `/api/guilds/apply`
+- `/api/guilds/application/respond`
+- `/api/guilds/invite`
+- `/api/guilds/invite/respond`
+- `/api/guilds/member/role`
+- `/api/guilds/member/remove`
+- `/api/guilds/leave`
+- `/api/guilds/transfer`
+- `/api/guilds/close`
+- `/api/guilds/donate`
+- `/api/guilds/bank/withdraw`
+- `/api/guilds/shop/buy`
+- `/api/guilds/bulletin`
+
+Todas as rotas privadas exigem o token de sessão do portal.
+
+## Regras atuais
+
+- Níveis 1–50; 1.000 XP acumulados por nível.
+- Limite inicial de 30 membros; +5 vagas a cada 5 níveis, até 80.
+- Doações descontam o queijo pessoal e creditam o banco na mesma operação D1.
+- Doações usam chave de idempotência; XP de doação tem limite diário de 250 por membro.
+- Missões diárias: 5 fases, 10 queijos coletados e 25 bolotas entregues.
+- Missão semanal: arrecadar 1.000 queijos.
+- Missões recebem progresso de eventos de fases validadas pelo servidor.
+- Conquistas são liberadas automaticamente por níveis e marcos de doações.
+- Saques do banco: líder e vice-líder; o valor retorna ao saldo pessoal de queijo.
+- Compras da loja são debitadas do banco e ficam registradas no patrimônio da guilda.
+
+## Limites desta primeira versão
+
+- O progresso multiplayer é compartilhado pelo servidor e a interface atualiza a cada 15 segundos; ainda não há push instantâneo por WebSocket para mudanças de guilda.
+- As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
+- Eventos de monstros, Bosses e presença online ainda não geram progresso de missão; nesta versão, fases, queijo, bolotas e doações são os eventos ligados ao servidor.
+- O painel e a API foram salvos/deployados em desenvolvimento. Os testes com três contas/dispositivos e as operações financeiras simultâneas ainda precisam ser executados com contas reais de teste.
+
+## Migração
+
+`migrations/0001_guilds.sql` registra a estrutura das tabelas e índices usados pelo banco de desenvolvimento. A migração depende das tabelas existentes `game_users` e `ratopolis_profiles`.
