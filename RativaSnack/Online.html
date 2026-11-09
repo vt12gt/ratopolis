@@ -1283,7 +1283,7 @@ function updateHud(force){
  const be=$('bonus');if(b){be.textContent=b;be.classList.remove('hidden')}else be.classList.add('hidden');
  set('mini','Ameaça: '+(threat<.25?'baixa':threat<.55?'média':'alta')+' • '+(modeHud()||'Coma queijos • Evite ratos e paredes'));syncBoostBtn()}
 // Ranking ao vivo por pontos da partida (desempate por eliminações): top 5 + sua posição.
-function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)||b.kills-a.kills);leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
+function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
  const idx=arr.indexOf(player);if(idx>=0){myRank=idx+1;rankTotal=arr.length}
  const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
