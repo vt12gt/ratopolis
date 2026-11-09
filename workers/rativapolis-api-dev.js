@@ -1,5 +1,5 @@
 const VERSION = "rativapolis-api-dev-v4-short-public-ids";
-const ORIGINS = new Set(["https://vt12gt.github.io","https://ratopolis-cadastro-teste.pages.dev","http://localhost:8158","http://localhost:8787"]);
+const ORIGINS = new Set(["https://vt12gt.github.io","https://ratopolis-cadastro-teste.pages.dev","https://rativa-ids-preview.pages.dev","http://localhost:8158","http://localhost:8787"]);
 const json = (data,status=200,headers={}) => new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff",...headers}});
 const bearer = request => { const m=(request.headers.get("Authorization")||"").match(/^Bearer\s+(\S+)$/i); return m?m[1]:""; };
 async function sha256(value){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));let b="";for(const x of new Uint8Array(d))b+=String.fromCharCode(x);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
