@@ -1,19 +1,37 @@
-const VERSION = "rativapolis-api-dev-v3-server-phase-tickets";
+const VERSION = "rativapolis-api-dev-v4-short-public-ids";
 const ORIGINS = new Set(["https://vt12gt.github.io","https://ratopolis-cadastro-teste.pages.dev","http://localhost:8158","http://localhost:8787"]);
 const json = (data,status=200,headers={}) => new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff",...headers}});
 const bearer = request => { const m=(request.headers.get("Authorization")||"").match(/^Bearer\s+(\S+)$/i); return m?m[1]:""; };
 async function sha256(value){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));let b="";for(const x of new Uint8Array(d))b+=String.fromCharCode(x);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
 async function portalActor(request,env){
  const token=bearer(request);if(token.length<20||!env.PORTAL_DB)return null;
- return env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.email,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1").bind(await sha256(token),new Date().toISOString()).first();
+ return env.PORTAL_DB.prepare("SELECT u.id,u.public_id,u.nickname,u.email,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1").bind(await sha256(token),new Date().toISOString()).first();
+}
+function newPolisPublicId(){
+ const alphabet="23456789ABCDEFGHJKLMNPQRSTUVWXYZ",bytes=new Uint8Array(5);crypto.getRandomValues(bytes);
+ return "RP-"+Array.from(bytes,x=>alphabet[x%alphabet.length]).join("");
 }
 async function gameActor(request,env){
  const portal=await portalActor(request,env);if(!portal)return null;
- const game=await env.POLIS_DB.prepare("SELECT id,public_id,nickname,status FROM game_users WHERE portal_user_id=? LIMIT 1").bind(portal.id).first();
+ let game=await env.POLIS_DB.prepare("SELECT id,public_id,nickname,status FROM game_users WHERE portal_user_id=? LIMIT 1").bind(portal.id).first();
+ if(!game){
+  const role=["player","mod","gm","adm","spadm"].includes(portal.role)?portal.role:"player";
+  for(let attempt=0;attempt<8;attempt++){
+   const id=crypto.randomUUID(),publicId=newPolisPublicId();
+   try{
+    await env.POLIS_DB.prepare("INSERT INTO game_users (id,public_id,nickname,email,status,role,portal_user_id) VALUES (?,?,?,?,'active',?,?)").bind(id,publicId,portal.nickname,portal.email||null,role,portal.id).run();
+    game={id,public_id:publicId,nickname:portal.nickname,status:"active"};break;
+   }catch(error){
+    const existing=await env.POLIS_DB.prepare("SELECT id,public_id,nickname,status FROM game_users WHERE portal_user_id=? LIMIT 1").bind(portal.id).first();
+    if(existing){game=existing;break;}
+    if(attempt===7)throw error;
+   }
+  }
+ }
  if(!game||game.status!=="active")return null;
  if(game.nickname!==portal.nickname)await env.POLIS_DB.prepare("UPDATE game_users SET nickname=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(portal.nickname,game.id).run();
  await env.POLIS_DB.prepare("INSERT OR IGNORE INTO ratopolis_profiles (user_id) VALUES (?)").bind(game.id).run();
- return {id:game.id,public_id:game.public_id,nickname:portal.nickname,role:portal.role,portal_user_id:portal.id};
+ return {id:game.id,public_id:game.public_id,portal_public_id:portal.public_id||null,nickname:portal.nickname,role:portal.role,portal_user_id:portal.id};
 }
 function cors(origin){const h={};if(origin&&ORIGINS.has(origin)){h["Access-Control-Allow-Origin"]=origin;h["Access-Control-Allow-Methods"]="GET, POST, OPTIONS";h["Access-Control-Allow-Headers"]="Authorization, Content-Type";h["Access-Control-Max-Age"]="86400";h.Vary="Origin";}return h;}
 export default {async fetch(request,env){
