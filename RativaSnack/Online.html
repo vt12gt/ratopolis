@@ -1376,7 +1376,7 @@ async function loadRemoteRanking(period){
   const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
   const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
-  remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
+  remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||(Number(b.games_played??b.games_count??0)-Number(a.games_played??a.games_count??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
   remoteRankUpdatedAt=remoteRankPeriod==='monthly'&&data.updated_at?data.updated_at:'';
   drawRemoteRankingPage();
  }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
