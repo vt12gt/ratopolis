@@ -5,7 +5,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#4a2f9f"><title>Rato Snack</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:relative;width:100vw;height:100dvh;overflow:hidden}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;min-height:0;position:fixed;inset:0;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:fixed;inset:0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);overflow:hidden;}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
 .hud{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 9px) 12px calc(env(safe-area-inset-bottom) + 10px);pointer-events:none}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.brand{font-weight:1000;font-size:clamp(18px,3.3vw,29px);letter-spacing:-.4px}.brand span,h1 span{color:#ffd34e}
 .stats{display:flex;gap:6px}.pill{background:#1d122ad9;border:1px solid #ffffff16;border-radius:10px;padding:6px 10px;min-width:62px;text-align:center}.pill small{display:block;color:#bfafd2;font-size:9px;text-transform:uppercase;letter-spacing:.7px;font-weight:800}.pill strong{font-size:clamp(15px,2.4vw,21px)}#score{color:#ffd34e}#size{color:#75f0bd}#kills{color:#ff8fa5}
 .tip{position:absolute;left:50%;top:76px;transform:translateX(-50%);font-size:12px;color:#eaddf9;background:#1d122ad9;border:1px solid #ffffff12;padding:7px 12px;border-radius:99px;white-space:nowrap;transition:opacity .4s}
@@ -439,6 +439,20 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #paused .pause-rank-row .pr-points{color:#ffd34e}
 #paused .pause-rank-empty{padding:14px;text-align:center;color:#c8b6dd;font-size:12px}
 @media(max-width:520px){#paused .panel{width:96vw;padding:10px}#paused .pause-ranking{padding:7px}#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:23px minmax(62px,1.3fr) minmax(45px,.8fr) minmax(38px,.65fr) minmax(38px,.65fr);gap:3px}}
+
+/* v101: pausa legível e ajustada à altura real da tela */
+#paused{position:fixed;inset:0;padding:8px;overflow:auto;overscroll-behavior:contain}
+#paused .panel.dlg{width:min(640px,96vw);max-height:calc(var(--rativa-vh,100dvh) - 16px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(10px,2.2vh,18px)}
+#paused .logo{font-size:clamp(22px,4vh,38px);margin:0 0 4px}
+#paused h1{font-size:clamp(20px,3.4vh,30px);margin:0 0 9px}
+#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+#paused .pause-head button{min-height:42px;font-size:clamp(11px,1.7vw,15px)}
+#paused .pause-ranking{width:100%;padding:8px}
+#paused .pause-ranking h2{font-size:clamp(12px,2vh,17px)}
+#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:24px minmax(65px,1.5fr) minmax(48px,.9fr) minmax(38px,.65fr) minmax(42px,.7fr);gap:4px}
+#paused .pause-rank-head{font-size:clamp(8px,1.3vh,11px)}
+#paused .pause-rank-row{font-size:clamp(9px,1.55vh,13px);padding:6px 3px}
+@media(max-height:420px){#paused .panel.dlg{padding:7px 10px}#paused .logo{display:none}#paused h1{margin-bottom:5px}#paused .pause-head{margin-bottom:6px}#paused .pause-rank-row{padding:4px 2px}}
 </style></head>
 <body><div id="rotateNotice" role="status" aria-live="polite"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>GIRE O CELULAR</h2><p>O RativaSnack Online foi feito para jogar na horizontal. Vire o aparelho para continuar.</p></div></div><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -778,8 +792,9 @@ function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.b
 /*PURE-END*/
 
 let vig=null;
-function resize(){const vv=window.visualViewport;W=Math.max(1,Math.round(vv&&vv.width?vv.width:window.innerWidth));H=Math.max(1,Math.round(vv&&vv.height?vv.height:window.innerHeight));document.documentElement.style.setProperty('--rativa-vw',W+'px');document.documentElement.style.setProperty('--rativa-vh',H+'px');dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
-addEventListener('resize',resize);addEventListener('orientationchange',resize);addEventListener('pageshow',resize);if(window.visualViewport){visualViewport.addEventListener('resize',resize);visualViewport.addEventListener('scroll',resize)}resize();
+function resize(){const vv=window.visualViewport;const root=document.documentElement;const vw=Math.max(1,Math.round(vv&&vv.width||root.clientWidth||window.innerWidth||1));const vh=Math.max(1,Math.round(vv&&vv.height||root.clientHeight||window.innerHeight||1));W=vw;H=vh;root.style.setProperty('--rativa-vw',vw+'px');root.style.setProperty('--rativa-vh',vh+'px');dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
+const resizeAfterLayout=()=>{resize();requestAnimationFrame(()=>requestAnimationFrame(resize))};
+addEventListener('resize',resizeAfterLayout,{passive:true});addEventListener('orientationchange',()=>setTimeout(resizeAfterLayout,180),{passive:true});addEventListener('pageshow',resizeAfterLayout);addEventListener('load',resizeAfterLayout);if(window.visualViewport){visualViewport.addEventListener('resize',resizeAfterLayout,{passive:true});visualViewport.addEventListener('scroll',resizeAfterLayout,{passive:true})}resizeAfterLayout();
 
 /* ============ Áudio (WebAudio, só após toque do usuário) ============ */
 let ac=null,sfxG=null,musG=null,musTimer=0,nextT=0,mStep=0,lastEatSfx=0;
