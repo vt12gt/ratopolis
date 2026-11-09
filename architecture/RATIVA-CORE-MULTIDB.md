@@ -19,7 +19,7 @@ O Portal continua na D1 atual durante a transição. Snack e Polis terão bancos
 - RativaSnack: `RS-`.
 - Rativapolis: `RP-`.
 - IDs públicos são identificadores curtos, imutáveis, únicos dentro de cada jogo e gerados exclusivamente no servidor.
-- O helper `workers/lib/game-public-id.js` usa aleatoriedade criptográfica e faz verificação de colisão; a restrição UNIQUE do banco é a proteção final.
+- O helper `workers/lib/game-public-id.js` gera RS e RP para as D1s isoladas, usando aleatoriedade criptográfica e verificação de colisão; a restrição UNIQUE do banco é a proteção final. O RV do Portal depende de uma migração própria de registro de IDs na D1 do Portal e ainda não foi ativado.
 - ID público nunca é senha, token ou prova de autenticação.
 - UUIDs internos existentes não serão reescritos.
 
