@@ -80,3 +80,36 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 - `GET /api/core/admin/search?q=<termo>`: exige sessão Portal válida e papel `spadm` ou `adm`; registra consulta na auditoria do Portal.
 
 O Admin Geral mantém autorização exclusivamente no servidor. Consultas entre bancos são separadas. Escritas devem ocorrer no banco de origem e ser auditadas.
+
+
+## Mapeamento técnico do Worker Polis legado (inspeção v39.9)
+
+Inspeção do Worker de desenvolvimento `ratopolis-api-dev-v30` confirmou que ele ainda é um monólito Portal + Polis. A versão lida foi `v39.9-admin-role-special-staff-fix`.
+
+### Rotas que pertencem aos dados de jogo Polis
+
+- Identidade de jogo/perfil: `GET /api/profile/personal` (somente campos de jogo devem vir de POLIS_DB; nickname, email, papel e status oficiais continuam no Portal).
+- Progresso e recompensas: `/api/rankings`, `/api/rankings/level`, `/api/progression/me`, `/api/progression/reward`, `/api/internal/competition/reward`, `/api/internal/rewards/grant`, `/api/players`.
+- Loja, saldo, inventário e VIP: `/api/store/catalog`, `/api/store/inventory`, `/api/store/purchase`, `/api/store/equip`, `/api/store/me`, `/api/admin/store/catalog`, `/api/admin/store/transactions`, `/api/store/checkout`, `/api/store/webhook/mercadopago`, `/api/admin/items/catalog`.
+- Recompensas, eventos e presentes: `/api/events`, `/api/admin/events`, `/api/daily-rewards/*`, `/api/admin/daily-rewards/config`, `/api/admin/gifts`, `/api/gifts/redeem`.
+- Cenários: `/api/editor/*`, `/api/admin/scenario-staff`, `/api/admin/scenarios/*`, `/api/admin/scenario-*`.
+
+### Rotas que permanecem no Portal
+
+Cadastro/login/logout, emissão e revogação de sessão, `/api/me` como validação da sessão central, gestão de contas e papéis globais, auditoria central, privacidade/acesso e doações. Essas rotas não podem passar a consultar POLIS_DB por substituição global do binding.
+
+### Bloqueios técnicos encontrados antes do cutover
+
+1. A função legada `authenticate(request, env)` valida sessão em `ratopolis_sessions` e carrega usuário em `ratopolis_users` usando `env.DB`. Ela devolve o UUID do Portal; as tabelas de jogo exigem o UUID local de `game_users`.
+2. A autenticação de jogo precisa validar bearer exclusivamente em `PORTAL_DB`, localizar `game_users.portal_user_id` em `POLIS_DB`, sincronizar nickname e devolver o ID local de jogo às rotas Polis.
+3. Há SQL legado com JOINs entre tabelas do jogo e `ratopolis_users`. Esses JOINs entre D1s não são possíveis; devem ser separados em consultas e os campos centrais devem vir do Portal.
+4. A auditoria deve ser classificada por domínio: ações globais de conta/permissão continuam no Portal; ações de jogo/cenários/loja podem ser registradas na auditoria Polis e, quando administrativas, correlacionadas com o ator central.
+5. Rotas de pagamento/webhook e operações administrativas exigem idempotência e validação de permissões antes de mover qualquer escrita. Não basta trocar `env.DB` por `env.POLIS_DB`.
+
+### Estratégia aprovada para a próxima implementação
+
+- Manter `ratopolis-api-dev-v30` como autoridade de cadastro, sessão e administração global.
+- Implementar o serviço Polis separado, com bindings `PORTAL_DB` e `POLIS_DB`, autenticação central e resolução de perfil local por `portal_user_id`.
+- Migrar grupos de rotas por domínio, começando por leitura de perfil/progresso/rankings; depois recompensas, loja/inventário/VIP, eventos/presentes e editor de cenários.
+- Manter contratos JSON atuais para não exigir mudança simultânea no cliente.
+- Só apontar o cliente para o novo serviço depois de testes de integração e validação das rotas equivalentes. Nenhum binding de produção deve ser alterado nesta fase.
