@@ -4207,7 +4207,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 <script id="rativapolis-guilds-functional-v1">
 (function(){
  'use strict';
- const API='https://rativapolis-api-dev.juniorgmj69.workers.dev';
+ const API='https://rativapolis-guilds-dev.juniorgmj69.workers.dev';
  const page=document.getElementById('guildPage');if(!page||page.dataset.guildLive==='1')return;page.dataset.guildLive='1';
  page.innerHTML='<div class="guildx-modal"><header class="guildx-head"><div><div class="guildx-kicker">RATIVAPOLIS · COMUNIDADE</div><h2>🛡️ Guildas de Rativa</h2><p>Construa sua guilda, contribua com queijo e evolua em equipe.</p></div><button type="button" id="guildBackTop" class="guildx-close" aria-label="Fechar">×</button></header><div id="guildNotice" class="guildx-notice" aria-live="polite"></div><nav id="guildTabs" class="guildx-tabs"></nav><section id="guildBody" class="guildx-body"><div class="guildx-empty">Carregando guildas...</div></section></div>';
  let data=null,tab='overview',rankingPage=1,rankingData=[],exploreData=[],noticeTimer=null,membersExpanded=false,transactionsExpanded=false,donationPendingKey=null,donationPendingAmount=null;
