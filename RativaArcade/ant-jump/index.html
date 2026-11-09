@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="antJump.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Ant Jump — Free Online Jumping Game</title>
+<meta name="description" content="Play Ant Jump free in your browser. Bounce the ant up endless platforms — moving, fragile and springy ones. Arrow keys or touch, no install.">
+<meta name="keywords" content="ant jump,doodle jump,jumping game,vertical climber,jump game,bouncy game,free online game,html5 game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Ant Jump — Free Online Jumping Game">
+<meta property="og:description" content="Bounce the ant up endless platforms. How high can you climb?">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦗</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px; user-select: none; touch-action: none;
+  }
+  .wrap {
+    position: relative;
+    /* 画布 420×640：宽度必须同时受「可用高度」反推约束，否则窄高视口(手机竖屏/笔记本)里
+       wrap 被 flex 压扁、画布溢出被 overflow:hidden 裁掉，底部玩法区整个掉出屏幕。
+       .656 ≈ 420/640 */
+    width: min(420px, 100%, max(200px, calc((100vh - 130px) * .656)));
+    width: min(420px, 100%, max(200px, calc((100svh - 130px) * .656)));
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 12px 14px; pointer-events: none;
+  }
+  .hud-item {
+    background: rgba(15, 30, 40, .55); border-radius: 10px; padding: 6px 12px;
+    color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1px;
+  }
+  .hud-item small { font-weight: 600; opacity: .65; font-size: 10px; letter-spacing: 1px; display: block; }
+  .hud-item.accent { color: #ffd76e; }
+  #mute-btn {
+    position: absolute; top: 56px; right: 12px;
+    background: rgba(255,255,255,.2); border-radius: 10px;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 5; box-shadow: none; border: none;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 24px;
+    background: rgba(15, 30, 40, .55); backdrop-filter: blur(3px); color: #fff;
+  }
+  .hidden { display: none !important; }
+  .title { font-size: 40px; font-weight: 800; letter-spacing: 3px; text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+  .title .sub { display: block; font-size: 12px; font-weight: 600; opacity: .75; letter-spacing: 4px; margin-top: 4px; }
+  .icon-big { font-size: 64px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+  .tip { font-size: 15px; opacity: .9; line-height: 1.7; }
+  .tip b { color: #ffd76e; }
+  .best { font-size: 13px; opacity: .7; }
+  .score-final { font-size: 52px; font-weight: 800; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .score-final small { display: block; font-size: 13px; font-weight: 600; opacity: .7; letter-spacing: 2px; }
+  .medal { font-size: 40px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  .btn-primary {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: #ff9f1c; color: #fff; box-shadow: 0 5px 0 #c47a0e;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-primary:active { transform: scale(.95); box-shadow: 0 2px 0 #c47a0e; }
+  .btn-ghost {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-ghost:active { transform: scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <canvas id="game" width="420" height="640"></canvas>
+  <div class="hud">
+    <div class="hud-item"><small data-i18n="antJump.hudHeight">HEIGHT</small><span id="hud-height">0</span> m</div>
+    <div class="hud-item accent"><small data-i18n="antJump.hudBest">BEST</small><span id="hud-best">0</span> m</div>
+  </div>
+  <button id="mute-btn" title="Toggle sound" data-i18n-title="common.toggleSound">🔊</button>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🐜</div>
+    <div class="title"><span data-i18n="antJump.title">ANT JUMP</span><span class="sub" data-i18n="antJump.subtitle">CLIMB AS HIGH AS YOU CAN</span></div>
+    <div class="tip" data-i18n-html="antJump.tip">The ant bounces <b>automatically</b>.<br>Steer with <b>← →</b> / <b>A D</b>, or <b>touch</b> the left/right side<br>Hold both to slow down. Wrap around the edges!</div>
+    <div class="best" id="start-best"></div>
+    <div class="btn-row"><button class="btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="over-overlay overlay hidden" id="over-overlay">
+    <div class="medal" id="medal">🐛</div>
+    <div class="score-final"><span id="final-height">0</span> m<small data-i18n="antJump.finalLabel">HEIGHT CLIMBED</small></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="best" id="over-best"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Canvas =====
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var W = 420, H = 640;
+
+  function fitDPR() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fitDPR();
+  window.addEventListener('resize', fitDPR);
+
+  if (!ctx.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    bounce:  function () { beep(520, 0.06, 'sine', 0.06); },
+    spring:  function () { beep(880, 0.14, 'square', 0.09); setTimeout(function(){ beep(1320, 0.12, 'square', 0.06); }, 80); },
+    crack:   function () { beep(220, 0.1, 'sawtooth', 0.07); },
+    record:  function () { [784, 988, 1175].forEach(function (f, i) { setTimeout(function () { beep(f, 0.12, 'sine', 0.08); }, i * 90); }); },
+    dead:    function () { beep(180, 0.3, 'sawtooth', 0.13); setTimeout(function(){ beep(110, 0.4, 'sawtooth', 0.12); }, 150); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== State =====
+  var STATE = { READY: 0, PLAYING: 1, DYING: 2, OVER: 3 };
+  var state = STATE.READY;
+  var BEST_KEY = 'antjump_best_v1';
+  var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+
+  var GRAVITY = 0.38, JUMP_V = -11.6, SPRING_V = -20.0;
+  var MOVE_ACC = 0.55, MAX_VX = 6.2;
+  var ant, platforms, particles, camera, maxHeight, recordShown, frames;
+  var inputs = { left: false, right: false, touchX: null };
+
+  var PW = 72, PH = 14;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  // difficulty grows with height
+  function gapRange() {
+    var m = maxHeight / 100;                    // every 100m is a step
+    var min = 58 + Math.min(34, m * 6);
+    var max = 88 + Math.min(46, m * 8);
+    return [min, max];
+  }
+
+  function makePlatform(y) {
+    var roll = Math.random();
+    var type = 'normal';
+    if (roll > 0.92) type = 'spring';
+    else if (roll > 0.80) type = 'fragile';
+    else if (roll > 0.60) type = 'moving';
+    return {
+      x: rand(10, W - PW - 10),
+      y: y,
+      type: type,
+      vx: type === 'moving' ? (Math.random() < 0.5 ? -1.3 : 1.3) : 0,
+      dead: false,
+      springT: 0
+    };
+  }
+
+  function fillPlatforms(upToY) {
+    // platforms are stored in world coords (y grows upward via negative values)
+    var last = platforms.length ? platforms[platforms.length - 1] : null;
+    var y = last ? last.y : 0;
+    while (y > upToY) {
+      var g = gapRange();
+      y -= rand(g[0], g[1]);
+      platforms.push(makePlatform(y));
+    }
+  }
+
+  function reset() {
+    ant = { x: W / 2, y: 0, vx: 0, vy: JUMP_V, squash: 1, facing: 1 };
+    platforms = [];
+    particles = [];
+    camera = { y: 0, target: 0 };
+    maxHeight = 0; recordShown = false; frames = 0;
+
+    // starting platform under the ant
+    platforms.push({ x: W / 2 - PW / 2, y: 20, type: 'normal', vx: 0, dead: false, springT: 0 });
+    fillPlatforms(-H - 200);
+    updateHud();
+  }
+
+  function updateHud() {
+    var m = Math.max(0, Math.floor(maxHeight / 10));
+    document.getElementById('hud-height').textContent = m;
+    document.getElementById('hud-best').textContent = Math.floor(best / 10);
+  }
+  function refreshBest() {
+    document.getElementById('start-best').textContent = best > 0 ? t('antJump.bestH', { n: Math.floor(best / 10) }) : t('antJump.first');
+    document.getElementById('over-best').textContent = t('antJump.bestLabelH', { n: Math.floor(best / 10) });
+  }
+  refreshBest();
+  WG.onChange(refreshBest);   // keep "best score" line in the current language
+
+  // ===== Input =====
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { inputs.left = true; e.preventDefault(); }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { inputs.right = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') inputs.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') inputs.right = false;
+  });
+
+  function pointerX(e) {
+    var rect = canvas.getBoundingClientRect();
+    return ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+  }
+  var wrap = document.getElementById('wrap');
+  function onMove(e) {
+    if (state !== STATE.PLAYING && state !== STATE.READY) return;
+    inputs.touchX = pointerX(e);
+    if (e.cancelable) e.preventDefault();
+  }
+  wrap.addEventListener('touchstart', onMove, { passive: false });
+  wrap.addEventListener('touchmove', onMove, { passive: false });
+  wrap.addEventListener('touchend', function () { inputs.touchX = null; });
+  wrap.addEventListener('mousemove', function (e) { if (state === STATE.PLAYING) inputs.touchX = pointerX(e); });
+  wrap.addEventListener('mouseleave', function () { inputs.touchX = null; });
+  wrap.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    if (state === STATE.READY) startGame();
+    else if (state === STATE.OVER) retry();
+  });
+
+  function startGame() {
+    reset();
+    state = STATE.PLAYING;
+    document.getElementById('start-overlay').classList.add('hidden');
+  }
+  function retry() {
+    reset();
+    state = STATE.PLAYING;
+    document.getElementById('over-overlay').classList.add('hidden');
+  }
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-retry').addEventListener('click', retry);
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var m = Math.floor(maxHeight / 10);
+    var full = t('antJump.share', { n: m, url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== Update =====
+  function update(dt) {
+    frames++;
+
+    if (state === STATE.READY) {
+      ant.y = Math.sin(frames / 24) * 6;
+      return;
+    }
+
+    if (state === STATE.PLAYING || state === STATE.DYING) {
+      // horizontal control
+      if (state === STATE.PLAYING) {
+        if (inputs.left) ant.vx -= MOVE_ACC * dt;
+        if (inputs.right) ant.vx += MOVE_ACC * dt;
+        if (inputs.touchX !== null) {
+          var diff = inputs.touchX - ant.x;
+          if (Math.abs(diff) > 12) ant.vx += Math.sign(diff) * MOVE_ACC * 0.9 * dt;
+        }
+        if (ant.vx > 0) ant.facing = 1; else if (ant.vx < 0) ant.facing = -1;
+        ant.vx *= Math.pow(0.92, dt); // friction
+        ant.vx = Math.max(-MAX_VX, Math.min(MAX_VX, ant.vx));
+      }
+
+      ant.x += ant.vx * dt;
+      // horizontal wrap
+      if (ant.x < -14) ant.x = W + 14;
+      if (ant.x > W + 14) ant.x = -14;
+
+      ant.vy += GRAVITY * dt;
+      ant.y += ant.vy * dt;
+      ant.squash += ((ant.vy < 0 ? 1.12 : 0.9) - ant.squash) * Math.min(1, 0.14 * dt);
+
+      // platform collision (only while falling)
+      if (ant.vy > 0) {
+        for (var i = 0; i < platforms.length; i++) {
+          var p = platforms[i];
+          if (p.dead) continue;
+          var withinX = ant.x > p.x - 8 && ant.x < p.x + PW + 8;
+          var crossed = ant.y + 12 >= p.y && ant.y + 12 <= p.y + PH + 14 && ant.y + 12 - ant.vy * dt <= p.y + 4;
+          if (withinX && crossed) {
+            if (p.type === 'fragile') {
+              p.dead = true;
+              sfx.crack();
+              for (var k = 0; k < 8; k++) particles.push({ x: p.x + Math.random() * PW, y: p.y, vx: rand(-1.5, 1.5), vy: rand(0.5, 2.5), life: 1, color: '#8a6d3b', size: 3 });
+              break; // no bounce
+            }
+            ant.y = p.y - 12;
+            if (p.type === 'spring') {
+              ant.vy = SPRING_V;
+              p.springT = 1;
+              sfx.spring();
+              for (var s = 0; s < 6; s++) particles.push({ x: p.x + PW / 2, y: p.y, vx: rand(-1, 1), vy: rand(-3, -1), life: 1, color: '#ffd76e', size: 3 });
+            } else {
+              ant.vy = JUMP_V;
+              sfx.bounce();
+            }
+            ant.squash = 0.82;
+            break;
+          }
+        }
+      }
+
+      // camera follows once above the middle
+      if (ant.y < camera.y + H * 0.42) camera.target = ant.y - H * 0.42;
+      camera.y += (camera.target - camera.y) * Math.min(1, 0.12 * dt);
+
+      // height in world units (0.1 = 1 px upward)
+      maxHeight = Math.max(maxHeight, -(ant.y));
+
+      // keep generating above
+      fillPlatforms(camera.y - H - 200);
+      // cull below
+      platforms = platforms.filter(function (p) { return p.y < camera.y + H + 240; });
+
+      // moving platforms
+      for (var m = 0; m < platforms.length; m++) {
+        var mp = platforms[m];
+        if (mp.type === 'moving' && !mp.dead) {
+          mp.x += mp.vx * dt;
+          if (mp.x < 6) { mp.x = 6; mp.vx = -mp.vx; }
+          if (mp.x + PW > W - 6) { mp.x = W - 6 - PW; mp.vx = -mp.vx; }
+        }
+        if (mp.springT > 0) mp.springT = Math.max(0, mp.springT - 0.08 * dt);
+      }
+
+      // fell below the screen
+      if (ant.y - camera.y > H + 30 && state === STATE.PLAYING) die();
+    }
+
+    if (state === STATE.DYING) {
+      if (ant.y - camera.y > H + 200) gameOver();
+    }
+
+    // record chime while climbing
+    if (state === STATE.PLAYING && !recordShown && best > 0 && maxHeight > best) {
+      recordShown = true;
+      sfx.record();
+    }
+
+    // particles
+    for (var j = particles.length - 1; j >= 0; j--) {
+      var pt = particles[j];
+      pt.x += pt.vx * dt; pt.y += pt.vy * dt;
+      pt.vy += 0.12 * dt;
+      pt.life -= 0.03 * dt;
+      if (pt.life <= 0) particles.splice(j, 1);
+    }
+
+    updateHud();
+  }
+
+  function die() {
+    state = STATE.DYING;
+    sfx.dead();
+  }
+
+  function gameOver() {
+    state = STATE.OVER;
+    var isRecord = maxHeight > best;
+    if (isRecord) { best = maxHeight; localStorage.setItem(BEST_KEY, String(best)); }
+    var m = Math.floor(maxHeight / 10);
+    document.getElementById('final-height').textContent = m;
+    document.getElementById('new-record').classList.toggle('hidden', !isRecord);
+    refreshBest();
+    document.getElementById('medal').textContent = m >= 400 ? '👑' : m >= 200 ? '🥇' : m >= 100 ? '🥈' : m >= 40 ? '🥉' : '🐛';
+    document.getElementById('over-overlay').classList.remove('hidden');
+  }
+
+  // ===== Draw =====
+  function drawBackground() {
+    var t = Math.min(1, maxHeight / 3000);
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, 'hsl(' + (205 - t * 25) + ', ' + (72 - t * 20) + '%, ' + (72 - t * 26) + '%)');
+    sky.addColorStop(1, 'hsl(' + (195 - t * 30) + ', ' + (58 - t * 18) + '%, ' + (88 - t * 34) + '%)');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    // parallax dots / distant leaves
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    for (var i = 0; i < 26; i++) {
+      var px = (i * 173) % W;
+      var py = ((i * 97) - camera.y * 0.35) % (H + 40);
+      if (py < 0) py += H + 40;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.6 + (i % 3) * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // drifting clouds
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    for (var c = 0; c < 3; c++) {
+      var cx = ((c * 190 + frames * 0.15) % (W + 160)) - 80;
+      var cy = ((c * 260 - camera.y * 0.5) % (H + 200));
+      if (cy < 0) cy += H + 200;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 40, 15, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx - 26, cy + 5, 24, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx + 28, cy + 4, 26, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawPlatforms() {
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      if (p.dead) continue;
+      var sy = p.y - camera.y;
+      if (sy < -40 || sy > H + 40) continue;
+
+      var base = '#7cb342', top = '#aed581';
+      if (p.type === 'moving') { base = '#4db6ac'; top = '#80cbc4'; }
+      if (p.type === 'fragile') { base = '#c9a86a'; top = '#e0c894'; }
+      if (p.type === 'spring') { base = '#8d6e63'; top = '#bcaaa4'; }
+
+      // spring coil
+      if (p.type === 'spring') {
+        var coil = 6 + (1 - p.springT) * 4;
+        ctx.strokeStyle = '#ffd76e';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(p.x + PW / 2 - 8, sy);
+        ctx.lineTo(p.x + PW / 2 + 8, sy - coil);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = base;
+      ctx.beginPath();
+      ctx.roundRect(p.x, sy, PW, PH, 7);
+      ctx.fill();
+      ctx.fillStyle = top;
+      ctx.beginPath();
+      ctx.roundRect(p.x + 3, sy + 2, PW - 6, 4, 2);
+      ctx.fill();
+
+      // fragile cracks
+      if (p.type === 'fragile') {
+        ctx.strokeStyle = 'rgba(90,60,20,.75)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(p.x + PW * 0.3, sy + 2);
+        ctx.lineTo(p.x + PW * 0.4, sy + PH - 2);
+        ctx.moveTo(p.x + PW * 0.66, sy + 3);
+        ctx.lineTo(p.x + PW * 0.58, sy + PH - 2);
+        ctx.stroke();
+      }
+      // moving arrows
+      if (p.type === 'moving') {
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('◀ ▶', p.x + PW / 2, sy + 11);
+      }
+    }
+  }
+
+  function drawAnt() {
+    var sy = ant.y - camera.y;
+    ctx.save();
+    ctx.translate(ant.x, sy);
+    ctx.scale(2 - ant.squash, ant.squash);      // squash & stretch
+    ctx.scale(ant.facing, 1);
+
+    var rotating = state === STATE.PLAYING && Math.abs(ant.vx) > 2.4;
+    if (rotating) ctx.rotate(Math.sin(frames / 4) * 0.12);
+
+    // legs (waving)
+    ctx.strokeStyle = '#3a2a1e';
+    ctx.lineWidth = 1.8;
+    var wob = Math.sin(frames / 3) * 1.6;
+    ctx.beginPath();
+    ctx.moveTo(2, 5); ctx.lineTo(7, 9 + wob);
+    ctx.moveTo(-2, 6); ctx.lineTo(-3, 10 - wob);
+    ctx.moveTo(-6, 6); ctx.lineTo(-10, 9 + wob);
+    ctx.stroke();
+
+    // abdomen (striped)
+    ctx.fillStyle = '#5c4228';
+    ctx.beginPath(); ctx.ellipse(-8, 1, 8, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3a2a1e';
+    ctx.lineWidth = 1.8;
+    for (var s = -1; s <= 1; s++) {
+      ctx.beginPath();
+      ctx.moveTo(-8 + s * 3.6, -5);
+      ctx.lineTo(-8 + s * 3.6, 7);
+      ctx.stroke();
+    }
+    // thorax
+    ctx.fillStyle = '#4a3524';
+    ctx.beginPath(); ctx.ellipse(3, 0, 6, 5.4, 0, 0, Math.PI * 2); ctx.fill();
+    // head
+    ctx.fillStyle = '#3a2a1e';
+    ctx.beginPath(); ctx.arc(11, -1, 5.4, 0, Math.PI * 2); ctx.fill();
+    // antennae
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(13, -6); ctx.quadraticCurveTo(17, -12, 21, -10);
+    ctx.moveTo(11, -7); ctx.quadraticCurveTo(12, -14, 16, -15);
+    ctx.stroke();
+    // eye
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(13, -2, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(13.8, -2, 1, 0, Math.PI * 2); ctx.fill();
+
+    ctx.restore();
+  }
+
+  function draw() {
+    drawBackground();
+    drawPlatforms();
+
+    for (var i = 0; i < particles.length; i++) {
+      var pt = particles[i];
+      ctx.globalAlpha = Math.max(0, pt.life);
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(pt.x, pt.y - camera.y, pt.size, pt.size);
+      ctx.globalAlpha = 1;
+    }
+
+    drawAnt();
+
+    // personal-best marker line while climbing
+    if (best > 0 && state === STATE.PLAYING) {
+      var by = -best - camera.y;
+      if (by > -20 && by < H + 20) {
+        ctx.strokeStyle = 'rgba(255,215,110,.7)';
+        ctx.setLineDash([7, 6]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, by); ctx.lineTo(W, by);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ffd76e';
+        ctx.font = '700 11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(t('antJump.canvasBest', { n: Math.floor(best / 10) }), 8, by - 5);
+      }
+    }
+  }
+
+  // ===== Loop =====
+  var last = performance.now();
+  function loop(t) {
+    // 先排下一帧：即使某帧 update/draw 抛异常，也只是这一帧没画完，
+    // 不会让「下一帧永远排不上」→ 游戏永久冻结（实战踩过：一次 TypeError 冻死整局）
+    requestAnimationFrame(loop);
+    var dt = Math.min((t - last) / 16.666, 2.5);
+    last = t;
+    update(dt);
+    draw();
+  }
+  reset();
+  requestAnimationFrame(loop);
+
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+})();
+</script>
+</body>
+</html>
