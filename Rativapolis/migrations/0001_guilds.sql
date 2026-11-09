@@ -154,6 +154,14 @@ CREATE TABLE IF NOT EXISTS rativapolis_guild_audit_logs (
  created_at TEXT NOT NULL
 );
 
+CREATE TRIGGER IF NOT EXISTS trg_rp_guild_member_capacity
+BEFORE INSERT ON rativapolis_guild_members
+WHEN COALESCE((SELECT status FROM rativapolis_guilds WHERE id=NEW.guild_id),'closed')<>'active'
+ OR (SELECT COUNT(*) FROM rativapolis_guild_members WHERE guild_id=NEW.guild_id)>=COALESCE((SELECT member_limit FROM rativapolis_guilds WHERE id=NEW.guild_id),0)
+BEGIN
+ SELECT RAISE(ABORT,'guild_full_or_closed');
+END;
+
 CREATE INDEX IF NOT EXISTS idx_rp_guild_members_guild
  ON rativapolis_guild_members(guild_id,joined_at);
 CREATE INDEX IF NOT EXISTS idx_rp_guild_transactions_guild
