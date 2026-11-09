@@ -963,7 +963,7 @@ function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'o
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin})})}
 function olLeaveRoom(){if(ol.ws&&ol.ws.readyState===1)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null;mpConns.length=0;mpSlots.length=0}
-function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}
+function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}if(code===4003){ol.inRoom=false;ol.token='';ol.id='';ol.nick='';showToast('Sua sessão RativaGames expirou. Entre novamente no portal.',5);if(mpOnline){mpLeave();toMenu()}return}
  if(!ol.inRoom)return;ol.tries++;if(ol.tries>12){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.inRoom)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
 function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(!bots[i].alive)respawnBot(i);mpBind(bots[i],c)}}
 function olHostStart(){mpSlots.length=0;for(const c of mpConns)if(c.open)mpSlots[Math.max(0,c.slot-1)]=c;mpRole='host';mpPending=true;mpOnline=true;mpClose();startGame('quick')}
@@ -996,6 +996,8 @@ async function olDoPlay(){olLoad();if(!ol.token){olHome();olMsgSet('Entre no por
  try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick){ol.token='';olHome();olMsgSet(OL_ERR.sessao_invalida);return}ol.id=String(me.id);ol.nick=String(me.nick);olMsgSet('Conta confirmada. Procurando partida…');await olPlay();ol.view=true;olRoomView()}catch(e){olMsgSet('Falha ao validar a conta ou conectar ao servidor. Tente novamente.')}}
 function olRoomView(extra){mpBox(`<b>🌐 Sala online</b><p>${ol.players.map(p=>(p.id===ol.id?'⭐ ':'• ')+olEsc(p.nick)+(p.id===ol.hostId?' 👑':'')+(p.online?'':' (reconectando)')).join('<br>')||'Entrando…'}</p><p>${olEsc(extra||'Aguardando jogadores… a partida começa sozinha com 2 ou mais.')}</p>${mpB('Sair da sala','olCancel()','background:#5b2f48;color:#fff')}`)}
 function olCancel(){olLeaveRoom();ol.view=false;olHome()}
+window.addEventListener('storage',e=>{if(e.key==='ratopolis_session_token'&&(!e.newValue||e.newValue!==ol.token)){ol.token='';ol.id='';ol.nick='';if(ol.inRoom)olLeaveRoom();if(mpOnline){mpLeave();toMenu()}if(mpEl('mp')&&mpEl('mp').style.display!=='none')olHome();showToast('Sessão RativaGames encerrada.',4)}});
+
 let wbRun=false,wbRunId=0,wbA0=100;
 const bossNotes=[];
 function bossKilled(b){addScore(1000+500*(b.bv||0));b.dropMul=3;die(b,'body',player);bossDown=true;bossN++;bossWinT=30;const rr=evtOf().id==='chefes'?2:1;
