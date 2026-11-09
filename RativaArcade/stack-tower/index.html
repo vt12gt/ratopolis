@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="stackTower.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Stack Tower — Free Online Stacking Game</title>
+<meta name="description" content="Play Stack Tower free in your browser. Time your tap, line up each block and build the tallest tower. One tap to play, works on mobile and desktop.">
+<meta name="keywords" content="stack tower,stacking game,tower game,one tap game,free online game,html5 game,browser game,stack game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Stack Tower — Free Online Stacking Game">
+<meta property="og:description" content="One tap to play. Line up every block and build the tallest tower.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px; user-select: none; touch-action: none;
+  }
+  .wrap {
+    position: relative;
+    /* 画布 400×600（竖版）：宽度受可用高度反推约束，避免矮视口把塔底裁掉。.667 = 400/600 */
+    width: min(400px, 100%, max(200px, calc((100vh - 130px) * .667)));
+    width: min(400px, 100%, max(200px, calc((100svh - 130px) * .667)));
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 14px 16px; pointer-events: none;
+  }
+  .hud-item {
+    text-align: center;
+    /* the sky runs from pale dawn to deep night as you climb — a translucent
+       plate keeps the numbers readable on every shade */
+    background: rgba(15, 30, 40, .42); border-radius: 12px; padding: 5px 14px;
+    backdrop-filter: blur(2px);
+  }
+  .hud-val {
+    font-size: 30px; font-weight: 800; color: #fff; line-height: 1;
+    text-shadow: 0 3px 0 rgba(0,0,0,.25);
+  }
+  .hud-item small { display: block; margin-top: 4px; font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; color: rgba(255,255,255,.7); }
+  #mute-btn {
+    position: absolute; top: 74px; right: 14px;
+    background: rgba(255,255,255,.2); border-radius: 10px;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 5; box-shadow: none; border: none;
+  }
+  .combo-tag {
+    position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+    font-size: 22px; font-weight: 800; letter-spacing: 2px; color: #ffd76e;
+    text-shadow: 0 3px 0 rgba(0,0,0,.3); z-index: 4; pointer-events: none;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 22px;
+    background: rgba(15, 30, 40, .6); backdrop-filter: blur(3px); color: #fff;
+  }
+  .hidden { display: none !important; }
+  .title { font-size: 32px; font-weight: 800; letter-spacing: 3px; text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+  .title .sub { display: block; font-size: 12px; font-weight: 600; opacity: .75; letter-spacing: 4px; margin-top: 4px; }
+  .icon-big { font-size: 52px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+  .tip { font-size: 14px; opacity: .9; line-height: 1.75; }
+  .tip b { color: #ffd76e; }
+  .best { font-size: 13px; opacity: .7; }
+  .score-final { font-size: 52px; font-weight: 800; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .medal { font-size: 34px; }
+  .over-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+  button {
+    border: none; border-radius: 12px; padding: 12px 24px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease; font-family: inherit;
+  }
+  button:active { transform: scale(.95); }
+  .btn-primary { background: #ff9f1c; color: #fff; box-shadow: 0 5px 0 #c47a0e; }
+  .btn-primary:active { box-shadow: 0 2px 0 #c47a0e; }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25); }
+  .btn-ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .footer {
+    margin-top: 14px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <canvas id="game" width="400" height="600"></canvas>
+  <div class="hud">
+    <div class="hud-item">
+      <div class="hud-val" id="hud-height">1</div>
+      <small data-i18n="stackTower.hudHeight">HEIGHT</small>
+    </div>
+    <div class="hud-item">
+      <div class="hud-val" id="hud-best">0</div>
+      <small data-i18n="stackTower.hudBest">BEST</small>
+    </div>
+  </div>
+  <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  <div class="combo-tag hidden" id="combo-tag"></div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🏗️</div>
+    <div class="title"><span data-i18n="stackTower.title">STACK TOWER</span><span class="sub" data-i18n="stackTower.subtitle">BUILD IT TO THE SKY</span></div>
+    <div class="tip" data-i18n-html="stackTower.tip"><b>Tap</b> or press <b>SPACE</b> to drop the block<br>Line it up — the overhang is cut away!</div>
+    <div class="best" id="start-best"></div>
+    <div class="btn-row"><button class="btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="medal" id="medal">🥉</div>
+    <div class="over-title" data-i18n="stackTower.over">THE TOWER FELL</div>
+    <div class="score-final" id="final-score">1</div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="best" id="over-best"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Canvas =====
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var W = 400, H = 600;
+
+  function fitDPR() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fitDPR();
+  window.addEventListener('resize', fitDPR);
+
+  if (!ctx.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x + w, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    drop:    function () { beep(280, 0.07, 'square', 0.07); },
+    perfect: function (n) { beep(660 + Math.min(n, 8) * 70, 0.09, 'triangle', 0.09); setTimeout(function () { beep(990 + Math.min(n, 8) * 60, 0.1, 'triangle', 0.07); }, 70); },
+    cut:     function () { beep(190, 0.09, 'sawtooth', 0.06); },
+    lose:    function () { beep(220, 0.2, 'sawtooth', 0.13); setTimeout(function () { beep(140, 0.28, 'sawtooth', 0.11); }, 130); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Layout constants =====
+  var BH = 26;                 // block height
+  var BASE_Y = H - 80;         // screen y of the tower base at rest
+  var BASE_W = 176;            // starting block width
+  var PERFECT_TOL = 4.5;       // |offset| that still counts as perfect
+  var CAM_AFTER = 7;           // levels before the camera starts following
+
+  // ===== State =====
+  var STATE = { READY: 0, PLAYING: 1, OVER: 2 };
+  var state = STATE.READY;
+  var BEST_KEY = 'stack_tower_best_v1';
+  var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+
+  var stack, mover, debris, camY, camTarget, side, combo, comboTagT, frames, shake, flashT;
+
+  function reset() {
+    stack = [{ x: (W - BASE_W) / 2, w: BASE_W }];   // index 0 = base, grows upward
+    debris = [];
+    camY = 0; camTarget = 0;
+    side = 1; combo = 0; comboTagT = 0; frames = 0; shake = 0; flashT = 0;
+    spawnMover();
+    updateHud();
+  }
+
+  function level() { return stack.length; }
+
+  function spawnMover() {
+    var top = stack[stack.length - 1];
+    var speed = Math.min(6.4, 2.5 + level() * 0.09);
+    mover = {
+      w: top.w,
+      x: side > 0 ? -top.w : W,
+      vx: speed * side,
+      y: BASE_Y - level() * BH
+    };
+    side *= -1;
+  }
+
+  function updateHud() {
+    document.getElementById('hud-height').textContent = level();
+    document.getElementById('hud-best').textContent = best;
+  }
+
+  // ===== DOM =====
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+  var comboTag = document.getElementById('combo-tag');
+  function refreshBest() {
+    document.getElementById('start-best').textContent = best > 0 ? t('common.bestScore', { n: best }) : t('stackTower.first');
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: best });
+  }
+  refreshBest();
+  WG.onChange(refreshBest);
+
+  // ===== Input: one verb — drop the block =====
+  function drop() {
+    if (state === STATE.READY) { startGame(); return; }
+    if (state === STATE.OVER) { retry(); return; }
+    if (state !== STATE.PLAYING) return;
+    place();
+  }
+  document.getElementById('wrap').addEventListener('pointerdown', function (e) {
+    if (e.target && e.target.id === 'mute-btn') return;
+    if (e.target && e.target.closest && e.target.closest('.btn-row')) return;  // overlay buttons handle themselves
+    drop();
+  });
+  window.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (k === ' ' || k === 'spacebar' || k === 'enter' || k === 'arrowdown') {
+      e.preventDefault();
+      if (!e.repeat) drop();
+    }
+  });
+
+  function startGame() {
+    reset(); state = STATE.PLAYING;
+    startOverlay.classList.add('hidden');
+    overOverlay.classList.add('hidden');
+  }
+  function retry() { startGame(); }
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-retry').addEventListener('click', retry);
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var full = t('stackTower.share', { n: level(), url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== Placement =====
+  function place() {
+    var top = stack[stack.length - 1];
+    var x = mover.x, w = mover.w;
+    var left = Math.max(top.x, x);
+    var right = Math.min(top.x + top.w, x + w);
+    var overlap = right - left;
+    var droppedBlockTop = mover.y;
+    var droppedColor = stack.length;
+
+    if (overlap <= 0) return lose();
+
+    var offsetL = x - top.x;                             // signed offset of the new block
+    var perfect = Math.abs(offsetL) <= PERFECT_TOL;
+
+    // the part that hangs over the edge falls away
+    if (offsetL > 0) {
+      debris.push(makeDebris(top.x, droppedBlockTop, offsetL, -1));
+    } else if (offsetL < 0) {
+      debris.push(makeDebris(left + overlap, droppedBlockTop, Math.abs(offsetL), 1));
+    }
+    if (perfect) {
+      // perfect drop snaps flush and gets a little width back
+      left = top.x; overlap = top.w;
+      combo++;
+      var grow = Math.min(stack[0].w, overlap + 6);
+      if (combo >= 3) overlap = grow;
+      flashT = 1;
+      sfx.perfect(combo);
+      showCombo();
+    } else {
+      combo = 0;
+      hideCombo();
+      sfx.cut();
+    }
+
+    stack.push({ x: left, w: overlap });
+    updateHud();
+    if (!perfect) sfx.drop();
+
+    // the tower climbs: once it is tall enough the camera follows it up
+    camTarget = Math.max(0, (level() - 1 - CAM_AFTER) * BH);
+    spawnMover();
+  }
+
+  function makeDebris(x, y, w, dir) {
+    return { x: x, y: y, w: w, h: BH, vx: dir * 1.1, vy: -1.6, rot: 0, spin: dir * 0.02, fallY: y, colorIdx: stack.length };
+  }
+
+  function showCombo() {
+    comboTag.classList.remove('hidden');
+    comboTag.textContent = t('stackTower.perfect') + (combo > 1 ? ' x' + combo : '');
+    comboTagT = 1;
+  }
+  function hideCombo() { comboTag.classList.add('hidden'); comboTagT = 0; }
+
+  function lose() {
+    state = STATE.OVER;
+    shake = 1;
+    sfx.lose();
+    var score = level();
+    var isRecord = score > best;
+    if (isRecord) { best = score; localStorage.setItem(BEST_KEY, String(best)); }
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('new-record').classList.toggle('hidden', !isRecord);
+    document.getElementById('medal').textContent =
+      score >= 40 ? '👑' : score >= 25 ? '🥇' : score >= 15 ? '🥈' : score >= 8 ? '🥉' : '🧱';
+    refreshBest();
+    updateHud();
+    overOverlay.classList.remove('hidden');
+  }
+
+  // ===== Update =====
+  function update(dt) {
+    frames++;
+    if (shake > 0) shake = Math.max(0, shake - 0.07 * dt);
+    if (flashT > 0) flashT = Math.max(0, flashT - 0.05 * dt);
+
+    // falling debris keeps moving in every state
+    for (var d = debris.length - 1; d >= 0; d--) {
+      var p = debris[d];
+      p.x += p.vx * dt; p.vy += 0.5 * dt; p.y += p.vy * dt; p.rot += p.spin * dt;
+      if (p.y > H + 120) debris.splice(d, 1);
+    }
+
+    if (comboTagT > 0) {
+      comboTagT = Math.max(0, comboTagT - 0.02 * dt);
+      comboTag.style.opacity = String(0.35 + comboTagT * 0.65);
+      if (comboTagT <= 0) comboTag.classList.add('hidden');
+    }
+
+    // camera eases toward the tower top
+    camY += (camTarget - camY) * Math.min(1, 0.09 * dt);
+    if (Math.abs(camTarget - camY) < 0.4) camY = camTarget;
+
+    if (state !== STATE.PLAYING) return;
+
+    mover.x += mover.vx * dt;
+    if (mover.x + mover.w > W) { mover.x = W - mover.w; mover.vx *= -1; }
+    if (mover.x < 0) { mover.x = 0; mover.vx *= -1; }
+  }
+
+  // ===== Draw =====
+  function blockColor(i, light) {
+    var hue = (i * 17 + 195) % 360;
+    return 'hsl(' + hue + ', 58%, ' + (light ? 66 : 54) + '%)';
+  }
+
+  function drawBlock(x, y, w, h, idx, alpha) {
+    ctx.save();
+    if (alpha !== undefined) ctx.globalAlpha = alpha;
+    var base = blockColor(idx, false), top = blockColor(idx, true);
+    var g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, top);
+    g.addColorStop(1, base);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 5); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.34)';
+    ctx.beginPath(); ctx.roundRect(x + 3, y + 2, Math.max(0, w - 6), 3.5, 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - 0.5) * 9 * shake, (Math.random() - 0.5) * 9 * shake);
+    }
+
+    // sky gradient — gets deeper as you climb
+    var climb = Math.min(1, (camY + camTarget) / 700);
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, 'hsl(' + (210 + climb * 30) + ', 45%, ' + (72 - climb * 34) + '%)');
+    sky.addColorStop(1, 'hsl(' + (200 + climb * 20) + ', 48%, ' + (86 - climb * 40) + '%)');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    // stars fade in higher up
+    if (climb > 0.15) {
+      ctx.fillStyle = 'rgba(255,255,255,' + ((climb - 0.15) * 1.3) + ')';
+      for (var s = 0; s < 26; s++) {
+        var sx = ((s * 137) % W), sy = ((s * 89) % (H * 0.75));
+        ctx.beginPath(); ctx.arc(sx, sy, s % 3 === 0 ? 1.8 : 1.1, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // tower
+    for (var i = 0; i < stack.length; i++) {
+      var b = stack[i];
+      var by = BASE_Y - (i + 1) * BH + camY;
+      if (by > H + 40 || by + BH < -40) continue;
+      drawBlock(b.x, by, b.w, BH, i);
+    }
+
+    // falling debris
+    for (var d = 0; d < debris.length; d++) {
+      var p = debris[d];
+      ctx.save();
+      ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+      ctx.rotate(p.rot);
+      drawBlock(-p.w / 2, -p.h / 2, p.w, p.h, p.colorIdx, 0.85);
+      ctx.restore();
+    }
+
+    // moving block (pulsing outline so it reads at a glance)
+    if (state === STATE.PLAYING) {
+      var my = mover.y + camY;
+      var pulse = 1 + Math.sin(frames / 6) * 0.02;
+      ctx.save();
+      ctx.translate(mover.x + mover.w / 2, my + BH / 2);
+      ctx.scale(pulse, 1);
+      drawBlock(-mover.w / 2, -BH / 2, mover.w, BH, stack.length);
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(mover.x - 1, my - 1, mover.w + 2, BH + 2, 6); ctx.stroke();
+    }
+
+    // ground shadow under the tower
+    ctx.fillStyle = 'rgba(0,0,0,.14)';
+    var baseY = BASE_Y + camY + 4;
+    if (baseY < H + 20) {
+      ctx.beginPath(); ctx.ellipse(W / 2, baseY, BASE_W / 2 + 12, 9, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    if (flashT > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (flashT * 0.3) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.restore();
+  }
+
+  // ===== Loop =====
+  var last = performance.now();
+  function loop(now) {
+    // next frame first: a single bad frame must never freeze the game
+    requestAnimationFrame(loop);
+    var dt = Math.min((now - last) / 16.666, 2.5);
+    last = now;
+    update(dt);
+    draw();
+  }
+  reset();
+  requestAnimationFrame(loop);
+
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+})();
+</script>
+</body>
+</html>
