@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="sudoku.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Sudoku — Free Online Sudoku Puzzles, 3 Difficulties</title>
+<meta name="description" content="Play Sudoku free in your browser. Easy, medium and hard puzzles, every one guaranteed to have a single solution. Tap a cell then a number, or use your keyboard. No install, no signup.">
+<meta name="keywords" content="sudoku,free sudoku,online sudoku,sudoku puzzles,sudoku easy,sudoku hard,number puzzle,logic puzzle,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Sudoku — Free Online Sudoku Puzzles">
+<meta property="og:description" content="Every puzzle is generated with exactly one solution — verify it yourself. Three difficulties, keyboard and touch.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔢</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #101a2b 0%, #22384f 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px; user-select: none;
+  }
+  .panel {
+    position: relative;
+    /* 棋盘是正方形且 9 阶：--cs 必须同时受宽度与可用高度反推约束，
+       否则矮视口下棋盘底部被 overflow 裁掉，滚也滚不到。
+       两行 svh/vh —— 只写 svh 的话，不支持的浏览器整条作废。 */
+    --cs: min(46px, calc((100vw - 56px) / 9), calc((100vh - 320px) / 9));
+    --cs: min(46px, calc((100vw - 56px) / 9), calc((100svh - 320px) / 9));
+    width: calc(var(--cs) * 9 + 24px);
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .stat {
+    flex: 1; background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 4px 8px; text-align: center; color: #fff; min-width: 0;
+  }
+  .stat small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px; opacity: .55; }
+  .stat span { font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer;
+  }
+  .board {
+    position: relative; width: calc(var(--cs) * 9); height: calc(var(--cs) * 9);
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    background: rgba(255,255,255,.10);
+    border: 2px solid rgba(255,255,255,.45);
+    border-radius: 8px; overflow: hidden;
+  }
+  .cell {
+    display: flex; align-items: center; justify-content: center;
+    font-size: calc(var(--cs) * .58); font-weight: 700;
+    color: #cfe4ff; background: rgba(10,20,34,.62);
+    border-right: 1px solid rgba(255,255,255,.10);
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    cursor: pointer; transition: background .1s ease;
+  }
+  .cell.fixed { color: #ffffff; font-weight: 800; background: rgba(20,36,56,.82); }
+  .cell.peer { background: rgba(74,144,255,.16); }
+  .cell.same { background: rgba(74,144,255,.30); }
+  .cell.sel  { background: rgba(74,144,255,.52); box-shadow: inset 0 0 0 2px #9cc4ff; }
+  .cell.bad  { color: #ff8a8a; }
+  .cell:nth-child(9n) { border-right: none; }
+  .cell:nth-child(n+73) { border-bottom: none; }
+  /* 3×3 宫格粗线 —— 用 box-shadow 画，避免多占一格像素破坏网格 */
+  .cell.bx-right { box-shadow: inset -2px 0 0 rgba(255,255,255,.45); }
+  .cell.bx-bottom { box-shadow: inset 0 -2px 0 rgba(255,255,255,.45); }
+  .cell.bx-right.bx-bottom { box-shadow: inset -2px 0 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(255,255,255,.45); }
+  .cell.sel.bx-right { box-shadow: inset 0 0 0 2px #9cc4ff, inset -2px 0 0 rgba(255,255,255,.45); }
+  .cell.sel.bx-bottom { box-shadow: inset 0 0 0 2px #9cc4ff, inset 0 -2px 0 rgba(255,255,255,.45); }
+  .cell.sel.bx-right.bx-bottom { box-shadow: inset 0 0 0 2px #9cc4ff, inset -2px 0 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(255,255,255,.45); }
+  .pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+  .pad button {
+    min-height: 44px; border-radius: 10px; border: none; cursor: pointer; padding: 0;
+    background: rgba(255,255,255,.10); color: #fff;
+    font-size: 18px; font-weight: 800; font-family: inherit;
+    transition: background .12s ease;
+  }
+  .pad button:active { background: rgba(74,144,255,.55); }
+  .pad button.erase { font-size: 12px; letter-spacing: 1px; }
+  .modes { display: flex; gap: 8px; margin-top: 8px; }
+  .modes button {
+    flex: 1; min-height: 44px; border-radius: 10px; border: none; cursor: pointer;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.72);
+    font-size: 13px; font-weight: 700; font-family: inherit; letter-spacing: .5px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .modes button.on { background: #4a90ff; color: #fff; }
+  .actions { display: flex; gap: 8px; margin-top: 8px; }
+  .actions button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; letter-spacing: 1px; font-family: inherit;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .actions button:active { transform: scale(.96); }
+  .btn-primary { background: #4a90ff; color: #fff; box-shadow: 0 4px 0 #2a63bd; }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 18px;
+    background: rgba(10, 18, 30, .86); backdrop-filter: blur(3px); color: #fff; z-index: 6;
+  }
+  .hidden { display: none !important; }
+  .over-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 13px; opacity: .75; line-height: 1.7; }
+  .over-sub b { color: #ffd76e; }
+  .final-line { font-size: 15px; font-weight: 700; }
+  .final-line b { font-size: 24px; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .over-btns { display: flex; gap: 8px; margin-top: 6px; width: 100%; }
+  .over-btns button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+  }
+  .icon-big { font-size: 40px; }
+  .footer {
+    margin-top: 10px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a { color: rgba(255,255,255,.78); text-decoration: none; display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; }
+  .footer a:hover { color: #ffd76e; }
+  .side { display: contents; }
+
+  /* 横屏矮视口：面板改成「棋盘在左、控件在右」两栏，否则 9 阶棋盘按高度反推会小到不可用 */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .panel {
+      --cs: min(40px, calc((100vh - 210px) / 9));
+      --cs: min(40px, calc((100svh - 210px) / 9));
+      width: auto; max-width: calc(100vw - 24px);
+      display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px;
+    }
+    .topbar { width: 100%; margin-bottom: 0; }
+    .board { flex: 0 0 auto; }
+    .side { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+    .pad { grid-template-columns: repeat(5, 44px); gap: 4px; margin-top: 0; }
+    .modes { margin-top: 0; }
+    .actions { margin-top: 0; }
+    .footer { margin-top: 6px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="topbar">
+    <div class="stat"><small data-i18n="sudoku.hudTime">TIME</small><span id="hud-time">0:00</span></div>
+    <div class="stat"><small data-i18n="sudoku.hudBest">BEST</small><span id="hud-best">—</span></div>
+    <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="side">
+    <div class="pad" id="pad">
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="erase" id="btn-erase" data-i18n="sudoku.erase">ERASE</button>
+    </div>
+    <div class="modes" id="modes">
+      <button data-diff="easy" data-i18n="sudoku.easy">EASY</button>
+      <button data-diff="medium" data-i18n="sudoku.medium">MEDIUM</button>
+      <button data-diff="hard" data-i18n="sudoku.hard">HARD</button>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="btn-new" data-i18n="common.newGame">NEW GAME</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="icon-big">🏆</div>
+    <div class="over-title" data-i18n="sudoku.over">SOLVED!</div>
+    <div class="final-line" id="final-line"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="over-sub" id="over-best"></div>
+    <div class="over-btns">
+      <button class="btn-primary" id="btn-again" data-i18n="common.newGame">NEW GAME</button>
+      <button class="btn-ghost" id="btn-share2" data-i18n="common.shareScore">SHARE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🔢</div>
+    <div class="over-title" data-i18n="sudoku.title">SUDOKU</div>
+    <div class="over-sub" data-i18n-html="sudoku.tip">Fill every row, column and 3×3 box with <b>1–9</b>.<br>Tap a cell, then tap a number.<br>Keyboard: <b>1–9</b> to fill, <b>arrows</b> to move, <b>0</b> to clear.</div>
+    <div class="over-sub" id="start-best"></div>
+    <button class="btn-primary" id="btn-start" data-i18n="common.start" style="margin-top:6px;padding:12px 28px;">START</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Audio =====
+  var actx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.value = vol == null ? 0.08 : vol;
+      o.connect(g); g.connect(actx.destination);
+      var now = actx.currentTime;
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      o.start(now); o.stop(now + dur + 0.02);
+    } catch (e) {}
+  }
+  var sfx = {
+    tap:   function () { beep(520, 0.05, 'sine', 0.07); },
+    clear: function () { beep(300, 0.07, 'triangle', 0.06); },
+    bad:   function () { beep(150, 0.16, 'square', 0.07); },
+    win:   function () { [660, 880, 1320].forEach(function (f, i) { setTimeout(function () { beep(f, 0.28, 'sine', 0.11); }, i * 130); }); },
+    newg:  function () { beep(420, 0.09, 'triangle', 0.07); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== State =====
+  var STATE = { READY: 0, PLAYING: 1, SOLVED: 2 };
+  var state = STATE.READY;
+  var BEST_KEY = 'sudoku_best_v1';
+  var best = {};
+  try { best = JSON.parse(localStorage.getItem(BEST_KEY) || '{}') || {}; } catch (e) { best = {}; }
+
+  var board = [], fixed = [], solution = [], sel = -1, diff = 'easy';
+  var elapsed = 0, lastTick = 0, timerId = null;
+  var DIGS = 0x1FF;                 // 9 个数字的位掩码
+
+  function pc(m) { var n = 0; while (m) { m &= m - 1; n++; } return n; }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, t2 = a[i]; a[i] = a[j]; a[j] = t2; }
+    return a;
+  }
+  function boxOf(i) { var r = (i / 9) | 0, c = i % 9; return ((r / 3) | 0) * 3 + ((c / 3) | 0); }
+
+  // ---- 生成：先随机填满一个合法终盘（回溯 + 位掩码），再挖洞并逐个验证解唯一 ----
+  function makeSolved() {
+    var g = [], rows = [0,0,0,0,0,0,0,0,0], cols = [0,0,0,0,0,0,0,0,0], boxes = [0,0,0,0,0,0,0,0,0];
+    for (var i = 0; i < 81; i++) g.push(0);
+    function fill(pos) {
+      if (pos === 81) return true;
+      var r = (pos / 9) | 0, c = pos % 9, b = boxOf(pos);
+      var avail = DIGS & ~(rows[r] | cols[c] | boxes[b]);
+      var opts = [];
+      for (var d = 1; d <= 9; d++) if (avail & (1 << (d - 1))) opts.push(d);
+      shuffle(opts);
+      for (var k = 0; k < opts.length; k++) {
+        var d2 = opts[k], bit = 1 << (d2 - 1);
+        g[pos] = d2; rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+        if (fill(pos + 1)) return true;
+        g[pos] = 0; rows[r] &= ~bit; cols[c] &= ~bit; boxes[b] &= ~bit;
+      }
+      return false;
+    }
+    fill(0);
+    return g;
+  }
+
+  /* 数解的个数（最多数到 limit 个就停）。MRV 选候选最少的格子 —— 挖洞时要跑 80 次，
+     不剪枝的话生成会明显卡顿。 */
+  function countSolutions(grid, limit) {
+    var rows = [0,0,0,0,0,0,0,0,0], cols = [0,0,0,0,0,0,0,0,0], boxes = [0,0,0,0,0,0,0,0,0];
+    for (var i = 0; i < 81; i++) {
+      var v = grid[i]; if (!v) continue;
+      var bit = 1 << (v - 1), r = (i / 9) | 0, c = i % 9, b = boxOf(i);
+      rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+    }
+    var found = 0;
+    function rec() {
+      if (found >= limit) return;
+      var pick = -1, pickMask = 0, pickCnt = 10;
+      for (var p = 0; p < 81; p++) {
+        if (grid[p]) continue;
+        var r2 = (p / 9) | 0, c2 = p % 9, b2 = boxOf(p);
+        var avail = DIGS & ~(rows[r2] | cols[c2] | boxes[b2]);
+        var n = pc(avail);
+        if (n === 0) return;                       // 这个分支已死
+        if (n < pickCnt) { pickCnt = n; pick = p; pickMask = avail; if (n === 1) break; }
+      }
+      if (pick < 0) { found++; return; }            // 没有空格 = 一个完整解
+      var rr = (pick / 9) | 0, cc = pick % 9, bb = boxOf(pick);
+      for (var d = 1; d <= 9; d++) {
+        var bt = 1 << (d - 1);
+        if (!(pickMask & bt)) continue;
+        grid[pick] = d; rows[rr] |= bt; cols[cc] |= bt; boxes[bb] |= bt;
+        rec();
+        grid[pick] = 0; rows[rr] &= ~bt; cols[cc] &= ~bt; boxes[bb] &= ~bt;
+        if (found >= limit) return;
+      }
+    }
+    rec();
+    return found;
+  }
+
+  var REMOVE = { easy: 40, medium: 48, hard: 54 };
+  function makePuzzle(d) {
+    var solved = makeSolved();
+    var g = solved.slice();
+    var order = shuffle(Array.apply(null, { length: 81 }).map(function (_, i) { return i; }));
+    var want = REMOVE[d] || 46, took = 0;
+    for (var k = 0; k < order.length && took < want; k++) {
+      var i = order[k], save = g[i];
+      if (!save) continue;
+      g[i] = 0;
+      if (countSolutions(g.slice(), 2) !== 1) g[i] = save;   // 挖掉后解不唯一 → 放回去
+      else took++;
+    }
+    solution = solved;
+    board = g;
+    fixed = g.map(function (v) { return v ? 1 : 0; });
+  }
+
+  // ===== Board =====
+  var boardEl = document.getElementById('board');
+  var cells = [];
+
+  function build() {
+    boardEl.innerHTML = '';
+    cells = [];
+    for (var i = 0; i < 81; i++) {
+      var el = document.createElement('div');
+      el.className = 'cell';
+      el.dataset.i = String(i);
+      var c = i % 9;
+      if (c % 3 === 2 && c !== 8) el.classList.add('bx-right');
+      var r = (i / 9) | 0;
+      if (r % 3 === 2 && r !== 8) el.classList.add('bx-bottom');
+      boardEl.appendChild(el);
+      cells.push(el);
+    }
+  }
+
+  // 粗线是 box-shadow，会覆盖 .sel 的 inset 光环 —— 每次重画都按当前 class 重新拼一遍
+  function boxShadowFor(el) {
+    var parts = [];
+    if (el.classList.contains('sel')) parts.push('inset 0 0 0 2px #9cc4ff');
+    if (el.classList.contains('bx-right')) parts.push('inset -2px 0 0 rgba(255,255,255,.45)');
+    if (el.classList.contains('bx-bottom')) parts.push('inset 0 -2px 0 rgba(255,255,255,.45)');
+    return parts.length ? parts.join(', ') : '';
+  }
+
+  function conflicts() {
+    var bad = {};
+    for (var i = 0; i < 81; i++) {
+      var v = board[i]; if (!v) continue;
+      for (var j = 0; j < 81; j++) {
+        if (j === i || board[j] !== v) continue;
+        var ri = (i / 9) | 0, ci = i % 9, rj = (j / 9) | 0, cj = j % 9;
+        if (ri === rj || ci === cj || boxOf(i) === boxOf(j)) { bad[i] = 1; bad[j] = 1; }
+      }
+    }
+    return bad;
+  }
+
+  function render() {
+    var bad = conflicts();
+    var selV = sel >= 0 ? board[sel] : 0;
+    var sr = sel >= 0 ? (sel / 9) | 0 : -1, sc = sel >= 0 ? sel % 9 : -1, sb = sel >= 0 ? boxOf(sel) : -1;
+    for (var i = 0; i < 81; i++) {
+      var el = cells[i], v = board[i];
+      el.textContent = v ? String(v) : '';
+      el.className = 'cell';
+      var c = i % 9;
+      if (c % 3 === 2 && c !== 8) el.classList.add('bx-right');
+      var r = (i / 9) | 0;
+      if (r % 3 === 2 && r !== 8) el.classList.add('bx-bottom');
+      if (fixed[i]) el.classList.add('fixed');
+      if (i === sel) el.classList.add('sel');
+      else if (sel >= 0 && (r === sr || c === sc || boxOf(i) === sb)) el.classList.add('peer');
+      if (v && selV && v === selV && i !== sel) el.classList.add('same');
+      if (bad[i]) el.classList.add('bad');
+      var bs = boxShadowFor(el);
+      // 直接清掉内联样式，让 .sel 类自己的 box-shadow 生效（无宫格线时才需要）
+      if (bs) el.style.boxShadow = bs; else el.style.boxShadow = '';
+    }
+  }
+
+  // ===== HUD =====
+  function fmtTime(sec) {
+    var s = Math.max(0, Math.floor(sec));
+    var m = Math.floor(s / 60);
+    return m + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+  function refreshBest() {
+    var b = best[diff];
+    document.getElementById('hud-best').textContent = b ? fmtTime(b) : '—';
+    document.getElementById('start-best').textContent = b
+      ? t('common.bestLabel', { n: fmtTime(b) })
+      : t('sudoku.first');
+  }
+  function refreshHud() {
+    document.getElementById('hud-time').textContent = fmtTime(elapsed);
+  }
+  function refreshAll() { refreshBest(); refreshHud(); renderOver(); }
+
+  var overOverlay = document.getElementById('over-overlay');
+  var startOverlay = document.getElementById('start-overlay');
+  var endDiff = null, endTime = 0;
+
+  function renderOver() {
+    if (state !== STATE.SOLVED) return;
+    document.getElementById('final-line').textContent =
+      t('sudoku.final', { d: t('sudoku.' + endDiff), t2: fmtTime(endTime) });
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: fmtTime(best[endDiff] || endTime) });
+  }
+
+  WG.onChange(refreshAll);
+
+  // ===== Timer =====
+  function startTimer() {
+    lastTick = performance.now();
+    if (timerId) clearInterval(timerId);
+    timerId = setInterval(function () {
+      var n = performance.now();
+      if (state === STATE.PLAYING) { elapsed += (n - lastTick) / 1000; refreshHud(); }
+      lastTick = n;
+    }, 200);
+  }
+  function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+  document.addEventListener('visibilitychange', function () { lastTick = performance.now(); });
+
+  // ===== Play =====
+  function newGame(d) {
+    if (d) diff = d;
+    state = STATE.READY;
+    stopTimer();
+    elapsed = 0; sel = -1; endDiff = null;
+    overOverlay.classList.add('hidden');
+    startOverlay.classList.remove('hidden');
+    makePuzzle(diff);
+    render(); refreshBest(); refreshHud();
+    var btns = document.querySelectorAll('#modes button');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.diff === diff);
+    sfx.newg();
+  }
+
+  function begin() {
+    if (state === STATE.PLAYING) return;
+    state = STATE.PLAYING;
+    startOverlay.classList.add('hidden');
+    startTimer();
+  }
+
+  function validMove(i, v) {
+    if (!v) return true;
+    var r = (i / 9) | 0, c = i % 9, b = boxOf(i);
+    for (var j = 0; j < 81; j++) {
+      if (j === i || board[j] !== v) continue;
+      if (((j / 9) | 0) === r || j % 9 === c || boxOf(j) === b) return false;
+    }
+    return true;
+  }
+
+  function isFull() {
+    for (var i = 0; i < 81; i++) if (!board[i]) return false;
+    return true;
+  }
+
+  function setCell(i, v) {
+    if (i < 0 || i >= 81 || fixed[i]) return;
+    begin();
+    board[i] = v;
+    sel = i;
+    if (v && !validMove(i, v)) sfx.bad(); else if (v) sfx.tap(); else sfx.clear();
+    render();
+    if (isFull() && Object.keys(conflicts()).length === 0) win();
+  }
+
+  function win() {
+    if (state === STATE.SOLVED) return;
+    state = STATE.SOLVED;
+    stopTimer();
+    endDiff = diff; endTime = elapsed;
+    var prev = best[diff];
+    var rec = !prev || endTime < prev;
+    if (rec) { best[diff] = Math.round(endTime * 10) / 10; try { localStorage.setItem(BEST_KEY, JSON.stringify(best)); } catch (e) {} }
+    document.getElementById('new-record').classList.toggle('hidden', !rec);
+    sfx.win();
+    renderOver();
+    overOverlay.classList.remove('hidden');
+  }
+
+  function moveSel(dr, dc) {
+    var i = sel < 0 ? 0 : sel;
+    var r = Math.min(8, Math.max(0, ((i / 9) | 0) + dr));
+    var c = Math.min(8, Math.max(0, (i % 9) + dc));
+    sel = r * 9 + c;
+    render();
+  }
+
+  // ===== Input =====
+  boardEl.addEventListener('pointerdown', function (e) {
+    var el = e.target;
+    if (!el || !el.dataset || el.dataset.i === undefined) return;
+    sel = parseInt(el.dataset.i, 10);
+    if (state === STATE.READY) begin();
+    else render();
+  });
+
+  document.getElementById('pad').addEventListener('click', function (e) {
+    var b = e.target;
+    if (!b || !b.dataset) return;
+    if (b.dataset.num !== undefined) setCell(sel < 0 ? 0 : sel, parseInt(b.dataset.num, 10));
+    else if (b.id === 'btn-erase') setCell(sel < 0 ? 0 : sel, 0);
+  });
+
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '');
+    var low = k.toLowerCase();
+    if (low === ' ' || low === 'enter') {
+      if (state === STATE.READY) { e.preventDefault(); begin(); }
+      return;
+    }
+    if (low === 'arrowleft') { e.preventDefault(); moveSel(0, -1); return; }
+    if (low === 'arrowright') { e.preventDefault(); moveSel(0, 1); return; }
+    if (low === 'arrowup') { e.preventDefault(); moveSel(-1, 0); return; }
+    if (low === 'arrowdown') { e.preventDefault(); moveSel(1, 0); return; }
+    if (low === 'backspace' || low === 'delete' || k === '0') { e.preventDefault(); setCell(sel < 0 ? 0 : sel, 0); return; }
+    if (k >= '1' && k <= '9') { e.preventDefault(); setCell(sel < 0 ? 0 : sel, parseInt(k, 10)); return; }
+    if (low === 'e' || low === 'x') { e.preventDefault(); setCell(sel < 0 ? 0 : sel, 0); return; }
+  });
+
+  document.getElementById('modes').addEventListener('click', function (e) {
+    var b = e.target;
+    if (b && b.dataset && b.dataset.diff) newGame(b.dataset.diff);
+  });
+  document.getElementById('btn-new').addEventListener('click', function () { newGame(); });
+  document.getElementById('btn-again').addEventListener('click', function () { newGame(); });
+  document.getElementById('btn-start').addEventListener('click', function () { begin(); });
+
+  function shareText() {
+    return t('sudoku.share', { d: t('sudoku.' + (endDiff || diff)), t2: fmtTime(endTime || elapsed), url: location.href });
+  }
+  function copyShare(btn) {
+    var full = shareText();
+    function done() {
+      btn.textContent = t('common.copied');
+      setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.getElementById('btn-share').addEventListener('click', function () { copyShare(this); });
+  document.getElementById('btn-share2').addEventListener('click', function () { copyShare(this); });
+
+  // ===== Boot =====
+  build();
+  newGame('easy');
+  state = STATE.READY;
+})();
+</script>
+</body>
+</html>
