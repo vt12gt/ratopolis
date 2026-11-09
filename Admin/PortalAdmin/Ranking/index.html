@@ -3,6 +3,29 @@
 <style>
 :root{color-scheme:dark;--panel:#121a2e;--line:#2b3855;--txt:#edf2ff;--muted:#aab6ce;--gold:#ffc857;--purple:#9b87ff;--green:#78dfad;--red:#ff7777}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2742 0,#0b1020 55%);color:var(--txt);font:14px system-ui,sans-serif;min-height:100vh}main{width:min(1120px,100%);margin:auto;padding:24px 16px 48px}.top,.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{font-size:21px;font-weight:950}.brand span{color:var(--gold)}a{color:#c6bbff}.btn,button,input{font:inherit}.btn,button{border:0;border-radius:9px;padding:10px 13px;background:var(--purple);color:#111426;font-weight:850;cursor:pointer;text-decoration:none}.secondary{background:#293753!important;color:var(--txt)!important}button:disabled{opacity:.45;cursor:not-allowed}h1{font-size:clamp(26px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);line-height:1.55}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin-top:15px}.status{padding:12px;border-radius:9px;background:#1b2942;border-left:4px solid var(--gold);white-space:pre-wrap}.status.bad{border-left-color:var(--red)}.status.good{border-left-color:var(--green)}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:13px}.stat{background:#0e1628;border:1px solid var(--line);border-radius:10px;padding:12px}.stat span{display:block;color:var(--muted);font-size:12px}.stat b{font-size:23px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.tabs button.active{background:var(--gold);color:#171522}.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}input{background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:10px;min-width:min(260px,100%);flex:1}.tablewrap{overflow:auto;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:540px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.num{font-variant-numeric:tabular-nums}.place{font-weight:950;color:var(--gold);width:65px}.nickname{font-weight:850}.pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}.note{font-size:12px;color:var(--muted);line-height:1.55}.hidden{display:none!important}
+
+/* Ajustes próprios para telas móveis do portal administrativo */
+@media(max-width:700px){
+ html,body{max-width:100%;overflow-x:hidden}
+ main{width:100%;max-width:100%;padding:12px 10px 28px!important}
+ .top,.row,.toolbar,.filters,.actions,.sourcebar,.pager{gap:8px;flex-wrap:wrap}
+ .panel,.hero{padding:12px!important;border-radius:12px}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ .stat{min-width:0;padding:10px!important}
+ .stat strong,.stat b{font-size:20px!important;overflow-wrap:anywhere}
+ input,select,textarea{box-sizing:border-box;max-width:100%;min-width:0}
+ button,.btn{min-height:40px;max-width:100%;white-space:normal}
+ .table,.tablewrap,.table-wrap,.table-container{width:100%;max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+ table{width:100%;min-width:500px;font-size:11px}
+ th,td{padding:8px 7px!important;overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+ main{padding:9px 7px 22px!important}
+ .stats,.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .stat strong,.stat b{font-size:18px!important}
+ h1{font-size:23px!important}
+ .panel,.hero{padding:10px!important}
+}
 </style></head><body><main>
 <header class="top"><div class="brand">RATIVA<span>GAMES</span> · ADMIN GERAL</div><a class="btn secondary" href="../index.html">← Voltar ao Admin Geral</a></header>
 <h1>Ranking dos jogadores</h1><p class="muted">Consulta dos rankings reais da base compartilhada de contas RativaPolis/RativaSnack. Os dados são carregados diretamente da API central.</p>
