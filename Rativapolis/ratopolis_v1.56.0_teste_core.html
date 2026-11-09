@@ -3669,7 +3669,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    setMessage('A sala foi conectada, mas a fase não abriu: '+(err&&err.message||'erro inesperado')+'. Toque em JOGAR novamente para tentar de novo.','error');
   }
  }
- function formatRoomId(code){const raw=String(code||'').trim().toUpperCase();const permanent=raw.match(/^RAT0*(\\d+)$/);return permanent?'SALA '+String(Number(permanent[1])).padStart(3,'0'):'SALA · '+raw;}
+ function formatRoomId(code){const raw=String(code||'').trim().toUpperCase();const permanent=raw.match(/^RAT0*(\d+)$/);return permanent?'SALA '+String(Number(permanent[1])).padStart(3,'0'):'SALA · '+raw;}
  function updateRoomIdBadge(code){let badge=$('ratopolisRoomIdBadge');if(!badge){badge=document.createElement('div');badge.id='ratopolisRoomIdBadge';badge.setAttribute('aria-label','Identificação da sala online');badge.style.cssText='position:fixed;top:8px;right:8px;z-index:2147482000;pointer-events:none;background:rgba(7,18,38,.88);border:1px solid rgba(255,217,106,.72);border-radius:999px;padding:6px 13px;color:#ffe08a;font:900 12px system-ui,sans-serif;letter-spacing:1px;box-shadow:0 3px 12px #0005';document.body.appendChild(badge);}badge.textContent=formatRoomId(code);badge.style.display=code?'block':'none';}
  function showRoom(code,data){
   activeRoomCode=code;updateRoomIdBadge(code);roomState=data||{};connectionLost=false;lastSuccessfulStateAt=Date.now();updateRoleChoice(roomState);
