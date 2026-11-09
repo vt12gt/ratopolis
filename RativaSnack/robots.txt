@@ -4,4 +4,4 @@ Disallow: /server/
 Disallow: /android/
 Disallow: /.github/
 
-Sitemap: https://vt12gt.github.io/Ratosnak/sitemap.xml
+Sitemap: https://vt12gt.github.io/RativaGames/RativaSnack/sitemap.xml
