@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1020">
+<title>Equipe e permissões | Admin Geral RativaGames</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2e;--line:#2b3855;--txt:#edf2ff;--muted:#aab6ce;--gold:#ffc857;--purple:#9b87ff;--red:#ff7777;--green:#78dfad}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2742 0,#0b1020 55%);color:var(--txt);font:14px system-ui,sans-serif;min-height:100vh}
+main{width:min(1120px,100%);margin:auto;padding:24px 16px 48px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-weight:950;font-size:21px}.brand span{color:var(--gold)}a{color:#c6bbff}.btn,button,select{font:inherit}.btn,button{border:0;border-radius:9px;padding:10px 13px;background:var(--purple);color:#111426;font-weight:850;cursor:pointer;text-decoration:none}.btn.secondary,button.secondary{background:#293753;color:var(--txt)}button:disabled{opacity:.45;cursor:not-allowed}
+h1{font-size:clamp(25px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);line-height:1.55}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-top:16px}.status{padding:12px;border-radius:9px;background:#1b2942;border-left:4px solid var(--gold);white-space:pre-wrap;overflow-wrap:anywhere}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:13px}.stat{background:#0e1628;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:24px;margin-top:3px}
+.tablewrap{overflow:auto;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);vertical-align:middle}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.role{display:inline-block;background:#283653;padding:4px 8px;border-radius:30px;font-size:12px;font-weight:800}.action{display:flex;gap:7px;align-items:center;flex-wrap:wrap}select{background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:8px}.note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.55}.hidden{display:none!important}.danger{background:#582c38;color:#ffe1e1}
+</style></head><body><main>
+<header class="top"><div class="brand">RATIVA<span>GAMES</span> · ADMIN GERAL</div><a class="btn secondary" href="../index.html">← Voltar ao Admin Geral</a></header>
+<h1>Equipe e permissões</h1><p class="muted">Gestão de cargos da base de contas conectada ao Worker administrativo. As alterações são validadas no servidor; esta tela não concede privilégios por conta própria.</p>
+<div class="panel"><div id="status" class="status" role="status">Verificando sua sessão administrativa…</div><div class="stats"><div class="stat"><span class="muted">Contas retornadas</span><b id="total">—</b></div><div class="stat"><span class="muted">Equipe (cargos administrativos)</span><b id="staff">—</b></div><div class="stat"><span class="muted">Seu cargo</span><b id="myrole">—</b></div></div>
+<div class="action" style="margin-top:14px"><button id="refresh">Atualizar lista</button><button id="portal" class="secondary">Admin Geral</button></div>
+<div class="tablewrap"><table><thead><tr><th>Conta</th><th>ID</th><th>Cargo atual</th><th>Alterar cargo</th></tr></thead><tbody id="rows"><tr><td colspan="4">Aguardando autenticação…</td></tr></tbody></table></div>
+<p class="note">Regras aplicadas pelo Worker atual: somente SpAdmin e ADM podem alterar cargos; não é permitido atribuir SpAdmin por esta tela, promover alguém a cargo igual/superior ao do operador, nem alterar conta com cargo igual/superior. Cada mudança de cargo gera um registro na tabela de auditoria do servidor. A listagem e a atribuição usam a API administrativa existente do projeto.</p>
+</div>
+<div class="panel"><b>Limite conhecido da migração</b><p class="muted">Este módulo administra cargos da base de contas atendida atualmente pelo Worker RativaPolis v30. Antes de tratar RativaSnack como parte da mesma equipe global, é necessário confirmar que o login e as contas do RativaSnack usam a mesma identidade/backend. O painel antigo continua preservado até concluir essa validação.</p></div>
+</main>
+<script>
+(()=> {
+ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+ const TOKEN_KEY='ratopolis_session_token';
+ const $=id=>document.getElementById(id);
+ const state={token:'',role:'',permissions:{},users:[]};
+ const roles=[['player','Jogador'],['divulgador','Divulgador'],['editor','Editor'],['mod','Moderador'],['gm','Game Master'],['adm','Administrador']];
+ const labels={spadm:'SpAdmin',adm:'ADM',gm:'GM',mod:'Moderador',editor:'Editor',divulgador:'Divulgador',player:'Jogador'};
+ function status(msg,kind){$('status').textContent=msg;$('status').style.borderLeftColor=kind==='ok'?'var(--green)':kind==='bad'?'var(--red)':'var(--gold)';}
+ async function request(path,options={}){
+  const headers={'Accept':'application/json','Authorization':'Bearer '+state.token,...(options.headers||{})};
+  if(options.body)headers['Content-Type']='application/json';
+  const response=await fetch(API+path,{...options,headers,cache:'no-store'});
+  let data={};try{data=await response.json()}catch{}
+  if(!response.ok||data.ok===false)throw new Error(data.erro||('Falha HTTP '+response.status));
+  return data;
+ }
+ function canManage(){return state.permissions.manageStaff===true&&(state.role==='spadm'||state.role==='adm');}
+ function render(){
+  $('total').textContent=state.users.length;
+  $('staff').textContent=state.users.filter(u=>u.role&&u.role!=='player').length;
+  $('myrole').textContent=labels[state.role]||state.role||'—';
+  const body=$('rows');body.replaceChildren();
+  const users=state.users.filter(u=>u.role!=='player').sort((a,b)=>(a.nickname||'').localeCompare(b.nickname||''));
+  if(!users.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='Nenhuma conta de equipe encontrada.';tr.append(td);body.append(tr);return;}
+  for(const user of users){
+   const tr=document.createElement('tr');
+   const name=document.createElement('td');name.textContent=user.nickname||'(sem nickname)';
+   const id=document.createElement('td');id.textContent=user.id;
+   const role=document.createElement('td');const pill=document.createElement('span');pill.className='role';pill.textContent=labels[user.role]||user.role;role.append(pill);
+   const action=document.createElement('td');
+   if(canManage()&&user.role!=='spadm'){
+    const wrap=document.createElement('div');wrap.className='action';
+    const select=document.createElement('select');select.setAttribute('aria-label','Novo cargo para '+(user.nickname||user.id));
+    for(const [value,label] of roles){const opt=document.createElement('option');opt.value=value;opt.textContent=label;opt.selected=value===user.role;select.append(opt);}
+    const btn=document.createElement('button');btn.textContent='Salvar';btn.addEventListener('click',()=>changeRole(user,select.value,btn));
+    wrap.append(select,btn);action.append(wrap);
+   }else{action.textContent=user.role==='spadm'?'Conta protegida': 'Somente leitura';}
+   tr.append(name,id,role,action);body.append(tr);
+  }
+ }
+ async function changeRole(user,newRole,btn){
+  if(newRole===user.role)return;
+  const label=labels[newRole]||newRole;
+  if(!confirm('Alterar '+(user.nickname||user.id)+' de '+(labels[user.role]||user.role)+' para '+label+'? Esta ação será registrada na auditoria do servidor.'))return;
+  btn.disabled=true;
+  try{await request('/api/admin/role',{method:'POST',body:JSON.stringify({user_id:user.id,role:newRole})});status('Cargo atualizado no servidor. A alteração foi registrada na auditoria. Atualizando lista…','ok');await loadUsers();}
+  catch(e){status('Não foi possível alterar o cargo: '+e.message,'bad');btn.disabled=false;}
+ }
+ async function loadUsers(){
+  $('refresh').disabled=true;
+  try{const data=await request('/api/admin/users');state.users=Array.isArray(data.jogadores)?data.jogadores:[];render();status('Sessão validada. Lista carregada do servidor.','ok');}
+  catch(e){status('Falha ao consultar equipe: '+e.message,'bad');}
+  finally{$('refresh').disabled=false;}
+ }
+ async function init(){
+  state.token=localStorage.getItem(TOKEN_KEY)||'';
+  if(!state.token){status('Nenhuma sessão encontrada neste navegador. Entre no portal RativaGames com uma conta administrativa e abra este módulo novamente.','bad');$('rows').innerHTML='<tr><td colspan="4">Login necessário.</td></tr>';return;}
+  try{
+   const me=await request('/api/admin/me');state.role=String(me.role||'').toLowerCase();state.permissions=me.permissoes||me.permissions||{};
+   if(!me.autorizado||me.permissoes?.viewAdminPanel!==true){throw new Error('Esta conta não tem autorização para abrir a administração.');}
+   if(!canManage()){status('Acesso somente leitura. Seu cargo não possui permissão manageStaff.','bad');}
+   await loadUsers();
+  }catch(e){status('Acesso negado ou sessão inválida: '+e.message,'bad');$('rows').innerHTML='<tr><td colspan="4">Não foi possível carregar a equipe.</td></tr>';}
+ }
+ $('refresh').addEventListener('click',loadUsers);$('portal').addEventListener('click',()=>location.href='../index.html');init();
+})();
+</script></body></html>
