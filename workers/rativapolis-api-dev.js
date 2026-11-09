@@ -5,7 +5,7 @@ const bearer = request => { const m=(request.headers.get("Authorization")||"").m
 async function sha256(value){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));let b="";for(const x of new Uint8Array(d))b+=String.fromCharCode(x);return btoa(b).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
 async function portalActor(request,env){
  const token=bearer(request);if(token.length<20||!env.PORTAL_DB)return null;
- return env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1").bind(await sha256(token),new Date().toISOString()).first();
+ return env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.email,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1").bind(await sha256(token),new Date().toISOString()).first();
 }
 async function gameActor(request,env){
  const portal=await portalActor(request,env);if(!portal)return null;
@@ -26,25 +26,27 @@ export default {async fetch(request,env){
   try{const [portal,polis,profiles]=await Promise.all([env.PORTAL_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_profiles").first()]);return json({ok:true,service:"rativapolis-api",version:VERSION,environment:"development",identity:"rativa-games-portal",databases:{portal_users:Number(portal?.total||0),polis_users:Number(polis?.total||0),polis_profiles:Number(profiles?.total||0)}},200,headers);}catch{return json({ok:false,error:"database_check_failed"},503,headers);}
  }
  if(request.method!=="GET")return json({ok:false,error:"method_not_allowed"},405,headers);
- if(path==="/api/rativapolis/rankings"||path==="/api/rativapolis/rankings/level"){
+ if(path==="/api/rativapolis/rankings"||path==="/api/rativapolis/rankings/level"||path==="/api/rankings"||path==="/api/rankings/level"){
   try{
    const page=Math.max(1,Math.min(10000,Number.parseInt(url.searchParams.get("page")||"1",10)||1));
    const limit=Math.max(1,Math.min(100,Number.parseInt(url.searchParams.get("limit")||"20",10)||20));
    const offset=(page-1)*limit;
    const totalRow=await env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users u JOIN ratopolis_profiles p ON p.user_id=u.id WHERE u.status='active'").first();
-   const rows=await env.POLIS_DB.prepare("SELECT u.id,u.public_id,u.nickname,p.level,p.xp FROM game_users u JOIN ratopolis_profiles p ON p.user_id=u.id WHERE u.status='active' ORDER BY p.level DESC,p.xp DESC,u.nickname COLLATE NOCASE ASC LIMIT ? OFFSET ?").bind(limit,offset).all();
+   const isLegacyGeneral=path==="/api/rankings";
+   const orderBy=isLegacyGeneral?"p.xp DESC,p.level DESC,u.nickname COLLATE NOCASE ASC":"p.level DESC,p.xp DESC,u.nickname COLLATE NOCASE ASC";
+   const rows=await env.POLIS_DB.prepare("SELECT u.id,u.public_id,u.nickname,p.level,p.xp FROM game_users u JOIN ratopolis_profiles p ON p.user_id=u.id WHERE u.status='active' ORDER BY "+orderBy+" LIMIT ? OFFSET ?").bind(limit,offset).all();
    const total=Number(totalRow?.total||0),players=(rows.results||[]).map((x,i)=>({posicao:offset+i+1,id:x.public_id,nickname:x.nickname,level:Number(x.level),xp:Number(x.xp)}));
-   return json({ok:true,ranking:"level",pagina:page,limite:limit,total,total_paginas:Math.ceil(total/limit),jogadores:players},200,headers);
+   return json({ok:true,ranking:isLegacyGeneral?"geral":"nivel",pagina:page,limite:limit,total,total_paginas:Math.ceil(total/limit),jogadores:players},200,headers);
   }catch{return json({ok:false,error:"ranking_unavailable"},503,headers);}
  }
- if(!path.startsWith("/api/rativapolis/"))return json({ok:false,error:"not_found"},404,headers);
+ if(!path.startsWith("/api/rativapolis/")&&!["/api/profile","/api/progression/me"].includes(path))return json({ok:false,error:"not_found"},404,headers);
  const actor=await gameActor(request,env);if(!actor)return json({ok:false,error:"portal_authentication_required"},401,headers);
  try{
-  if(path==="/api/rativapolis/profile"||path==="/api/rativapolis/profile/personal"||path==="/api/rativapolis/me"){
+  if(path==="/api/rativapolis/profile"||path==="/api/rativapolis/profile/personal"||path==="/api/rativapolis/me"||path==="/api/profile"){
    const p=await env.POLIS_DB.prepare("SELECT level,xp,vip_level,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
-   return json({ok:true,jogador:{id:actor.public_id,public_id:actor.public_id,nickname:actor.nickname,role:actor.role,level:Number(p?.level??1),xp:Number(p?.xp??0),vip_level:Number(p?.vip_level??0),coins:Number(p?.coins??0)}},200,headers);
+   return json({ok:true,jogador:{id:actor.public_id,public_id:actor.public_id,nickname:actor.nickname,email:actor.email||"",role:actor.role,status:"active",level:Number(p?.level??1),xp:Number(p?.xp??0),vip_level:Number(p?.vip_level??0),coins:Number(p?.coins??0)}},200,headers);
   }
-  if(path==="/api/rativapolis/progression/me"){
+  if(path==="/api/rativapolis/progression/me"||path==="/api/progression/me"){
    const p=await env.POLIS_DB.prepare("SELECT level,xp,vip_level,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
    const level=Math.max(1,Math.min(50,Number(p?.level)||1)),xp=Math.max(0,Number(p?.xp)||0),next=level>=50?null:level*100;
    return json({ok:true,progresso:{level,xp,vip_level:Number(p?.vip_level||0),coins:Number(p?.coins||0),max_level:50,xp_proximo_nivel:next,xp_restante:next===null?0:Math.max(0,next-xp)}},200,headers);
