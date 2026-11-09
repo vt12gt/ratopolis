@@ -823,7 +823,7 @@ const vics=[],byk=[];
 const dd=(x1,y1,x2,y2)=>{const a=x1-x2,b=y1-y2;return a*a+b*b};
 function sd(px,py,ax,ay,bx,by){const abx=bx-ax,aby=by-ay,t=Math.max(0,Math.min(1,((px-ax)*abx+(py-ay)*aby)/(abx*abx+aby*aby||1)));return dd(px,py,ax+abx*t,ay+aby*t)}
 /* ===== Multiplayer local: sala por Wi-Fi/hotspot (WebRTC, sem internet). O anfitrião roda a partida; os convidados mandam direção e recebem o estado. ===== */
-let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpDeadMsg=false;const mpSlots=[],mpConns=[];
+let mpRole=null,mpPending=false,mpServerAuthoritative=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpDeadMsg=false;const mpSlots=[],mpConns=[];
 const mpEnc=o=>btoa(JSON.stringify(o)),mpDec=t=>JSON.parse(atob(String(t).replace(/\s/g,'')));
 const mpIce=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(r,3000)});
 const mpEl=id=>document.getElementById(id);
@@ -852,7 +852,7 @@ async function mpAnswer(){try{if(typeof RTCPeerConnection==='undefined')throw 0;
  pc.ondatachannel=e=>{const dc=e.channel;mpDC=dc;dc.onopen=()=>{dc.send(JSON.stringify({h:prefs.nick||'Jogador'}));mpUI()};dc.onclose=()=>{const w=mpRole==='client';mpLeave();mpUI();if(w)toMenu()};dc.onmessage=mpClientMsg};
  await pc.setRemoteDescription({type:'offer',sdp:off.s});await pc.setLocalDescription(await pc.createAnswer());await mpIce(pc);
  mpEl('mpOut').innerHTML='<p>Envie este código ao anfitrião:</p>'+mpTA('mpAo',1);mpEl('mpAo').value=mpEnc({s:pc.localDescription.sdp});mpUI()}catch(e){gAlert('Código inválido ou conexão local indisponível.')}}
-function mpLeave(){try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=mpPC=null;if(mpRole==='host'||mpConns.length){for(const c of mpConns){try{c.dc.close();c.pc.close()}catch(_){}}mpConns.length=0;mpSlots.length=0}mpRole=null;mpPending=false;if(mpOnline){mpOnline=false;olLeaveRoom()}}
+function mpLeave(){try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=mpPC=null;mpServerAuthoritative=false;if(mpRole==='host'||mpConns.length){for(const c of mpConns){try{c.dc.close();c.pc.close()}catch(_){}}mpConns.length=0;mpSlots.length=0}mpRole=null;mpPending=false;if(mpOnline){mpOnline=false;olLeaveRoom()}}
 function mpBroadcastEnd(){if(mpRole!=='host')return;for(const c of mpConns)try{if(c.open)c.dc.send('{"end":1}')}catch(_){}setTimeout(mpLeave,400)}
 function mpClientMsg(e){let m;try{m=JSON.parse(e.data)}catch(_){return}
  if(m.start&&mpRole!=='client'){mpRole='client';mpClose();mpOnline=true;startGame(m.mode||ol.mode||'quick');return}
@@ -874,10 +874,10 @@ function mpMk(o){const g=Array.isArray(o.g)?o.g:[],sg=[];for(let i=0;i+1<g.lengt
 function mpApply(m){if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==ARENA){ARENA=ARENAS[m.ar];OBS=ARENA.o.map(a=>({x:a[0]*worldW,y:a[1]*worldH,w:a[2]*worldW,h:a[3]*worldH,k:a[4]}))}
  if(!m.me)return;const me=mpMk(m.me);me.isBot=false;const os=(Array.isArray(m.o)?m.o:[]).slice(0,16).map(mpMk);player=me;bots=os;snakes=[me,...os];
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
- gameTime=mpN(m.t);score=me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
+ gameTime=mpN(m.t);score=Number.isFinite(+m.sc)?Math.max(0,+m.sc):me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
 function mpClientTick(dt){if(!player)return;const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
  if(pointer.down&&pointer.hasDirection)mpAng=Math.atan2(pointer.dirY,pointer.dirX);
- mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:boostHold&&!paused&&!resumeCountdown?1:0,p:!!(paused||resumeCountdown>0)}))}
+ mpAcc+=dt;if(mpAcc>=.05){mpAcc=0;const control={a:+mpAng.toFixed(3),b:boostHold&&!paused&&!resumeCountdown?1:0,p:!!(paused||resumeCountdown>0)};if(mpServerAuthoritative)olSend({t:'input',...control});else if(mpDC&&mpDC.readyState==='open')mpDC.send(JSON.stringify(control))}
  mpAcc2+=dt;if(mpAcc2>.3){mpAcc2=0;updateHud(true)}}
 const LT=[{n:'Partidas',b:3,p:1.55,v:()=>stats.games,t:n=>`Jogue ${n} partidas`},{n:'Queijos',b:60,p:1.9,v:()=>stats.food,t:n=>`Coma ${n} queijos no total`},{n:'Eliminações',b:4,p:1.75,v:()=>stats.kills,t:n=>`Elimine ${n} ratos no total`},{n:'Tempo',b:5,p:1.7,v:()=>Math.floor(stats.time/60),t:n=>`Jogue ${n} minutos no total`},{n:'Pontuação',b:300,p:1.6,v:()=>bestQuick,t:n=>`Faça ${n} pontos na partida rápida`},{n:'Sobrevivência',b:20,p:1.3,v:()=>Math.floor(stats.bestTime),t:n=>`Sobreviva ${n} segundos`},{n:'Tamanho',b:10,p:1,v:()=>stats.bestSize,t:n=>`Chegue ao tamanho ${n}`},{n:'Diários',b:1,p:1,v:()=>prog.dcPlays,t:n=>`Faça ${n} desafios diários`},{n:'Nível',b:2,p:1.4,v:()=>lvlInfo(prog.xp).l,t:n=>`Chegue ao nível ${n}`},{n:'Rodada',b:1,p:.95,v:()=>stats.bestKills,t:n=>`Elimine ${n} ratos em uma partida`}];
 const ladThr=(k,i)=>Math.max(1,Math.round(LT[k].b*Math.pow(i+1,LT[k].p)));
@@ -928,7 +928,7 @@ async function olPlay(selectedMode){const allowed=['quick','survival','challenge
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin})})}
-function olFinalizeLeave(){if(ol.leaveTimer){clearTimeout(ol.leaveTimer);ol.leaveTimer=0}ol.leavePending=false;ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
+function olFinalizeLeave(){mpServerAuthoritative=false;if(ol.leaveTimer){clearTimeout(ol.leaveTimer);ol.leaveTimer=0}ol.leavePending=false;ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
 function olBeginLeave(onDone){if(ol.leavePending)return;const ws=ol.ws;if(!ws||ws.readyState!==1){olFinalizeLeave();if(onDone)onDone();return}ol.leavePending=true;ol.leaveDone=onDone||null;const command=ol.isHost?{t:'ctl',k:'end'}:{t:'leave'};if(!olSend(command)){olFinalizeLeave();if(onDone)onDone();return}ol.leaveTimer=setTimeout(()=>{const done=ol.leaveDone;const stale=ol.ws;ol.ws=null;try{if(stale&&stale.readyState<2)stale.close(1000,'leave_timeout')}catch(_){}olFinalizeLeave();if(done)done()},1200)}
 function olLeaveRoom(){olBeginLeave()}
 function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}
@@ -940,7 +940,8 @@ function olMsg(m){
   case 'joined':ol.hostId=m.host;ol.isHost=m.isHost;ol.players=m.players;if(ol.view)olRoomView();break;
   case 'roster':ol.players=m.players;if(ol.view)olRoomView();break;
   case 'countdown':if(ol.view)olRoomView('A partida começa em '+Math.round(m.ms/1000)+' s…');break;
-  case 'start':ol.view=false;ol.mode=m.mode||ol.mode||'quick';if(ol.isHost){if(mpRole!=='host')olHostStart(ol.mode)}else if(mpRole!=='client'){mpOnline=true;mpClientMsg({data:JSON.stringify({start:1,mode:ol.mode})});olHello()}break;
+  case 'start':ol.view=false;ol.mode=m.mode||ol.mode||'quick';if(m.authoritative){mpServerAuthoritative=true;mpRole='client';mpOnline=true;mpClose();startGame0(ol.mode||'quick');showToast('☁️ Partida simulada pelo servidor',2.5)}else if(ol.isHost){if(mpRole!=='host')olHostStart(ol.mode)}else if(mpRole!=='client'){mpOnline=true;mpClientMsg({data:JSON.stringify({start:1,mode:ol.mode})});olHello()}break;
+  case 'state':if(mpServerAuthoritative&&mpRole==='client')mpApply(m);break;
   case 'peer_join':{if(!ol.isHost)break;let c=mpConns.find(x=>x.uid===m.id);if(!c){c={pc:null,dc:olDC(m.id),open:true,nick:m.nick,ang:0,boost:0,uid:m.id,slot:m.slot};mpConns.push(c)}c.open=true;c.nick=m.nick;c.slot=m.slot;if(mpRole==='host'&&running)olSlotBind(c);break}
   case 'peer_offline':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=false;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].alive=false}break}
   case 'peer_back':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=true;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].respawnAt=0;else if(mpRole==='host'&&running)olSlotBind(c)}break}
