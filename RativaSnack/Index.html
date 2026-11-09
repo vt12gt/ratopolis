@@ -27,9 +27,23 @@
 <script>
 const statusEl=document.getElementById('netStatus');
 const AUTH_KEY='ratoSnackOnline';
-const API_URL='https://rato-snack-multiplayer.onrender.com';
+const PORTAL_TOKEN_KEY='ratopolis_session_token';
+const PORTAL_API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 let portalToken='',portalNick='',onlineReady=false,checking=false;
 function status(message,ok=false){statusEl.textContent=message;statusEl.style.color=ok?'#8df0b5':'#cbbbdc'}
+function unwrapPlayer(data){
+ let value=data;
+ for(let i=0;i<3&&value&&typeof value==='object';i++){
+  const next=value.player||value.jogador||value.user||value.usuario||value.perfil||value.data;
+  if(!next||next===value)break;
+  value=next;
+ }
+ return value&&typeof value==='object'?value:null;
+}
+function playerValue(player,...keys){
+ for(const key of keys)if(player&&player[key]!==undefined&&player[key]!==null&&player[key]!=='')return player[key];
+ return '';
+}
 function readSession(){
  const params=new URLSearchParams(location.hash.slice(1));
  const incoming=params.get('ratopolis_token')||'';
@@ -37,38 +51,54 @@ function readSession(){
  try{
   if(incoming){
    portalToken=incoming;portalNick=nick.slice(0,24);
-   sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}));
    history.replaceState(null,'',location.pathname+location.search);
   }else{
-   const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
-   if(saved&&typeof saved.token==='string'&&saved.token.length>0&&saved.token.length<=4096){
-    portalToken=saved.token;portalNick=String(saved.nick||'').slice(0,24);
+   // O portal e o jogo estão no mesmo domínio: a sessão principal fica no localStorage.
+   portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||'';
+   if(!portalToken){
+    const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
+    if(saved&&typeof saved.token==='string')portalToken=saved.token;
+    if(saved&&saved.nick)portalNick=String(saved.nick).slice(0,24);
    }
   }
  }catch(e){console.warn('RativaSnack: não foi possível recuperar a sessão',e)}
 }
+function saveSnackSession(player){
+ portalNick=String(playerValue(player,'nickname','apelido','nick','display_name','name','username')||portalNick||'Jogador').slice(0,24);
+ const id=playerValue(player,'id','user_id','userId','account_id','accountId','public_id','publicId')||'';
+ try{sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id,nick:portalNick}))}catch(e){}
+}
+function returnToPortal(message){
+ status(message);
+ setTimeout(()=>{location.href='https://vt12gt.github.io/RativaGames/'},850);
+}
 async function validateConnection(){
  if(checking)return false;
- if(!portalToken){status('🔒 Conecte sua conta pelo portal RativaGames para jogar Online.');return false}
- checking=true;onlineReady=false;status('🔄 Validando conexão com sua conta…');
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);
+ if(!portalToken){onlineReady=false;returnToPortal('🔒 Nenhuma sessão RativaGames encontrada. Voltando ao portal para conectar…');return false}
+ checking=true;onlineReady=false;status('🔄 Verificando sua sessão RativaGames…');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
-  const response=await fetch(API_URL+'/api/me',{method:'GET',headers:{Authorization:'Bearer '+portalToken,'Content-Type':'application/json'},cache:'no-store',signal:controller.signal});
+  const response=await fetch(PORTAL_API+'/api/me',{method:'GET',headers:{Authorization:'Bearer '+portalToken,Accept:'application/json'},cache:'no-store',signal:controller.signal});
   let data={};try{data=await response.json()}catch(e){}
   if(response.status===401||response.status===403){
-   try{sessionStorage.removeItem(AUTH_KEY)}catch(e){}
-   portalToken='';portalNick='';status('🔒 Sua sessão precisa ser renovada. Voltando ao portal…');
-   setTimeout(()=>location.href='https://vt12gt.github.io/RativaGames/',650);
+   try{localStorage.removeItem(PORTAL_TOKEN_KEY);sessionStorage.removeItem(AUTH_KEY)}catch(e){}
+   portalToken='';portalNick='';
+   returnToPortal('🔒 Sua sessão RativaGames expirou. Voltando para entrar novamente…');
    return false;
   }
-  if(!response.ok||!data.id)throw new Error('validation_unavailable');
-  portalNick=String(data.nickname||data.display_name||data.nick||data.username||portalNick||'').slice(0,24);
-  try{sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:data.id,nick:portalNick}))}catch(e){}
-  onlineReady=true;status('🟢 Conta conectada e validada! Escolha Online ou Offline.',true);
+  if(!response.ok||data.ok===false)throw new Error('validation_unavailable');
+  const player=unwrapPlayer(data);
+  const hasIdentity=player&&(
+   playerValue(player,'id','user_id','userId','account_id','accountId','public_id','publicId','nickname','apelido','nick','display_name','name','username')!==''
+  );
+  if(!hasIdentity)throw new Error('profile_not_returned');
+  saveSnackSession(player);
+  onlineReady=true;
+  status('🟢 Conta RativaGames conectada: '+portalNick+'. Escolha Online ou Offline.',true);
   return true;
  }catch(e){
-  console.warn('RativaSnack: falha temporária ao validar a conexão',e);
-  status('🟠 Não foi possível confirmar a conexão agora. Toque em Online para tentar novamente.');
+  console.warn('RativaSnack: falha temporária ao validar a sessão',e);
+  status('🟠 Não foi possível confirmar o servidor agora. Sua sessão foi preservada. Toque em Online para tentar novamente.');
   return false;
  }finally{clearTimeout(timer);checking=false}
 }
@@ -82,9 +112,10 @@ document.getElementById('goOnline').addEventListener('click',async e=>{
 });
 document.getElementById('goOffline').addEventListener('click',()=>{});
 if(portalToken)validateConnection();
-else status('🔒 Online exige uma conta conectada pelo portal RativaGames. O Offline está liberado.');
-addEventListener('online',()=>{if(portalToken)validateConnection();else status('🔒 Conecte sua conta pelo portal RativaGames para jogar Online.')});
+else returnToPortal('🔒 Conta não encontrada. Voltando ao portal RativaGames…');
+addEventListener('online',()=>{if(!portalToken){try{portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||''}catch(e){}}if(portalToken)validateConnection()});
 addEventListener('offline',()=>status('🔴 Sem internet — o modo Offline continua disponível.'));
+addEventListener('storage',event=>{if(event.key===PORTAL_TOKEN_KEY&&event.newValue){portalToken=event.newValue;validateConnection()}});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body></html>
