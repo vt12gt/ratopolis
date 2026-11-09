@@ -943,8 +943,19 @@ function olMsg(m){
   case 'st':if(mpRole==='client')mpClientMsg({data:m.d});break;
   case 'end':if(mpRole==='client'){mpClientMsg({data:'{"end":1}'})}else if(ol.view){ol.view=false;olHome();olMsgSet('A sala foi encerrada.')}break;
   case 'kicked':break}}
-function onlineHostRespawn(){let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<12&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<400)));
- const np=mkSnake(x,y,rand(0,6.28),prefs.color,ol.nick||'Você',false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();dyingT=0;lastKiller=null;causeText='';kills=0;foodEaten=0;cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('💀 Você caiu! Reaparecendo…',2)}
+let olDeathTimer=0,olDeathActive=false;
+function olDeathModeExempt(){return mode==='boss'||mode==='mundial'||wbRun===true}
+function olShowDeathSummary(){
+ if(!mpOnline||olDeathModeExempt())return false;
+ olDeathActive=true;olDeathTimer=5;running=false;paused=false;releaseDrag();syncMusic();$('pause').classList.add('hidden');
+ let el=document.getElementById('olDeathSummary');if(!el){el=document.createElement('div');el.id='olDeathSummary';el.style.cssText='position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,24,.88);color:#fff;font-family:system-ui';document.body.appendChild(el)}
+ const killer=lastKiller&&lastKiller.name?('Eliminado por '+lastKiller.name):causeText||'Você foi eliminado';
+ el.innerHTML='<div style="width:min(440px,100%);padding:24px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">💥🐭</div><h2 style="margin:8px 0;color:#ffd166">VOCÊ FOI ELIMINADO</h2><p style="margin:0 0 16px;color:#d7c9ff">'+olEsc(killer)+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>PONTOS</small><h2>'+Math.floor(score)+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>TAMANHO</small><h2>'+Math.floor(player.length)+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>ABATES</small><h2>'+kills+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>TEMPO</small><h2>'+fmtTime(gameTime)+'</h2></div></div><p style="margin:18px 0 0">Voltando ao lobby em <b id="olDeathCount" style="font-size:24px;color:#ffd166">5</b> segundos…</p></div>';
+ }
+function olFinishDeathExit(){
+ olDeathActive=false;olDeathTimer=0;const el=document.getElementById('olDeathSummary');if(el)el.remove();
+ if(mpRole)mpLeave();else olLeaveRoom();mpOnline=false;mpPending=false;mpRole=null;running=false;paused=false;ended=true;ol.view=false;olHome();
+}
 /* ---- telas ---- */
 const olIn=(id,ph,t)=>`<input id="${id}" type="${t||'text'}" placeholder="${ph}" autocomplete="off" autocapitalize="off" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid #7f5fd0;background:#1b1140;color:#fff;font-size:14px;box-sizing:border-box">`,olBack=mpB('Voltar','mpHome()','background:#5b2f48;color:#fff'),olVal=id=>{const e=mpEl(id);return e?String(e.value||'').trim():''};
 function olMsgSet(t){const e=mpEl('olMsg');if(e)e.textContent=t}
@@ -1092,7 +1103,7 @@ function update(dt){
  if(mode==='team'&&player.alive){if(teamScore[0]>=M.tgoal)endGame('win');else if(teamScore[1]>=M.tgoal)endGame('time')}
  if(bossWinT>0){bossWinT-=dt;if(bossWinT<=0)endGame('win')}
  evT-=dt;if(!ev&&evT<=0&&player.alive)startEvent();eventTick(dt);
- if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(canRevive())offerRevive();else endGame('dead')}}
+ if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathExit()}\n if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(mpOnline&&!olDeathModeExempt()){olShowDeathSummary()}else if(canRevive())offerRevive();else endGame('dead')}}
  if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.add('hidden')}
  const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2;
  cam.x+=(tx-cam.x)*Math.min(1,dt*5);cam.y+=(ty-cam.y)*Math.min(1,dt*5);
@@ -1100,7 +1111,7 @@ function update(dt){
  lbT-=dt;if(lbT<=0){lbT=.4;refreshLb()}
  hudT-=dt;if(hudT<=0){hudT=.1;updateHud()}}
 
-function endGame(kind){if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}mpBroadcastEnd();dcEnd();
+function endGame(kind){mpBroadcastEnd();dcEnd();
  if(ended)return;if(player.alive)refreshLb();ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();$('pause').classList.add('hidden');
  const M=MODES[mode];
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
