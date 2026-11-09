@@ -6,6 +6,10 @@ on:
     branches: [ main ]
     paths:
       - 'RativaSnack/Index.html'
+      - 'RativaSnack/Online.html'
+      - 'RativaSnack/Offline.html'
+      - 'RativaSnack/sw.js'
+      - 'RativaSnack/manifest.webmanifest'
       - 'RativaSnack/android/**'
       - '.github/workflows/build-rativasnack-apk.yml'
 
@@ -43,7 +47,15 @@ jobs:
         run: |
           mkdir -p RativaSnack/android/app/src/main/assets/www
           cp RativaSnack/Index.html RativaSnack/android/app/src/main/assets/www/index.html
+          cp RativaSnack/Online.html RativaSnack/android/app/src/main/assets/www/Online.html
+          cp RativaSnack/Offline.html RativaSnack/android/app/src/main/assets/www/Offline.html
+          cp RativaSnack/sw.js RativaSnack/android/app/src/main/assets/www/sw.js
+          cp RativaSnack/manifest.webmanifest RativaSnack/android/app/src/main/assets/www/manifest.webmanifest
+          cp RativaSnack/icon-192.png RativaSnack/android/app/src/main/assets/www/icon-192.png
+          cp RativaSnack/icon-512.png RativaSnack/android/app/src/main/assets/www/icon-512.png
           test -s RativaSnack/android/app/src/main/assets/www/index.html
+          test -s RativaSnack/android/app/src/main/assets/www/Online.html
+          test -s RativaSnack/android/app/src/main/assets/www/Offline.html
 
       - name: Build debug APK
         working-directory: RativaSnack/android
