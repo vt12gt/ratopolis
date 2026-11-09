@@ -26,13 +26,30 @@ export default {async fetch(request,env){
   try{const [portal,polis,profiles]=await Promise.all([env.PORTAL_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first(),env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_profiles").first()]);return json({ok:true,service:"rativapolis-api",version:VERSION,environment:"development",identity:"rativa-games-portal",databases:{portal_users:Number(portal?.total||0),polis_users:Number(polis?.total||0),polis_profiles:Number(profiles?.total||0)}},200,headers);}catch{return json({ok:false,error:"database_check_failed"},503,headers);}
  }
  
+ if(request.method==="POST"&&["/api/progression/phase/start","/api/rativapolis/progression/phase/start"].includes(path)){
+  const actor=await gameActor(request,env);
+  if(!actor)return json({ok:false,erro:"Entre na sua conta para iniciar uma fase sincronizada."},401,headers);
+  let body;try{body=await request.json();}catch{return json({ok:false,erro:"JSON invalido."},400,headers);}
+  const phase=body?.phase;
+  if(!Number.isSafeInteger(phase)||phase<1||phase>12)return json({ok:false,erro:"Fase invalida."},400,headers);
+  const now=Date.now(),issuedAt=new Date(now).toISOString(),expiresAt=new Date(now+45*60*1000).toISOString();
+  try{
+   const recent=await env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_phase_sessions WHERE user_id=? AND issued_at>=?").bind(actor.id,new Date(now-60*60*1000).toISOString()).first();
+   if(Number(recent?.total||0)>=30)return json({ok:false,erro:"Muitas sessoes de fase iniciadas. Tente novamente mais tarde."},429,headers);
+   const ticketId=crypto.randomUUID();
+   await env.POLIS_DB.prepare("INSERT INTO ratopolis_phase_sessions (ticket_id,user_id,phase,issued_at,expires_at) VALUES (?,?,?,?,?)").bind(ticketId,actor.id,phase,issuedAt,expiresAt).run();
+   return json({ok:true,ticket_id:ticketId,phase,issued_at:issuedAt,expires_at:expiresAt},201,headers);
+  }catch{return json({ok:false,erro:"Nao foi possivel iniciar a sessao da fase."},503,headers);}
+ }
  if(request.method==="POST"&&["/api/progression/reward","/api/rativapolis/progression/reward"].includes(path)){
   const actor=await gameActor(request,env);
   if(!actor)return json({ok:false,erro:"Entre na sua conta para salvar o progresso."},401,headers);
   let body;try{body=await request.json();}catch{return json({ok:false,erro:"JSON invalido."},400,headers);}
   const eventId=typeof body?.event_id==="string"?body.event_id.trim():"";
+  const ticketId=typeof body?.ticket_id==="string"?body.ticket_id.trim():"";
   const {phase,cheeses,acorns,lives}=body||{};
   if(!eventId||eventId.length>128||!/^[a-zA-Z0-9._:-]+$/.test(eventId))return json({ok:false,erro:"event_id invalido."},400,headers);
+  if(!ticketId||ticketId.length>80||!/^[a-zA-Z0-9-]+$/.test(ticketId))return json({ok:false,erro:"Sessao de fase ausente ou invalida."},400,headers);
   if(!Number.isSafeInteger(phase)||phase<1||phase>12||!Number.isSafeInteger(cheeses)||cheeses<0||cheeses>4||!Number.isSafeInteger(acorns)||acorns<0||acorns>12||!Number.isSafeInteger(lives)||lives<0||lives>3)return json({ok:false,erro:"Dados da fase fora dos limites permitidos."},400,headers);
   const xpAwarded=22+cheeses*5+acorns*8+lives*3;
   const coinsAwarded=10+cheeses*2+acorns*3+lives*2;
@@ -44,22 +61,24 @@ export default {async fetch(request,env){
     const p=await env.POLIS_DB.prepare("SELECT level,xp,vip_level,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
     return json({ok:true,duplicado:true,progresso:p},200,headers);
    }
+   const ticket=await env.POLIS_DB.prepare("SELECT ticket_id,user_id,phase,issued_at,expires_at,consumed_at FROM ratopolis_phase_sessions WHERE ticket_id=? LIMIT 1").bind(ticketId).first();
+   if(!ticket||ticket.user_id!==actor.id||Number(ticket.phase)!==phase)return json({ok:false,erro:"Sessao de fase nao pertence a esta conta ou fase."},403,headers);
+   if(ticket.consumed_at)return json({ok:false,erro:"Sessao de fase ja utilizada."},409,headers);
+   const issued=Date.parse(ticket.issued_at),expires=Date.parse(ticket.expires_at),elapsed=now.getTime()-issued;
+   if(!Number.isFinite(issued)||!Number.isFinite(expires)||now.getTime()>expires)return json({ok:false,erro:"Sessao de fase expirada. Inicie a fase novamente."},410,headers);
+   if(elapsed<8000)return json({ok:false,erro:"Tempo minimo de fase nao atingido."},422,headers);
    const batch=await env.POLIS_DB.batch([
-    env.POLIS_DB.prepare("INSERT OR IGNORE INTO ratopolis_reward_events (event_id,user_id,event_type,xp_awarded,coins_awarded,created_at) SELECT ?,?,'phase_complete',?,?,? WHERE (SELECT COUNT(*) FROM ratopolis_reward_events WHERE user_id=? AND event_type='phase_complete' AND created_at>=?) < 10").bind(eventId,actor.id,xpAwarded,coinsAwarded,createdAt,actor.id,dayStart),
+    env.POLIS_DB.prepare("UPDATE ratopolis_phase_sessions SET consumed_at=? WHERE ticket_id=? AND user_id=? AND phase=? AND consumed_at IS NULL AND issued_at<=? AND expires_at>?").bind(createdAt,ticketId,actor.id,phase,new Date(now.getTime()-8000).toISOString(),createdAt),
+    env.POLIS_DB.prepare("INSERT OR IGNORE INTO ratopolis_reward_events (event_id,user_id,event_type,xp_awarded,coins_awarded,created_at) SELECT ?,?,'phase_complete',?,?,? WHERE changes()>0 AND (SELECT COUNT(*) FROM ratopolis_reward_events WHERE user_id=? AND event_type='phase_complete' AND created_at>=?) < 10").bind(eventId,actor.id,xpAwarded,coinsAwarded,createdAt,actor.id,dayStart),
     env.POLIS_DB.prepare("UPDATE ratopolis_profiles SET xp=xp+?,coins=coins+?,level=MAX(level,MIN(50,CAST((xp+?)/100 AS INTEGER)+1)) WHERE user_id=? AND changes()>0").bind(xpAwarded,coinsAwarded,xpAwarded,actor.id),
-    env.POLIS_DB.prepare("INSERT INTO game_audit_logs (id,actor_user_id,action,target_user_id,details_json,created_at) SELECT ?,?,'game_phase_reward',?,?,? WHERE changes()>0").bind(crypto.randomUUID(),actor.id,actor.id,JSON.stringify({event_id:eventId,phase,cheeses,acorns,lives,xp_awarded:xpAwarded,coins_awarded:coinsAwarded}),createdAt)
+    env.POLIS_DB.prepare("INSERT INTO game_audit_logs (id,actor_user_id,action,target_user_id,details_json,created_at) SELECT ?,?,'game_phase_reward',?,?,? WHERE changes()>0").bind(crypto.randomUUID(),actor.id,actor.id,JSON.stringify({event_id:eventId,phase,ticket_id:ticketId,cheeses,acorns,lives,xp_awarded:xpAwarded,coins_awarded:coinsAwarded,elapsed_ms:elapsed}),createdAt)
    ]);
-   const inserted=Number(batch?.[0]?.meta?.changes||0)>0;
+   const consumed=Number(batch?.[0]?.meta?.changes||0)>0,inserted=Number(batch?.[1]?.meta?.changes||0)>0;
+   if(!consumed)return json({ok:false,erro:"Sessao de fase ja utilizada ou invalida."},409,headers);
    if(!inserted){
-    const raced=await env.POLIS_DB.prepare("SELECT event_id,user_id,event_type FROM ratopolis_reward_events WHERE event_id=? LIMIT 1").bind(eventId).first();
-    if(raced){
-     if(raced.user_id!==actor.id||raced.event_type!=="phase_complete")return json({ok:false,erro:"event_id ja utilizado."},409,headers);
-     const p=await env.POLIS_DB.prepare("SELECT level,xp,vip_level,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
-     return json({ok:true,duplicado:true,progresso:p},200,headers);
-    }
     const daily=await env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_reward_events WHERE user_id=? AND event_type='phase_complete' AND created_at>=?").bind(actor.id,dayStart).first();
     if(Number(daily?.total||0)>=10)return json({ok:false,erro:"Limite diario de recompensas de fase atingido. Tente novamente amanha."},429,headers);
-    return json({ok:false,erro:"Recompensa nao processada. Tente novamente."},503,headers);
+    return json({ok:false,erro:"Recompensa nao processada. A sessao foi encerrada; inicie a fase novamente."},503,headers);
    }
    const p=await env.POLIS_DB.prepare("SELECT level,xp,vip_level,coins FROM ratopolis_profiles WHERE user_id=?").bind(actor.id).first();
    return json({ok:true,duplicado:false,recompensa:{xp:xpAwarded,coins:coinsAwarded},progresso:p},201,headers);
