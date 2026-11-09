@@ -9,7 +9,7 @@ Este diretório é a entrada do Admin Geral e reúne os módulos administrativos
 ## Módulos
 
 - `Equipe/index.html`: gestão de cargos da base global de contas, compartilhada por RativaPolis e RativaSnack.
-- `Auditoria/index.html`: consulta somente leitura do histórico administrativo central, com filtros e paginação.\n- `Comunidade/index.html`: moderação em tempo real, banimentos, revisão de avatares e denúncias e comunicados.
+- `Auditoria/index.html`: consulta somente leitura do histórico administrativo central, com filtros e paginação.\n- `Comunidade/index.html`: moderação em tempo real, banimentos, revisão de avatares e denúncias e comunicados.\n- `Ranking/index.html`: consulta autenticada do ranking geral por XP e do ranking por nível, usando os endpoints de leitura `/api/rankings` e `/api/rankings/level`.
 - `Radio/radio_admin.html`: painel de controle da rádio.
 - `Radio/radio_stats.html`: estatísticas e relatório de audiência.
 
