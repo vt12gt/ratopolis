@@ -14,6 +14,8 @@ Este diretório é a entrada do Admin Geral e reúne os módulos administrativos
 - `Radio/radio_admin.html`: painel de controle da rádio.
 - `Radio/radio_stats.html`: estatísticas e relatório de audiência.
 
+- `Doacoes/index.html`: painel financeiro somente leitura para SpAdmin e ADM, com ranking de doadores, histórico de pagamentos e auditoria do título Maior Doador. Os dados vêm do endpoint protegido `/api/admin/donations/overview`.
+
 ## Auditoria e segurança
 
 Os serviços centrais, rádio e comunidade gravam eventos administrativos na tabela `ratopolis_audit_logs`. A consulta é exclusiva de SpAdmin e ADM. A interface não oferece edição ou exclusão dos registros; as permissões de cada operação são validadas no servidor.
