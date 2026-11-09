@@ -47,7 +47,7 @@ table.rec{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.rec t
 .bonus{left:calc(env(safe-area-inset-left) + 116px);top:calc(env(safe-area-inset-top) + 44px)}
 #mm{top:calc(env(safe-area-inset-top) + 46px)}
 #lb{position:absolute;right:calc(env(safe-area-inset-right) + 12px);top:calc(env(safe-area-inset-top) + 90px);width:134px;font-size:10.5px;line-height:1.35;background:#1d122ab3;border:1px solid #ffffff14;border-radius:8px;padding:5px 7px;pointer-events:none;z-index:3}
-#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;gap:4px}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
+#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;align-items:center;gap:4px}#lb .r .rscore{color:#ffd34e;font-weight:900;white-space:nowrap}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
 .killer{margin:6px 0;padding:8px;border-radius:10px;background:#2a1822;border:1px solid #ff5d7344;font-size:13px;font-weight:700}.rewards{font-size:12px;color:#ffe08a;margin:6px 0}
 /* Etapa 3B: menu em duas colunas e personalização */
 .brandrow{display:flex;align-items:center;gap:10px;justify-content:center}.brandrow canvas{position:static;border-radius:10px;background:#1a1025;width:100px;height:37px;flex:none}
@@ -927,7 +927,7 @@ function move(s,dt){
  if(s.pending>0){if(s.length>=CFG.maxLen)s.pending=0;else{s.growAcc+=dt;while(s.growAcc>=.05&&s.pending>0){s.growAcc-=.05;s.pending--;addSeg(s)}}}
  if(s.hitWall){s.hitWall=false;if(s.boss)bossCrash(s);else die(s,'wall',null)}}
 function burst(x,y,c,n){n=Math.min(Math.round(n*QUAL[prefs.quality].part),CFG.particleCap-particles.length);for(let i=0;i<n;i++){const a=rand(0,6.28),v=rand(25,120);particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.25,.7),max:.7,color:c,r:rand(2,4)})}}
-function addScore(n){if(player&&player.multT>0)n*=2;score+=n;if(mode==='quick'&&score>bestQuick){bestQuick=score;bestDirty=true}}
+function addScore(n){if(player&&player.multT>0)n*=2;score+=n;if(player)player.points=score;if(mode==='quick'&&score>bestQuick){bestQuick=score;bestDirty=true}}
 function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  if(f.type===0)s.pending+=dbl;
  else if(f.type===1){s.pending+=3*dbl;pts=50}
@@ -936,7 +936,8 @@ function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  else if(f.type===7){s.pending+=3*2*dbl;pts=50;if(!s.isBot)earn(100,'Rei Queijo')}
  else if(f.type===8){s.magnetT=skillVal(s,'magnet','dur');s.magnetPow=4;pts=40;if(!s.isBot)earn(75,'Tanque')}
  else{s.multT=skillVal(s,'mult','dur');pts=15}
- if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
+ if(s.isBot)s.points=(s.points||0)+pts;
+ if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);s.points=score;foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
 function eat(s){if(!s.alive)return;const rr=s.radius+5;
  for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)}}}
 function dropFood(s){for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}}
@@ -1231,10 +1232,10 @@ function updateHud(force){
  let b='';if(player){if(player.boostT>0)b+='⚡ '+Math.ceil(player.boostT)+'s  ';if(player.growT>0)b+='🌱 ×2 '+Math.ceil(player.growT)+'s  ';if(player.magnetT>0)b+='🧲 '+Math.ceil(player.magnetT)+'s  ';if(player.shieldP>0)b+='🛡️ '+Math.ceil(player.shieldP)+'s  ';if(player.multT>0)b+='×2 pts '+Math.ceil(player.multT)+'s'}
  const be=$('bonus');if(b){be.textContent=b;be.classList.remove('hidden')}else be.classList.add('hidden');
  set('mini','Ameaça: '+(threat<.25?'baixa':threat<.55?'média':'alta')+' • '+(modeHud()||'Coma queijos • Evite ratos e paredes'));syncBoostBtn()}
-// Ranking ao vivo por tamanho (desempate por abates): top 5 + sua posição.
-function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>b.length-a.length||b.kills-a.kills);leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
+// Ranking ao vivo por pontos da partida: top 5 + sua posição.
+function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
  const idx=arr.indexOf(player);if(idx>=0){myRank=idx+1;rankTotal=arr.length}
- const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b><span>${x.length}·${x.kills}</span></div>`;
+ const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
  if(idx>=5)h+='<div class="sep"></div>'+row(player,idx);
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
