@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#4a2f9f"><title>Rato Snack</title>
 <style>
@@ -47,7 +47,7 @@ table.rec{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.rec t
 .bonus{left:calc(env(safe-area-inset-left) + 116px);top:calc(env(safe-area-inset-top) + 44px)}
 #mm{top:calc(env(safe-area-inset-top) + 46px)}
 #lb{position:absolute;right:calc(env(safe-area-inset-right) + 12px);top:calc(env(safe-area-inset-top) + 90px);width:134px;font-size:10.5px;line-height:1.35;background:#1d122ab3;border:1px solid #ffffff14;border-radius:8px;padding:5px 7px;pointer-events:none;z-index:3}
-#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;align-items:center;gap:4px}#lb .r .rscore{color:#ffd34e;font-weight:900;white-space:nowrap}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
+#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;gap:4px}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
 .killer{margin:6px 0;padding:8px;border-radius:10px;background:#2a1822;border:1px solid #ff5d7344;font-size:13px;font-weight:700}.rewards{font-size:12px;color:#ffe08a;margin:6px 0}
 /* Etapa 3B: menu em duas colunas e personalização */
 .brandrow{display:flex;align-items:center;gap:10px;justify-content:center}.brandrow canvas{position:static;border-radius:10px;background:#1a1025;width:100px;height:37px;flex:none}
@@ -290,8 +290,7 @@ body.bigtxt #sheet,body.bigtxt #toast,body.bigtxt .hud .top{zoom:1.15}
 .fit>.days{margin:0}.days{grid-template-columns:repeat(7,1fr)}
 .achg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(3,1fr);gap:6px}.ab{border:1px solid #7f5fd0;background:#2f1d6e;border-radius:10px;font-size:24px;filter:grayscale(1);opacity:.5;padding:0}.ab.got{filter:none;opacity:1;border-color:#ffd84a}.ab.sel{box-shadow:0 0 0 2px #fff}
 .achd{flex:none;padding:6px 10px;text-align:left;display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}.achd b{font-size:14px;color:#ffe08a}.achd span{font-size:12px}.achd small{margin-left:auto;font-size:10.5px;color:#d9ccff}
-.rk{grid-template-columns:1fr 1.7fr}.rkfull{grid-template-columns:1fr;grid-auto-rows:auto;align-content:start;overflow-y:auto}.online-rank{display:flex;flex-direction:column;gap:7px;min-height:0;background:#1b1230;border:1px solid #ffffff18;border-radius:12px;padding:9px}.rank-period{flex:none}.rank-period button{font-size:12px;padding:8px}.rank-meta{color:#c8b8df;font-size:10px;text-align:left}.online-rank-list{display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto}.rank-pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 2px}.rank-pager b{font-size:11px;color:#ffe08a}.rank-pager button:disabled{opacity:.35;pointer-events:none}
-.online-rank-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:5px;align-items:center;padding:6px 7px;border-bottom:1px solid #ffffff14;background:#ffffff08;border-radius:7px;font-size:12px}.online-rank-row i{font-style:normal;color:#ffe08a;font-weight:900}.online-rank-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}.online-rank-row span{color:#ffe08a;font-weight:900}.online-rank-row small{grid-column:2/-1;color:#b9a8d0;text-align:left;font-size:9px}\n/* v96: ranking offline compacto e área ADS */\n.local-rank{gap:4px;padding:6px}.local-rank .lbl{font-size:11px;margin:4px 0}.local-rank .rank-meta{font-size:9px}.local-rank .online-rank-list{gap:3px;max-height:48vh}.local-rank .online-rank-row{grid-template-columns:22px minmax(0,1fr) auto;gap:4px;padding:4px 5px;font-size:10px;line-height:1.1}.local-rank .online-rank-row i{font-size:10px}.local-rank .online-rank-row span{font-size:10px}.local-rank .online-rank-row small{font-size:8px}.ads-panel{text-align:center;padding:8px}.ads-icon{font-size:38px;margin:2px}.ads-panel h2{font-size:17px}.ads-panel .note{font-size:10px;line-height:1.35}.rank-empty{color:#cbbddd;font-size:12px;padding:12px;text-align:center}.rkl{padding:7px 9px;overflow:hidden}.rkr{display:flex;gap:6px;font-size:12px;padding:2px 0;border-bottom:1px solid #ffffff14}.rkr i{font-style:normal;width:22px;color:#d9ccff}.rkr span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkr b{color:#ffe08a}.rkr.f b{color:#ffd84a}
+.rk{grid-template-columns:1fr 1.7fr}.rkl{padding:7px 9px;overflow:hidden}.rkr{display:flex;gap:6px;font-size:12px;padding:2px 0;border-bottom:1px solid #ffffff14}.rkr i{font-style:normal;width:22px;color:#d9ccff}.rkr span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkr b{color:#ffe08a}.rkr.f b{color:#ffd84a}
 .rkr2{min-height:0;display:flex;flex-direction:column}.cells2,.cells{display:grid;gap:5px;min-height:0}.cells2{grid-template-columns:repeat(3,1fr);flex:1}.cells{grid-template-columns:repeat(6,1fr);grid-auto-rows:1fr;align-content:stretch}
 .cells div,.cells2 div{padding:3px 5px;display:flex;flex-direction:column;justify-content:center;text-align:left;min-width:0}.cells small,.cells2 small{font-size:9px;color:#d9ccff;text-transform:uppercase;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cells b,.cells2 b{font-size:14px;color:#ffe08a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hist{grid-template-columns:1fr 1fr;grid-auto-rows:1fr}.hist div{display:flex;align-items:center;gap:8px;padding:4px 10px;font-size:12px}.hist span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hist .pos{color:#9dffb0}.hist .neg{color:#ff9fb2}.hist small{color:#d9ccff}
@@ -334,37 +333,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .entry-btn:active{transform:translateY(2px);box-shadow:0 3px 0 #0003}
 .entry-foot{font-size:10px;color:#bdaed1;margin-top:15px}
 @media(orientation:landscape) and (max-height:420px){.entry-card{padding:12px 20px}.entry-logo{font-size:34px;margin-bottom:4px}.entry-card h1{font-size:25px}.entry-card .subtitle{margin:4px auto 10px}.entry-actions{grid-template-columns:repeat(3,1fr);gap:7px}.entry-btn{min-height:68px;padding:8px;gap:5px;flex-direction:column;justify-content:center;text-align:center;font-size:12px}.entry-btn span{font-size:21px}.entry-btn small{font-size:9px}.entry-foot{margin-top:7px}}
-
-#rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){body.playing #rotateNotice{display:flex}}.portal-rank-link{display:block;margin:10px auto 0;text-align:center;text-decoration:none;color:#f0e7fb;width:100%;}
-
-</style><style>
-#paused .panel{width:min(760px,96vw);max-height:92vh;overflow:auto;padding:clamp(12px,2.2vw,22px)}
-#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
-#paused .pause-head button{min-height:44px;font-size:clamp(12px,1.7vw,16px);font-weight:1000}
-#paused .pause-ranking{width:100%;border:1px solid #ffffff25;border-radius:14px;background:#160d2a99;padding:10px;box-sizing:border-box;text-align:left}
-#paused .pause-ranking h2{margin:0 0 8px;text-align:center;color:#ffd34e;font-size:clamp(14px,2vw,19px)}
-#paused .pause-rank-head,#paused .pause-rank-row{display:grid;grid-template-columns:30px minmax(72px,1.5fr) minmax(55px,.9fr) minmax(45px,.7fr) minmax(45px,.7fr);align-items:center;gap:5px}
-#paused .pause-rank-head{padding:5px 4px;color:#c8b6dd;font-size:clamp(9px,1.25vw,12px);font-weight:900;text-align:center}
-#paused .pause-rank-row{padding:7px 4px;border-top:1px solid #ffffff16;color:#fff;font-size:clamp(10px,1.5vw,14px);text-align:center;font-weight:800}
-#paused .pause-rank-row .pr-nick{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#paused .pause-rank-row .pr-pos{color:#ffd34e}
-#paused .pause-rank-row .pr-points{color:#ffd34e}
-#paused .pause-rank-empty{padding:14px;text-align:center;color:#c8b6dd;font-size:12px}
-@media(max-width:520px){#paused .panel{width:96vw;padding:10px}#paused .pause-ranking{padding:7px}#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:23px minmax(62px,1.3fr) minmax(45px,.8fr) minmax(38px,.65fr) minmax(38px,.65fr);gap:3px}}
-
-/* v101: pausa legível e ajustada à altura real da tela */
-#paused{position:fixed;inset:0;padding:8px;overflow:auto;overscroll-behavior:contain}
-#paused .panel.dlg{width:min(640px,96vw);max-height:calc(var(--rativa-vh,100dvh) - 16px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(10px,2.2vh,18px)}
-#paused .logo{font-size:clamp(22px,4vh,38px);margin:0 0 4px}
-#paused h1{font-size:clamp(20px,3.4vh,30px);margin:0 0 9px}
-#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
-#paused .pause-head button{min-height:42px;font-size:clamp(11px,1.7vw,15px)}
-#paused .pause-ranking{width:100%;padding:8px}
-#paused .pause-ranking h2{font-size:clamp(12px,2vh,17px)}
-#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:24px minmax(65px,1.5fr) minmax(48px,.9fr) minmax(38px,.65fr) minmax(42px,.7fr);gap:4px}
-#paused .pause-rank-head{font-size:clamp(8px,1.3vh,11px)}
-#paused .pause-rank-row{font-size:clamp(9px,1.55vh,13px);padding:6px 3px}
-@media(max-height:420px){#paused .panel.dlg{padding:7px 10px}#paused .logo{display:none}#paused h1{margin-bottom:5px}#paused .pause-head{margin-bottom:6px}#paused .pause-rank-row{padding:4px 2px}}
 </style></head>
 <body>
 <div class="overlay hidden" id="entryGate" style="display:none!important;position:fixed!important;inset:0!important;z-index:2147483647!important;"><div class="entry-card">
@@ -408,8 +376,8 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
-  
-  <button class="b3d sq" data-sheet="ads"><span>📺</span>ADS</button>
+  <button class="b3d sq" data-sheet="online"><span>📶</span>Conectar Multiplayer</button>
+  <button class="b3d sq" data-sheet="custom"><span>🎨</span>Visual</button>
  </div>
 </div>
 <div class="m2bot">
@@ -427,7 +395,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
 
-<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Partida pausada</h1><div class="pause-head"><button class="b3d gold" id="resume">▶ CONTINUAR</button><button class="b3d purple" id="quit">VOLTAR AO LOBBY</button></div><div class="pause-ranking"><h2>🏆 TOP 5 DA PARTIDA · NO MOMENTO</h2><div class="pause-rank-head"><span>#</span><span>JOGADOR</span><span>PONTOS</span><span>TAM.</span><span>ABATES</span></div><div id="pauseLiveRank"><div class="pause-rank-empty">Carregando classificação…</div></div></div></div></div>
+<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><div class="btns"><button class="b3d gold" id="resume">CONTINUAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">SAIR AO MENU</button></div></div></div></div>
 <div class="overlay hidden" id="revive"><div class="panel dlg"><div class="logo">✨</div><h1>Continuar?</h1><p class="subtitle" id="reviveTxt"></p><div class="rvbar"><i id="rvB"></i></div><div class="btns"><button class="b3d gold" id="reviveYes">CONTINUAR</button><button class="b3d purple" id="reviveNo">TERMINAR</button></div></div></div>
 <div class="overlay hidden" id="tut"><div class="panel dlg"><div class="logo" id="tutI">🎮</div><h1 id="tutT"></h1><div class="tutl" id="tutL"></div><div class="btns"><button class="b3d gold" id="tutOk">ENTENDI! JOGAR</button></div></div></div>
 <div class="overlay hidden" id="nick"><div class="panel dlg"><div class="logo">🐭</div><h1>Seu apelido</h1><p class="subtitle small">Como você quer aparecer na arena e no ranking? (2 a 12 caracteres)</p><input id="nickIn" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Digite seu apelido"><div class="btns"><button class="b3d gold" id="nickOk">CONFIRMAR</button></div></div></div>
@@ -504,7 +472,7 @@ const DEVT=[{id:'queijo',n:'Festival do Queijo',i:'🧀',d:'Comida rende o DOBRO
 const THEMEEV={chuva:'chuva',ouro:'ouro',veloz:'vento'};
 let pgState={shop:0,vis:0},achSel='',tutOpen=false,deferredInstall=null;
 const SENSM=[1.3,1,.72],CSZ=[.85,1,1.25],VOLM=[.45,.75,1],QUAL={alta:{dpr:2,part:1},media:{dpr:1.5,part:.6},baixa:{dpr:1,part:.3}};
-const TURNS=[{n:'Suave',v:4.1},{n:'Normal',v:5.3},{n:'Rápido',v:6.7}];
+const TURNS=[{n:'Suave',v:3.4},{n:'Normal',v:4.4},{n:'Rápido',v:5.6}];
 const MODES={
  quick:{name:'Partida rápida',desc:'Entre na arena, coma queijos, cresça e supere seu recorde de pontos. Termina quando seu rato é eliminado.',limit:0},
  survival:{name:'Sobrevivência',desc:'Fique vivo pelo maior tempo possível. A ameaça cresce mais rápido. O recorde é o tempo sobrevivido.',limit:0},
@@ -553,7 +521,7 @@ const validObj=t=>!!parseObj(t);
 const savePrefs=()=>writeKey('ratoSnackPrefs',JSON.stringify(prefs),validObj);
 const saveStats=()=>writeKey('ratoSnackStats',JSON.stringify(stats),validObj);
 // Recorde da partida rápida: marcado como pendente e gravado em pausa, fim, ocultar, pagehide e a cada 5 s (evita gravar a cada ponto).
-function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(bestDirty)bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
+function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
 
 /* ===== CONFIGURAÇÃO ÚNICA de habilidades (11 níveis), loja e opções ===== */
 const SKILL_CFG={max:11,cost:{base:30,growth:1.35},list:{
@@ -598,8 +566,8 @@ async function mirrorIDB(force){const now=Date.now();if(!force&&now-idbT<3000)re
 async function restoreIDB(){try{if(HAD_SAVE)return;if(sessionStorage.getItem('ratoRestored'))return;
  const d=await idbOpen();if(!d)return;const rq=d.transaction('s').objectStore('s').get('snap');rq.onsuccess=()=>{d.close();const sn=rq.result;if(!sn||typeof sn!=='object'||!sn.ratoSnackStats)return;for(const k of SAVE_KEYS)if(typeof sn[k]==='string')try{localStorage.setItem(k,sn[k])}catch(e){}try{sessionStorage.setItem('ratoRestored','1')}catch(e){}location.reload()};rq.onerror=()=>d.close()}catch(e){}}
 restoreIDB();
-/* Modo Offline: progresso exclusivamente local neste aparelho.
-   A gravação automática usa localStorage/IndexedDB; importar/exportar é opcional. */
+/* Sincronização futura com o Ratópolis: DESATIVADA. Sem rede, sem login. Ao ativar no futuro: enviar só eventos {id único, tipo, valor},
+   o servidor ignora ids repetidos (idempotente) e mantém o progresso mais recente. */
 const SYNC={enabled:false,endpoint:null,queue:[],push(){return false},flush(){return false}};
 
 function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[0]+a[1]*(L-1)}
@@ -724,7 +692,7 @@ function followBody(seg,n,sp){for(let i=1;i<n;i++){const p=seg[i-1],q=seg[i],dx=
 function calcThreat(time,length,kills,near,survival){const tf=Math.min(1,time/(survival?150:240)),sz=Math.min(1,Math.max(0,length-8)/70),kk=Math.min(1,kills/8);return Math.max(0,Math.min(.95,.5*tf+.25*sz+.15*kk-.08*Math.max(0,near-2)))}
 function fmtTime(sec){const s=Math.max(0,Math.floor(sec));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 // Giro do jogador: suaviza perto do alvo, velocidade máxima fixa, e mantém o lado do giro em meia-volta (~180°).
-function steerPlayer(s,t,vmax,dt){const d=diff(s.angle,t),ad=Math.abs(d);if(ad<.001){s.angle=t;s.turnSide=0;return s.angle}const response=1-Math.exp(-18*dt),maxStep=vmax*dt,step=Math.min(ad,maxStep,Math.max(maxStep*.12,ad*response));s.angle+=Math.sign(d)*step;s.turnSide=Math.sign(d);return s.angle}
+function steerPlayer(s,t,vmax,dt){let d=diff(s.angle,t);const ad=Math.abs(d);if(ad>2.8&&s.turnSide)d=ad*s.turnSide;else s.turnSide=d<0?-1:1;const st=Math.min(ad,vmax*dt,Math.max(ad*14*dt,vmax*dt*.3));s.angle+=(d<0?-st:st);return s.angle}
 // Impulso manual: gasta energia (boostMax s), recarga após boostDelay, exige boostMin para começar e soltar o botão após esvaziar.
 function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.boostLock&&s.boostE>0&&(s.boostActive||s.boostE>=c.boostMin);
  if(on){s.boostE=Math.max(0,s.boostE-dt/c.boostMax);s.boostCd=c.boostDelay;if(s.boostE<=0){on=false;s.boostLock=true}}
@@ -861,7 +829,7 @@ function addSeg(s){const t=s.segments[s.segments.length-1];s.segments.push({x:t.
 function move(s,dt){
  if(!s.alive)return;
  if(s.isBot){s.ai-=dt;if(s.ai<=0)botThink(s)}else if(pointer.down&&pointer.hasDirection){s.targetAngle=Math.atan2(pointer.dirY,pointer.dirX)}
- if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v*[.9,1,1.12][prefs.sens]||TURNS[prefs.turn].v,dt)}
+ if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v,dt)}
  const spd=s.speedBase*(s.isBot?(1+.08*threat+(mode==='infinite'?Math.min(.35,.03*wave):0))*(s.special?1:DIFFS[prefs.diff].spd):1)*(ev&&ev.id==='vento'?1.15:1)*Math.max(s.boostT>0?skillVal(s,'boost','mul'):1,s.boostActive?CFG.boostMult:1);
  s.px=s.x;s.py=s.y;s.x+=Math.cos(s.angle)*spd*EVM*dt;s.y+=Math.sin(s.angle)*spd*EVM*dt;edge(s);if(OBS.length&&obsHit(s))s.hitWall=true;
  bodyFromTrail(s);
@@ -869,7 +837,7 @@ function move(s,dt){
  if(s.pending>0){if(s.length>=CFG.maxLen)s.pending=0;else{s.growAcc+=dt;while(s.growAcc>=.05&&s.pending>0){s.growAcc-=.05;s.pending--;addSeg(s)}}}
  if(s.hitWall){s.hitWall=false;if(s.boss)bossCrash(s);else die(s,'wall',null)}}
 function burst(x,y,c,n){n=Math.min(Math.round(n*QUAL[prefs.quality].part),CFG.particleCap-particles.length);for(let i=0;i<n;i++){const a=rand(0,6.28),v=rand(25,120);particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.25,.7),max:.7,color:c,r:rand(2,4)})}}
-function addScore(n){if(player&&player.multT>0)n*=2;score+=n;if(player)player.points=score;if(mode==='quick'&&score>bestQuick){bestQuick=score;bestDirty=true}}
+function addScore(n){if(player&&player.multT>0)n*=2;score+=n;if(mode==='quick'&&score>bestQuick){bestQuick=score;bestDirty=true}}
 function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  if(f.type===0)s.pending+=dbl;
  else if(f.type===1){s.pending+=3*dbl;pts=50}
@@ -878,8 +846,7 @@ function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  else if(f.type===7){s.pending+=3*2*dbl;pts=50;if(!s.isBot)earn(100,'Rei Queijo')}
  else if(f.type===8){s.magnetT=skillVal(s,'magnet','dur');s.magnetPow=4;pts=40;if(!s.isBot)earn(75,'Tanque')}
  else{s.multT=skillVal(s,'mult','dur');pts=15}
- if(s.isBot)s.points=(s.points||0)+pts;
- if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);s.points=score;foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
+ if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
 function eat(s){if(!s.alive)return;const rr=s.radius+5;
  for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)}}}
 function dropFood(s){for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}}
@@ -1174,10 +1141,10 @@ function updateHud(force){
  let b='';if(player){if(player.boostT>0)b+='⚡ '+Math.ceil(player.boostT)+'s  ';if(player.growT>0)b+='🌱 ×2 '+Math.ceil(player.growT)+'s  ';if(player.magnetT>0)b+='🧲 '+Math.ceil(player.magnetT)+'s  ';if(player.shieldP>0)b+='🛡️ '+Math.ceil(player.shieldP)+'s  ';if(player.multT>0)b+='×2 pts '+Math.ceil(player.multT)+'s'}
  const be=$('bonus');if(b){be.textContent=b;be.classList.remove('hidden')}else be.classList.add('hidden');
  set('mini','Ameaça: '+(threat<.25?'baixa':threat<.55?'média':'alta')+' • '+(modeHud()||'Coma queijos • Evite ratos e paredes'));syncBoostBtn()}
-// Ranking ao vivo por pontos da partida: top 5 + sua posição.
-function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
+// Ranking ao vivo por tamanho (desempate por abates): top 5 + sua posição.
+function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>b.length-a.length||b.kills-a.kills);leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
  const idx=arr.indexOf(player);if(idx>=0){myRank=idx+1;rankTotal=arr.length}
- const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
+ const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b><span>${x.length}·${x.kills}</span></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
  if(idx>=5)h+='<div class="sep"></div>'+row(player,idx);
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
@@ -1211,7 +1178,7 @@ function update(dt){
  lbT-=dt;if(lbT<=0){lbT=.4;refreshLb()}
  hudT-=dt;if(hudT<=0){hudT=.1;updateHud()}}
 
-function endGame(kind){document.body.classList.remove('playing');if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
+function endGame(kind){if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
  if(ended)return;if(player.alive)refreshLb();ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));
  const M=MODES[mode];
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
@@ -1243,18 +1210,15 @@ function applyRevenge(){if(!pendingRevenge)return;const r=pendingRevenge;pending
  if(b){b.rival=true;showToast('🎯 Revanche: '+b.name+' está marcado!',3)}}
 
 function startGame0(m){
- document.body.classList.add('playing');
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
  running=true;paused=false;ended=false;releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
-function expandGameScreen(){try{const el=document.documentElement;if(document.fullscreenElement){if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});return}if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
-function refreshPauseRanking(){const el=$('pauseLiveRank');if(!el)return;const arr=snakes.filter(x=>x&&x.alive&&!x.boss).slice().sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)).slice(0,5);el.innerHTML=arr.length?arr.map((x,i)=>`<div class="pause-rank-row"><span class="pr-pos">${i+1}º</span><span class="pr-nick">${String(x.name||'Jogador').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</span><span class="pr-points">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><span>${Math.max(0,Math.floor(Number(x.length)||0))}</span><span>${Math.max(0,Math.floor(Number(x.kills)||0))}</span></div>`).join(''):'<div class="pause-rank-empty">Nenhum jogador na classificação agora.</div>'}
-function fillPause(){refreshPauseRanking()}
+function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);$('pauseStats').innerHTML=[['Pontos',score],['Tamanho',player.length],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;paused=!paused;if(paused){releaseDrag();player.boostActive=false;fillPause()}$('paused').classList.toggle('hidden',!paused);$('pause').textContent=paused?'▶':'Ⅱ';if(paused)flushSave();syncBoostBtn();syncMusic()}
-function toMenu(){document.body.classList.remove('playing');if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
+function toMenu(){if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
 
 /* ============ Menu, personalização, recordes, ajustes ============ */
 function menuInfo(){ensureOwn();dotsUpdate();$('modeName').textContent=MICON[mode]+' '+MODES[mode].name;$('modeDesc').textContent=MODES[mode].desc+(mode==='daily'?(prog.dcDay===today()?' Hoje: '+prog.dcBest+' pts. Volte amanhã para um novo desafio.':' Disponível hoje: uma tentativa por dia!'):'');$('startBest').textContent='Recorde: '+fmtBest()+' • 🧀 '+eco.cheese;$('bestN').textContent=(mode==='quick'?bestQuick:fmtBest().replace(' pts',''));$('coinN').textContent=eco.cheese;updateHud(true);drawPreview('pvm');menuProg()}
@@ -1281,31 +1245,7 @@ function shopDraw(){const Z={skin:1.25,acc:2.4,tail:1};const dr=(cid,ov,z)=>{con
 function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,id))return '';if(it[3])return '🔒 Item exclusivo de nível.';if(Date.now()<buyLock)return '⏳ Aguarde...';if(eco.cheese<it[1])return '🧀 Faltam '+(it[1]-eco.cheese)+' queijos.';buyLock=Date.now()+600;
  if(!spend(it[1],'Loja: '+it[0],()=>{eco.own[c][id]=1;prefs[c]=id}))return '🧀 Saldo insuficiente.';savePrefs();return '✅ '+it[0]+' é seu e já está equipado!'}
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
-let sheetName='',remoteRankPeriod='total',remoteRankPage=1,remoteRankPlayers=[];
-function drawRemoteRankingPage(){
- const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pages=5,pageSize=10;
- if(!list)return;
- const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
- const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- list.innerHTML=players.length?players.map((p,i)=>'<div class="online-rank-row"><i>'+(start+i+1)+'º</i><b>'+esc(p.nickname||'Jogador')+'</b><span>'+Math.max(0,Number(p.score)||0).toLocaleString('pt-BR')+' pts</span><small>'+Math.max(0,Number(p.games_played)||0)+' partidas</small></div>').join(''):'<div class="rank-empty">Ainda não há jogadores nesta página.</div>';
- let pager=document.getElementById('remoteRankPager');
- if(pager)pager.innerHTML='<button class="tgs" data-act="rankpage:prev" '+(remoteRankPage===1?'disabled':'')+'>‹ Anterior</button><b>Página '+remoteRankPage+' de 5</b><button class="tgs" data-act="rankpage:next" '+(remoteRankPage===5?'disabled':'')+'>Próxima ›</button>';
- if(meta)meta.textContent=(remoteRankPeriod==='monthly'?'Classificação mensal':'Classificação global')+' • '+remoteRankPlayers.length+' jogadores encontrados';
-}
-async function loadRemoteRanking(period){
- remoteRankPeriod=period==='monthly'?'monthly':'total';remoteRankPage=1;
- const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta');if(!list)return;
- list.textContent='Carregando classificação…';if(meta)meta.textContent='Consultando o servidor oficial…';
- document.querySelectorAll('.rank-period button').forEach(b=>b.classList.toggle('on',b.dataset.act==='rperiod:'+remoteRankPeriod));
- try{
-  const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
-  const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
-  if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
-  remoteRankPlayers=Array.isArray(data.players)?data.players:[];
-  if(meta&&remoteRankPeriod==='monthly'&&data.cycle&&data.cycle.key){const a=data.cycle.key.split('-');meta.textContent='Ciclo mensal: '+a[1]+'/'+a[0]+' • zera no próximo mês'}
-  drawRemoteRankingPage();
- }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
-}
+let sheetName='';
 function renderSheet(name){sheetName=name;let h='';
  const sg=(act,arr,cur)=>`<div class="seg s">${arr.map((t,i)=>`<button class="${i===cur?'on':''}" data-act="${act}:${i}">${t}</button>`).join('')}</div>`;
  const tgs=(act,on)=>`<button class="tgs${on?' on':''}" data-act="${act}">${on?'Ligado':'Desligado'}</button>`;
@@ -1324,18 +1264,15 @@ function renderSheet(name){sheetName=name;let h='';
  else if(name==='ach'){const cats=[...new Set(ACH.map(a=>a.cat))];if(!(achCat>=0&&achCat<cats.length))achCat=0;const cn=cats[achCat],rk=a=>prog.achR[a.id]?0:prog.ach[a.id]?1:2,list=ACH.filter(a=>a.cat===cn).sort((a,b)=>rk(a)-rk(b)),a0=list.find(a=>a.id===achSel)||list[0],catRdy=c=>ACH.some(a=>a.cat===c&&prog.achR[a.id]);
  const st=prog.achR[a0.id]?'🎁 Pronta! Toque em Coletar':prog.ach[a0.id]?'✓ Conquistada':a0.d+(a0.p?' ('+Math.min(a0.t,Math.floor(a0.p()))+'/'+a0.t+')':''),got=ACH.filter(a=>prog.ach[a.id]).length;
  h=`<div class="achw"><div class="achnav"><button data-act="acat:-5" aria-label="Voltar 5 abas">⏪</button><button data-act="acat:-1" aria-label="Aba anterior">◀</button><b>${cn} • ${list.filter(x=>prog.ach[x.id]).length}/${list.length}${catRdy(cn)?' 🔴':''}</b><button data-act="acat:1" aria-label="Próxima aba">▶</button><button data-act="acat:5" aria-label="Avançar 5 abas">⏩</button></div><div class="achg2">${list.map(a=>`<button class="ab${prog.ach[a.id]?' got':''}${prog.achR[a.id]?' rdy':''}${a.id===a0.id?' sel':''}" data-act="asel:${a.id}">${a.i}<i class="tn">${a.no||''}</i></button>`).join('')}</div><div class="achd"><b>${a0.i} ${a0.n}</b><span>${st}</span>${prog.achR[a0.id]?`<button class="tgs on" data-act="acol:${a0.id}">Coletar +${a0.xp} XP +${a0.ch||Math.round(a0.xp/2)} 🧀</button>`:`<span>+${a0.xp} XP</span>`}<small>${got}/${ACH.length} coletadas</small></div></div>`}
- else if(name==='ranking'){
-  const localRows=(prog.top||[]).slice().sort((x,y)=>y.s-x.s).slice(0,5);
-  h=`<div class="fit rkfull"><div class="online-rank local-rank"><div class="lbl">🏆 Ranking local • este aparelho</div><small class="rank-meta">Seus 5 melhores resultados salvos neste dispositivo</small><div class="online-rank-list">${localRows.length?localRows.map((p,i)=>'<div class="online-rank-row"><i>'+(i+1)+'º</i><b>'+String(prefs.nick||'Jogador').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))+'</b><span>'+Math.max(0,Number(p.s)||0).toLocaleString('pt-BR')+' pts</span><small>'+(MODES[p.m]?.name||'Partida')+' • '+(p.d?new Date(p.d*86400000).toLocaleDateString('pt-BR'):'Recorde salvo')+'</small></div>').join(''):'<div class="rank-empty">Ainda não há partidas registradas. Jogue para criar seu ranking local!</div>'}</div></div></div><p class="note">O ranking Offline usa somente os resultados guardados neste aparelho. O ranking Global e o Mensal ficam disponíveis no modo Online.</p>`
- } else if(name==='ads'){
-  h=`<div class="fit ads-panel"><div class="ads-icon">📺</div><h2>Ajude o RativaSnack a crescer!</h2><p class="note">Os anúncios poderão ajudar a manter o jogo gratuito, financiar melhorias e trazer novidades para todos.</p><div class="banner">💜 Apoie o desenvolvimento do RativaGames</div><p class="note">A exibição de anúncios ainda não está conectada neste modo. Quando a integração estiver pronta, este botão será usado para abrir anúncios de apoio, sem atrapalhar suas partidas.</p></div>`
- } else if(name==='records'){const c=[['🎮 Partidas',stats.games],['⚔️ Eliminações',stats.kills],['🧀 Queijos',stats.food],['⏱️ Tempo total',fmtTime(stats.time)],['📏 Maior tamanho',stats.bestSize],['🔥 Melhor sequência',prog.bestStreak],['🏅 Rivais especiais',prog.specials],['⭐ Nível / XP',lvlInfo(prog.xp).l+' • '+prog.xp],['💰 Saldo',eco.cheese],['📈 Queijos ganhos',eco.earned],['🛒 Queijos gastos',eco.spent],['⚡ Recorde rápido',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['🍽️ Comidas',prog.bestFood],['🏆 Melhor abate',stats.bestKills],['📊 Melhor tamanho',stats.bestSize]];
-  h=`<div class="fit rkl"><div class="lbl">🏅 Melhores partidas pessoais</div><div class="cells2">${prog.top.slice(0,3).map((t,i)=>`<div><small>${i+1}º • ${MICON[t.m]||''} ${MODES[t.m].name}</small><b>${t.s} pts</b></div>`).join('')||'<div><small>Recordes</small><b>Jogue para registrar</b></div>'}</div></div><div class="fit cells">${c.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`}
+ else if(name==='ranking'){const rows=[['⚡ Rápida',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['📏 Tamanho',stats.bestSize],['⚔️ Abates',stats.bestKills],['🔥 Sequência',prog.bestStreak],['🍽️ Comidas',prog.bestFood],['🧀 Queijos',prog.bestCheese]];
+  h=`<div class="fit rk"><div class="rkl"><div class="lbl">Top 5 partidas</div>${prog.top.map((t,i)=>`<div class="rkr${i===0?' f':''}"><i>${i+1}º</i><span>${MICON[t.m]||''} ${MODES[t.m].name}</span><b>${t.s}</b></div>`).join('')||'<p class="note">Jogue para entrar no ranking.</p>'}</div><div class="rkr2"><div class="lbl">Recordes pessoais</div><div class="cells2">${rows.map(r=>`<div><small>${r[0]}</small><b>${r[1]}</b></div>`).join('')}</div></div></div><p class="note">Ranking deste aparelho (não é online).</p>`}
+ else if(name==='records'){const c=[['Partidas',stats.games],['Eliminações',stats.kills],['Queijos comidos',stats.food],['Tempo total',fmtTime(stats.time)],['Maior tamanho',stats.bestSize],['Máx. abates',stats.bestKills],['Maior sequência',prog.bestStreak],['Rivais especiais',prog.specials],['Nível',lvlInfo(prog.xp).l+' • '+prog.xp+' XP'],['🧀 Saldo',eco.cheese],['🧀 Ganhos',eco.earned],['🧀 Gastos',eco.spent],['⚡ Rápida',bestQuick],['⏳ Sobrev.',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite]];
+  h=`<div class="fit cells">${c.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`}
  else if(name==='hist'){h=`<div class="fit hist">${eco.hist.slice(-10).reverse().map(x=>`<div><span>${x.s}</span><b class="${x.d>0?'pos':'neg'}">${x.d>0?'+':''}${x.d}</b><small>→ ${x.b}</small></div>`).join('')||'<p class="note">Nenhuma transação ainda.</p>'}</div>`}
  else if(name==='skills'){h=`<div class="fit sk">${Object.keys(SKILL_LIST).map(k=>{const c=SKILL_LIST[k],L=eco.lv[k],mx=L>=SKILL_CFG.max,cost=mx?0:skillCost(L),key='up:'+k;return`<div class="card"><span class="big">${c.i}</span><b>${c.n}</b><div class="pips">${Array.from({length:SKILL_CFG.max},(_,i)=>`<i class="${i<L?'on':''}"></i>`).join('')}</div><small>Nv ${L}/${SKILL_CFG.max} • ${skTxt(k,L)}</small>${mx?'<small class="nx">🏆 Nível máximo!</small>':`<small class="nx">→ ${skTxt(k,L+1)}</small>`}<button class="buy${mx?' maxed':eco.cheese<cost?' poor':''}" data-act="${mx?'noop:1':key}">${mx?'NÍVEL MÁXIMO ✓':pendingBuy===key?'Confirmar • 🧀 '+cost:'Evoluir • 🧀 '+cost}</button></div>`}).join('')}</div><p class="note">${shopMsg||'Saldo: 🧀 '+eco.cheese+' • toque duas vezes para confirmar.'}</p>`}
  else if(name==='items'){h=`<div class="fit it">${Object.keys(START_ITEMS).map(k=>{const it=START_ITEMS[k],key='buy:'+k,full=eco.inv[k]>=STOCK_MAX;return`<div class="card"><span class="big">${it.i}</span><b>${it.n}</b><small class="nx">${it.d}</small><small>Estoque ${eco.inv[k]}/${STOCK_MAX}</small><button class="buy${full?' maxed':eco.cheese<it.price?' poor':''}" data-act="${full?'noop:1':key}">${full?'CHEIO':pendingBuy===key?'Confirmar • 🧀 '+it.price:'Comprar • 🧀 '+it.price}</button></div>`}).join('')}</div><p class="note">${shopMsg||'Saldo: 🧀 '+eco.cheese+' • cada item vale para 1 partida.'}</p>`}
  else if(name==='shop'){h=shopHtml()}
- else if(name==='settings'){h=`<div class="fit cols2"><div class="scol">${sr('Efeitos sonoros',tgs('tog:sfx',prefs.sfx))}${sr('Volume',sg('vol',['Baixo','Médio','Alto'],prefs.vol))}${sr('Música',tgs('tog:music',prefs.music))}${sr('Vibração',tgs('tog:vib',prefs.vib))}${sr('Setas de aviso',tgs('tog:arrows',prefs.arrows))}${sr('Texto maior',tgs('tog:bigtxt',!!prefs.bigtxt))}${sr('Modo daltonismo',tgs('tog:cblind',!!prefs.cblind))}${sr('Qualidade automática',tgs('tog:autoq',!!prefs.autoq))}</div><div class="scol">${sr('Dificuldade dos bots',sg('diff',DIFFS.map(d=>d.n),prefs.diff))}${sr('Qualidade gráfica',`<div class="seg s">${[['alta','Alta'],['media','Média'],['baixa','Baixa']].map(c=>`<button class="${prefs.quality===c[0]?'on':''}" data-act="qual:${c[0]}">${c[1]}</button>`).join('')}</div>`)}${sr('Tela cheia ao jogar',tgs('tog:fullscreen',prefs.fullscreen))}${sr('Backup',`<span class="seg"><button data-act="bk:export">Exportar</button><button data-act="bk:import">Importar</button></span>`)}${sr('Apelido',`<button class="tgs on" data-act="nick:1">${prefs.nick||'Definir'} ✎</button>`)}${deferredInstall?sr('Aplicativo',`<button class="tgs on" data-act="install:1">📲 Instalar</button>`):''}</div></div><p class="note">v39 • offline salva neste celular • backup opcional • online separado</p>`}
+ else if(name==='settings'){h=`<div class="fit cols2"><div class="scol">${sr('Efeitos sonoros',tgs('tog:sfx',prefs.sfx))}${sr('Volume',sg('vol',['Baixo','Médio','Alto'],prefs.vol))}${sr('Música',tgs('tog:music',prefs.music))}${sr('Vibração',tgs('tog:vib',prefs.vib))}${sr('Setas de aviso',tgs('tog:arrows',prefs.arrows))}${sr('Texto maior',tgs('tog:bigtxt',!!prefs.bigtxt))}${sr('Modo daltonismo',tgs('tog:cblind',!!prefs.cblind))}${sr('Qualidade automática',tgs('tog:autoq',!!prefs.autoq))}</div><div class="scol">${sr('Dificuldade dos bots',sg('diff',DIFFS.map(d=>d.n),prefs.diff))}${sr('Qualidade gráfica',`<div class="seg s">${[['alta','Alta'],['media','Média'],['baixa','Baixa']].map(c=>`<button class="${prefs.quality===c[0]?'on':''}" data-act="qual:${c[0]}">${c[1]}</button>`).join('')}</div>`)}${sr('Tela cheia ao jogar',tgs('tog:fullscreen',prefs.fullscreen))}${sr('Backup',`<span class="seg"><button data-act="bk:export">Exportar</button><button data-act="bk:import">Importar</button></span>`)}${sr('Apelido',`<button class="tgs on" data-act="nick:1">${prefs.nick||'Definir'} ✎</button>`)}${deferredInstall?sr('Aplicativo',`<button class="tgs on" data-act="install:1">📲 Instalar</button>`):''}</div></div><p class="note">v39 • offline • Wi-Fi • online • sincronização desativada</p>`}
  else if(name==='controls'){h=`<div class="fit cols2"><div class="scol">${sr('Tipo de controle',`<div class="seg s">${[['arrastar','Arrastar'],['joystick','Joystick'],['toque','Toque']].map(c=>`<button class="${prefs.ctl===c[0]?'on':''}" data-act="ctl:${c[0]}">${c[1]}</button>`).join('')}</div>`)}${sr('Sensibilidade',sg('sens',['Baixa','Média','Alta'],prefs.sens))}${sr('Zona morta',sg('dead',['Pequena','Média','Grande'],prefs.dead))}${sr('Giro / curvas',sg('turn',TURNS.map(t=>t.n),prefs.turn))}</div><div class="scol">${sr('Tamanho dos controles',sg('csz',['Pequeno','Médio','Grande'],prefs.csz))}${sr('Joystick à esquerda',tgs('tog:stickLeft',prefs.stickLeft))}${sr('Botão ⚡ à esquerda',tgs('tog:boostLeft',prefs.boostLeft))}<p class="note l">Arrastar: o centro nasce onde você toca. Joystick: fixo no canto. Toque: o rato vai para o ponto tocado.</p></div></div>`}
  else if(name==='custom'){const T={cor:['🎨 Cor',null],corpo:['Padrão',SKINS],acc:['Acessório',ACCS],cauda:['Cauda',TAILS],rato:['Rato',RAT_LBL],hat:['Chapéu',HAT_LBL],cloth:['Roupa',CLOTH_LBL]},cur={corpo:prefs.skin,rosto:prefs.face,acc:prefs.acc,cauda:prefs.tail,rato:prefs.rat,hat:prefs.hat,cloth:prefs.cloth},key={corpo:'skin',rosto:'face',acc:'acc',cauda:'tail',rato:'rat',hat:'hat',cloth:'cloth'},CKm={corpo:'skin',acc:'acc',cauda:'tail'};
   let list=custTab==='cor'?PLAYER_COLORS.map(c=>[c,'',c===prefs.color,true]):Object.keys(T[custTab][1]).map(o=>[o,T[custTab][1][o],o===cur[custTab],custTab==='rato'?ratOwned(o):custTab==='hat'?hatOwned(o):custTab==='cloth'?clothOwned(o):(!CKm[custTab]||owns(CKm[custTab],o))]);
@@ -1344,7 +1281,7 @@ function renderSheet(name){sheetName=name;let h='';
   h=`<div class="fit vis"><div class="vl"><canvas id="pvc" width="360" height="170" class="pvc"></canvas><small>Só muda a aparência; não dá vantagem.</small></div><div class="vr"><div class="tabs s">${Object.keys(T).map(k=>`<button class="${k===custTab?'on':''}" data-act="tab:${k}">${T[k][0]}</button>`).join('')}${pgBar('vis',P)}</div><div class="chipg${custTab==='cor'?' cols6':''}">${chips}</div></div></div>`}
  else{h=`<div class="fit hc">${[['🕹️ Controle','Arraste o dedo na direção que quer ir. Segure ⚡ para acelerar.'],['⚠️ Regras','Bater na parede ou em outro corpo elimina. No choque frontal o maior vence.'],['🧀 Queijos','Coma para crescer. Eliminar ratos solta queijos e dá moedas.'],['⚡ Poderes','Velocidade, ímã, escudo, ×2 e crescimento. Evolua na Loja.'],['🎮 Modos','Rápida, Sobrevivência, Desafio, Equipes, Chefe e Infinito.'],['🐭 Rivais','Guloso, Caçador, Cauteloso… e especiais: 👑 Rei, 👻 Fantasma, 🦏 Tanque.']  ,['📊 Desempenho',perfTxt()],['⬆️ Atualização','Versão '+VERSION+'. '+updTxt()],['📈 Estatísticas','Eliminações '+stats.kills+' • Queijos comidos '+stats.food+' • Maior tamanho '+stats.bestSize+' • Melhor sobrevivência '+Math.floor(stats.bestTime)+' s']].map(c=>`<div class="card"><b>${c[0]}</b><small>${c[1]}</small></div>`).join('')}</div>`}
  $('sheetBody').classList.toggle('fix',name==='shop');$('sheetBody').innerHTML=tabBar(name)+h;if(name==='gallery')$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},1.7*d)});
- if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw();if(name==='ranking'){}}
+ if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw()}
 const GROUP={shop:'loja',items:'loja',skills:'loja',ranking:'rank',records:'rank',hist:'rank',settings:'cfg',controls:'cfg',custom:'cfg',gallery:'cfg',help:'cfg',challenges:'des',missions:'des',events:'des',daily:'des',ach:'des',rewards:'des'};
 const GTABS={loja:[['shop','🎨 Cosméticos'],['items','🛒 Itens'],['skills','🧬 Habilidades']],rank:[['ranking','🏆 Ranking'],['records','📊 Estatísticas'],['hist','🧾 Queijos']],cfg:[['settings','⚙️ Ajustes'],['controls','🕹️ Controles'],['custom','🎨 Visual'],['gallery','🖼️ Galeria'],['help','❓ Ajuda']],des:[['challenges','🎯 Missões'],['events','🌟 Evento'],['daily','🎁 Diária'],['ach','🏅 Conquistas'],['rewards','🗓️ Semana']]};
 function tabBar(n){const g=GROUP[n];if(!g)return '';const cur=n==='missions'?'challenges':n;return '<div class="tabs top">'+GTABS[g].map(t=>`<button class="${t[0]===cur?'on':''}" data-act="go:${t[0]}">${t[1]}${t[0]==='daily'&&dailyAvail()?' •':''}${t[0]==='events'&&(seasReady()||wbReady())?' 🔴':''}${t[0]==='rewards'&&rwReady()?' 🔴':''}${t[0]==='ach'&&achReady()?' 🔴':''}${t[0]==='challenges'&&ladReady()?' 🔴':''}</button>`).join('')+'</div>'}
@@ -1354,8 +1291,6 @@ function bkExport(){try{flushSave()}catch(e){}const d={};try{for(let i=0;i<local
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'rato_snack',v:15,t:Date.now(),data:d})],{type:'application/json'}));a.download='rato_snack_backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 function bkImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.app!=='rato_snack'||!o.data||typeof o.data!=='object')throw 0;const ks=Object.keys(o.data).filter(k=>k.indexOf('ratoSnack')===0&&typeof o.data[k]==='string'&&!/\.(corrupt|bak)$/.test(k));if(!ks.length)throw 0;gConfirm('Importar o backup? Isso substitui o progresso atual deste aparelho.',()=>{importing=true;for(const k of ks)localStorage.setItem(k,o.data[k]);location.reload()})}catch(e){importing=false;gAlert('Arquivo de backup inválido.')}};r.readAsText(f)};inp.click()}
 function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=act.slice(0,i),v=act.slice(i+1);
- if(k==='rperiod'&&['total','monthly'].includes(v)){loadRemoteRanking(v);return}
- if(k==='rankpage'&&['prev','next'].includes(v)){remoteRankPage=Math.max(1,Math.min(5,remoteRankPage+(v==='next'?1:-1)));drawRemoteRankingPage();return}
  if(k==='color'&&PLAYER_COLORS.includes(v))prefs.color=v;else if(k==='skin'&&SKINS[v]&&owns('skin',v))prefs.skin=v;
  else if(k==='face'&&FACES[v])prefs.face=v;else if(k==='acc'&&ACCS[v]&&owns('acc',v))prefs.acc=v;else if(k==='tail'&&TAILS[v]&&owns('tail',v))prefs.tail=v;else if(k==='tab'&&['cor','corpo','acc','cauda','rato','hat','cloth'].includes(v)){custTab=v;pgState.vis=0;renderSheet(sheetName);return}
  else if(k==='sel'){const[c,id]=v.split(':');if(CAT[c]&&CAT[c][id]){shopCat=c;shopSel=id;pendingBuy='';shopMsg='';renderSheet('shop')}return}
@@ -1506,7 +1441,7 @@ function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);if(pl
  if(prefs.ctl==='joystick'&&running&&!paused&&!pointer.down){const c=stickCenter();ctx.strokeStyle='#ffffff30';ctx.lineWidth=2;ctx.beginPath();ctx.arc(c.x,c.y,CFG.stickMax,0,6.2832);ctx.stroke()}
  if(pointer.active&&running&&!paused){ctx.strokeStyle='#ffffff40';ctx.lineWidth=2;ctx.beginPath();ctx.arc(pointer.ax,pointer.ay,CFG.stickMax,0,6.2832);ctx.stroke();ctx.fillStyle='#ffffff66';ctx.beginPath();ctx.arc(pointer.x,pointer.y,13,0,6.2832);ctx.fill()}}
 function frame(now){const act=running&&!paused;if(now-last<(act?10:66)){requestAnimationFrame(frame);return} // limita ~100 fps ativo e ~15 fps em menu/pausa
- const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);if(paused)refreshPauseRanking();draw(now/1000);autoQ(dt,act);requestAnimationFrame(frame)}
+ const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw(now/1000);autoQ(dt,act);requestAnimationFrame(frame)}
 
 /* ============ Entrada ============ */
 function setPointer(e){const r=canvas.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top;pointer.active=true}
@@ -1553,4 +1488,4 @@ $('game').classList.add('ready');init();menuInfo();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
 })();
-</script><div id="rotateNotice"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>Gire o celular</h2><p>O RativaSnack foi feito para jogar na horizontal. Vire o aparelho para continuar a partida.</p></div></div></body></html>
+</script></body></html>
