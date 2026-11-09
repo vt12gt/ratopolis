@@ -171,3 +171,19 @@ Limites: o teste HTTP de runtime continua bloqueado pelo ambiente de execução 
 O repositório único é `vt12gt/RativaGames`; não existe dependência de um repositório separado `ratopolis`. A árvore da branch principal foi conferida em 2026-11-09. O cliente de jogo atualmente identificado é `ratopolis_v1.56.0.html` na raiz do repositório (574 KB). Também existem protótipos antigos `ratopolis_v1.53.6_*.html`, a cópia `ratopolis_v1.56.0_teste_matchmaking.html`, a pasta administrativa `Admin/RativaPolis/` e o Portal em `index.html`.
 
 O cliente v1.56.0 ainda aponta `PROGRESSION_API` para `ratopolis-api-dev-v30` e envia recompensas por `POST /api/progression/reward`, além de consultar `GET /api/progression/me`. Portanto, não se deve alterar apenas a URL para `rativapolis-api-dev`: a versão atual desse Worker tem a leitura de progressão, mas ainda não tem a escrita de recompensas necessária. A migração segura seguinte é implementar e validar a gravação idempotente de recompensas na D1 Polis, preservando o formato JSON e os limites de segurança do cliente; só então conectar uma cópia de teste do HTML, mantendo o arquivo principal intacto.
+
+
+## Recompensas de fase migradas para a D1 Polis (desenvolvimento)
+
+Em 2026-11-09, o Worker `rativapolis-api-dev` foi atualizado para a versão `rativapolis-api-dev-v2-idempotent-phase-rewards` e o deploy de desenvolvimento foi aceito pelo Cloudflare. O arquivo atualizado está em `workers/rativapolis-api-dev.js`.
+
+- Implementa `POST /api/progression/reward` (alias legado) e `POST /api/rativapolis/progression/reward`.
+- A autenticação continua sendo feita pela sessão central do Portal; o perfil e as recompensas são gravados exclusivamente na D1 Polis.
+- Preserva a validação legada: fase 1–12, queijos 0–4, bolotas 0–12, vidas 0–3 e `event_id` de até 128 caracteres no padrão permitido.
+- Preserva a fórmula: XP = 22 + 5×queijos + 8×bolotas + 3×vidas; moedas = 10 + 2×queijos + 3×bolotas + 2×vidas.
+- Preserva o limite de 10 eventos `phase_complete` por jogador/dia UTC.
+- A inserção do evento, crédito no perfil e auditoria `game_audit_logs` são enviados em um único batch D1; o SQL condiciona o crédito à inserção efetiva do evento e à cota diária. Reenvio do mesmo evento pelo mesmo jogador retorna `duplicado: true` sem novo crédito; uso por outro jogador/tipo retorna HTTP 409.
+- Respostas preservam `ok`, `duplicado`, `recompensa`, `progresso` e o status 201 na primeira concessão, para compatibilidade com o cliente legado.
+- CORS do Worker agora permite GET, POST e OPTIONS.
+
+O deploy foi aceito e o Worker mantém os bindings existentes: `PORTAL_DB` → `ratopolis-dev-v31`; `POLIS_DB` → `rativapolis-dev-isolated`. A validação HTTP autenticada e o teste funcional de duplicidade ainda não foram concluídos neste ambiente. Por isso, o cliente HTML oficial não foi alterado e nenhuma cópia de teste foi conectada ainda. Próxima etapa: smoke test externo autenticado (concessão, repetição do mesmo evento, evento de outro jogador e limite diário); depois, criar a cópia de teste do cliente alterando somente `PROGRESSION_API`.
