@@ -2287,6 +2287,27 @@ function openTitlesChallenges(fromMenu=false){const panel=document.getElementByI
 document.getElementById('achievementBtn').addEventListener('click',()=>openTitlesChallenges(false));
 document.getElementById('closeRanking').addEventListener('click',()=>{document.getElementById('rankingPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
 document.querySelector('#rankingPage .ranking-back-top').addEventListener('click',()=>{document.getElementById('rankingPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
+/* v1.56.0 teste-core — retorno resiliente ao menu em toque/click no Android */
+(function(){
+ const page=document.getElementById('rankingPage');
+ const menu=document.getElementById('start');
+ if(!page||!menu)return;
+ function backToMainMenu(){
+   page.classList.add('hidden');
+   page.setAttribute('aria-hidden','true');
+   menu.classList.remove('hidden');
+   menu.removeAttribute('aria-hidden');
+ }
+ page.querySelectorAll('.ranking-back-top,#closeRanking').forEach(function(button){
+   button.style.touchAction='manipulation';
+   button.style.pointerEvents='auto';
+   button.addEventListener('pointerup',function(e){e.preventDefault();backToMainMenu();},{capture:true});
+   button.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();backToMainMenu();},{capture:true});
+ });
+ window.addEventListener('keydown',function(e){
+   if(e.key==='Escape'&&!page.classList.contains('hidden'))backToMainMenu();
+ },true);
+})();
 document.getElementById('closeGuild').addEventListener('click',()=>{document.getElementById('guildPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
 document.getElementById('guildBackTop').addEventListener('click',()=>{document.getElementById('guildPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
 document.getElementById('createGuildBtn').addEventListener('click',()=>{const name=document.getElementById('guildNameInput').value.trim().replace(/\s+/g,' '),tag=document.getElementById('guildTagInput').value.trim().replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,5);if(name.length<3){alert('O nome da guilda precisa ter pelo menos 3 caracteres.');return;}if(tag.length<2){alert('A tag precisa ter pelo menos 2 letras ou números.');return;}guildData={name:name.slice(0,24),tag};saveProgress();renderGuildPage();});
