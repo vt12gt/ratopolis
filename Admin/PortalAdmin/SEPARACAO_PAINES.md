@@ -90,7 +90,7 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 
 
 ## Auditoria da comunidade — 2026-11-09
-- Worker `ratopolis-community-chat-preview` atualizado para `1.2.1-community-role-fix` e ligado ao mesmo D1 central (`ratopolis_audit_logs`).
+- Worker `ratopolis-community-chat-preview` atualizado para `1.2.2-community-audit-idempotent` e ligado ao mesmo D1 central (`ratopolis_audit_logs`).
 - Eventos registrados: consulta de banimentos, concessão de símbolo, consulta/revisão de fotos, consulta/revisão de denúncias, remoção de avatar, mute/unmute/ban/unban e publicação de avisos.
 - O ator é identificado pelo ID real da conta validada no login central; o token de sessão não é armazenado no Durable Object. O Worker consulta a API central de cargos e preserva cada função exata (SpAdmin, ADM, GM, Moderador, Editor, Divulgador e Locutor), sem transformar todo usuário com acesso ao painel em administrador.
 - Se o D1 estiver indisponível, o evento fica em fila persistente no Durable Object e é reenviado durante a limpeza agendada.
