@@ -829,11 +829,11 @@ export default {
           return reply({ ok: true, profile: profile || { full_name: "", birth_date: "", whatsapp: "" } });
         }
         const body = await readJson(request);
-        const fullName = typeof body.full_name === "string" ? body.full_name.trim().replace(/\\s+/g, " ") : "";
+        const fullName = typeof body.full_name === "string" ? body.full_name.trim().replace(/\s+/g, " ") : "";
         const birthDate = typeof body.birth_date === "string" ? body.birth_date.trim() : "";
         const whatsapp = typeof body.whatsapp === "string" ? body.whatsapp.trim() : "";
         if (fullName.length < 5 || fullName.length > 100 || fullName.split(" ").filter(Boolean).length < 2) return reply({ ok: false, erro: "Informe seu nome completo (nome e sobrenome), com até 100 caracteres." }, 400);
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate + "T00:00:00Z")) || birthDate >= new Date().toISOString().slice(0,10)) return reply({ ok: false, erro: "Informe uma data de nascimento valida no passado." }, 400);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate + "T00:00:00Z")) || new Date(birthDate + "T00:00:00Z").toISOString().slice(0,10) !== birthDate || birthDate >= new Date().toISOString().slice(0,10)) return reply({ ok: false, erro: "Informe uma data de nascimento valida no passado." }, 400);
         const digits = whatsapp.replace(/\D/g, "");
         if (digits.length < 10 || digits.length > 13) return reply({ ok: false, erro: "Informe um WhatsApp com DDD e numero valido." }, 400);
         const existing = await env.DB.prepare("SELECT full_name, birth_date FROM ratopolis_personal_profiles WHERE user_id = ?").bind(actor.id).first();
