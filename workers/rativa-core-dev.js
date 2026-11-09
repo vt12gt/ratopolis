@@ -23,7 +23,7 @@ async function sha256(value) {
 async function authenticatePortal(request, env) {
   const token = bearer(request);
   if (!token || token.length < 20) return null;
-  return env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1")
+  return env.PORTAL_DB.prepare("SELECT u.id,u.public_id,u.nickname,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1")
     .bind(await sha256(token), new Date().toISOString()).first();
 }
 async function authenticateAdmin(request, env) {
@@ -58,7 +58,7 @@ export default {
           env.SNACK_DB.prepare("SELECT public_id FROM game_users WHERE portal_user_id=? AND status='active' LIMIT 1").bind(actor.id).first(),
           env.POLIS_DB.prepare("SELECT public_id FROM game_users WHERE portal_user_id=? AND status='active' LIMIT 1").bind(actor.id).first()
         ]);
-        return json({ok:true,identity:{portal_user_id:actor.id,nickname:actor.nickname,role:actor.role,status:actor.status},
+        return json({ok:true,identity:{portal_user_id:actor.id,public_id:actor.public_id||null,nickname:actor.nickname,role:actor.role,status:actor.status},
           games:{rativasnack:{public_id:snack?.public_id||null},rativapolis:{public_id:polis?.public_id||null}}},200,origin);
       } catch {
         return json({ok:false,error:"game_identity_link_not_ready",message:"As migrações e os vínculos de identidade dos jogos ainda não foram aplicados."},503,origin);
@@ -72,7 +72,7 @@ export default {
       const pattern = "%" + q + "%";
       try {
         const [portal,snack,polis] = await Promise.all([
-          env.PORTAL_DB.prepare("SELECT id AS internal_id,nickname,role,status,created_at FROM ratopolis_users WHERE nickname LIKE ? OR id LIKE ? ORDER BY nickname LIMIT 20").bind(pattern,pattern).all(),
+          env.PORTAL_DB.prepare("SELECT id AS internal_id,public_id,nickname,role,status,created_at FROM ratopolis_users WHERE nickname LIKE ? OR public_id LIKE ? OR id LIKE ? ORDER BY nickname LIMIT 20").bind(pattern,pattern,pattern).all(),
           env.SNACK_DB.prepare("SELECT id AS internal_id,public_id,nickname,status,created_at FROM game_users WHERE nickname LIKE ? OR public_id LIKE ? OR id LIKE ? ORDER BY nickname LIMIT 20").bind(pattern,pattern,pattern).all(),
           env.POLIS_DB.prepare("SELECT id AS internal_id,public_id,nickname,status,created_at FROM game_users WHERE nickname LIKE ? OR public_id LIKE ? OR id LIKE ? ORDER BY nickname LIMIT 20").bind(pattern,pattern,pattern).all()
         ]);
