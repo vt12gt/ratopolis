@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "competition": "Campeonato Geral Ratópolis",
+  "timezone": "America/Recife",
+  "period": "monthly",
+  "games": [
+    "ratopolis",
+    "ratosnack"
+  ],
+  "daily_ranked_match_limit": 10,
+  "daily_limit_scope": "combined_across_both_games",
+  "points_by_placement": {
+    "1": 100,
+    "2": 80,
+    "3": 60,
+    "4": 40,
+    "5": 30
+  },
+  "valid_participation_points": 10,
+  "monthly_prize_pool_percent": 60,
+  "prize_distribution_percent": {
+    "1": 30,
+    "2": 12,
+    "3": 8,
+    "4": 6,
+    "5": 4
+  },
+  "status": "rules_defined_server_integration_pending",
+  "notes": "Only server-validated ranked match results count. Do not accept client-side score submissions as authoritative. Cash prizes remain disabled until validation, anti-cheat, donation accounting, and legal/payment review are complete."
+}
