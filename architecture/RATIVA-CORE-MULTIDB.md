@@ -201,3 +201,33 @@ Limitação remanescente: não foi possível chamar o domínio público `workers
 Foi criada na branch de integração a cópia `Rativapolis/ratopolis_v1.56.0_teste_core.html`, derivada do cliente oficial `ratopolis_v1.56.0.html`. A única alteração funcional no HTML é a constante `PROGRESSION_API`, que aponta para `https://rativapolis-api-dev.juniorgmj69.workers.dev`. O endpoint de autenticação/Portal `/api/me`, a leitura de sessão e as demais APIs legadas foram preservadas. O HTML oficial na raiz não foi alterado.
 
 A cópia ainda não foi publicada no Pages nem testada com bearer real: as chamadas ao domínio `workers.dev` originadas deste ambiente são bloqueadas antes de chegar ao Worker. Para concluir o smoke test autenticado, abrir a cópia em uma origem autorizada (GitHub Pages `https://vt12gt.github.io`, após disponibilização da branch) com sessão válida do Portal e conferir leitura de progresso, concessão, repetição idempotente, rejeição de sessão inválida e limite diário. Não publicar nem trocar o cliente oficial até a conclusão desses testes.
+
+
+## Ranking global e integridade de progresso — auditoria 2026-11-09
+
+### Ranking online conectado no cliente de teste
+
+- O Worker rativapolis-api-dev expõe GET /api/rankings (XP geral) e GET /api/rankings/level (nível e XP).
+- As rotas são somente leitura: consultam game_users e ratopolis_profiles na D1 Polis, filtram usuários ativos e retornam somente posição, ID público, nickname, nível e XP.
+- A ordenação é escolhida por código fixo do servidor; paginação é limitada a 100 registros por chamada e os valores são passados por bind SQL. Não há parâmetro de escrita nem campo de XP/nível recebido do navegador.
+- O HTML de teste agora chama essas rotas ao abrir a tela de ranking, mostra o top 20 e permite alternar entre maior XP e maior nível. A tela também mantém estatísticas pessoais locais separadas do ranking global.
+- O cliente constrói os elementos com textContent, sem inserir nickname remoto via innerHTML. A consulta usa cache: no-store.
+- A cópia de teste na raiz main foi atualizada em 2026-11-09; o cliente oficial ratopolis_v1.56.0.html permanece intacto.
+
+### Limite de segurança ainda aberto nas recompensas
+
+- O servidor valida sessão Portal, formato e limites dos campos, calcula XP/moedas no Worker, aplica idempotência por event_id, limita a 10 recompensas por jogador/dia UTC e registra auditoria na D1 Polis.
+- Porém, phase, cheeses, acorns e lives ainda são declarados pelo cliente HTML. Um jogador tecnicamente experiente pode fabricar uma chamada válida com valores dentro dos limites e tentar obter recompensas sem concluir a fase.
+- Portanto, o ranking não aceita edição direta pelo navegador, mas a pontuação ainda pode ser inflada por abuso da rota de recompensa. Não declarar o sistema anti-cheat ou inviolável neste estágio.
+- A correção definitiva exige que o servidor seja autoridade sobre a partida: sessão de fase criada no servidor, estado/resultado validado no servidor (ou replay determinístico validado), nonce de uso único, expiração e limites por fase/conta. Um nonce sozinho não prova que a fase foi jogada.
+- Até essa validação existir, manter recompensas e ranking apenas no ambiente de desenvolvimento/teste. Não migrar o endpoint para o cliente oficial nem promover o PR para produção.
+- Teste de integração HTTP com bearer real e CORS ainda depende de execução externa pelo navegador; smoke test SQL direto não substitui esse teste.
+
+### Roteiro de homologação do ranking
+
+1. Abrir o cliente de teste com sessão válida do Portal.
+2. Abrir Ranking e conferir se aparecem jogadores reais cadastrados no banco Polis.
+3. Alternar Maior XP / Maior nível e confirmar que a ordenação muda conforme o modo.
+4. Recarregar a tela e comparar os mesmos valores com a resposta das rotas públicas.
+5. Confirmar que usuário não autenticado consegue apenas ler o ranking, sem qualquer endpoint público de escrita.
+6. Não considerar recompensas invioláveis até implementar e testar validação autoritativa da conclusão da fase.
