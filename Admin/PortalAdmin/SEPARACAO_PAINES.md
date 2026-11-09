@@ -62,13 +62,13 @@ Foi criado `Equipe/index.html` como módulo do Admin Geral. Ele usa os endpoints
 
 A interface só habilita alterações quando a resposta do servidor concede `manageStaff` e o cargo é SpAdmin ou ADM. A rota do Worker impede atribuir SpAdmin, alterar usuário de cargo igual/superior ou promover alguém a cargo igual/superior ao operador.
 
-**Limites identificados:** a lista consultada é a base de contas do Worker RativaPolis v30; não está comprovado ainda que RativaSnack compartilha integralmente a mesma identidade/backend. A tela antiga `Equipe e permissões` do painel RativaPolis é explicitamente um diretório/matriz local de demonstração, não uma gestão real da equipe. Ela deve permanecer no legado até validar que o novo módulo atende o escopo compartilhado e então ser removida em commit separado. O Worker grava auditoria para alterações de cargo, mas ainda não foi encontrada rota de leitura dos registros administrativos gerais; a tela de Auditoria antiga também é local/demo. Portanto, o histórico completo e sua consulta central ainda não estão migrados.
+**Limites identificados:** a identidade de contas foi confirmada como compartilhada entre RativaPolis e RativaSnack. O módulo Equipe administra cargos globais nessa base central. A tela antiga `Equipe e permissões` do painel RativaPolis continua sendo uma matriz local/demo e deve permanecer preservada até substituição testada. A consulta central de auditoria já existe; os eventos dos serviços conectados estão sendo integrados por etapas.
 
 ## Próximas tarefas técnicas
 
-1. Criar rota protegida de consulta/paginação da auditoria administrativa no Worker, com autorização específica e sem permitir edição/exclusão de logs.
-2. Validar identidade compartilhada entre RativaPolis e RativaSnack antes de chamar o diretório de contas de totalmente global.
-3. Migrar os demais módulos gerais um a um, preservando a versão antiga até teste concluído.
+1. Conferir a cobertura de auditoria de cada endpoint administrativo legado antes de remover qualquer tela.
+2. Criar os módulos reais de comunidade e ranking no Admin Geral, substituindo somente operações locais/demo depois dos testes.
+3. Criar ferramentas administrativas específicas do RativaSnack quando forem necessárias, usando a identidade global e a auditoria central.
 
 
 ## Auditoria administrativa — 2026-11-09
@@ -87,3 +87,13 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 - `ratopolis-password-admin` já registra redefinições de senha como `admin_password_reset` na mesma tabela central.
 - Limite restante: a moderação da comunidade usa Durable Object e ainda não grava seus eventos na tabela central. Não foi criado um atalho inseguro com token longo; será necessário integrar um canal interno autenticado antes de considerar a auditoria completa.
 - O Worker RativaSnack atual não possui rotas administrativas próprias; suas rotas existentes são de perfil, recordes, conquistas e inventário do jogador, não ações administrativas. Não foram adicionados eventos de progresso do jogador ao histórico administrativo para evitar misturar auditoria de staff com telemetria do jogo.
+
+
+## Auditoria da comunidade — 2026-11-09
+- Worker `ratopolis-community-chat-preview` atualizado para `1.2.0-community-audit` e ligado ao mesmo D1 central (`ratopolis_audit_logs`).
+- Eventos registrados: consulta de banimentos, concessão de símbolo, consulta/revisão de fotos, consulta/revisão de denúncias, remoção de avatar, mute/unmute/ban/unban e publicação de avisos.
+- O ator é identificado pelo ID real da conta validada no login central; o token de sessão não é armazenado no Durable Object.
+- Se o D1 estiver indisponível, o evento fica em fila persistente no Durable Object e é reenviado durante a limpeza agendada.
+- A moderação de chat foi restringida a SpAdmin, ADM e GM, conforme a mensagem de permissão existente; locutor continua podendo publicar avisos, mas não banir ou silenciar.
+- A tela de auditoria agora exibe como alvo o nickname/chave de jogador presente nos detalhes quando o evento não possui `target_user_id` relacional.
+- Feed posts e ações comuns de jogadores não são misturados ao histórico administrativo. O feed continua sendo conteúdo de jogadores, não operação de staff.
