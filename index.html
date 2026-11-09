@@ -966,5 +966,13 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(error=>console.warn('PWA Rativa Games:',error)));
 }
 </script>
+<script id="rativaDeepLink">
+(function(){
+ try{
+  const target=new URLSearchParams(location.search).get('open');
+  if(target==='shop'&&typeof go==='function')go('shop');
+ }catch(e){}
+})();
+</script>
 </body>
 </html>
