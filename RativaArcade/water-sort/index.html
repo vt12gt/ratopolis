@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="waterSort.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Water Sort — Free Online Liquid Sorting Puzzle</title>
+<meta name="description" content="Play Water Sort free in your browser. Pour the coloured liquids between tubes until every tube holds a single colour. Every puzzle is verified solvable. No install, works on mobile and desktop.">
+<meta name="keywords" content="water sort,water sort puzzle,liquid sort,color sort,water sorting game,puzzle game,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Water Sort — Free Online Liquid Sorting Puzzle">
+<meta property="og:description" content="Pour the liquids until every tube holds one colour. Every deal is verified solvable — undo is always there.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #161e2b 0%, #24384f 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px 12px 4px; user-select: none;
+  }
+  .panel {
+    position: relative;
+    --tw: 60px;            /* 试管宽度，由 JS 的 fit() 覆写 */
+    --per-row: 6;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .stat {
+    flex: 1; background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 4px 8px; text-align: center; color: #fff; min-width: 0;
+  }
+  .stat small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px; opacity: .55; }
+  .stat span { font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer;
+  }
+  .tubes {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center;
+    gap: 8px; margin: 0 auto;
+    width: calc(var(--per-row) * (var(--tw) + 8px) - 8px);
+  }
+  .tube {
+    position: relative; flex: 0 0 auto;
+    width: var(--tw); height: calc(var(--tw) * 3.3);
+    display: flex; flex-direction: column-reverse; padding: 3px;
+    border: 2px solid rgba(255,255,255,.22);
+    border-top: none;
+    border-radius: 6px 6px 20px 20px;
+    background: rgba(255,255,255,.04);
+    cursor: pointer;
+    transition: transform .16s cubic-bezier(.3,.75,.4,1), border-color .16s;
+  }
+  .tube.sel { transform: translateY(-10px); border-color: rgba(255,255,255,.6); }
+  .tube.done { border-color: rgba(120,235,160,.75); box-shadow: 0 0 0 2px rgba(120,235,160,.22); }
+  .tube.nope { animation: nope .3s ease; }
+  @keyframes nope { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  .slot { flex: 1 1 0; min-height: 0; transition: background .18s ease; }
+  .slot:first-child { border-radius: 0 0 17px 17px; }
+  .slot.pop { animation: pop .22s ease; }
+  @keyframes pop { 0%{transform:scale(.6);opacity:.35} 100%{transform:scale(1);opacity:1} }
+  .actions { display: flex; gap: 8px; margin-top: 14px; }
+  .actions button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; letter-spacing: 1px; font-family: inherit;
+    transition: transform .12s ease;
+  }
+  .actions button:active { transform: scale(.96); }
+  .actions button:disabled { opacity: .4; cursor: default; }
+  .btn-primary { background: #4a90ff; color: #fff; box-shadow: 0 4px 0 #2a63bd; }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 18px;
+    background: rgba(12, 22, 34, .84); backdrop-filter: blur(3px); color: #fff; z-index: 6;
+  }
+  .hidden { display: none !important; }
+  .over-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 13px; opacity: .78; line-height: 1.65; }
+  .stars { font-size: 30px; letter-spacing: 4px; }
+  .final-line { font-size: 15px; font-weight: 700; }
+  .final-line b { font-size: 22px; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .over-btns { display: flex; gap: 8px; margin-top: 6px; width: 100%; }
+  .over-btns button {
+    flex: 1; min-height: 48px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+  }
+  .icon-big { font-size: 40px; }
+  #stuck {
+    margin-top: 10px; font-size: 12px; font-weight: 700; color: #ffd76e;
+    text-align: center; min-height: 16px;
+  }
+  /* 没有提示时整块塌掉，别白占 26px 纵向（这正是手机横屏最缺的） */
+  #stuck:empty { display: none; }
+  .footer {
+    margin-top: 10px; color: rgba(255,255,255,.5); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a { color: rgba(255,255,255,.78); text-decoration: none; display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; }
+  .footer a:hover { color: #ffd76e; }
+  /* 手机横屏(视口高 ≤560px)纵向极紧:试管高度只剩 83px → 管宽被压到 25px,点不准。
+     这里挖的都是「不是触控目标」的横向浪费:footer 被 max-width:460px 折成 2~3 行是最肥的一块,
+     放开就能省 ~54px。顶栏只压小块文字与内边距,mute 键是触控目标,尺寸不动。 */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .panel { padding: 10px; }
+    .footer { max-width: none; }
+    .topbar { gap: 6px; margin-bottom: 6px; }
+    .stat { padding: 1px 6px; }
+    .stat small { font-size: 8px; }
+    .stat span { font-size: 13px; }
+    #stuck { margin-top: 6px; }
+    .actions { margin-top: 6px; }
+    .actions button { min-height: 44px; }      /* 仍满足触控目标 ≥44px */
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="topbar">
+    <div class="stat"><small data-i18n="waterSort.hudLevel">LEVEL</small><span id="hud-level">1</span></div>
+    <div class="stat"><small data-i18n="waterSort.hudMoves">MOVES</small><span id="hud-moves">0</span></div>
+    <div class="stat"><small data-i18n="waterSort.hudBest">BEST</small><span id="hud-best">—</span></div>
+    <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  </div>
+
+  <div class="tubes" id="tubes"></div>
+  <div id="stuck"></div>
+
+  <div class="actions">
+    <button class="btn-ghost" id="btn-undo" data-i18n="waterSort.undo">UNDO</button>
+    <button class="btn-ghost" id="btn-restart" data-i18n="waterSort.restart">RESTART</button>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="stars" id="stars">★★★</div>
+    <div class="over-title" data-i18n="waterSort.over">CLEARED!</div>
+    <div class="final-line" id="final-line"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="over-sub" id="over-best"></div>
+    <div class="over-btns">
+      <button class="btn-primary" id="btn-next" data-i18n="waterSort.next">NEXT LEVEL</button>
+      <button class="btn-ghost" id="btn-share2" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🧪</div>
+    <div class="over-title" data-i18n="waterSort.title">WATER SORT</div>
+    <div class="over-sub" data-i18n-html="waterSort.tip">Tap a tube, then tap another to pour.<br>You can only pour onto the <b>same colour</b> or into an empty tube.<br>Every deal is verified solvable.</div>
+    <div class="over-sub" id="start-best"></div>
+    <button class="btn-primary" id="btn-start" data-i18n="common.start" style="margin-top:6px;padding:12px 28px;">START</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CAP = 4;                       // 每根试管容量
+  var MAX_COLORS = 8;                // 颜色上限
+  var COLORS = ['#e8524a', '#4a90ff', '#f5c542', '#4ecb71', '#b06cf0', '#ff8c3a', '#31c9c9', '#ff6fb5'];
+  var STORE_KEY = 'water_sort_progress_v1';
+
+  var panel = document.getElementById('panel');
+  var tubesEl = document.getElementById('tubes');
+  var stuckEl = document.getElementById('stuck');
+  var footerEl = document.querySelector('.footer');
+
+  var tubes = [];        // tubes[i] = ['#e8524a', ...]，末尾 = 最上层
+  var slotEls = [];      // slotEls[i] = [底层 slot 元素, ...]
+  var history = [];      // 撤销栈：每项是一份 tubes 深拷贝
+  var sel = -1;
+  var level = 1, moves = 0, started = false;
+  var best = {};         // { '3': 12, ... } 关卡 -> 最少步数
+  try { best = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { best = {}; }
+  if (best.level && best.level > 0) level = best.level;
+
+  // ===== 音效 =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    pick:  function () { beep(520, 0.05, 'triangle', 0.05); },
+    pour:  function (n) { beep(300 + n * 70, 0.07, 'sine', 0.07); },
+    nope:  function () { beep(150, 0.12, 'sawtooth', 0.05); },
+    win:   function () {
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+        setTimeout(function () { beep(f, 0.2, 'triangle', 0.09); }, i * 95);
+      });
+    }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== 规则 =====
+  function topRun(t) {
+    if (!t.length) return { color: null, count: 0 };
+    var c = t[t.length - 1], n = 0;
+    for (var i = t.length - 1; i >= 0 && t[i] === c; i--) n++;
+    return { color: c, count: n };
+  }
+  function isDone(t) {
+    if (!t.length) return false;
+    for (var i = 1; i < t.length; i++) if (t[i] !== t[0]) return false;
+    return t.length === CAP;
+  }
+  function isSolvedState(st) {
+    for (var i = 0; i < st.length; i++) if (st[i].length && !isDone(st[i])) return false;
+    return true;
+  }
+  function canPour(st, a, b) {
+    if (a === b) return false;
+    var f = st[a], t = st[b];
+    if (!f.length) return false;
+    if (t.length >= CAP) return false;
+    if (t.length && t[t.length - 1] !== f[f.length - 1]) return false;
+    // 已经整管单色 → 倒进空管是纯粹浪费步数，挡掉
+    if (!t.length && isDone(f)) return false;
+    return true;
+  }
+  function countPourable(st, a, b) {
+    var f = topRun(st[a]);
+    return Math.min(f.count, CAP - st[b].length);
+  }
+  function applyPour(st, a, b) {
+    var n = countPourable(st, a, b);
+    for (var i = 0; i < n; i++) st[b].push(st[a].pop());
+    return n;
+  }
+  function anyMove(st) {
+    for (var a = 0; a < st.length; a++) {
+      if (!st[a].length) continue;
+      for (var b = 0; b < st.length; b++) if (canPour(st, a, b)) return true;
+    }
+    return false;
+  }
+
+  // ===== 求解器：保证「每一局都有解」 =====
+  // DFS + 记忆化（按「试管多重集」归一，顺序无关的状态视为同一个）。
+  function canon(st) {
+    var a = [];
+    for (var i = 0; i < st.length; i++) a.push(st[i].join(''));
+    a.sort();
+    return a.join('|');
+  }
+  function solve(startState, maxNodes) {
+    var seen = Object.create(null), nodes = 0, path = [];
+    function dfs(st) {
+      if (++nodes > maxNodes) return false;
+      if (isSolvedState(st)) return true;
+      var k = canon(st);
+      if (seen[k]) return false;
+      seen[k] = 1;
+      var moves = [], a, b, sc;
+      for (a = 0; a < st.length; a++) {
+        if (!st[a].length) continue;
+        for (b = 0; b < st.length; b++) {
+          if (!canPour(st, a, b)) continue;
+          sc = 0;
+          // 优先「倒满一根」「倒空一根」「倒进同色」——这三类更接近解
+          if (st[b].length + countPourable(st, a, b) === CAP) sc += 4;
+          if (st[a].length === countPourable(st, a, b)) sc += 3;
+          if (st[b].length) sc += 2;
+          moves.push({ a: a, b: b, sc: sc });
+        }
+      }
+      moves.sort(function (x, y) { return y.sc - x.sc; });
+      for (var i = 0; i < moves.length; i++) {
+        var next = [], j;
+        for (j = 0; j < st.length; j++) next.push(st[j].slice());
+        applyPour(next, moves[i].a, moves[i].b);
+        path.push(moves[i]);
+        if (dfs(next)) return true;
+        path.pop();
+      }
+      return false;
+    }
+    return dfs(startState) ? path.slice() : null;
+  }
+
+  // ===== 发牌 =====
+  function deal(colors, empties) {
+    var pool = [], c, i;
+    for (c = 0; c < colors; c++) for (i = 0; i < CAP; i++) pool.push(COLORS[c]);
+    for (i = pool.length - 1; i > 0; i--) {          // Fisher–Yates
+      var j = (Math.random() * (i + 1)) | 0, tmp = pool[i];
+      pool[i] = pool[j]; pool[j] = tmp;
+    }
+    var st = [];
+    for (c = 0; c < colors; c++) st.push(pool.slice(c * CAP, c * CAP + CAP));
+    for (i = 0; i < empties; i++) st.push([]);
+    return st;
+  }
+  function difficulty(lv) {
+    return { colors: Math.min(3 + (lv - 1), MAX_COLORS), empties: lv >= 10 ? 1 : 2 };
+  }
+  function generate(lv) {
+    var d = difficulty(lv), t, att;
+    for (att = 0; att < 24; att++) {
+      t = deal(d.colors, d.empties);
+      if (isSolvedState(t)) continue;
+      if (solve(t, 60000)) return { state: t, config: d };
+    }
+    for (att = 0; att < 40; att++) {                 // 兜底：退回 2 个空管
+      t = deal(d.colors, 2);
+      if (isSolvedState(t)) continue;
+      if (solve(t, 60000)) return { state: t, config: { colors: d.colors, empties: 2 } };
+    }
+    return { state: deal(Math.min(d.colors, 5), 2), config: { colors: Math.min(d.colors, 5), empties: 2 } };
+  }
+
+  // ===== 渲染 =====
+  function buildDom() {
+    tubesEl.innerHTML = '';
+    slotEls = [];
+    for (var i = 0; i < tubes.length; i++) {
+      var t = document.createElement('div');
+      t.className = 'tube';
+      t.dataset.i = String(i);
+      var row = [];
+      for (var s = 0; s < CAP; s++) {
+        var sl = document.createElement('div');
+        sl.className = 'slot';
+        t.appendChild(sl);       // column-reverse：先加的在底部
+        row.push(sl);
+      }
+      tubesEl.appendChild(t);
+      slotEls.push(row);
+    }
+    paint();
+    fit();
+  }
+  function paint(popTube) {
+    for (var i = 0; i < tubes.length; i++) {
+      var t = tubes[i], row = slotEls[i];
+      for (var s = 0; s < CAP; s++) {
+        var el = row[s], col = t[s];
+        el.style.background = col || 'transparent';
+        if (popTube === i && s === t.length - 1 && col) {
+          el.classList.remove('pop');
+          void el.offsetWidth;
+          el.classList.add('pop');
+        }
+      }
+      var tubeEl = tubesEl.children[i];
+      tubeEl.classList.toggle('sel', sel === i);
+      tubeEl.classList.toggle('done', isDone(t));
+    }
+  }
+  // 试管尺寸自适应。
+  // 注意：不能拿 panel.clientWidth 当可用宽度 —— 面板宽度本身由 --tw 决定，
+  // 是循环依赖（第一次量到的是初始 CSS 的宽度，横屏下会把管子算得极小）。
+  // 可用宽度只从视口反推，并封顶 584px（与合集里其它面板的观感保持一致）。
+  // 可用高度同理：不能写死「面板装饰 160px」这种魔数 —— 横屏媒体查询会改装饰高度。
+  // 但 panel.offsetHeight - tubes.offsetHeight 恰好等于「面板里除试管以外的一切」
+  // （内边距 + 顶栏 + 操作键 + 边框），且对 --tw 免疫（两者同步增减），可以安全实测。
+  // 打分思路（穷举「每排 p 根」，rows 最多 2）：
+  //   ① 管子越粗越好，但封顶 COMFY —— 比 COMFY 再粗玩家也不会更爽，
+  //      不封顶的话「少排几根」永远赢，6 根会被排成 3+3、5 根排成 3+2，
+  //      面板缩到 264px（手机端只有它这么窄，和站内其它 366px 的板子对不齐）。
+  //   ② 每多一排扣 6 分（一排最好，玩家竖着扫就行）。
+  //   ③ 末排空位（rows*p - n）每个扣 2 分，避免 7 根排成 6+1。
+  var GAP = 8, PW_CAP = 584, MIN_W = 26, MAX_W = 74, COMFY = 52, FALLBACK_CHROME = 200;
+  function chromeHeight() {
+    var total = panel.offsetHeight, tubeH = tubesEl.offsetHeight;
+    if (!(total > tubeH) || tubeH <= 0) return FALLBACK_CHROME;   // 首帧还没布局
+    var bcs = getComputedStyle(document.body);
+    var bodyPad = parseFloat(bcs.paddingTop || 0) + parseFloat(bcs.paddingBottom || 0);
+    var footerGap = footerEl ? parseFloat(getComputedStyle(footerEl).marginTop || 0) : 0;
+    return (total - tubeH) + bodyPad + footerGap + 10;            // +10 是本行留的安全余量
+  }
+  function fit() {
+    var n = tubes.length;
+    if (!n) return;
+    var panelW = Math.min(window.innerWidth - 40, PW_CAP) - 24;
+    var footerH = footerEl ? footerEl.offsetHeight : 100;
+    var availH = window.innerHeight - chromeHeight() - footerH;
+    var best = null;
+    for (var p = 1; p <= n; p++) {
+      var rows = Math.ceil(n / p);
+      if (rows > 2) continue;                                  // 最多两排
+      var w = Math.min(MAX_W, (panelW - GAP * (p - 1)) / p);
+      if (w < MIN_W) continue;                                 // 太细，点不准
+      if (rows * w * 3.3 + (rows - 1) * 10 > availH) continue;  // 高度装不下
+      var score = Math.min(w, COMFY) - (rows - 1) * 6 - (rows * p - n) * 2;
+      if (!best || score > best.score) best = { per: p, tw: w, score: score };
+    }
+    if (!best) {
+      // 没有任何组合能同时满足「宽度够用」和「高度装下」——典型是手机横屏（高 ~390px）。
+      // 此时单排 + 按高度预算反推管宽，宁可管子小也不能让面板溢出被裁。
+      var wW = (panelW - GAP * (n - 1)) / n;
+      var wH = availH / 3.3;
+      best = { per: n, tw: Math.max(18, Math.min(MAX_W, wW, wH)) };
+    }
+    panel.style.setProperty('--per-row', String(best.per));
+    panel.style.setProperty('--tw', Math.max(1, Math.round(best.tw)) + 'px');
+  }
+
+  // ===== HUD =====
+  function fmtStars(s) { return ['★☆☆', '★★☆', '★★★'][s - 1]; }
+  function parFor(lv) { return difficulty(lv).colors * 3; }
+  function refreshBest() {
+    var b = best[String(level)];
+    var txt = b ? String(b) : '—';
+    document.getElementById('hud-best').textContent = txt;
+    document.getElementById('start-best').textContent = b
+      ? t('common.bestLabel', { n: b })
+      : t('waterSort.first');
+    document.getElementById('over-best').textContent = b
+      ? t('common.bestLabel', { n: b })
+      : '';
+  }
+  function refreshHud() {
+    document.getElementById('hud-level').textContent = level;
+    document.getElementById('hud-moves').textContent = moves;
+    document.getElementById('btn-undo').disabled = history.length === 0;
+    document.getElementById('btn-restart').disabled = history.length === 0;
+  }
+  var lastFinal = null;
+  function refreshFinal() {
+    if (!lastFinal) return;
+    document.getElementById('final-line').innerHTML =
+      t('waterSort.final', { n: lastFinal.level, m: lastFinal.moves });
+  }
+  function refreshAll() { refreshBest(); refreshHud(); refreshFinal(); refreshStuck(); }
+  // 切语言后 body 底部的站点工具行可能从 1 行变 2 行（德语/法语文案更长），
+  // 可用高度就变了 —— 必须重排一次，否则面板会顶出视口被裁。
+  WG.onChange(function () { refreshAll(); fit(); });
+
+  function refreshStuck() {
+    stuckEl.textContent = (!won && started && !anyMove(tubes)) ? t('waterSort.stuck') : '';
+  }
+
+  // ===== 流程 =====
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+  var won = false;
+
+  function newLevel(lv) {
+    level = lv;
+    var g = generate(level);
+    tubes = g.state;
+    history = []; sel = -1; moves = 0; won = false; started = false;
+    lastFinal = null;
+    buildDom();
+    startOverlay.classList.remove('hidden');
+    overOverlay.classList.add('hidden');
+    refreshBest(); refreshHud(); refreshStuck();
+    best.level = level;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(best)); } catch (e) {}
+  }
+  function restart() {
+    if (!history.length) return;
+    tubes = history[0].map(function (t) { return t.slice(); });
+    history = []; sel = -1; moves = 0; won = false;
+    paint(); refreshHud(); refreshStuck();
+  }
+  function begin() {
+    if (started) return;
+    started = true;
+    startOverlay.classList.add('hidden');
+  }
+  function undo() {
+    if (!history.length || won) return;
+    tubes = history.pop();
+    sel = -1; started = true;
+    if (moves > 0) moves--;
+    startOverlay.classList.add('hidden');
+    paint(); refreshHud(); refreshStuck();
+    sfx.pick();
+  }
+  function tapTube(i) {
+    if (won) return;
+    begin();
+    if (sel === -1) {
+      if (!tubes[i].length) { sfx.nope(); return; }
+      sel = i; sfx.pick(); paint(); return;
+    }
+    if (sel === i) { sel = -1; paint(); return; }
+    if (canPour(tubes, sel, i)) {
+      history.push(tubes.map(function (t) { return t.slice(); }));
+      var n = applyPour(tubes, sel, i);
+      moves++;
+      sel = -1;
+      paint(i); sfx.pour(n); refreshHud(); refreshStuck();
+      if (isSolvedState(tubes)) win();
+      return;
+    }
+    if (!tubes[i].length || topRun(tubes[i]).color === topRun(tubes[sel]).color) {
+      sel = i; sfx.pick(); paint(); return;      // 换选
+    }
+    var bad = tubesEl.children[i];
+    bad.classList.remove('nope'); void bad.offsetWidth; bad.classList.add('nope');
+    sfx.nope();
+  }
+
+  function win() {
+    won = true;
+    sfx.win();
+    var par = parFor(level);
+    var stars = moves <= par ? 3 : (moves <= par * 1.6 ? 2 : 1);
+    var rec = false;
+    var prev = best[String(level)];
+    if (!prev || moves < prev) { best[String(level)] = moves; rec = true; }
+    best.level = level + 1;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(best)); } catch (e) {}
+    lastFinal = { level: level, moves: moves };
+    document.getElementById('stars').textContent = fmtStars(stars);
+    document.getElementById('new-record').classList.toggle('hidden', !rec);
+    refreshFinal(); refreshBest(); refreshHud();
+    overOverlay.classList.remove('hidden');
+  }
+
+  // ===== 输入 =====
+  tubesEl.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== tubesEl && !el.dataset.i) el = el.parentNode;
+    if (!el || el === tubesEl) return;
+    tapTube(parseInt(el.dataset.i, 10));
+  });
+  document.getElementById('btn-start').addEventListener('click', begin);
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-restart').addEventListener('click', restart);
+  document.getElementById('btn-next').addEventListener('click', function () { newLevel(level + 1); });
+
+  var cursor = 0;
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    if (k >= '1' && k <= '9') {                       // 1..9 直接选第 1..9 根
+      var n = parseInt(k, 10) - 1;
+      if (n < tubes.length) { cursor = n; tapTube(n); }
+      e.preventDefault(); return;
+    }
+    if (k === '0' && tubes.length >= 10) { cursor = 9; tapTube(9); e.preventDefault(); return; }
+    if (k === 'arrowleft' || k === 'a') { cursor = (cursor - 1 + tubes.length) % tubes.length; e.preventDefault(); return; }
+    if (k === 'arrowright' || k === 'd') { cursor = (cursor + 1) % tubes.length; e.preventDefault(); return; }
+    if (k === 'enter' || k === ' ') { tapTube(cursor); e.preventDefault(); return; }
+    if (k === 'escape') { sel = -1; paint(); return; }
+    if (k === 'u' || k === 'z') { undo(); e.preventDefault(); return; }
+    if (k === 'r') { restart(); e.preventDefault(); return; }
+  });
+
+  function shareText() {
+    var m = lastFinal ? lastFinal.moves : moves;
+    var lv = lastFinal ? lastFinal.level : level;
+    return t('waterSort.share', { n: lv, m: m, url: location.href });
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  function wireShare(id) {
+    document.getElementById(id).addEventListener('click', function () {
+      var full = shareText(), btn = document.getElementById(id);
+      function done() {
+        btn.textContent = t('common.copied');
+        setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+      } else fallbackCopy(full, done);
+    });
+  }
+  wireShare('btn-share2');
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fit, 80);
+  });
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  // 字体/文案落定后 footer 高度才算准，补一次重排（首屏 fit() 可能量到 1 行的高度）
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', function () { setTimeout(fit, 300); });
+
+  newLevel(level);
+})();
+</script>
+</body>
+</html>
