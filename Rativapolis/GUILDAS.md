@@ -3,7 +3,7 @@
 ## Implantação de desenvolvimento
 
 - API: `https://rativapolis-api-dev.juniorgmj69.workers.dev`
-- Worker: `rativapolis-api-dev-v5-guild-system`
+- Worker: `rativapolis-api-dev-v6-guild-cp`
 - Banco: `rativapolis-dev-isolated` (binding `POLIS_DB`)
 - Identidade: sessão do portal RativaGames; jogador vinculado por `game_users`.
 - Economia: saldo existente em `ratopolis_profiles.coins`; a interface o apresenta como queijo.
@@ -38,7 +38,6 @@ Todas as rotas privadas exigem o token de sessão do portal.
 
 - Níveis 1–50; 1.000 XP acumulados por nível.
 - Limite inicial de 30 membros; +5 vagas a cada 5 níveis, até 80.
-- Doações descontam o queijo pessoal e creditam o banco na mesma operação D1.
 - Doações usam chave de idempotência; descontam queijo pessoal e creditam o banco coletivo em uma operação segura.
 - Cada 100 queijos doados concede +1 CP individual, limitado a 100 CP por membro/dia; a guilda recebe 1 XP por 100 queijos, limitado a 250 XP/dia por membro.
 - Cada fase concluída e validada pelo servidor concede +2 CP ao membro da guilda; o limite atual de 10 recompensas de fase por dia limita esse ganho a 20 CP/dia.
@@ -53,6 +52,7 @@ Todas as rotas privadas exigem o token de sessão do portal.
 ## Limites desta primeira versão
 
 - O progresso multiplayer é compartilhado pelo servidor; o painel consulta o servidor a cada 8 segundos enquanto está aberto e atualiza imediatamente ao retornar à aba/janela. Ainda não há push instantâneo por WebSocket para mudanças de guilda.
+- O carregamento foi otimizado: a primeira consulta não bloqueia a abertura quando já há dados em memória; o endpoint `/api/guilds/me` executa verificações independentes em paralelo e não processa filas pesadas durante a leitura.
 - As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
 - Eventos de monstros, Bosses e presença online ainda não geram progresso de missão; nesta versão, fases, queijo, bolotas e doações são os eventos ligados ao servidor.
 - O Worker da API de desenvolvimento usa a versão `rativapolis-api-dev-v6-guild-cp`.
@@ -61,4 +61,4 @@ Todas as rotas privadas exigem o token de sessão do portal.
 
 ## Migração
 
-`migrations/0001_guilds.sql` registra a estrutura das tabelas e índices usados pelo banco de desenvolvimento. A migração depende das tabelas existentes `game_users` e `ratopolis_profiles`.
+`migrations/0001_guilds.sql` registra a estrutura inicial das tabelas e índices. `migrations/0002_guild_contribution_points.sql` adiciona o CP individual e o histórico idempotente de pontos. As migrações dependem das tabelas existentes `game_users` e `ratopolis_profiles`.
