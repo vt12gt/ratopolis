@@ -5,7 +5,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#4a2f9f"><title>Rato Snack</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;min-height:0;position:fixed;inset:0;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:fixed;inset:0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);overflow:hidden;}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:relative;width:100vw;height:100dvh;overflow:hidden}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
 .hud{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 9px) 12px calc(env(safe-area-inset-bottom) + 10px);pointer-events:none}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.brand{font-weight:1000;font-size:clamp(18px,3.3vw,29px);letter-spacing:-.4px}.brand span,h1 span{color:#ffd34e}
 .stats{display:flex;gap:6px}.pill{background:#1d122ad9;border:1px solid #ffffff16;border-radius:10px;padding:6px 10px;min-width:62px;text-align:center}.pill small{display:block;color:#bfafd2;font-size:9px;text-transform:uppercase;letter-spacing:.7px;font-weight:800}.pill strong{font-size:clamp(15px,2.4vw,21px)}#score{color:#ffd34e}#size{color:#75f0bd}#kills{color:#ff8fa5}
 .tip{position:absolute;left:50%;top:76px;transform:translateX(-50%);font-size:12px;color:#eaddf9;background:#1d122ad9;border:1px solid #ffffff12;padding:7px 12px;border-radius:99px;white-space:nowrap;transition:opacity .4s}
@@ -47,7 +47,7 @@ table.rec{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.rec t
 .bonus{left:calc(env(safe-area-inset-left) + 116px);top:calc(env(safe-area-inset-top) + 44px)}
 #mm{top:calc(env(safe-area-inset-top) + 46px)}
 #lb{position:absolute;right:calc(env(safe-area-inset-right) + 12px);top:calc(env(safe-area-inset-top) + 90px);width:134px;font-size:10.5px;line-height:1.35;background:#1d122ab3;border:1px solid #ffffff14;border-radius:8px;padding:5px 7px;pointer-events:none;z-index:3}
-#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;align-items:center;gap:4px}#lb .r .rscore{color:#ffd34e;font-weight:900;white-space:nowrap}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
+#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;gap:4px}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
 .killer{margin:6px 0;padding:8px;border-radius:10px;background:#2a1822;border:1px solid #ff5d7344;font-size:13px;font-weight:700}.rewards{font-size:12px;color:#ffe08a;margin:6px 0}
 /* Etapa 3B: menu em duas colunas e personalização */
 .brandrow{display:flex;align-items:center;gap:10px;justify-content:center}.brandrow canvas{position:static;border-radius:10px;background:#1a1025;width:100px;height:37px;flex:none}
@@ -425,34 +425,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{overflow:visible!important;min-height:auto!important}
 #sheetBody>.donation-sheet>.donation-scroll .donation-total{margin-bottom:0}
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{margin-top:0}
-\n/* v100: área do jogo acompanha a viewport real de celulares e tablets */\n#game{position:fixed;inset:0 auto auto 0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);}\n</style><style>
-#paused .panel{width:min(760px,96vw);max-height:92vh;overflow:auto;padding:clamp(12px,2.2vw,22px)}
-#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
-#paused .pause-head button{min-height:44px;font-size:clamp(12px,1.7vw,16px);font-weight:1000}
-#paused .pause-ranking{width:100%;border:1px solid #ffffff25;border-radius:14px;background:#160d2a99;padding:10px;box-sizing:border-box;text-align:left}
-#paused .pause-ranking h2{margin:0 0 8px;text-align:center;color:#ffd34e;font-size:clamp(14px,2vw,19px)}
-#paused .pause-rank-head,#paused .pause-rank-row{display:grid;grid-template-columns:30px minmax(72px,1.5fr) minmax(55px,.9fr) minmax(45px,.7fr) minmax(45px,.7fr);align-items:center;gap:5px}
-#paused .pause-rank-head{padding:5px 4px;color:#c8b6dd;font-size:clamp(9px,1.25vw,12px);font-weight:900;text-align:center}
-#paused .pause-rank-row{padding:7px 4px;border-top:1px solid #ffffff16;color:#fff;font-size:clamp(10px,1.5vw,14px);text-align:center;font-weight:800}
-#paused .pause-rank-row .pr-nick{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#paused .pause-rank-row .pr-pos{color:#ffd34e}
-#paused .pause-rank-row .pr-points{color:#ffd34e}
-#paused .pause-rank-empty{padding:14px;text-align:center;color:#c8b6dd;font-size:12px}
-@media(max-width:520px){#paused .panel{width:96vw;padding:10px}#paused .pause-ranking{padding:7px}#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:23px minmax(62px,1.3fr) minmax(45px,.8fr) minmax(38px,.65fr) minmax(38px,.65fr);gap:3px}}
-
-/* v101: pausa legível e ajustada à altura real da tela */
-#paused{position:fixed;inset:0;padding:8px;overflow:auto;overscroll-behavior:contain}
-#paused .panel.dlg{width:min(640px,96vw);max-height:calc(var(--rativa-vh,100dvh) - 16px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(10px,2.2vh,18px)}
-#paused .logo{font-size:clamp(22px,4vh,38px);margin:0 0 4px}
-#paused h1{font-size:clamp(20px,3.4vh,30px);margin:0 0 9px}
-#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
-#paused .pause-head button{min-height:42px;font-size:clamp(11px,1.7vw,15px)}
-#paused .pause-ranking{width:100%;padding:8px}
-#paused .pause-ranking h2{font-size:clamp(12px,2vh,17px)}
-#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:24px minmax(65px,1.5fr) minmax(48px,.9fr) minmax(38px,.65fr) minmax(42px,.7fr);gap:4px}
-#paused .pause-rank-head{font-size:clamp(8px,1.3vh,11px)}
-#paused .pause-rank-row{font-size:clamp(9px,1.55vh,13px);padding:6px 3px}
-@media(max-height:420px){#paused .panel.dlg{padding:7px 10px}#paused .logo{display:none}#paused h1{margin-bottom:5px}#paused .pause-head{margin-bottom:6px}#paused .pause-rank-row{padding:4px 2px}}
 </style></head>
 <body><div id="rotateNotice" role="status" aria-live="polite"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>GIRE O CELULAR</h2><p>O RativaSnack Online foi feito para jogar na horizontal. Vire o aparelho para continuar.</p></div></div><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -502,7 +474,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
 
-<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Partida pausada</h1><div class="pause-head"><button class="b3d gold" id="resume">▶ CONTINUAR</button><button class="b3d purple" id="quit">VOLTAR AO LOBBY</button></div><div class="pause-ranking"><h2>🏆 TOP 5 DA PARTIDA · AO VIVO</h2><div class="pause-rank-head"><span>#</span><span>JOGADOR</span><span>PONTOS</span><span>TAM.</span><span>ABATES</span></div><div id="pauseLiveRank"><div class="pause-rank-empty">Carregando classificação…</div></div></div></div></div>
+<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><div class="btns"><button class="b3d gold" id="resume">CONTINUAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">VOLTAR AO LOBBY ONLINE</button></div></div></div></div>
 <div class="resume-wait hidden" id="resumeWait"><div class="rw-card"><b id="resumeCount">5</b><small>PREPARE-SE PARA VOLTAR</small></div></div>
 <div class="overlay hidden" id="revive"><div class="panel dlg"><div class="logo">✨</div><h1>Continuar?</h1><p class="subtitle" id="reviveTxt"></p><div class="rvbar"><i id="rvB"></i></div><div class="btns"><button class="b3d gold" id="reviveYes">CONTINUAR</button><button class="b3d purple" id="reviveNo">TERMINAR</button></div></div></div>
 <div class="overlay hidden" id="tut"><div class="panel dlg"><div class="logo" id="tutI">🎮</div><h1 id="tutT"></h1><div class="tutl" id="tutL"></div><div class="btns"><button class="b3d gold" id="tutOk">ENTENDI! JOGAR</button></div></div></div>
@@ -792,9 +764,8 @@ function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.b
 /*PURE-END*/
 
 let vig=null;
-function resize(){const vv=window.visualViewport;const root=document.documentElement;const vw=Math.max(1,Math.round(vv&&vv.width||root.clientWidth||window.innerWidth||1));const vh=Math.max(1,Math.round(vv&&vv.height||root.clientHeight||window.innerHeight||1));W=vw;H=vh;root.style.setProperty('--rativa-vw',vw+'px');root.style.setProperty('--rativa-vh',vh+'px');dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
-const resizeAfterLayout=()=>{resize();requestAnimationFrame(()=>requestAnimationFrame(resize))};
-addEventListener('resize',resizeAfterLayout,{passive:true});addEventListener('orientationchange',()=>setTimeout(resizeAfterLayout,180),{passive:true});addEventListener('pageshow',resizeAfterLayout);addEventListener('load',resizeAfterLayout);if(window.visualViewport){visualViewport.addEventListener('resize',resizeAfterLayout,{passive:true});visualViewport.addEventListener('scroll',resizeAfterLayout,{passive:true})}resizeAfterLayout();
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
+addEventListener('resize',resize);resize();
 
 /* ============ Áudio (WebAudio, só após toque do usuário) ============ */
 let ac=null,sfxG=null,musG=null,musTimer=0,nextT=0,mStep=0,lastEatSfx=0;
@@ -1190,44 +1161,38 @@ async function olApplyIdentity(){if(!ol.nick)return;prefs.nick=ol.nick;savePrefs
 let olVerifyAttempts=0,olVerifyTimer=0,olVerifyBusy=false;
 async function olVerifyRatopolisSession(){
  if(olVerifyBusy)return;
- olVerifyBusy=true;ol.ssoPending=false;olMsgSet('Validando sua conta do Portal…');
+ olVerifyBusy=true;ol.ssoPending=false;olMsgSet('Validando sua conta RativaGames…');
  try{
   if(!ol.token)throw Object.assign(new Error('portal_token_missing'),{authInvalid:true});
-  // A validação da conta é independente do carregamento do perfil do jogo.
   const me=await olApi('/api/me',null,ol.token);
   if(me.s===401||me.s===403)throw Object.assign(new Error('sessao_invalida'),{authInvalid:true});
   if(me.s!==200)throw new Error('portal_temporariamente_indisponivel');
   const account=me.user||me.usuario||me.player||me.jogador||me.profile||me.perfil||me.data||{};
-  const accountId=me.id||account.id||account.user_id||account.userId||'';
-  if(!accountId)throw new Error('portal_temporariamente_indisponivel');
+  const accountId=me.id||me.user_id||me.userId||account.id||account.user_id||account.userId||'';
   const ident=olReadIdentity(me);
-  ol.id=String(accountId);
-  if(ident.nick)ol.nick=ident.nick;
-  if(!ol.nick)ol.nick='Jogador';
+  const nick=String(ident.nick||ol.nick||'').trim().slice(0,24);
+  if(!accountId||!nick)throw new Error('identidade_da_conta_nao_retornada');
+  ol.id=String(accountId);ol.nick=nick;
   ol.profile=me.profile||me.perfil||account.profile||account.perfil||{};
-  ol.serverOnly=true;ol.ssoPending=false;
-  olApplyIdentity();
+  if(!ol.profile||typeof ol.profile!=='object')ol.profile={};
+  ol.serverOnly=true;ol.ssoPending=false;olApplyIdentity();olSave();
   olVerifyAttempts=0;
   if(olVerifyTimer){clearTimeout(olVerifyTimer);olVerifyTimer=0}
-  // Após validar a conta, entra automaticamente no matchmaking online.
-  // Não exige um segundo toque em "Jogar Online" e não inicia partida local.
-  olApplyIdentity();
-  showToast('Conta RativaGames conectada: '+ol.nick+'. Procurando sala online…',3);
-  // Sincronização de progresso em segundo plano: nunca segura a entrada na sala.
-  olSyncProgress().then(()=>{olApplyIdentity()}).catch(syncError=>{
-   console.warn('RativaSnack: perfil/sincronização indisponível; mantendo a sessão autenticada',syncError);
-  });
+  const gate=mpEl('mp');if(gate)gate.style.display='none';
+  showToast('Conta conectada: '+ol.nick+'. Entrando no lobby online…',3);
+  // Sincronização de progresso em segundo plano; a conexão não espera por ela.
+  olSyncProgress().then(()=>{olApplyIdentity()}).catch(e=>console.warn('RativaSnack: sincronização em segundo plano falhou',e));
+  // Uma única etapa: valida a conta e inicia a conexão/matchmaking automaticamente.
   await olDoPlay();
-  return;
  }catch(e){
-  console.warn('RativaSnack: falha ao validar a conta RativaGames',e);
+  console.warn('RativaSnack: falha ao validar/conectar a conta',e);
   onlineServerOnly=true;
   if(e.authInvalid){
    ol.token='';ol.id='';ol.nick='';ol.profile=null;ol.serverOnly=false;olCloudReady=false;olSave();
-   mpBox('<b>🔒 Sessão do Portal expirada</b><p>Entre novamente no Portal RativaGames para continuar.</p>'+mpB('Ir para o Portal','location.href=\'https://vt12gt.github.io/RativaGames/\''));
+   mpBox('<div class="ol-screen"><h2>🔒 Sessão expirada</h2><p>Entre novamente no Portal RativaGames.</p>'+mpB('Voltar ao Portal','location.href=\\'https://vt12gt.github.io/RativaGames/\\'')+'</div>');
   }else{
    ol.ssoPending=true;olSave();
-   mpBox('<div class="ol-screen"><div class="ol-mark">🐭🧀</div><h2>Reconectando à sua conta</h2><div class="ol-spinner"></div><p id="olMsg">A sessão foi preservada. Tentando novamente…</p><div class="ol-steps"><span>🔐 Conta</span><span>☁️ Perfil Online</span><span>🌐 Servidor</span></div></div>');
+   mpBox('<div class="ol-screen"><div class="ol-mark">🐭🧀</div><h2>Reconectando ao Online</h2><div class="ol-spinner"></div><p id="olMsg">Sua sessão foi preservada. Tentando novamente…</p></div>');
    olVerifyAttempts=Math.min(olVerifyAttempts+1,6);
    if(olVerifyTimer)clearTimeout(olVerifyTimer);
    olVerifyTimer=setTimeout(()=>{olVerifyTimer=0;olVerifyBusy=false;olVerifyRatopolisSession()},Math.min(15000,1500*Math.pow(2,olVerifyAttempts-1)));
@@ -1357,12 +1322,12 @@ function updateHud(force){
  const be=$('bonus');if(b){be.textContent=b;be.classList.remove('hidden')}else be.classList.add('hidden');
  set('mini','Ameaça: '+(threat<.25?'baixa':threat<.55?'média':'alta')+' • '+(modeHud()||'Coma queijos • Evite ratos e paredes'));syncBoostBtn()}
 // Ranking ao vivo por pontos da partida (desempate por eliminações): top 5 + sua posição.
-function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
+function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)||b.kills-a.kills);leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
  const idx=arr.indexOf(player);if(idx>=0){myRank=idx+1;rankTotal=arr.length}
- const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
+ const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b><span>${Math.max(0,Math.floor(Number(x.points)||0))} pts · ${x.kills} abates</span></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
  if(idx>=5)h+='<div class="sep"></div>'+row(player,idx);
- if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}if(paused)refreshPauseRanking()}
+ if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
 function syncBoostBtn(){bb.classList.toggle('hidden',!(running&&!paused&&!resumeCountdown&&!ended&&player&&player.alive));mm.classList.toggle('hidden',!(running&&!ended&&player));lb.classList.toggle('hidden',!(running&&!ended&&player));$('pause').classList.toggle('hidden',!(mpOnline&&running&&!ended))}
 function update(dt){
  if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathSummary();return}
@@ -1436,8 +1401,7 @@ function startGame0(m){
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
 function expandGameScreen(){try{const el=document.documentElement;if(document.fullscreenElement){if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});return}if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
-function refreshPauseRanking(){const el=$('pauseLiveRank');if(!el)return;const arr=snakes.filter(x=>x&&x.alive&&!x.boss).slice().sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)).slice(0,5);el.innerHTML=arr.length?arr.map((x,i)=>`<div class="pause-rank-row"><span class="pr-pos">${i+1}º</span><span class="pr-nick">${String(x.name||'Jogador').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</span><span class="pr-points">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><span>${Math.max(0,Math.floor(Number(x.length)||0))}</span><span>${Math.max(0,Math.floor(Number(x.kills)||0))}</span></div>`).join(''):'<div class="pause-rank-empty">Nenhum jogador na classificação agora.</div>'}
-function fillPause(){refreshPauseRanking()}
+function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);$('pauseStats').innerHTML=[['Pontos',score],['Tamanho',player.length],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;if(paused){resumeFromPause();return}paused=true;resumeCountdown=0;player.localPaused=!!mpOnline;$('resumeWait').classList.add('hidden');releaseDrag();player.boostActive=false;fillPause();$('paused').classList.remove('hidden');$('pause').textContent='▶';if(mpRole==='client'&&mpDC&&mpDC.readyState==='open')mpDC.send(JSON.stringify({p:true,a:+mpAng.toFixed(2),b:0}));flushSave();syncBoostBtn();syncMusic()}
 function resumeFromPause(){if(!paused||!running||ended)return;paused=false;resumeCountdown=mpOnline?5:0;if(player)player.localPaused=!!resumeCountdown;$('pause').textContent='SAIR';$('paused').classList.add('hidden');if(resumeCountdown>0){$('resumeCount').textContent='5';$('resumeWait').classList.remove('hidden')}else if(player)player.localPaused=false;syncBoostBtn();syncMusic()}
 function toMenu(){document.body.classList.remove('playing');if(mpRole)mpLeave();else if(ol.inRoom)olLeaveRoom();mpOnline=false;mpPending=false;mpRole=null;if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;resumeCountdown=0;$('resumeWait').classList.add('hidden');ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));$('pause').classList.add('hidden');init();ended=false;$('menu').classList.remove('hidden');olApplyIdentity();menuInfo()}
