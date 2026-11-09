@@ -926,7 +926,9 @@ async function olPlay(selectedMode){const allowed=['quick','survival','challenge
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin})})}
-function olLeaveRoom(){if(ol.ws&&ol.ws.readyState===1)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null;mpConns.length=0;mpSlots.length=0}
+function olFinalizeLeave(){if(ol.leaveTimer){clearTimeout(ol.leaveTimer);ol.leaveTimer=0}ol.leavePending=false;ol.inRoom=false;ol.players=[];ol.bye=true;const ws=ol.ws;ol.ws=null;try{if(ws&&ws.readyState<2)ws.close(1000,'left_room')}catch(_){}mpConns.length=0;mpSlots.length=0}
+function olBeginLeave(onDone){if(ol.leavePending)return;const ws=ol.ws;if(!ws||ws.readyState!==1){olFinalizeLeave();if(onDone)onDone();return}ol.leavePending=true;ol.leaveDone=onDone||null;const command=ol.isHost?{t:'ctl',k:'end'}:{t:'leave'};if(!olSend(command)){olFinalizeLeave();if(onDone)onDone();return}ol.leaveTimer=setTimeout(()=>{const done=ol.leaveDone;olFinalizeLeave();if(done)done()},1500)}
+function olLeaveRoom(){olBeginLeave()}
 function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}
  if(!ol.inRoom)return;ol.tries++;if(ol.tries>12){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.inRoom)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
 function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(!bots[i].alive)respawnBot(i);mpBind(bots[i],c)}}
@@ -943,31 +945,42 @@ function olMsg(m){
   case 'peer_leave':{const k=mpConns.findIndex(x=>x.uid===m.id);if(k>=0){const c=mpConns[k],i=mpSlots.indexOf(c);if(i>=0){if(bots[i])bots[i].alive=false;mpSlots[i]=null}mpConns.splice(k,1)}break}
   case 'in':{const c=mpConns.find(x=>x.uid===m.from);if(c)mpHostMsg(c,m.d);break}
   case 'st':if(mpRole==='client')mpClientMsg({data:m.d});break;
+  case 'left':{const done=ol.leaveDone;olFinalizeLeave();if(done)done();break}
   case 'end':if(mpRole==='client'){mpClientMsg({data:'{"end":1}'})}else if(ol.view){ol.view=false;olHome();olMsgSet('A sala foi encerrada.')}break;
   case 'kicked':break}}
 let olDeathTimer=0,olDeathActive=false,olDeathInterval=0,olExitReason='VOCÊ FOI ELIMINADO';
 function olDeathModeExempt(){return mode==='boss'||mode==='mundial'||wbRun===true}
 function olShowExitSummary(reason){
  if(!mpOnline)return false;
- olExitReason=reason||'VOCÊ FOI ELIMINADO';
- olDeathActive=true;olDeathTimer=reason==='VOCÊ FOI ELIMINADO'?4:2;running=false;paused=false;document.body.classList.remove('playing');releaseDrag();syncMusic();$('pause').classList.add('hidden');if(olDeathInterval)clearInterval(olDeathInterval);olDeathInterval=setInterval(()=>{if(!olDeathActive){clearInterval(olDeathInterval);olDeathInterval=0;return}olDeathTimer=Math.max(0,olDeathTimer-1);const c=document.getElementById('olDeathCount');if(c)c.textContent=String(olDeathTimer);if(olDeathTimer<=0)olFinishDeathExit()},1000);
+ olExitReason=reason||'VOCÊ SAIU DA PARTIDA';olDeathActive=true;olDeathTimer=3;
+ running=false;paused=false;document.body.classList.remove('playing');releaseDrag();syncMusic();$('pause').classList.add('hidden');
+ if(olDeathInterval)clearInterval(olDeathInterval);
+ olDeathInterval=setInterval(()=>{if(!olDeathActive){clearInterval(olDeathInterval);olDeathInterval=0;return}olDeathTimer=Math.max(0,olDeathTimer-1);const c=document.getElementById('olDeathCount');if(c)c.textContent=String(olDeathTimer);if(olDeathTimer<=0)olFinishDeathExit()},1000);
  let el=document.getElementById('olDeathSummary');if(!el){el=document.createElement('div');el.id='olDeathSummary';el.style.cssText='position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,24,.92);color:#fff;font-family:system-ui';document.body.appendChild(el)}
- const leaving=olExitReason!=='VOCÊ FOI ELIMINADO';
- const headline=leaving?'SAINDO DA PARTIDA':'VOCÊ FOI ELIMINADO';
- const detail=leaving?'Sua partida está sendo encerrada com segurança.':(lastKiller&&lastKiller.name?('Eliminado por '+lastKiller.name):causeText||'Você foi eliminado');
- el.innerHTML='<div style="width:min(440px,100%);padding:24px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">'+(leaving?'🚪🐭':'💥🐭')+'</div><h2 style="margin:8px 0;color:#ffd166">'+headline+'</h2><p style="margin:0 0 16px;color:#d7c9ff">'+olEsc(detail)+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>PONTOS</small><h2>'+Math.floor(score)+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>TAMANHO</small><h2>'+Math.floor(player&&player.length||0)+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>ABATES</small><h2>'+kills+'</h2></div><div style="padding:12px;background:#ffffff12;border-radius:12px"><small>TEMPO</small><h2>'+fmtTime(gameTime)+'</h2></div></div><p style="margin:18px 0 0">Voltando ao Lobby Online em <b id="olDeathCount" style="font-size:24px;color:#ffd166">'+olDeathTimer+'</b> segundos…</p></div>';
+ el.innerHTML='<div style="width:min(440px,100%);padding:24px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">🚪🐭</div><h2 style="margin:8px 0;color:#ffd166">SAINDO DA PARTIDA</h2><p style="margin:0 0 16px;color:#d7c9ff">Preparando seu retorno ao Lobby Online…</p><p style="margin:18px 0 0">Voltando em <b id="olDeathCount" style="font-size:28px;color:#ffd166">'+olDeathTimer+'</b> segundos</p></div>';
  return true;
 }
-function olShowDeathSummary(){if(olDeathModeExempt())return false;return olShowExitSummary('VOCÊ FOI ELIMINADO')}
+function olShowDeathSummary(){
+ if(olDeathModeExempt())return false;
+ if(!mpOnline)return false;
+ running=false;paused=false;document.body.classList.remove('playing');releaseDrag();syncMusic();$('pause').classList.add('hidden');
+ olDeathActive=true;olDeathTimer=6;if(olDeathInterval)clearInterval(olDeathInterval);
+ let el=document.getElementById('olDeathSummary');if(!el){el=document.createElement('div');el.id='olDeathSummary';el.style.cssText='position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,24,.92);color:#fff;font-family:system-ui';document.body.appendChild(el)}
+ const detail=lastKiller&&lastKiller.name?('Eliminado por '+lastKiller.name):causeText||'Você foi eliminado';
+ el.innerHTML='<div style="width:min(460px,100%);padding:22px;border:1px solid #8b5cf6;border-radius:22px;background:linear-gradient(145deg,#25134b,#101026);text-align:center;box-shadow:0 18px 60px #0009"><div style="font-size:42px">💥🐭</div><h2 style="margin:8px 0;color:#ffd166">VOCÊ FOI ELIMINADO</h2><p style="margin:0 0 14px;color:#d7c9ff">'+olEsc(detail)+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>PONTOS</small><h2>'+Math.floor(score)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TAMANHO</small><h2>'+Math.floor(player&&player.length||0)+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>ABATES</small><h2>'+kills+'</h2></div><div style="padding:11px;background:#ffffff12;border-radius:12px"><small>TEMPO</small><h2>'+fmtTime(gameTime)+'</h2></div></div><p style="margin:14px 0 0;color:#ffe08a">Tempo para reviver: <b id="olDeathCount" style="font-size:25px;color:#ffd166">6</b>s</p><p id="olReviveHint" style="margin:5px 0 14px;color:#cbbbe6;font-size:12px">Aguarde o temporizador. Depois, aperte SAIR para voltar ao Lobby.</p>'+mpB('SAIR','olCancel()','background:#8d2639;color:#fff;width:100%;margin-top:6px')+'</div>';
+ olDeathInterval=setInterval(()=>{if(!olDeathActive){clearInterval(olDeathInterval);olDeathInterval=0;return}olDeathTimer=Math.max(0,olDeathTimer-1);const count=document.getElementById('olDeathCount');if(count)count.textContent=String(olDeathTimer);if(olDeathTimer===0){clearInterval(olDeathInterval);olDeathInterval=0;const hint=document.getElementById('olReviveHint');if(hint)hint.textContent='Tempo para reviver encerrado. Aperte SAIR para voltar ao Lobby.'}},1000);
+ return true;
+}
 function olFinishDeathExit(){
  if(!olDeathActive)return;
  olDeathActive=false;olDeathTimer=0;if(olDeathInterval){clearInterval(olDeathInterval);olDeathInterval=0}
  const el=document.getElementById('olDeathSummary');if(el)el.remove();
- try{if(mpRole)mpLeave();else olLeaveRoom()}catch(e){try{olLeaveRoom()}catch(_){}}
- mpOnline=false;mpPending=false;mpRole=null;running=false;paused=false;ended=true;releaseDrag();ol.view=false;
- // Reconstrói o lobby autenticado sem depender do callback de fechamento do WebSocket.
- ol.inRoom=false;ol.players=[];ol.bye=true;
- try{olHome()}catch(e){onlineServerOnly=true;mpBox('<div class="ol-screen"><div class="ol-mark">🐭🌐</div><h2>LOBBY ONLINE</h2><p>Você saiu da partida. Reconecte para continuar.</p>'+mpB('Voltar ao Lobby','olHome()')+'</div>')}
+ running=false;paused=false;ended=true;releaseDrag();ol.view=false;
+ // Encerra os canais locais sem fechar o WebSocket antes da confirmação do servidor.
+ mpOnline=false;mpPending=false;try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=mpPC=null;
+ for(const c of mpConns){try{if(c.dc)c.dc.close();if(c.pc)c.pc.close()}catch(_){}}
+ mpConns.length=0;mpSlots.length=0;mpRole=null;
+ olBeginLeave(()=>{try{olHome()}catch(e){onlineServerOnly=true;mpBox('<div class="ol-screen"><div class="ol-mark">🐭🌐</div><h2>LOBBY ONLINE</h2><p>Você saiu da partida. Reconecte para continuar.</p>'+mpB('Voltar ao Lobby','olHome()')+'</div>')}});
 }
 /* ---- telas ---- */
 const olIn=(id,ph,t)=>`<input id="${id}" type="${t||'text'}" placeholder="${ph}" autocomplete="off" autocapitalize="off" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid #7f5fd0;background:#1b1140;color:#fff;font-size:14px;box-sizing:border-box">`,olBack=mpB('Voltar','mpHome()','background:#5b2f48;color:#fff'),olVal=id=>{const e=mpEl(id);return e?String(e.value||'').trim():''};
@@ -983,7 +996,7 @@ function olDoLogin(){olAuth('/api/login',{identifier:olVal('olL'),password:mpEl(
 async function olDoLogout(){try{await olApi('/api/logout',{},ol.token)}catch(e){}ol.token=ol.id=ol.nick='';olSave();olHome()}
 async function olDoPlay(selectedMode){if(navigator.onLine===false){olMsgSet('Sem Internet. Conecte-se para jogar Online.');return}if(!ol.token||!ol.serverOnly){olHome();return}ol.view=true;olLoading('Conectando à conta RativaGames…');try{await new Promise(resolve=>setTimeout(resolve,120));const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id)throw new Error('sessao_invalida');const ident=olReadIdentity(me);if(ident.nick)ol.nick=ident.nick;await olSyncProgress();olApplyIdentity();olLoadText('Carregando seu perfil exclusivo do RativaSnack…');await new Promise(resolve=>setTimeout(resolve,100));olLoadText('Procurando jogadores e preparando uma sala…');await olPlay(selectedMode||mode);if(ol.players.length)olRoomView();}catch(e){ol.inRoom=false;ol.view=false;olLoadingError('Não foi possível validar a conta, carregar o perfil ou conectar à sala. Nenhum progresso local foi usado.')}}
 function olLoading(message){mpBox('<div class="ol-screen"><div class="ol-mark">🐭⚡</div><h2>PROCURANDO UMA SALA</h2><div class="ol-spinner"></div><p id="olLoadText">'+olEsc(message||'Conectando…')+'</p><div class="ol-steps"><span>🔐 Conta validada</span><span>☁️ Perfil carregado</span><span>🎮 Sala online</span></div><p><small>Estamos procurando jogadores reais para esta modalidade.</small></p></div>')}function olLoadText(message){const e=mpEl('olLoadText');if(e)e.textContent=message}function olLoadingError(message){mpBox('<div class="ol-screen"><div class="ol-mark">⚠️</div><h2>Não foi possível conectar</h2><p>'+olEsc(message)+'</p>'+mpB('Tentar novamente','olDoPlay()')+mpB('Voltar ao Portal','location.href=\'https://vt12gt.github.io/RativaGames/\'')+'</div>')}function olRoomView(extra){const modeName=(MODES[ol.mode||mode]||MODES.quick).name;mpBox(`<div class="ol-screen"><div class="ol-mark">🌐</div><h2>SALA ONLINE · ${olEsc(modeName)}</h2><p>${ol.players.map(p=>(p.id===ol.id?'⭐ ':'• ')+olEsc(p.nick||(p.id===ol.id?ol.nick:'Jogador'))+' · Nv. '+Math.max(1,Number(p.level)||1)+(p.id===ol.hostId?' 👑':'')+(p.online?'':' (reconectando)')).join('<br>')||'Aguardando jogadores…'}</p><p>${olEsc(extra||'Sala encontrada. Aguardando jogadores e início da partida…')}</p>${mpB('Sair da sala','olCancel()','background:#5b2f48;color:#fff')}</div>`)}
-function olCancel(){if(mpOnline&&ol.inRoom){olShowExitSummary('VOCÊ SAIU DA PARTIDA');return}if(mpRole)mpLeave();else olLeaveRoom();mpOnline=false;mpPending=false;mpRole=null;running=false;paused=false;ended=true;document.body.classList.remove('playing');releaseDrag();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));$('pause').classList.add('hidden');ol.view=false;olHome()}
+function olCancel(){if(mpOnline&&ol.inRoom){olShowExitSummary('VOCÊ SAIU DA PARTIDA');return}running=false;paused=false;ended=true;document.body.classList.remove('playing');releaseDrag();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));$('pause').classList.add('hidden');ol.view=false;olFinishDeathExit()}
 let wbRun=false,wbRunId=0,wbA0=100;const WB_TIERS=[{p:25,c:100,x:0},{p:50,c:200,x:100},{p:75,c:300,x:150}];
 const WB_START=[600,1320],WB_LEN=60,wbMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()},wbSlot=()=>{const m=wbMin();for(let i=0;i<2;i++)if(m>=WB_START[i]&&m<WB_START[i]+WB_LEN)return i;return -1},wbOpen=()=>wbSlot()>=0,wbId=()=>today()*2+Math.max(0,wbSlot());
 function wbWait(){const m=wbMin();let best=1e9;for(const st of WB_START){let w=st-m;if(w<=0)w+=1440;best=Math.min(best,w)}return best}
