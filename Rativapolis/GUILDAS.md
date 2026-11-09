@@ -44,7 +44,7 @@ Todas as rotas privadas exigem o token de sessão do portal.
 - CP (pontos de contribuição) é uma pontuação individual de participação, não é queijo, não pode ser sacado e não substitui o XP da guilda.
 - Missões diárias: 5 fases, 10 queijos coletados e 25 bolotas entregues.
 - Missão semanal: arrecadar 1.000 queijos.
-- Missões recebem progresso de eventos de fases validadas pelo servidor.
+- A estrutura das missões existe no banco, mas a API independente v1 ainda não processa eventos de progresso.
 - Conquistas são liberadas automaticamente por níveis e marcos de doações.
 - Saques do banco: líder e vice-líder; o valor retorna ao saldo pessoal de queijo.
 - Compras da loja são debitadas do banco e ficam registradas no patrimônio da guilda.
@@ -56,8 +56,8 @@ Todas as rotas privadas exigem o token de sessão do portal.
 - As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
 - A API independente v1 já cobre identidade autenticada, consulta da guilda, busca, ranking, criação, convites, solicitações, cargos, remoção, saída, transferência, mural, doação, retirada e compra na loja. A interface de teste aponta para esse Worker.
 - Missões ainda não recebem eventos de fases, queijo coletado, bolotas, monstros ou Bosses nesta nova API. Não distribuir CP/XP por esses eventos até existir uma integração de servidor verificável. Presença online também não está ligada.
-- O Worker da API de desenvolvimento usa a versão `rativapolis-api-dev-v6-guild-cp`.
-- A interface mantém os dados em memória ao reabrir o painel, atualiza em segundo plano e consulta a API em intervalo de 15 segundos enquanto a guilda está aberta.
+- A API independente de guildas usa o Worker `rativapolis-guilds-dev` (versão `rativapolis-guilds-api-v1`), separado do Worker de identidade e progressão do jogo.
+- A interface mantém os dados em memória ao reabrir o painel, atualiza em segundo plano e consulta a API em intervalo de 8 segundos enquanto a guilda está aberta.
 - O painel de teste e a API independente foram publicados no ambiente de desenvolvimento. Ainda faltam testes ponta a ponta com contas reais, concorrência financeira e validação de todas as rotas antes de qualquer uso oficial.
 
 ## Migração
