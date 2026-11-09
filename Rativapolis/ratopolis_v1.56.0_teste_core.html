@@ -1557,122 +1557,42 @@ window.__ratopolisReturnFromScenarioTest=returnFromScenarioEditorTest;
 const scenarioNames=['Clareira dos Saltos','Bosque dos Troncos','Ruínas das Plataformas','Jardim dos Espinhos','Vale do Besouro','Toca da Bolota Dourada','Bosque dos Ratinhos','Caverna dos Cristais','Ponte do Castelo','Montanha Gelada','Vale Vulcânico','Templo da Bolota'];
 function scenarioName(index){return scenarioNames[Math.max(0,Math.min(scenarioNames.length-1,index))]}
 function makeLevel(){updateShamanTools();
- raceHumanFinished=false;raceHumanFinishTime=0;raceFinishDeadline=0;raceResultsShown=false;
- phaseElapsed=0;cheesesCollectedThisRun=0;personalCheeseCollected=false;balloonLiftUntil=0;acornLockedNoticeAt=0;updateTimer();particles=[];rewardTexts=[];
- const base=H-54,layout=((level%12)+12)%12,difficulty=layout;
- const worldW=Math.max(3000,W*3.4);
- // v1.24.0 — Fases inteligentes: percursos próprios, zonas seguras e validação de obstáculos.
-// v1.27.0 — loop de física com passo fixo para tornar saltos e aterrissagens mais consistentes.
- // v1.25.0 — Chat reposicionado no alto à direita para liberar o joystick e a área inferior.
- // v1.26.0 — Auditoria automática de segurança e acessibilidade do percurso no modo de teste.
- // O chão é uma única superfície contínua em todas as seis fases: não existem buracos.
- const ground={x:0,y:base,w:worldW,h:90};
- // Dez apoios formam percursos com espaçamento e alturas próprios para cada fase.
- // A trilha sobe até a bolota e depois desce; a parte final fica livre para chegar à toca.
- const xOffsets=[[0,0,4,-3,2,-2,3,0,-3,0],[0,3,-2,4,-3,2,0,-4,3,0],[0,-3,4,0,-2,3,-4,2,0,0],[0,4,-3,2,-4,0,3,-2,4,0],[0,-2,3,-4,2,0,-3,4,-2,0],[0,3,-4,2,0,-3,4,-2,3,0],[0,2,-3,3,-2,4,-3,2,-2,0],[0,-4,3,-2,4,-3,2,-4,3,0],[0,0,3,-3,0,3,-3,0,2,0],[0,3,-3,4,-4,2,-2,3,-3,0],[0,-2,4,-4,3,-3,4,-2,2,0],[0,2,-2,2,-2,3,-3,2,-2,0]][layout];
- const stepSizes=[188,194,200,206,198,210,192,200,196,204,202,208];
- const blockXs=Array.from({length:10},(_,i)=>220+i*stepSizes[layout]+xOffsets[i]);
- const heightSets=[
-  [base-36,base-56,base-82,base-104,base-126,base-140,base-152,base-122,base-84,base-42],
-  [base-44,base-70,base-94,base-120,base-144,base-160,base-144,base-112,base-76,base-44],
-  [base-34,base-64,base-92,base-116,base-148,base-166,base-140,base-106,base-70,base-38],
-  [base-40,base-72,base-104,base-132,base-156,base-174,base-148,base-110,base-72,base-42],
-  [base-38,base-62,base-88,base-120,base-150,base-168,base-150,base-118,base-80,base-46],
-  [base-46,base-78,base-110,base-140,base-164,base-180,base-152,base-112,base-76,base-40],
-  [base-38,base-60,base-84,base-110,base-132,base-150,base-156,base-128,base-88,base-44],
-  [base-42,base-66,base-96,base-124,base-148,base-164,base-140,base-110,base-74,base-40],
-  [base-36,base-60,base-90,base-118,base-142,base-158,base-170,base-136,base-96,base-48],
-  [base-40,base-68,base-98,base-126,base-152,base-172,base-146,base-114,base-78,base-42],
-  [base-44,base-72,base-100,base-132,base-158,base-176,base-150,base-116,base-80,base-44],
-  [base-46,base-76,base-108,base-138,base-162,base-182,base-156,base-120,base-82,base-42]
- ];
- const widths=[[154,150,158,152,160,156,154,158,152,160],[150,158,152,160,154,158,152,160,154,158],[152,156,150,160,154,158,152,160,156,158],[150,154,158,152,160,154,158,152,160,156],[156,150,158,154,160,152,156,160,154,158],[150,158,152,160,154,158,150,160,154,158],[158,152,156,160,154,158,150,160,154,158],[152,158,150,156,160,152,158,154,160,156],[160,156,158,154,160,156,152,160,158,154],[154,160,152,158,150,160,154,156,152,160],[150,156,160,152,158,154,160,150,156,158],[160,154,158,152,156,160,150,158,154,160]][layout];
- const heights=heightSets[layout];
- const blocks=blockXs.map((x,i)=>({x,y:heights[i],w:widths[i],h:22,block:true}));
- // Cada fase recebe um desvio alternativo próprio, feito apenas com plataformas fixas.
- // Os desvios mudam de posição e altura; não são cópias do mesmo caminho.
- const branchBase=blocks[3];
- const branchLayouts=[
-  // Clareira: desvio curto, com uma subida suave para o queijo secreto.
-  [{dx:18,dy:-38,w:88},{dx:120,dy:-56,w:92}],
-  // Bosque: três apoios em zigue-zague, todos dentro do alcance de salto.
-  [{dx:16,dy:-52,w:96},{dx:124,dy:-36,w:84},{dx:222,dy:-66,w:86}],
-  // Ruínas: caminho baixo e simples, sem exigir um salto impossível.
-  [{dx:22,dy:-36,w:82},{dx:118,dy:-60,w:88}],
-  // Jardim: sobe, desce um pouco e volta a subir.
-  [{dx:14,dy:-62,w:80},{dx:108,dy:-42,w:82},{dx:206,dy:-70,w:90}],
-  // Vale: dois apoios largos para contornar o besouro.
-  [{dx:20,dy:-40,w:92},{dx:126,dy:-64,w:82}],
-  // Toca dourada: o desvio mais exigente, mas sem plataformas altas demais.
-  [{dx:12,dy:-58,w:80},{dx:106,dy:-38,w:92},{dx:210,dy:-72,w:84}],
-  // Bosque dos Ratinhos: dois degraus de cogumelo, caminho curto.
-  [{dx:18,dy:-44,w:90},{dx:118,dy:-62,w:88}],
-  // Caverna dos Cristais: zigue-zague entre cristais.
-  [{dx:14,dy:-50,w:86},{dx:116,dy:-34,w:84},{dx:214,dy:-64,w:88}],
-  // Ponte do Castelo: desvio baixo ao longo das muralhas.
-  [{dx:20,dy:-38,w:94},{dx:122,dy:-58,w:86}],
-  // Montanha Gelada: sobe, desce e volta a subir.
-  [{dx:16,dy:-56,w:82},{dx:112,dy:-40,w:84},{dx:208,dy:-68,w:88}],
-  // Vale Vulcânico: apoios largos entre as rochas.
-  [{dx:18,dy:-42,w:90},{dx:120,dy:-62,w:80}],
-  // Templo da Bolota: desvio secreto de três degraus.
-  [{dx:12,dy:-60,w:82},{dx:108,dy:-40,w:90},{dx:212,dy:-70,w:86}]
- ];
- const secretPlatforms=branchLayouts[layout].map((b,i)=>({x:branchBase.x+branchBase.w+b.dx,y:base+b.dy,w:b.w,h:16,block:true,secret:true,branchIndex:i}));
- platforms=[ground,...blocks,...secretPlatforms];movingPlatforms=[];holes=[];planks=[];
- // A bolota muda de apoio em cada mapa para variar a exploração e evitar uma rota decorada igual.
- const acornIndices=[2,7,4,8,3,6,5,3,3,4,4,5]; // 1.50.0: Ponte, Vale Vulcânico e Templo com a bolota mais distante da toca
- const acornPlatform=blocks[acornIndices[layout]];
- acorns=[{x:acornPlatform.x+acornPlatform.w*.52,y:acornPlatform.y-27,originX:acornPlatform.x+acornPlatform.w*.52,originY:acornPlatform.y-27,got:false}];
- const bonusPlatform=secretPlatforms[secretPlatforms.length-1];
- // Um único queijo compartilhado: a coleta é pessoal e não remove o objeto do mapa.
- cheeses=[{x:blocks[2].x+blocks[2].w*.5,y:blocks[2].y-24,got:false,shared:true}];
- goal={x:worldW-150,y:base-38};
- const hazardPatterns=[
-  [{x:worldW*.24,type:'stump'},{x:worldW*.49,type:'beetle'}],
-  [{x:worldW*.22,type:'spikes'},{x:worldW*.58,type:'beetle'}],
-  [{x:worldW*.30,type:'beetle'},{x:worldW*.57,type:'spikes'}],
-  [{x:worldW*.27,type:'spikes'},{x:worldW*.53,type:'stump'},{x:worldW*.76,type:'beetle'}],
-  [{x:worldW*.34,type:'beetle'},{x:worldW*.66,type:'spikes'}],
-  [{x:worldW*.25,type:'stump'},{x:worldW*.56,type:'beetle'},{x:worldW*.78,type:'spikes'}],
-  [{x:worldW*.23,type:'stump'},{x:worldW*.47,type:'beetle'},{x:worldW*.83,type:'spikes'}],
-  [{x:worldW*.28,type:'spikes'},{x:worldW*.54,type:'beetle'},{x:worldW*.83,type:'stump'}],
-  [{x:worldW*.25,type:'beetle'},{x:worldW*.52,type:'spikes'},{x:worldW*.82,type:'beetle'}],
-  [{x:worldW*.29,type:'stump'},{x:worldW*.56,type:'spikes'}],
-  [{x:worldW*.26,type:'spikes'},{x:worldW*.52,type:'beetle'},{x:worldW*.83,type:'spikes'}],
-  [{x:worldW*.24,type:'beetle'},{x:worldW*.55,type:'stump'},{x:worldW*.83,type:'spikes'}]
- ];
- obstacles=hazardPatterns[layout].map(o=>{const w=o.type==='spikes'?44:o.type==='beetle'?32:34,h=o.type==='spikes'?16:o.type==='beetle'?20:25;return {...o,x:Math.min(worldW-520,Math.max(160,o.x)),y:base-h,w,h,...(o.type==='beetle'?{minX:Math.max(110,o.x-48),maxX:Math.min(worldW-100,o.x+48),dir:1,patrolSpeed:32+layout*2}: {})};});
- // Validação inteligente do percurso: mantém zonas de respiro no nascimento, checkpoint e chegada.
- // Evita também colocar perigos letais muito perto dos apoios principais da fase.
- const safeCheckpointX=worldW*[.42,.46,.50,.44,.48,.52,.41,.45,.47,.42,.46,.49][layout];
- obstacles=obstacles.filter(o=>{
-   const cx=o.x+o.w/2;
-   if(cx<145 || cx>worldW-245) return false;
-   if(Math.abs(cx-safeCheckpointX)<78) return false;
-   if(o.type==='spikes'||o.type==='beetle'){
-     if(blockXs.some((bx,i)=>Math.abs(cx-(bx+widths[i]/2))<34 && i<2)) return false;
-   }
-   return true;
- });
- // Cogumelos e troncos são obstáculos de plataforma, mas só espinhos e besouros tiram vidas.
- // Um único cogumelo elástico na fase 3, logo antes dos primeiros apoios: serve como ajuda real para começar a escalada.
- if(layout===2){const x=185;obstacles.push({x,y:base-28,w:38,h:28,type:'spring'});}
- // Cada mapa recebe túneis baixos em posições próprias, sempre sobre o chão firme.
- // O espaço permite passar agachado após três toques rápidos no botão PULAR.
- const tunnelPlans=[[[.35,104]],[[.31,118],[.72,108]],[[.39,112],[.70,138]],[[.43,120]],[[.28,100],[.73,116]],[[.36,110],[.66,126]],[[.33,108]],[[.35,112],[.68,120]],[[.38,116]],[[.31,104],[.70,124]],[[.40,114],[.65,108]],[[.34,110],[.66,128]]];
- for(const [ratio,width] of tunnelPlans[layout]){
-  const x=Math.round(worldW*ratio);
-  const overlapsHazard=obstacles.some(o=>Math.abs((o.x+o.w/2)-(x+width/2))<(o.w+width)/2+42);
-  if(!overlapsHazard)obstacles.push({x,y:base-28,w:width,h:9,type:'lowroof'});
- }
- // Todas as plataformas permanecem fixas; não há plataformas móveis.
- movingPlatforms=[];
- leafShield={x:worldW*.68,y:base-31,got:layout<2};shieldActive=false;
- player.h=30;player.crouchTimer=0;player.x=45;player.y=base-player.h;player.vx=0;player.vy=0;airJumpsRemaining=2;player.onGround=true;player.supportId='solid:0';practiceBots.forEach((b,i)=>{b.x=45;b.y=base-b.h;b.vx=0;b.vy=0;b.onGround=true;b.jumpWait=.25+i*.3;b.finished=false;b.finishTime=0;});cam=0;bridgeCooldown=0;dashTimer=0;dashCooldown=0;dashDirection=1;lives=3;checkpointX=worldW*[.42,.46,.50,.44,.48,.52,.41,.45,.47,.42,.46,.49][layout];checkpointActive=false;checkpointCheeses=cheeses.map(c=>c.got);invulnerable=0;checkpoint={x:checkpointX,y:base};
- updateStats();document.getElementById('levelLabel').textContent=level+1;
- const briefs=['Clareira dos Saltos: fase inicial; use os degraus próximos e explore o atalho lateral do queijo bônus.','Bosque dos Troncos: alterne entre os apoios em zigue-zague; observe o espaço antes de saltar.','Ruínas das Plataformas: escolha entre a rota principal e o desvio baixo; o checkpoint reduz o caminho de retorno.','Jardim dos Espinhos: planeje os saltos antes de avançar e contorne os espinhos pelo desvio lateral.','Vale do Besouro: espere a patrulha abrir espaço e use os apoios largos para passar com segurança.','Toca da Bolota Dourada: desafio final; combine saltos precisos com o desvio secreto para buscar o bônus.','Bosque dos Ratinhos: suba pelos cogumelos gigantes e pegue a bolota no topo da trilha.','Caverna dos Cristais: a luz dos cristais mostra o caminho; cuidado com os espinhos entre os apoios.','Ponte do Castelo: siga as muralhas, espere o besouro da guarda abrir caminho e alcance a toca.','Montanha Gelada: o chão é firme, mas os saltos pedem calma; a bolota está no meio da subida.','Vale Vulcânico: contorne os espinhos de pedra e use os apoios largos para vencer a patrulha.','Templo da Bolota: o último degrau esconde o desvio secreto; chegue à toca dourada.'];
- message.textContent=briefs[layout]+' O chão é fixo: só os espinhos e os bichos podem tirar vidas. A bolota muda de lugar em cada fase: explore o mapa antes de entrar na toca! 🌰';
+  raceHumanFinished=false;raceHumanFinishTime=0;raceFinishDeadline=0;raceResultsShown=false;
+  phaseElapsed=0;cheesesCollectedThisRun=0;personalCheeseCollected=false;balloonLiftUntil=0;acornLockedNoticeAt=0;updateTimer();particles=[];rewardTexts=[];
+  const base=H-54,layout=((level%12)+12)%12,difficulty=layout;
+  const worldW=7000;
+  // v1.57.0 — 12 fases com 7.000 px, chão contínuo e sem plataformas elevadas.
+  const ground={x:0,y:base,w:worldW,h:90};
+  platforms=[ground];movingPlatforms=[];holes=[];planks=[];
+  // Colecionáveis ficam diretamente no chão e em áreas livres, longe dos caixotes.
+  const collectibleSpots=[{cheese:1450,acorn:5350},{cheese:1320,acorn:5480},{cheese:1580,acorn:5200},{cheese:1200,acorn:5600},{cheese:1680,acorn:5100},{cheese:1380,acorn:5450},{cheese:1500,acorn:5300},{cheese:1260,acorn:5550},{cheese:1740,acorn:5050},{cheese:1420,acorn:5400},{cheese:1620,acorn:5180},{cheese:1300,acorn:5500}][layout];
+  const crateXs=Array.from({length:12},(_,i)=>430+i*520+((i+layout)%3)*55);
+  const reserved=[collectibleSpots.cheese,collectibleSpots.acorn,worldW-150,checkpointX];
+  obstacles=crateXs.map((x,i)=>({x,y:base-48,w:54+(i%3)*5,h:48,type:'crate',crateIndex:i}));
+  // Perigos variados permanecem no chão; não são colocados sobre os colecionáveis.
+  const hazardTypes=['stump','beetle','spikes','stump','beetle','spikes','stump','beetle','spikes','stump','beetle','spikes'];
+  for(let i=0;i<10;i++){
+    const x=760+i*610+((layout+i)%4)*35;
+    const type=hazardTypes[(i+layout)%hazardTypes.length];
+    const w=type==='spikes'?44:type==='beetle'?32:38,h=type==='spikes'?16:type==='beetle'?20:25;
+    const overlapsCrate=obstacles.some(o=>Math.abs((o.x+o.w/2)-(x+w/2))<(o.w+w)/2+95);
+    const overlapsItem=[collectibleSpots.cheese,collectibleSpots.acorn].some(px=>Math.abs(px-(x+w/2))<(w/2+55));
+    if(!overlapsCrate&&!overlapsItem)obstacles.push({...({x,y:base-h,w,h,type}),...(type==='beetle'?{minX:x-45,maxX:x+45,dir:1,patrolSpeed:32+layout*2}:{})});
+  }
+  // Garantia final: nenhum queijo ou bolota pode ficar dentro/sob qualquer obstáculo.
+  const clearCollectibleX=(target)=>{let x=target;for(let tries=0;tries<30;tries++){const hit=obstacles.find(o=>x>=o.x-52&&x<=o.x+o.w+52);if(!hit)break;x=hit.x+hit.w+95;}return Math.min(worldW-260,x);};
+  const cheeseX=clearCollectibleX(collectibleSpots.cheese),acornX=clearCollectibleX(collectibleSpots.acorn);
+  cheeses=[{x:cheeseX,y:base-19,got:false,shared:true}];
+  acorns=[{x:acornX,y:base-19,originX:acornX,originY:base-19,got:false}];
+  goal={x:worldW-150,y:base-38};
+  leafShield={x:worldW*.68,y:base-22,got:layout<2};shieldActive=false;
+  player.h=30;player.crouchTimer=0;player.x=45;player.y=base-player.h;player.vx=0;player.vy=0;airJumpsRemaining=2;player.onGround=true;player.supportId='solid:0';
+  practiceBots.forEach((b,i)=>{b.x=45;b.y=base-b.h;b.vx=0;b.vy=0;b.onGround=true;b.jumpWait=.25+i*.3;b.finished=false;b.finishTime=0;});
+  cam=0;bridgeCooldown=0;dashTimer=0;dashCooldown=0;dashDirection=1;lives=3;
+  checkpointX=worldW*[.42,.46,.50,.44,.48,.52,.41,.45,.47,.42,.46,.49][layout];checkpointActive=false;checkpointCheeses=cheeses.map(c=>c.got);invulnerable=0;checkpoint={x:checkpointX,y:base};
+  updateStats();document.getElementById('levelLabel').textContent=level+1;
+  const briefs=['Clareira: atravesse o campo aberto e desvie dos caixotes.','Bosque: caixotes e perigos espalhados pelo chão.','Ruínas: percurso longo sem plataformas elevadas.','Jardim: atenção aos espinhos e aos caixotes.','Vale: observe o movimento dos besouros.','Toca dourada: atravesse os 7.000 pixels e encontre a bolota.','Bosque dos Ratinhos: caminho livre com obstáculos no solo.','Caverna: desvie dos perigos e procure os colecionáveis.','Ponte do Castelo: atravesse o campo de caixotes.','Montanha: mantenha o ritmo e evite os espinhos.','Vale Vulcânico: cuidado com os obstáculos no caminho.','Templo: última travessia até a toca dourada.'];
+  message.textContent=briefs[layout]+' Todas as 12 fases têm 7.000 pixels, chão contínuo e nenhum conjunto de plataformas. Queijo e bolota ficam no chão, sempre fora dos obstáculos. 🧀🌰';
 }
 function auditCurrentPhase(){
  const base=H-54,worldW=platforms.reduce((m,p)=>Math.max(m,p.x+p.w),0);
@@ -2068,7 +1988,7 @@ for(const p of planks){if(p.bridge){ctx.save();ctx.strokeStyle='#76502f';ctx.lin
 // Marco do ponto de controle.
 ctx.fillStyle=checkpointActive?'#ffcf55':'#e7ead0';ctx.fillRect(checkpoint.x-3,checkpoint.y-40,6,40);ctx.beginPath();ctx.moveTo(checkpoint.x+3,checkpoint.y-39);ctx.lineTo(checkpoint.x+27,checkpoint.y-31);ctx.lineTo(checkpoint.x+3,checkpoint.y-23);ctx.closePath();ctx.fill();ctx.fillStyle='#244f38';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.fillText(checkpointActive?'SALVO':'CHECKPOINT',checkpoint.x+10,checkpoint.y-45);
 // Obstáculos: troncos e cogumelos que precisam ser saltados.
-for(const o of obstacles){if(o.type==='beetle'){ctx.save();ctx.translate(o.x+o.w/2,o.y+o.h/2);if(o.dir<0)ctx.scale(-1,1);ctx.strokeStyle='#344d37';ctx.lineWidth=2;for(const lx of [-8,0,8]){ctx.beginPath();ctx.moveTo(lx,4);ctx.lineTo(lx-4,9);ctx.moveTo(lx,4);ctx.lineTo(lx+4,9);ctx.stroke()}ctx.fillStyle='#3d7047';ctx.beginPath();ctx.ellipse(0,1,13,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24452f';ctx.beginPath();ctx.ellipse(0,-1,7,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7f2c9';ctx.beginPath();ctx.arc(8,-3,2,0,Math.PI*2);ctx.arc(12,-2,2,0,Math.PI*2);ctx.fill();ctx.restore()}else if(o.type==='spikes'){ctx.fillStyle='#8a4d4d';ctx.fillRect(o.x,o.y+o.h-3,o.w,3);ctx.fillStyle='#d7e1d8';ctx.strokeStyle='#687a70';ctx.lineWidth=1.5;const count=5;for(let si=0;si<count;si++){const sx=o.x+si*(o.w/count);ctx.beginPath();ctx.moveTo(sx,o.y+o.h);ctx.lineTo(sx+o.w/count/2,o.y);ctx.lineTo(sx+o.w/count,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}}else if(o.type==='lowroof'){ctx.save();ctx.fillStyle='#7a4b2c';ctx.strokeStyle='#4f3423';ctx.lineWidth=2;roundRect(o.x,o.y,o.w,o.h,4,'#a86f3f','#5e3b28');ctx.fillStyle='#d6a36a';ctx.fillRect(o.x+7,o.y+2,o.w-14,2);ctx.fillStyle='#6b452a';ctx.fillRect(o.x+5,o.y+o.h,7,18);ctx.fillRect(o.x+o.w-12,o.y+o.h,7,18);ctx.fillStyle='#fff6dc';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillText('AGACHE-SE ×3',o.x+o.w/2,o.y-7);ctx.restore()}else if(o.type==='spring'){ctx.save();const springPulse=1+Math.sin(anim*6+o.x*.02)*.10;const cx=o.x+o.w/2;ctx.globalAlpha=.18+(.10*(1+Math.sin(anim*5)));ctx.fillStyle='#c8ff65';ctx.beginPath();ctx.ellipse(cx,o.y+o.h-1,o.w*.78,8+Math.sin(anim*6)*2,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.translate(cx,o.y+o.h);ctx.scale(1,springPulse);ctx.translate(-cx,-(o.y+o.h));ctx.fillStyle='#3fbd78';ctx.strokeStyle='#205e3e';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(cx,o.y+12,o.w/2,12,0,Math.PI,Math.PI*2);ctx.lineTo(o.x+o.w,o.y+20);ctx.quadraticCurveTo(cx,o.y+31,o.x,o.y+20);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#fff9c9';for(const dot of [[o.x+12,o.y+10],[cx,o.y+5],[o.x+o.w-12,o.y+10],[cx-10,o.y+17],[cx+10,o.y+17]]){ctx.beginPath();ctx.arc(dot[0],dot[1],2.8,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#d6ad75';ctx.fillRect(cx-6,o.y+20,12,14);ctx.restore();ctx.save();ctx.textAlign='center';ctx.font='bold 11px system-ui';ctx.lineWidth=3;ctx.strokeStyle='rgba(22,43,32,.85)';ctx.strokeText('PULO EXTRA!',cx,o.y-9+Math.sin(anim*4)*2);ctx.fillStyle='#fff4a8';ctx.fillText('PULO EXTRA!',cx,o.y-9+Math.sin(anim*4)*2);ctx.restore()}else if(o.type==='shamanBalloon'){ctx.save();ctx.fillStyle=o.used?'#9aa69a':'#f36f82';ctx.strokeStyle='#7b3448';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+14,o.w/2,14,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y+27);ctx.lineTo(o.x+o.w/2,o.y+o.h);ctx.stroke();ctx.restore();}else if(drawShamanObject(o)){}else if(o.type==='shamanBridge'){ctx.save();roundRect(o.x,o.y,o.w,o.h,4,'#d5a35b','#704727');ctx.strokeStyle='#704727';ctx.lineWidth=2;for(let bx=o.x+12;bx<o.x+o.w;bx+=18){ctx.beginPath();ctx.moveTo(bx,o.y+2);ctx.lineTo(bx,o.y+o.h-2);ctx.stroke()}ctx.restore();}else if(o.type==='shamanPillar'){ctx.save();roundRect(o.x,o.y,o.w,o.h,5,'#9a7044','#5e3b28');ctx.fillStyle='#c79a60';ctx.fillRect(o.x+5,o.y+5,5,o.h-10);ctx.fillStyle='#68472d';ctx.fillRect(o.x,o.y+8,o.w,4);ctx.fillRect(o.x,o.y+o.h-12,o.w,4);ctx.fillStyle='#f3d48b';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('✦',o.x+o.w/2,o.y+o.h/2+4);ctx.restore()}else if(o.type==='stump'){roundRect(o.x,o.y+5,o.w,o.h-5,7,'#8a5a35','#5e3b28');ctx.fillStyle='#c28b55';ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+6,o.w/2,6,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6d452c';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+6,7,3,0,0,Math.PI*2);ctx.stroke()}else{ctx.fillStyle='#d85c59';ctx.beginPath();ctx.arc(o.x+o.w/2,o.y+10,o.w/2,Math.PI,Math.PI*2);ctx.lineTo(o.x+o.w,o.y+15);ctx.lineTo(o.x,o.y+15);ctx.closePath();ctx.fill();ctx.fillStyle='#fff5d9';for(const dot of [[o.x+9,o.y+6],[o.x+20,o.y+4],[o.x+15,o.y+11]]){ctx.beginPath();ctx.arc(dot[0],dot[1],2.5,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#f0d6a8';ctx.fillRect(o.x+11,o.y+14,8,10)}}
+for(const o of obstacles){if(o.type==='beetle'){ctx.save();ctx.translate(o.x+o.w/2,o.y+o.h/2);if(o.dir<0)ctx.scale(-1,1);ctx.strokeStyle='#344d37';ctx.lineWidth=2;for(const lx of [-8,0,8]){ctx.beginPath();ctx.moveTo(lx,4);ctx.lineTo(lx-4,9);ctx.moveTo(lx,4);ctx.lineTo(lx+4,9);ctx.stroke()}ctx.fillStyle='#3d7047';ctx.beginPath();ctx.ellipse(0,1,13,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24452f';ctx.beginPath();ctx.ellipse(0,-1,7,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7f2c9';ctx.beginPath();ctx.arc(8,-3,2,0,Math.PI*2);ctx.arc(12,-2,2,0,Math.PI*2);ctx.fill();ctx.restore()}else if(o.type==='spikes'){ctx.fillStyle='#8a4d4d';ctx.fillRect(o.x,o.y+o.h-3,o.w,3);ctx.fillStyle='#d7e1d8';ctx.strokeStyle='#687a70';ctx.lineWidth=1.5;const count=5;for(let si=0;si<count;si++){const sx=o.x+si*(o.w/count);ctx.beginPath();ctx.moveTo(sx,o.y+o.h);ctx.lineTo(sx+o.w/count/2,o.y);ctx.lineTo(sx+o.w/count,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}}else if(o.type==='lowroof'){ctx.save();ctx.fillStyle='#7a4b2c';ctx.strokeStyle='#4f3423';ctx.lineWidth=2;roundRect(o.x,o.y,o.w,o.h,4,'#a86f3f','#5e3b28');ctx.fillStyle='#d6a36a';ctx.fillRect(o.x+7,o.y+2,o.w-14,2);ctx.fillStyle='#6b452a';ctx.fillRect(o.x+5,o.y+o.h,7,18);ctx.fillRect(o.x+o.w-12,o.y+o.h,7,18);ctx.fillStyle='#fff6dc';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillText('AGACHE-SE ×3',o.x+o.w/2,o.y-7);ctx.restore()}else if(o.type==='spring'){ctx.save();const springPulse=1+Math.sin(anim*6+o.x*.02)*.10;const cx=o.x+o.w/2;ctx.globalAlpha=.18+(.10*(1+Math.sin(anim*5)));ctx.fillStyle='#c8ff65';ctx.beginPath();ctx.ellipse(cx,o.y+o.h-1,o.w*.78,8+Math.sin(anim*6)*2,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.translate(cx,o.y+o.h);ctx.scale(1,springPulse);ctx.translate(-cx,-(o.y+o.h));ctx.fillStyle='#3fbd78';ctx.strokeStyle='#205e3e';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(cx,o.y+12,o.w/2,12,0,Math.PI,Math.PI*2);ctx.lineTo(o.x+o.w,o.y+20);ctx.quadraticCurveTo(cx,o.y+31,o.x,o.y+20);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#fff9c9';for(const dot of [[o.x+12,o.y+10],[cx,o.y+5],[o.x+o.w-12,o.y+10],[cx-10,o.y+17],[cx+10,o.y+17]]){ctx.beginPath();ctx.arc(dot[0],dot[1],2.8,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#d6ad75';ctx.fillRect(cx-6,o.y+20,12,14);ctx.restore();ctx.save();ctx.textAlign='center';ctx.font='bold 11px system-ui';ctx.lineWidth=3;ctx.strokeStyle='rgba(22,43,32,.85)';ctx.strokeText('PULO EXTRA!',cx,o.y-9+Math.sin(anim*4)*2);ctx.fillStyle='#fff4a8';ctx.fillText('PULO EXTRA!',cx,o.y-9+Math.sin(anim*4)*2);ctx.restore()}else if(o.type==='shamanBalloon'){ctx.save();ctx.fillStyle=o.used?'#9aa69a':'#f36f82';ctx.strokeStyle='#7b3448';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+14,o.w/2,14,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y+27);ctx.lineTo(o.x+o.w/2,o.y+o.h);ctx.stroke();ctx.restore();}else if(drawShamanObject(o)){}else if(o.type==='shamanBridge'){ctx.save();roundRect(o.x,o.y,o.w,o.h,4,'#d5a35b','#704727');ctx.strokeStyle='#704727';ctx.lineWidth=2;for(let bx=o.x+12;bx<o.x+o.w;bx+=18){ctx.beginPath();ctx.moveTo(bx,o.y+2);ctx.lineTo(bx,o.y+o.h-2);ctx.stroke()}ctx.restore();}else if(o.type==='shamanPillar'){ctx.save();roundRect(o.x,o.y,o.w,o.h,5,'#9a7044','#5e3b28');ctx.fillStyle='#c79a60';ctx.fillRect(o.x+5,o.y+5,5,o.h-10);ctx.fillStyle='#68472d';ctx.fillRect(o.x,o.y+8,o.w,4);ctx.fillRect(o.x,o.y+o.h-12,o.w,4);ctx.fillStyle='#f3d48b';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('✦',o.x+o.w/2,o.y+o.h/2+4);ctx.restore()}else if(o.type==='crate'){ctx.save();roundRect(o.x,o.y,o.w,o.h,5,'#a96b36','#56351f');ctx.strokeStyle='#e0a45e';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(o.x+7,o.y+7);ctx.lineTo(o.x+o.w-7,o.y+o.h-7);ctx.moveTo(o.x+o.w-7,o.y+7);ctx.lineTo(o.x+7,o.y+o.h-7);ctx.stroke();ctx.strokeStyle='#684222';ctx.lineWidth=2;ctx.strokeRect(o.x+5,o.y+5,o.w-10,o.h-10);ctx.restore()}else if(o.type==='stump'){roundRect(o.x,o.y+5,o.w,o.h-5,7,'#8a5a35','#5e3b28');ctx.fillStyle='#c28b55';ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+6,o.w/2,6,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6d452c';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+6,7,3,0,0,Math.PI*2);ctx.stroke()}else{ctx.fillStyle='#d85c59';ctx.beginPath();ctx.arc(o.x+o.w/2,o.y+10,o.w/2,Math.PI,Math.PI*2);ctx.lineTo(o.x+o.w,o.y+15);ctx.lineTo(o.x,o.y+15);ctx.closePath();ctx.fill();ctx.fillStyle='#fff5d9';for(const dot of [[o.x+9,o.y+6],[o.x+20,o.y+4],[o.x+15,o.y+11]]){ctx.beginPath();ctx.arc(dot[0],dot[1],2.5,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#f0d6a8';ctx.fillRect(o.x+11,o.y+14,8,10)}}
 cheeses.forEach(c=>{drawCheese(c.x,c.y)});
 acorns.forEach(a=>{if(!a.got)drawAcorn(a.x,a.y)});
 // Folha protetora desbloqueada a partir da fase 4.
