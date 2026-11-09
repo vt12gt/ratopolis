@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="whackAMole.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Whack-a-Mole — Free Online Arcade Game</title>
+<meta name="description" content="Play Whack-a-Mole free in your browser. 60 seconds, three rows of holes and a very fast mallet. No install, no signup, works on mobile and desktop.">
+<meta name="keywords" content="whack a mole,free online game,arcade game,reaction game,reflex game,html5 game,browser game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Whack-a-Mole — Free Online Arcade Game">
+<meta property="og:description" content="60 seconds of reflexes. Whack the moles, grab the gold, dodge the bombs.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔨</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --hs: min(92px, 26vw, 13vh);
+    --hs: min(92px, 26vw, 13svh);
+  }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 14px 12px; user-select: none; touch-action: manipulation;
+  }
+  .wrap {
+    position: relative; width: min(400px, 100%);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 18px 16px 20px;
+    background: linear-gradient(180deg, rgba(90,150,90,.22), rgba(255,255,255,.05));
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  #mute-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,.16); border-radius: 10px; color: #fff;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 6; box-shadow: none; border: none;
+  }
+  .head { text-align: center; }
+  .head h1 { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: #fff; }
+  .head .sub { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: 3px; color: rgba(255,255,255,.6); }
+  .stats { display: flex; gap: 8px; width: 100%; }
+  .stat {
+    flex: 1; text-align: center; background: rgba(0,0,0,.22);
+    border-radius: 12px; padding: 7px 4px;
+  }
+  .stat .val { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.15; }
+  .stat small { display: block; margin-top: 2px; font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; color: rgba(255,255,255,.6); }
+  .stat.low .val { color: #ff8a80; }
+  .field {
+    display: grid;
+    grid-template-columns: repeat(3, var(--hs));
+    grid-template-rows: repeat(3, calc(var(--hs) * .82));
+    gap: 8px;
+  }
+  .hole {
+    position: relative; border: none; padding: 0; background: none; cursor: pointer;
+    display: flex; align-items: flex-end; justify-content: center; font-family: inherit;
+  }
+  .hole .dirt {
+    position: absolute; inset: 22% 6% 0 6%;
+    background: radial-gradient(ellipse at 50% 20%, #3b2b1c 0%, #24190f 70%);
+    border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+    box-shadow: inset 0 6px 12px rgba(0,0,0,.75), 0 3px 0 rgba(0,0,0,.25);
+  }
+  .hole .mole {
+    position: relative; font-size: calc(var(--hs) * .46); line-height: 1;
+    transform: translateY(46%) scale(.7); opacity: 0;
+    transition: transform .16s cubic-bezier(.34,1.4,.64,1), opacity .12s;
+    pointer-events: none; margin-bottom: calc(var(--hs) * .02);
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.35));
+  }
+  .hole.up .mole { transform: translateY(0) scale(1); opacity: 1; }
+  .hole.hit .mole { transform: translateY(14%) scale(.82) rotate(12deg); opacity: .9; }
+  .hole:active .dirt { filter: brightness(1.25); }
+  .float {
+    position: absolute; left: 50%; top: 4%; transform: translateX(-50%);
+    font-size: 15px; font-weight: 800; color: #ffd76e; pointer-events: none;
+    text-shadow: 0 2px 0 rgba(0,0,0,.4); animation: floatUp .6s ease-out forwards; z-index: 3;
+  }
+  .float.minus { color: #ff6b6b; }
+  @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) } 100% { opacity: 0; transform: translate(-50%, -34px) } }
+  button.btn {
+    border: none; border-radius: 12px; padding: 12px 24px; min-height: 44px;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+    font-family: inherit; transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button.btn:active { transform: scale(.95); }
+  .btn-primary { background: #ff9f1c; color: #fff; box-shadow: 0 4px 0 #c47a0e; }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .tip { font-size: 11px; color: rgba(255,255,255,.55); text-align: center; line-height: 1.6; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; text-align: center; padding: 20px;
+    background: rgba(15, 30, 40, .84); backdrop-filter: blur(3px); color: #fff; z-index: 5;
+  }
+  .hidden { display: none !important; }
+  .overlay .icon-big { font-size: 46px; animation: float2 2s ease-in-out infinite; }
+  @keyframes float2 { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+  .overlay .ov-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+  .overlay .ov-score { font-size: 46px; font-weight: 800; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .overlay .ov-sub { font-size: 13px; opacity: .8; }
+  .overlay .best { font-size: 12px; opacity: .7; }
+  .overlay .ov-tip { font-size: 13px; opacity: .9; line-height: 1.7; }
+  .overlay .ov-tip b { color: #ffd76e; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  <div class="head">
+    <h1 data-i18n="whackAMole.title">WHACK-A-MOLE</h1>
+    <div class="sub" data-i18n="whackAMole.subtitle">60 SECONDS OF REFLEXES</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat" id="st-time-box"><div class="val" id="st-time">60</div><small data-i18n="whackAMole.hudTime">TIME</small></div>
+    <div class="stat"><div class="val" id="st-score">0</div><small data-i18n="whackAMole.hudScore">SCORE</small></div>
+    <div class="stat"><div class="val" id="st-best">0</div><small data-i18n="whackAMole.hudBest">BEST</small></div>
+  </div>
+
+  <div class="field" id="field"></div>
+  <div class="tip" data-i18n-html="whackAMole.tip">Tap the moles 🐹 (+1) and the gold ⭐ (+3) — never hit a bomb 💣 (−2)</div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🔨</div>
+    <div class="ov-title" data-i18n="whackAMole.title">WHACK-A-MOLE</div>
+    <div class="ov-tip" data-i18n-html="whackAMole.startTip">You get <b>60 seconds</b>.<br>Moles 🐹 are worth 1 · gold ⭐ is worth 3 · bombs 💣 cost you 2.</div>
+    <div class="best" id="start-best"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="icon-big" id="ov-medal">🏆</div>
+    <div class="ov-title" data-i18n="whackAMole.over">TIME'S UP!</div>
+    <div class="ov-score" id="final-score">0</div>
+    <div class="ov-sub" id="ov-hits"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="best" id="over-best"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    hit:    function () { beep(180, 0.07, 'square', 0.1); setTimeout(function () { beep(320, 0.06, 'square', 0.06); }, 40); },
+    gold:   function () { beep(880, 0.08, 'triangle', 0.1); setTimeout(function () { beep(1320, 0.1, 'triangle', 0.08); }, 70); },
+    bomb:   function () { beep(120, 0.25, 'sawtooth', 0.15); },
+    escape: function () { beep(260, 0.05, 'sine', 0.03); },
+    over:   function () { [0, 130, 260].forEach(function (d, i) { setTimeout(function () { beep(520 - i * 130, 0.16, 'triangle', 0.1); }, d); }); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Config =====
+  var HOLES = 9;
+  var DURATION = 60;          // seconds
+  var TICK = 0.1;             // seconds per tick
+  var BEST_KEY = 'whack_a_mole_best_v1';
+
+  var KINDS = {
+    mole: { emoji: '🐹', points: 1, weight: 68 },
+    gold: { emoji: '⭐', points: 3, weight: 14 },
+    bomb: { emoji: '💣', points: -2, weight: 18 }
+  };
+
+  // ===== State =====
+  var STATE = { READY: 0, PLAYING: 1, OVER: 2 };
+  var state = STATE.READY;
+  var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+
+  var holes = [], active = {}, timeLeft = DURATION, score = 0, hits = 0, bombs = 0;
+  var spawnCooldown = 0, ticker = null;
+
+  // ===== DOM =====
+  var fieldEl = document.getElementById('field');
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+
+  for (var i = 0; i < HOLES; i++) {
+    (function (idx) {
+      var b = document.createElement('button');
+      b.className = 'hole';
+      b.type = 'button';
+      b.dataset.i = String(idx);
+      b.innerHTML = '<span class="dirt"></span><span class="mole"></span>';
+      b.addEventListener('click', function () { whack(idx); });
+      fieldEl.appendChild(b);
+      holes.push(b);
+    })(i);
+  }
+
+  function refreshBest() {
+    document.getElementById('start-best').textContent = best > 0 ? t('common.bestScore', { n: best }) : t('whackAMole.first');
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: best });
+  }
+  refreshBest();
+  WG.onChange(refreshBest);
+
+  /* The over panel is a composed sentence ("12 hits · 3 bombs"), so a language
+     switch has to rebuild it too — otherwise the overlay keeps the language it
+     was built in. */
+  function renderOverStats() {
+    if (state !== STATE.OVER) return;
+    document.getElementById('ov-hits').textContent = t('whackAMole.hits', { hits: hits, bombs: bombs });
+  }
+  WG.onChange(renderOverStats);
+
+  function renderHud() {
+    document.getElementById('st-score').textContent = score;
+    document.getElementById('st-best').textContent = best;
+    document.getElementById('st-time').textContent = Math.max(0, Math.ceil(timeLeft));
+    document.getElementById('st-time-box').classList.toggle('low', timeLeft <= 10);
+  }
+
+  // ===== Spawning =====
+  function pickKind() {
+    var total = 0, k;
+    for (k in KINDS) total += KINDS[k].weight;
+    var r = Math.random() * total;
+    for (k in KINDS) { r -= KINDS[k].weight; if (r <= 0) return k; }
+    return 'mole';
+  }
+  function spawnInterval() {
+    var progress = 1 - timeLeft / DURATION;      // 0 → 1
+    return Math.max(0.32, 0.95 - progress * 0.6);
+  }
+  function lifeTime() {
+    var progress = 1 - timeLeft / DURATION;
+    return Math.max(0.72, 1.35 - progress * 0.6);
+  }
+
+  function spawn() {
+    var free = [];
+    for (var i = 0; i < HOLES; i++) if (!active[i]) free.push(i);
+    if (!free.length) return;
+    var idx = free[Math.floor(Math.random() * free.length)];
+    var kind = pickKind();
+    active[idx] = { kind: kind, until: timeLeft - lifeTime() };
+    var h = holes[idx];
+    h.querySelector('.mole').textContent = KINDS[kind].emoji;
+    h.classList.remove('hit');
+    h.classList.add('up');
+  }
+
+  function hide(idx, escaped) {
+    var h = holes[idx];
+    h.classList.remove('up', 'hit');
+    if (escaped && active[idx] && active[idx].kind === 'mole') sfx.escape();
+    delete active[idx];
+  }
+
+  // ===== Whacking =====
+  function whack(idx) {
+    if (state !== STATE.PLAYING) return;
+    var a = active[idx];
+    if (!a) return;
+    var kind = a.kind, pts = KINDS[kind].points;
+    hide(idx, false);
+    if (pts > 0) {
+      score += pts; hits++;
+      if (kind === 'gold') sfx.gold(); else sfx.hit();
+    } else {
+      score = Math.max(0, score + pts);
+      bombs++;
+      sfx.bomb();
+    }
+    floatText(idx, (pts > 0 ? '+' : '') + pts, pts < 0);
+    renderHud();
+  }
+
+  function floatText(idx, text, minus) {
+    var h = holes[idx];
+    var span = document.createElement('span');
+    span.className = 'float' + (minus ? ' minus' : '');
+    span.textContent = text;
+    h.appendChild(span);
+    setTimeout(function () { if (span.parentNode) span.parentNode.removeChild(span); }, 620);
+  }
+
+  // ===== Clock =====
+  function tick() {
+    if (state !== STATE.PLAYING) return;
+    timeLeft -= TICK;
+
+    // expire visible targets
+    for (var idx in active) {
+      if (active[idx].until >= timeLeft) hide(Number(idx), true);
+    }
+    spawnCooldown -= TICK;
+    if (spawnCooldown <= 0) {
+      spawnCooldown = spawnInterval();
+      spawn();
+      // later in the round two can pop at once
+      if (1 - timeLeft / DURATION > 0.45 && Math.random() < 0.45) spawn();
+    }
+    renderHud();
+    if (timeLeft <= 0) finish();
+  }
+
+  function startGame() {
+    score = 0; hits = 0; bombs = 0; timeLeft = DURATION;
+    spawnCooldown = 0.3; active = {};
+    holes.forEach(function (h) {
+      h.classList.remove('up', 'hit');
+      h.querySelector('.mole').textContent = '';
+    });
+    state = STATE.PLAYING;
+    startOverlay.classList.add('hidden');
+    overOverlay.classList.add('hidden');
+    renderHud();
+    if (ticker) clearInterval(ticker);
+    ticker = setInterval(tick, TICK * 1000);
+    spawn();
+  }
+
+  function finish() {
+    state = STATE.OVER;
+    if (ticker) { clearInterval(ticker); ticker = null; }
+    for (var idx in active) hide(Number(idx), false);
+    sfx.over();
+    var isRecord = score > best;
+    if (isRecord) { best = score; localStorage.setItem(BEST_KEY, String(best)); }
+    document.getElementById('final-score').textContent = score;
+    renderOverStats();
+    document.getElementById('ov-medal').textContent =
+      score >= 70 ? '👑' : score >= 50 ? '🥇' : score >= 30 ? '🥈' : score >= 15 ? '🥉' : '🐹';
+    document.getElementById('new-record').classList.toggle('hidden', !isRecord);
+    refreshBest();
+    renderHud();
+    overOverlay.classList.remove('hidden');
+  }
+
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-retry').addEventListener('click', startGame);
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var full = t('whackAMole.share', { n: score, hits: hits, url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  renderHud();
+})();
+</script>
+</body>
+</html>
