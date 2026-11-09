@@ -835,7 +835,7 @@ const mpTA=(id,ro)=>`<textarea id="${id}" ${ro?'readonly':''} rows="3" style="wi
 function mpHome(){mpBox(`<b style="font-size:16px">📶 Sala multiplayer local</b><p>Sem internet: ligue o ponto de acesso (hotspot) de um celular e conecte os outros nele. Até 4 jogadores.</p>${mpB('Criar sala','mpHost()')}${mpB('Entrar numa sala','mpGuest()')}${mpB('🌐 Multiplayer Online','olHome()')}${mpX}`)}
 function mpUI(){const e=mpEl('mpSt');if(e)e.textContent=mpConns.filter(c=>c.open).length+' convidado(s) conectado(s)';const g=mpEl('mpGs');if(g)g.textContent=mpDC&&mpDC.readyState==='open'?'✅ Conectado! Aguarde o anfitrião iniciar...':'Aguardando conexão...'}
 async function mpHostNew(){const pc=new RTCPeerConnection({iceServers:[]}),dc=pc.createDataChannel('g'),c={pc,dc,open:false,nick:'',ang:0,boost:0};
- dc.onopen=()=>{c.open=true;mpUI()};dc.onclose=()=>{c.open=false;mpUI()};
+ dc.onopen=()=>{c.open=true;mpUI()};dc.onclose=()=>{c.open=false;c.paused=false;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].localPaused=false;mpUI()};
  dc.onmessage=e=>mpHostMsg(c,e.data);
  mpConns.push(c);await pc.setLocalDescription(await pc.createOffer());await mpIce(pc);c.code=mpEnc({s:pc.localDescription.sdp});return c}
 function mpHostMsg(c,data){try{const m=JSON.parse(data);if(m.h&&!c.uid){c.nick=cleanNick(String(m.h));mpUI()}
