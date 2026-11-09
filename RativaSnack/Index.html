@@ -28,12 +28,25 @@
 const statusEl=document.getElementById('netStatus');
 function net(){const ok=navigator.onLine!==false;statusEl.textContent=ok?'🟢 Conexão disponível para o Online':'🔴 Sem internet — o modo Offline continua disponível';}
 addEventListener('online',net);addEventListener('offline',net);net();
+const AUTH_KEY='ratoSnackOnline';
 const portalParams=new URLSearchParams(location.hash.slice(1));
-const portalToken=portalParams.get('ratopolis_token')||'';
-const portalNick=portalParams.get('ratopolis_nick')||'';
+let portalToken=portalParams.get('ratopolis_token')||'';
+let portalNick=portalParams.get('ratopolis_nick')||'';
+try{
+ if(portalToken){
+  sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}));
+  history.replaceState(null,'',location.pathname+location.search);
+ }else{
+  const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
+  if(saved&&typeof saved.token==='string'&&saved.token.length<=4096){
+   portalToken=saved.token;portalNick=String(saved.nick||'').slice(0,24);
+  }
+ }
+}catch(e){console.warn('RativaSnack: não foi possível recuperar a sessão nesta aba',e)}
 document.getElementById('goOnline').addEventListener('click',e=>{
  e.preventDefault();if(navigator.onLine===false){statusEl.textContent='🔴 Sem internet — conecte-se para entrar no Online.';return}
  if(!portalToken){location.href='https://vt12gt.github.io/RativaGames/';return}
+ try{sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}))}catch(e){}
  const next='Online.html#ratopolis_token='+encodeURIComponent(portalToken)+'&ratopolis_nick='+encodeURIComponent(portalNick);
  location.href=next;
 });
