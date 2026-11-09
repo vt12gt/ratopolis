@@ -77,3 +77,13 @@ A interface só habilita alterações quando a resposta do servidor concede `man
 - A rota exige sessão autenticada e cargo exatamente `spadm` ou `adm`; usa consultas parametrizadas, retorna registros da tabela `ratopolis_audit_logs` e não disponibiliza edição/exclusão.
 - A consulta de auditoria não gera evento de auditoria próprio para evitar recursão/inchaço do histórico.
 - O código fonte do repositório foi sincronizado com o Worker ativo, preservando as mudanças de termos, privacidade, locutor e demais endpoints.
+
+
+## Auditoria ampliada — 2026-11-09
+- Confirmado que RativaSnack compartilha a identidade central: `RativaSnack/server/server.js` usa o Worker central para `/api/login` e `/api/me`; `rato-snack-api-dev` valida `ratopolis_sessions` e `ratopolis_users` no mesmo D1.
+- O módulo Equipe do Admin Geral agora descreve corretamente o escopo global das contas compartilhadas. O painel específico do RativaSnack ainda não existe; a pasta `Admin/RativaSnack` fica reservada para operações próprias do jogo.
+- Worker principal atualizado para `v39.4-audit-radio-coverage`: a allowlist da auditoria agora aceita eventos de envio de áudio, atualização da fila e controles da rádio, com checagem da permissão correspondente.
+- Worker `ratopolis-radio-stream` atualizado para `v1.1.1-audit-complete`: upload de áudio, alteração da fila, avanço manual, pausa/retomada/repetição/embaralhamento passam a enviar eventos à auditoria central. Renomear/excluir faixas, playlists nomeadas, programação, anúncios, reprodução e locução já tinham registros.
+- `ratopolis-password-admin` já registra redefinições de senha como `admin_password_reset` na mesma tabela central.
+- Limite restante: a moderação da comunidade usa Durable Object e ainda não grava seus eventos na tabela central. Não foi criado um atalho inseguro com token longo; será necessário integrar um canal interno autenticado antes de considerar a auditoria completa.
+- O Worker RativaSnack atual não possui rotas administrativas próprias; suas rotas existentes são de perfil, recordes, conquistas e inventário do jogador, não ações administrativas. Não foram adicionados eventos de progresso do jogador ao histórico administrativo para evitar misturar auditoria de staff com telemetria do jogo.
