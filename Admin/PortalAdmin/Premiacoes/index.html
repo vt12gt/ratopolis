@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1020">
+<title>Premiações | Admin Geral RativaGames</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2e;--line:#2b3855;--txt:#edf2ff;--muted:#aab6ce;--gold:#ffc857;--purple:#9b87ff;--green:#78dfad;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2742 0,#0b1020 55%);color:var(--txt);font:14px system-ui,sans-serif;min-height:100vh}main{width:min(1120px,100%);margin:auto;padding:24px 16px 48px}.top,.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-size:21px;font-weight:950}.brand span{color:var(--gold)}a{color:#c6bbff}.btn,button,input{font:inherit}.btn,button{border:0;border-radius:9px;padding:10px 13px;background:var(--purple);color:#111426;font-weight:850;cursor:pointer;text-decoration:none}.secondary{background:#293753!important;color:var(--txt)!important}button:disabled{opacity:.45;cursor:not-allowed}h1{font-size:clamp(26px,5vw,38px);margin:22px 0 8px}.muted{color:var(--muted);line-height:1.55}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-top:15px}.notice{padding:13px;border-radius:10px;background:#282313;border:1px solid #665329;color:#ffe3a0;line-height:1.55}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-top:14px}.stat{background:#0e1628;border:1px solid var(--line);border-radius:11px;padding:14px}.stat span{display:block;color:var(--muted);font-size:12px}.stat b{font-size:25px;display:block;margin-top:5px}.field{display:grid;gap:6px;min-width:180px;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:750}.field input{width:100%;background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:11px;min-width:0}.tablewrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:500px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}td input{width:105px;background:#0b1426;color:var(--txt);border:1px solid #43516c;border-radius:8px;padding:9px}.rank{font-weight:950;color:var(--gold)}.result{font-weight:900;font-variant-numeric:tabular-nums}.good{color:var(--green)}.bad{color:var(--red)}.terms li{margin:9px 0;line-height:1.55}.small{font-size:12px;color:var(--muted);line-height:1.6}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.pill{display:inline-block;border-radius:30px;padding:5px 9px;background:#293753;color:#dce5fb;font-size:11px;font-weight:850}
+</style>
+</head>
+<body><main>
+<header class="top"><div class="brand">RATIVA<span>GAMES</span> · ADMIN GERAL</div><a class="btn secondary" href="../index.html">← Voltar ao Admin Geral</a></header>
+<h1>Gestão de premiações</h1>
+<p class="muted">Simulador de distribuição mensal do ranking. A regra de reserva de 60% está definida; os percentuais individuais do Top 5 precisam ser configurados antes de qualquer apuração oficial.</p>
+<div class="notice"><b>Importante:</b> esta versão é uma ferramenta de simulação. Ela não registra pagamentos, não altera saldos de jogadores e não confirma vencedores. A gravação oficial exige integração com endpoints seguros no servidor e auditoria.</div>
+<section class="panel">
+<div class="row"><h2 style="margin:0">Calcular valor reservado</h2><span class="pill">Regra: 60% para o Top 5</span></div>
+<div class="field" style="margin-top:14px;max-width:420px"><label for="pool">Valor total arrecadado destinado ao cálculo (R$)</label><input id="pool" type="number" min="0" step="0.01" placeholder="Ex.: 1.000,00" inputmode="decimal"></div>
+<div class="stats"><div class="stat"><span>Valor informado</span><b id="total">R$ 0,00</b></div><div class="stat"><span>Reserva do Top 5 · 60%</span><b id="reserved">R$ 0,00</b></div><div class="stat"><span>Restante · 40%</span><b id="remaining">R$ 0,00</b></div></div>
+</section>
+<section class="panel">
+<div class="row"><h2 style="margin:0">Distribuição entre os cinco primeiros</h2><span id="sum" class="pill">Percentuais: 0% / 100%</span></div>
+<p class="muted">Informe quanto cada posição receberá dentro da reserva de 60%. A soma precisa ser exatamente 100% para validar a simulação.</p>
+<div class="tablewrap"><table><thead><tr><th>Posição</th><th>Nickname do jogador</th><th>Parte da reserva (%)</th><th>Valor estimado</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="row" style="margin-top:12px"><span id="validation" class="small">Preencha os percentuais para validar a divisão.</span><strong id="allocated" class="result">Distribuído: R$ 0,00</strong></div>
+<div class="actions"><button id="calculate">Calcular premiação</button><button id="clear" class="secondary">Limpar simulação</button></div>
+</section>
+<section class="panel">
+<h2>Regras de entrega da premiação</h2>
+<ol class="terms">
+<li>A premiação do ranking será apurada <b>uma vez por mês</b>, considerando a classificação oficial validada pela plataforma.</li>
+<li>A equipe RativaGames entrará em contato com cada ganhador pelos dados de <b>e-mail ou WhatsApp</b> cadastrados/disponibilizados.</li>
+<li>O ganhador terá <b>7 dias corridos</b>, contados a partir da tentativa de contato/comunicação da equipe, para responder e combinar o recebimento.</li>
+<li>Se não houver retorno dentro do prazo, o valor reservado àquele ganhador <b>retornará ao caixa de premiações/doações</b> e será reconhecido conforme o regulamento como doação voluntária.</li>
+<li>As condições completas deverão constar no <b>Termo de Uso e Regulamento do Jogo</b>, aceito pelo participante.</li>
+</ol>
+<p class="small">Antes de publicar estas regras como regulamento definitivo, a redação jurídica e a forma de contagem do prazo devem ser revisadas. Esta tela apresenta a regra operacional solicitada, não substitui o termo oficial.</p>
+</section>
+<p class="small">Segurança: não informe senhas, tokens ou dados bancários nesta tela. A apuração oficial deverá buscar o ranking no servidor, congelar o resultado mensal e gravar cada concessão/estorno com identificador único e trilha de auditoria imutável.</p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}), ranks=[1,2,3,4,5];
+const tbody=$('rows');
+ranks.forEach(n=>{const tr=document.createElement('tr');tr.innerHTML='<td class="rank">#'+n+'</td><td><input aria-label="Nickname do '+n+'º colocado" data-name="'+n+'" placeholder="Jogador '+n+'"></td><td><input aria-label="Percentual do '+n+'º colocado" data-pct="'+n+'" type="number" min="0" max="100" step="0.01" placeholder="%"></td><td class="result" data-value="'+n+'">—</td>';tbody.append(tr)});
+function values(){const total=Math.max(0,Number($('pool').value)||0),reserved=total*.6,parts=ranks.map(n=>Math.max(0,Number(tbody.querySelector('[data-pct="'+n+'"]').value)||0)),sum=parts.reduce((a,b)=>a+b,0);return {total,reserved,remaining:total-reserved,parts,sum}}
+function render(){const v=values();$('total').textContent=money(v.total);$('reserved').textContent=money(v.reserved);$('remaining').textContent=money(v.remaining);$('sum').textContent='Percentuais: '+v.sum.toLocaleString('pt-BR')+'% / 100%';$('sum').className='pill '+(Math.abs(v.sum-100)<.0001?'good':'');$('validation').textContent=Math.abs(v.sum-100)<.0001?'Divisão válida: os cinco percentuais totalizam 100%.':'A soma precisa ser 100%. Diferença: '+(100-v.sum).toLocaleString('pt-BR')+' p.p.';$('validation').className='small '+(Math.abs(v.sum-100)<.0001?'good':'bad');$('allocated').textContent='Distribuído: '+money(v.reserved*v.sum/100);ranks.forEach(n=>{tbody.querySelector('[data-value="'+n+'"]').textContent='—'})}
+function calculate(){const v=values();if(v.total<=0){$('validation').textContent='Informe um valor maior que zero.';return}if(Math.abs(v.sum-100)>=.0001){$('validation').textContent='Não foi possível validar: a soma deve ser exatamente 100%.';return}ranks.forEach((n,i)=>{tbody.querySelector('[data-value="'+n+'"]').textContent=money(v.reserved*v.parts[i]/100)});$('validation').textContent='Simulação calculada. Nenhum pagamento ou lançamento foi gravado.';$('validation').className='small good'}
+$('pool').addEventListener('input',render);tbody.addEventListener('input',e=>{if(e.target.matches('[data-pct]'))render()});$('calculate').addEventListener('click',calculate);$('clear').addEventListener('click',()=>{$('pool').value='';tbody.querySelectorAll('input').forEach(i=>i.value='');render()});render();
+})();
+</script></body></html>
