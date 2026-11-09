@@ -301,7 +301,22 @@ button:disabled{opacity:.55;cursor:wait}
 
 /* Melhorias do portal: mural e rankings vivos */
 .feed-compose{display:grid;gap:9px}.feed-compose textarea{width:100%;min-height:82px;resize:vertical;background:#100d1d;color:#fff;border:1px solid #67458a;border-radius:13px;padding:12px;font:inherit}.feed-list{display:grid;gap:10px;margin-top:12px}.feed-post{padding:13px;border:1px solid #493064;border-radius:14px;background:linear-gradient(145deg,#241638,#151020);overflow-wrap:anywhere}.feed-post-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}.feed-post-head b{color:#e0bdff}.feed-post small{color:#a99bbd;font-size:10px}.feed-post p{margin:0;color:#f6efff;white-space:pre-wrap}.rank-live-list{display:grid;gap:4px;margin-top:10px}.rank-live-list .rowitem{padding:9px 0}.rank-update{font-size:10px;color:#9f91b5;margin-top:9px}.portal-hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.portal-hero-badges span{border:1px solid #ffffff25;background:#ffffff0b;padding:7px 10px;border-radius:99px;font-size:11px;color:#e8d7ff}
-.game-grid .game-card{display:flex;flex-direction:column;gap:9px;min-width:0}.game-grid .game-card h3{margin:2px 0}.game-grid .game-card p{margin:0 0 8px;min-height:3.2em}.game-grid .game-launch{width:100%;min-height:50px;padding:12px 10px;border-radius:13px;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:0 5px 16px #0003}.game-grid .news-art{width:100%;min-height:110px;display:flex;align-items:center;justify-content:center;text-align:center}.game-grid .tag{align-self:flex-start}</style>
+.game-grid .game-card{display:flex;flex-direction:column;gap:9px;min-width:0}.game-grid .game-card h3{margin:2px 0}.game-grid .game-card p{margin:0 0 8px;min-height:3.2em}.game-grid .game-launch{width:100%;min-height:50px;padding:12px 10px;border-radius:13px;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;white-space:nowrap;box-shadow:0 5px 16px #0003}.game-grid .news-art{width:100%;min-height:110px;display:flex;align-items:center;justify-content:center;text-align:center}.game-grid .tag{align-self:flex-start}
+/* Perfil organizado em abas */
+.profile-titlebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 14px}.profile-titlebar h2{font-size:27px;margin:4px 0 2px}.profile-titlebar p{margin:0;color:var(--muted);font-size:12px}
+.profile-cover{padding:19px;background:radial-gradient(ellipse at 92% 0%,#8c45c955,transparent 42%),linear-gradient(135deg,#302047,#171027 72%);border-color:#7950a0;box-shadow:0 12px 32px #0004,inset 0 0 30px #b66cff12}
+.profile-level-chip{width:60px;height:60px;flex:none;border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(145deg,#ffe79a,#d79a35);color:#2b1a08;box-shadow:0 5px 20px #e9ad3c35}.profile-level-chip small{font-size:8px;font-weight:950;letter-spacing:1px}.profile-level-chip strong{font-size:25px;line-height:1.1}
+.profile-xp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:17px}
+.profile-tabs{display:flex;gap:7px;overflow-x:auto;padding:10px 1px 12px;margin:5px 0 12px;scrollbar-width:thin;scrollbar-color:#76509a transparent;position:sticky;top:62px;z-index:4;background:#090611ed;backdrop-filter:blur(12px)}
+.profile-tab{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid var(--line);border-radius:12px;background:#171027;color:#c9bbda;font-size:11px;font-weight:850;white-space:nowrap}
+.profile-tab span{font-size:15px}.profile-tab.active{color:#251608;background:linear-gradient(120deg,#ffe79a,#eab64d);border-color:#ffe79a;box-shadow:0 4px 16px #eab64d30}
+.profile-tab-panel{display:none;animation:profileTabIn .18s ease}.profile-tab-panel.active{display:block}
+.profile-info-card,.profile-personal{min-height:170px}.profile-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.profile-game-card{text-align:left;padding:17px!important;background:#100d1d;border:1px solid var(--line);border-radius:14px}.profile-game-card p{margin:7px 0}
+.profile-account-actions{margin-top:15px}.profile-cover .statgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@keyframes profileTabIn{from{opacity:.45;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.profile-titlebar h2{font-size:23px}.profile-cover{padding:14px}.profile-level-chip{width:49px;height:49px;border-radius:14px}.profile-level-chip strong{font-size:21px}.profile-tabs{top:53px;gap:6px;margin-left:-2px;margin-right:-2px}.profile-tab{padding:9px 11px;font-size:10px}.profile-game-grid{grid-template-columns:1fr}.profile-cover .stat{padding:9px 3px}.profile-cover .stat strong{font-size:17px}.profile-account-actions>*{flex:1 1 145px}}
+
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -360,28 +375,54 @@ button:disabled{opacity:.55;cursor:wait}
   <article class="card"><div class="news-art gold">🎮 🏆</div><span class="tag goldtag">DOIS JOGOS</span><h3>RativaPolis + RativaSnack</h3><p>Dois estilos de jogo, com experiências e recordes próprios, reunidos no mesmo portal.</p></article>
  </div>
  <div class="notice">🔒 Comunidade, Games e os botões para jogar ficam disponíveis somente depois do login. O Início continua público para qualquer visitante conhecer o projeto.</div>
-</section><section id="profile" class="page"><div class="section-head"><div><h2>Meu perfil</h2><p>Dados retornados pela API após entrar</p></div><span class="tag" id="profileStatus">Visitante</span></div><div class="card"><div class="profile-head"><div class="avatar">🐭</div><div class="grow"><h2 id="profileNick" style="margin:0 0 3px">Visitante</h2><div class="smallmeta" id="profileId">Entre para carregar seus dados.</div><div style="margin-top:7px"><span class="tag" id="profileRole">Sem sessão</span></div></div></div><div style="margin-top:18px;display:flex;justify-content:space-between;gap:8px"><b>Experiência</b><small class="smallmeta" id="profileXp">0 XP</small></div><div class="progress"><span id="xpBar"></span></div><div class="statgrid"><div class="stat"><strong id="profileCoins">0</strong><span>MOEDAS</span></div><div class="stat"><strong id="profileVip">0</strong><span>NÍVEL VIP</span></div><div class="stat"><strong id="profileLevel">1</strong><span>NÍVEL</span></div></div><div class="rowitem"><div class="grow"><small>E-mail</small><b id="profileEmail">—</b></div><span>✉️</span></div>
-<section class="profile-personal" style="margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:15px;background:#100d1d88">
- <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0">🪪 Dados pessoais</h3><span class="tag" id="personalProfileStatus">PREENCHER</span></div>
- <p class="smallmeta" style="margin:7px 0 12px">Seus dados ficam privados e vinculados à sua conta. Nome completo e nascimento são registrados uma única vez.</p>
- <form id="personalProfileForm">
-  <label class="field"><span>Nome completo · não poderá ser alterado</span><input id="personalFullName" name="full_name" type="text" maxlength="100" autocomplete="name" placeholder="Digite seu nome completo" required></label>
-  <label class="field"><span>Data de nascimento · não poderá ser alterada</span><input id="personalBirthDate" name="birth_date" type="date" required></label>
-  <label class="field"><span>WhatsApp com DDD</span><input id="personalWhatsapp" name="whatsapp" type="tel" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required></label>
-  <button class="primary" id="personalProfileSave" type="submit">Salvar meus dados</button>
- </form>
- <p class="smallmeta" id="personalProfileHint" style="margin:9px 0 0">Nome e nascimento ficam bloqueados após o primeiro salvamento. O WhatsApp poderá ser atualizado.</p>
- <div id="personalProfileMessage" class="status" aria-live="polite"></div>
-</section>
-<section class="profile-extra" style="display:grid;gap:14px;margin-top:16px">
- <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🏅 Conquistas e títulos</h3><p>Medalhas, feitos especiais e títulos conquistados nos jogos.</p></div><span class="tag">EM INTEGRAÇÃO</span></div><div class="notice" style="margin:0">Suas conquistas aparecerão aqui quando os jogos enviarem os registros oficiais para a conta RativaGames. Nenhuma medalha fictícia será exibida.</div></article>
- <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">📊 Estatísticas dos jogos</h3><p>O progresso de cada jogo será apresentado separadamente.</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px"><div class="stat" style="text-align:left;padding:15px"><div style="font-size:26px">🐭</div><b>RativaPolis</b><p class="smallmeta">Nível, XP, partidas, vitórias e recordes.</p><span class="tag">AGUARDANDO INTEGRAÇÃO</span></div><div class="stat" style="text-align:left;padding:15px"><div style="font-size:26px">🧀</div><b>RativaSnack</b><p class="smallmeta">Partidas, pontuação, recordes e evolução.</p><span class="tag">AGUARDANDO INTEGRAÇÃO</span></div></div></article>
- <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🕒 Histórico de atividades</h3><p>Um registro das principais ações e conquistas da sua conta.</p></div><span class="tag">EM INTEGRAÇÃO</span></div><div class="notice" style="margin:0">O histórico será preenchido com eventos reais, como entrada em jogos, conquistas e participação em campeonatos. Por enquanto, ainda não há atividades disponíveis para exibir.</div></article>
- <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🔐 Segurança da conta</h3><p>Cuide do acesso à sua conta RativaGames.</p></div></div><div class="notice" style="margin:0 0 10px">Nunca compartilhe sua senha ou código de acesso. A recuperação automática por e-mail ainda está em preparação.</div><div class="actions"><button class="primary" type="button" onclick="go('account')">Acessar opções da conta</button><button class="ghost" type="button" onclick="go('account');setTimeout(()=>toggleRecovery(true),100)">Recuperar senha</button></div></article>
-</section>
-<div class="actions" style="margin-top:14px"><button class="primary" onclick="go('account')" id="profileLoginBtn">Entrar / criar conta</button><button class="goldbtn play-cta hidden" onclick="playGame()" id="profilePlayBtn">▶ JOGAR</button><button class="primary hidden" onclick="openAdminPanel()" id="adminPanelBtn">🛡️ Painel administrativo</button><button class="goldbtn hidden" onclick="openRadioAdmin()" id="radioAdminBtn">♫ Administração da rádio</button>
-<button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div><div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div></div></section>
-<section id="shop" class="page"><div class="section-head"><div><h2>💜 Apoie a RativaGames</h2><p>Sua contribuição ajuda a manter o projeto vivo e a construir novidades.</p></div><span class="tag goldtag">Doação voluntária</span></div>
+</section><section id="profile" class="page">
+ <div class="profile-titlebar"><div><span class="eyebrow">ÁREA DO JOGADOR</span><h2>Meu perfil</h2><p>Seu espaço pessoal no universo RativaGames.</p></div><span class="tag" id="profileStatus">Visitante</span></div>
+ <div class="profile-cover card">
+  <div class="profile-head"><div class="avatar">🐭</div><div class="grow"><h2 id="profileNick" style="margin:0 0 3px">Visitante</h2><div class="smallmeta" id="profileId">Entre para carregar seus dados.</div><div style="margin-top:7px"><span class="tag" id="profileRole">Sem sessão</span></div></div><div class="profile-level-chip"><small>NÍVEL</small><strong id="profileLevel">1</strong></div></div>
+  <div class="profile-xp-head"><b>Experiência</b><small class="smallmeta" id="profileXp">0 XP</small></div><div class="progress"><span id="xpBar"></span></div>
+  <div class="statgrid"><div class="stat"><strong id="profileCoins">0</strong><span>MOEDAS</span></div><div class="stat"><strong id="profileVip">0</strong><span>NÍVEL VIP</span></div><div class="stat"><strong id="profileGamesCount">2</strong><span>JOGOS</span></div></div>
+ </div>
+ <nav class="profile-tabs" aria-label="Abas do perfil">
+  <button class="profile-tab active" type="button" data-profile-tab="overview" onclick="setProfileTab('overview')"><span>👤</span>Visão geral</button>
+  <button class="profile-tab" type="button" data-profile-tab="personal" onclick="setProfileTab('personal')"><span>🪪</span>Dados pessoais</button>
+  <button class="profile-tab" type="button" data-profile-tab="games" onclick="setProfileTab('games')"><span>🎮</span>Jogos</button>
+  <button class="profile-tab" type="button" data-profile-tab="achievements" onclick="setProfileTab('achievements')"><span>🏅</span>Conquistas</button>
+  <button class="profile-tab" type="button" data-profile-tab="activity" onclick="setProfileTab('activity')"><span>🕒</span>Atividades</button>
+  <button class="profile-tab" type="button" data-profile-tab="security" onclick="setProfileTab('security')"><span>🔐</span>Segurança</button>
+ </nav>
+ <div class="profile-tab-panel active" data-profile-panel="overview">
+  <article class="card profile-info-card"><div class="section-head" style="margin:0 0 8px"><div><h3 style="margin:0">Informações da conta</h3><p>Dados vinculados ao seu acesso RativaGames.</p></div><span class="tag">CONTA</span></div><div class="rowitem"><div class="grow"><small>E-mail cadastrado</small><b id="profileEmail">—</b></div><span>✉️</span></div><div class="rowitem"><div class="grow"><small>Identificação</small><b id="profileIdMirror">Conta RativaGames</b></div><span>🆔</span></div></article>
+  <div class="notice">Seu perfil reúne sua evolução, dados pessoais e informações dos jogos. Use as abas acima para navegar sem precisar percorrer uma página enorme.</div>
+ </div>
+ <div class="profile-tab-panel" data-profile-panel="personal">
+  <section class="profile-personal card">
+   <div class="section-head" style="margin:0 0 8px"><div><h3 style="margin:0">🪪 Dados pessoais</h3><p>Informações privadas vinculadas à sua conta.</p></div><span class="tag" id="personalProfileStatus">PREENCHER</span></div>
+   <p class="smallmeta" style="margin:7px 0 12px">Nome completo e nascimento são registrados uma única vez. Seus dados pessoais não são exibidos publicamente.</p>
+   <form id="personalProfileForm">
+    <label class="field"><span>Nome completo · não poderá ser alterado</span><input id="personalFullName" name="full_name" type="text" maxlength="100" autocomplete="name" placeholder="Digite seu nome completo" required></label>
+    <label class="field"><span>Data de nascimento · não poderá ser alterada</span><input id="personalBirthDate" name="birth_date" type="date" required></label>
+    <label class="field"><span>WhatsApp com DDD</span><input id="personalWhatsapp" name="whatsapp" type="tel" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required></label>
+    <button class="primary" id="personalProfileSave" type="submit">Salvar meus dados</button>
+   </form>
+   <p class="smallmeta" id="personalProfileHint" style="margin:9px 0 0">Nome e nascimento ficam bloqueados após o primeiro salvamento. O WhatsApp poderá ser atualizado.</p>
+   <div id="personalProfileMessage" class="status" aria-live="polite"></div>
+  </section>
+ </div>
+ <div class="profile-tab-panel" data-profile-panel="games">
+  <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">📊 Estatísticas dos jogos</h3><p>O progresso de cada jogo será apresentado separadamente.</p></div></div><div class="profile-game-grid"><div class="stat profile-game-card"><div style="font-size:30px">🐭</div><b>RativaPolis</b><p class="smallmeta">Nível, XP, partidas, vitórias e recordes.</p><span class="tag">AGUARDANDO INTEGRAÇÃO</span></div><div class="stat profile-game-card"><div style="font-size:30px">🧀</div><b>RativaSnack</b><p class="smallmeta">Partidas, pontuação, recordes e evolução.</p><span class="tag">AGUARDANDO INTEGRAÇÃO</span></div></div></article>
+ </div>
+ <div class="profile-tab-panel" data-profile-panel="achievements">
+  <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🏅 Conquistas e títulos</h3><p>Medalhas, feitos especiais e títulos conquistados nos jogos.</p></div><span class="tag">EM INTEGRAÇÃO</span></div><div class="notice" style="margin:0">Suas conquistas aparecerão aqui quando os jogos enviarem os registros oficiais para a conta RativaGames. Nenhuma medalha fictícia será exibida.</div></article>
+ </div>
+ <div class="profile-tab-panel" data-profile-panel="activity">
+  <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🕒 Histórico de atividades</h3><p>Um registro das principais ações e conquistas da sua conta.</p></div><span class="tag">EM INTEGRAÇÃO</span></div><div class="notice" style="margin:0">O histórico será preenchido com eventos reais, como entrada em jogos, conquistas e participação em campeonatos. Por enquanto, ainda não há atividades disponíveis para exibir.</div></article>
+ </div>
+ <div class="profile-tab-panel" data-profile-panel="security">
+  <article class="card"><div class="section-head" style="margin:0 0 10px"><div><h3 style="margin:0">🔐 Segurança da conta</h3><p>Cuide do acesso à sua conta RativaGames.</p></div></div><div class="notice" style="margin:0 0 10px">Nunca compartilhe sua senha ou código de acesso. A recuperação automática por e-mail ainda está em preparação.</div><div class="actions"><button class="primary" type="button" onclick="go('account')">Acessar opções da conta</button><button class="ghost" type="button" onclick="go('account');setTimeout(()=>toggleRecovery(true),100)">Recuperar senha</button></div></article>
+ </div>
+ <div class="actions profile-account-actions"><button class="primary" onclick="go('account')" id="profileLoginBtn">Entrar / criar conta</button><button class="goldbtn play-cta hidden" onclick="playGame()" id="profilePlayBtn">▶ JOGAR</button><button class="primary hidden" onclick="openAdminPanel()" id="adminPanelBtn">🛡️ Painel administrativo</button><button class="goldbtn hidden" onclick="openRadioAdmin()" id="radioAdminBtn">♫ Administração da rádio</button><button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div>
+ <div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div>
+</section><section id="shop" class="page"><div class="section-head"><div><h2>💜 Apoie a RativaGames</h2><p>Sua contribuição ajuda a manter o projeto vivo e a construir novidades.</p></div><span class="tag goldtag">Doação voluntária</span></div>
  <article class="card"><div class="donation-hero-total" aria-label="Total fictício de doações: mil duzentos e cinquenta reais"><span>💜 TOTAL DE DOAÇÕES · AGUARDANDO DADOS</span><strong id="donationHeroAmount">—</strong><small>SOMENTE PAGAMENTOS APROVADOS</small></div><h3>Escolha como deseja contribuir</h3><p>Queremos facilitar o apoio à RativaGames. As opções previstas são Pix e cartão, com confirmação segura e registro vinculado à sua conta.</p><label for="donationAmount" style="display:block;margin:12px 0 6px;font-weight:800">Valor da doação (R$)</label><input id="donationAmount" type="number" min="1" max="10000" step="0.01" value="5.00" style="width:100%;max-width:260px;padding:12px;border-radius:10px;border:1px solid #60467b;background:#100d1d;color:#fff;font-size:18px"><div class="grid" style="margin-top:12px"><div class="card" style="background:#100d1d"><div class="itememoji">⚡</div><h3>Doar com Pix</h3><p>Pagamento pelo checkout seguro do Mercado Pago.</p><button class="primary" id="donatePixBtn" type="button" onclick="startDonation('pix')">Doar com Pix</button></div><div class="card" style="background:#100d1d"><div class="itememoji">💳</div><h3>Doar com cartão</h3><p>Contribua usando cartão pelo checkout seguro.</p><button class="primary" id="donateCardBtn" type="button" onclick="startDonation('card')">Doar com cartão</button></div></div><div class="notice" id="donationPaymentNotice">🔐 Pagamento em ambiente de testes do Mercado Pago. É necessário entrar na conta RativaGames. Só pagamentos confirmados pelo Mercado Pago entram no total público. Não envie dinheiro por fora do portal.</div></article>
  <div class="section-head"><div><h2>Por que fazer uma doação?</h2><p>O apoio é voluntário e ajuda a comunidade inteira.</p></div></div>
  <div class="grid">
@@ -791,6 +832,15 @@ async function toggleRadio(){
 $('radioVolume').addEventListener('input',e=>{$('radioAudio').volume=Number(e.target.value);$('radioLiveAudio').volume=Number(e.target.value)});
 loadLiveRankings();setInterval(loadLiveRankings,15000);configureRadio();
 communitySessionRestore.finally(()=>{connectCommunityChat();if(sessionToken&&currentPlayer){refreshGamePresence();gamePresenceTimer=setInterval(refreshGamePresence,15000)}});
+
+
+function setProfileTab(name){
+ const allowed=['overview','personal','games','achievements','activity','security'];
+ if(!allowed.includes(name))name='overview';
+ document.querySelectorAll('[data-profile-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===name));
+ document.querySelectorAll('[data-profile-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.profilePanel===name));
+ try{sessionStorage.setItem('rativa_profile_tab',name)}catch(e){}
+}
 
 </script>
 
