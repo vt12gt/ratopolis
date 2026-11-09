@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="connectFour.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Connect Four — Free Online Game vs Computer</title>
+<meta name="description" content="Play Connect Four free in your browser. Drop your discs, line up four against an AI in three difficulties. No install, no signup, mobile and desktop.">
+<meta name="keywords" content="connect four,connect 4,four in a row,free online game,puzzle game,vs computer,html5 game,browser game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Connect Four — Free Online Game vs Computer">
+<meta property="og:description" content="Drop a disc, line up four. Three difficulty levels against the computer.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔴</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --cw: min(46px, 12vw, 9vh);
+    --cw: min(46px, 12vw, 9svh);
+    --red: #ef4b4b;
+    --yellow: #ffcf3d;
+  }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 14px 10px; user-select: none; touch-action: manipulation;
+  }
+  .wrap {
+    position: relative; width: min(392px, 100%);
+    display: flex; flex-direction: column; align-items: center; gap: 11px;
+    padding: 18px 14px 20px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  #mute-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,.16); border-radius: 10px; color: #fff;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 6; box-shadow: none; border: none;
+  }
+  .head { text-align: center; }
+  .head h1 { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: #fff; }
+  .head .sub { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: 3px; color: rgba(255,255,255,.6); }
+  .modes { display: flex; gap: 6px; }
+  .mode {
+    border: none; border-radius: 999px; padding: 10px 13px; min-height: 44px;
+    background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .6px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .mode:hover { background: rgba(255,255,255,.18); }
+  .mode.active { background: #ff9f1c; color: #fff; }
+  .status {
+    min-height: 22px; font-size: 14px; font-weight: 800; letter-spacing: 1px;
+    color: #ffd76e; text-align: center;
+  }
+  .board {
+    display: flex; gap: 5px; padding: 8px;
+    background: linear-gradient(180deg, #1d4f8a, #12395f);
+    border-radius: 14px; box-shadow: inset 0 3px 10px rgba(0,0,0,.45);
+  }
+  .col {
+    display: flex; flex-direction: column; gap: 5px;
+    border: none; background: none; padding: 0; cursor: pointer; font-family: inherit;
+    border-radius: 10px; transition: background .12s;
+  }
+  .col:not(:disabled):hover { background: rgba(255,255,255,.08); }
+  .col:disabled { cursor: default; }
+  .cell {
+    width: var(--cw); height: var(--cw); border-radius: 50%;
+    background: rgba(6, 20, 34, .72);
+    box-shadow: inset 0 3px 6px rgba(0,0,0,.65);
+    display: block; position: relative;
+  }
+  .cell.r, .cell.y { box-shadow: inset 0 -3px 6px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3); }
+  .cell.r { background: radial-gradient(circle at 34% 30%, #ff8181, var(--red) 62%, #b82929); }
+  .cell.y { background: radial-gradient(circle at 34% 30%, #ffe98a, var(--yellow) 62%, #c99a10); }
+  .cell.r.drop, .cell.y.drop { animation: dropIn .3s cubic-bezier(.4,1.1,.6,1); }
+  @keyframes dropIn {
+    from { transform: translateY(calc(var(--cw) * -6.4)); }
+    to { transform: translateY(0); }
+  }
+  .cell.win { animation: winFlash .65s ease-in-out infinite; }
+  @keyframes winFlash { 0%,100% { filter: brightness(1) } 50% { filter: brightness(1.55) } }
+  .score { display: flex; gap: 8px; width: 100%; }
+  .score-item { flex: 1; text-align: center; background: rgba(255,255,255,.07); border-radius: 12px; padding: 7px 4px; }
+  .score-item .val { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.15; }
+  .score-item small { display: block; margin-top: 2px; font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; color: rgba(255,255,255,.6); }
+  .score-item.red-side .val { color: var(--red); }
+  .score-item.yellow-side .val { color: var(--yellow); }
+  button.btn {
+    border: none; border-radius: 12px; padding: 12px 24px; min-height: 44px;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+    font-family: inherit; transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button.btn:active { transform: scale(.95); }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .btn-ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .tip { font-size: 11px; color: rgba(255,255,255,.5); text-align: center; line-height: 1.5; }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+  /* Short viewports: trim the secondary chrome so the 6-row board fits. */
+  @media (max-height: 720px) {
+    .wrap { gap: 8px; padding: 12px 12px 14px; }
+    .head .sub, .tip { display: none; }
+    .score-item { padding: 5px 4px; }
+    .score-item small { font-size: 8px; }
+  }
+  @media (max-height: 480px) {
+    .head h1 { font-size: 18px; }
+    .status { min-height: 18px; font-size: 12px; }
+    .score { display: none; }
+    button.btn { min-height: 38px; padding: 8px 18px; font-size: 13px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  <div class="head">
+    <h1 data-i18n="connectFour.title">CONNECT FOUR</h1>
+    <div class="sub" data-i18n="connectFour.subtitle">FOUR IN A ROW WINS</div>
+  </div>
+
+  <div class="modes" id="modes"></div>
+  <div class="status" id="status"></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="score">
+    <div class="score-item red-side"><div class="val" id="sc-you">0</div><small data-i18n="connectFour.you">YOU</small></div>
+    <div class="score-item"><div class="val" id="sc-draw">0</div><small data-i18n="connectFour.draws">DRAWS</small></div>
+    <div class="score-item yellow-side"><div class="val" id="sc-ai">0</div><small data-i18n="connectFour.ai">COMPUTER</small></div>
+  </div>
+
+  <button class="btn btn-ghost" id="btn-new" data-i18n="connectFour.newRound">NEW ROUND</button>
+  <div class="tip" data-i18n="connectFour.tip">Tap a column to drop your disc — you are red.</div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    drop:   function () { beep(300, 0.07, 'sine', 0.08); setTimeout(function () { beep(180, 0.08, 'sine', 0.06); }, 60); },
+    aiDrop: function () { beep(240, 0.07, 'triangle', 0.07); setTimeout(function () { beep(150, 0.09, 'triangle', 0.06); }, 60); },
+    win:    function () { [0, 110, 220, 340].forEach(function (d, i) { setTimeout(function () { beep(560 + i * 160, 0.14, 'triangle', 0.09); }, d); }); },
+    lose:   function () { beep(320, 0.18, 'sawtooth', 0.1); setTimeout(function () { beep(190, 0.26, 'sawtooth', 0.1); }, 150); },
+    draw:   function () { beep(420, 0.14, 'sine', 0.08); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Board constants =====
+  var COLS = 7, ROWS = 6;
+  var HUMAN = 'R', AI = 'Y';           // red disc = you
+  var MODES = ['easy', 'medium', 'hard'];
+  var DEPTH = { easy: 2, medium: 4, hard: 6 };
+  var RANDOM_CHANCE = { easy: 0.55, medium: 0.12, hard: 0 };
+  var SCORE_KEY = 'connect_four_score_v1';
+
+  // every 4-in-a-row window on the board, precomputed once
+  function buildWindows() {
+    var out = [];
+    function push(list) { out.push(list); }
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (c + 3 < COLS) push([r * COLS + c, r * COLS + c + 1, r * COLS + c + 2, r * COLS + c + 3]);
+        if (r + 3 < ROWS) push([r * COLS + c, (r + 1) * COLS + c, (r + 2) * COLS + c, (r + 3) * COLS + c]);
+        if (c + 3 < COLS && r + 3 < ROWS) push([r * COLS + c, (r + 1) * COLS + c + 1, (r + 2) * COLS + c + 2, (r + 3) * COLS + c + 3]);
+        if (c - 3 >= 0 && r + 3 < ROWS) push([r * COLS + c, (r + 1) * COLS + c - 1, (r + 2) * COLS + c - 2, (r + 3) * COLS + c - 3]);
+      }
+    }
+    return out;
+  }
+  var WINDOWS = buildWindows();
+
+  // ===== State =====
+  var cells = new Array(ROWS * COLS).fill('');
+  var mode = 'medium';
+  var turn = HUMAN, over = false, thinking = false, lastDrop = -1;
+  var scores = loadScores();
+  var endKey = null;          // key of the final status line, so a language switch can rebuild it
+
+  function loadScores() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(SCORE_KEY) || '{}');
+      var out = {};
+      MODES.forEach(function (m) {
+        out[m] = { you: (raw[m] && raw[m].you) || 0, ai: (raw[m] && raw[m].ai) || 0, d: (raw[m] && raw[m].d) || 0 };
+      });
+      return out;
+    } catch (e) {
+      var empty = {};
+      MODES.forEach(function (m) { empty[m] = { you: 0, ai: 0, d: 0 }; });
+      return empty;
+    }
+  }
+  function saveScores() {
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify(scores)); } catch (e) {}
+  }
+
+  // ===== DOM =====
+  var boardEl = document.getElementById('board');
+  var statusEl = document.getElementById('status');
+  var modesEl = document.getElementById('modes');
+  var cellEls = new Array(ROWS * COLS);
+
+  function idx(r, c) { return r * COLS + c; }
+
+  for (var c = 0; c < COLS; c++) {
+    (function (col) {
+      var b = document.createElement('button');
+      b.className = 'col';
+      b.type = 'button';
+      b.dataset.c = String(col);
+      b.setAttribute('aria-label', t('connectFour.colAria', { n: col + 1 }));
+      for (var r = 0; r < ROWS; r++) {
+        var s = document.createElement('span');
+        s.className = 'cell';
+        s.dataset.i = String(idx(r, col));
+        b.appendChild(s);
+        cellEls[idx(r, col)] = s;
+      }
+      b.addEventListener('click', function () { onColumn(col); });
+      boardEl.appendChild(b);
+    })(c);
+  }
+
+  function renderModes() {
+    modesEl.innerHTML = '';
+    var labels = { easy: t('connectFour.modeEasy'), medium: t('connectFour.modeMedium'), hard: t('connectFour.modeHard') };
+    MODES.forEach(function (m) {
+      var b = document.createElement('button');
+      b.className = 'mode' + (m === mode ? ' active' : '');
+      b.type = 'button';
+      b.textContent = labels[m];
+      b.dataset.mode = m;
+      b.addEventListener('click', function () {
+        if (mode === m) return;
+        mode = m;
+        renderModes();
+        newRound();
+      });
+      modesEl.appendChild(b);
+    });
+  }
+
+  function renderBoard() {
+    for (var i = 0; i < cells.length; i++) {
+      var el = cellEls[i];
+      var want = cells[i] === 'R' ? 'r' : cells[i] === 'Y' ? 'y' : '';
+      el.className = 'cell' + (want ? ' ' + want : '');
+      if (i === lastDrop && want) el.classList.add('drop');
+    }
+    var cols = boardEl.querySelectorAll('.col');
+    for (var c = 0; c < COLS; c++) {
+      cols[c].disabled = over || thinking || isColumnFull(c);
+    }
+    lastDrop = -1;
+  }
+
+  function renderScore() {
+    var s = scores[mode];
+    document.getElementById('sc-you').textContent = s.you;
+    document.getElementById('sc-ai').textContent = s.ai;
+    document.getElementById('sc-draw').textContent = s.d;
+  }
+
+  function renderStatus() {
+    if (over) { if (endKey) statusEl.textContent = t(endKey); return; }
+    if (thinking) { statusEl.textContent = t('connectFour.thinking'); return; }
+    statusEl.textContent = t('connectFour.turn', { p: turn === HUMAN ? t('connectFour.you') : t('connectFour.ai') });
+  }
+
+  function refreshAll() { renderModes(); renderBoard(); renderStatus(); renderScore(); }
+
+  // ===== Rules =====
+  function isColumnFull(col) {
+    for (var r = 0; r < ROWS; r++) if (!cells[idx(r, col)]) return false;
+    return true;
+  }
+  function dropRow(col) {
+    for (var r = ROWS - 1; r >= 0; r--) if (!cells[idx(r, col)]) return r;
+    return -1;
+  }
+  function validCols(board) {
+    var out = [];
+    for (var c = 0; c < COLS; c++) {
+      if (!board[idx(0, c)]) out.push(c);
+    }
+    // centre columns first: better pruning and stronger play
+    out.sort(function (a, b) { return Math.abs(a - 3) - Math.abs(b - 3); });
+    return out;
+  }
+  function dropOn(board, col, who) {
+    var r = dropRowOn(board, col);
+    if (r < 0) return -1;
+    board[idx(r, col)] = who;
+    return r;
+  }
+  function dropRowOn(board, col) {
+    for (var r = ROWS - 1; r >= 0; r--) if (!board[idx(r, col)]) return r;
+    return -1;
+  }
+  function winnerOn(board) {
+    for (var w = 0; w < WINDOWS.length; w++) {
+      var L = WINDOWS[w];
+      var a = board[L[0]];
+      if (a && a === board[L[1]] && a === board[L[2]] && a === board[L[3]]) {
+        return { p: a, line: L };
+      }
+    }
+    return null;
+  }
+  function boardFull(board) {
+    for (var c = 0; c < COLS; c++) if (!board[idx(0, c)]) return false;
+    return true;
+  }
+
+  // ===== AI =====
+  function evaluate(board) {
+    var total = 0;
+    for (var w = 0; w < WINDOWS.length; w++) {
+      var L = WINDOWS[w], y = 0, r = 0;
+      for (var i = 0; i < 4; i++) {
+        var v = board[L[i]];
+        if (v === AI) y++;
+        else if (v === HUMAN) r++;
+      }
+      if (y && r) continue;
+      if (y === 3) total += 130;
+      else if (y === 2) total += 14;
+      else if (r === 3) total -= 170;
+      else if (r === 2) total -= 16;
+    }
+    return total;
+  }
+
+  function search(board, depth, maximizing, alpha, beta) {
+    var win = winnerOn(board);
+    if (win) return win.p === AI ? 100000 + depth * 100 : -100000 - depth * 100;
+    if (depth === 0 || boardFull(board)) return evaluate(board);
+
+    var cols = validCols(board);
+    if (!cols.length) return evaluate(board);
+
+    if (maximizing) {
+      var best = -Infinity;
+      for (var i = 0; i < cols.length; i++) {
+        var c = cols[i];
+        var r = dropOn(board, c, AI);
+        var s = search(board, depth - 1, false, alpha, beta);
+        board[idx(r, c)] = '';
+        if (s > best) best = s;
+        if (best > alpha) alpha = best;
+        if (alpha >= beta) break;
+      }
+      return best;
+    }
+    var worst = Infinity;
+    for (var j = 0; j < cols.length; j++) {
+      var cc = cols[j];
+      var rr = dropOn(board, cc, HUMAN);
+      var s2 = search(board, depth - 1, true, alpha, beta);
+      board[idx(rr, cc)] = '';
+      if (s2 < worst) worst = s2;
+      if (worst < beta) beta = worst;
+      if (alpha >= beta) break;
+    }
+    return worst;
+  }
+
+  function chooseMove() {
+    var cols = validCols(cells);
+    if (!cols.length) return -1;
+    if (Math.random() < RANDOM_CHANCE[mode]) {
+      return cols[Math.floor(Math.random() * cols.length)];
+    }
+    var depth = DEPTH[mode];
+    var bestScore = -Infinity, bestCols = [];
+    for (var i = 0; i < cols.length; i++) {
+      var c = cols[i];
+      var r = dropOn(cells, c, AI);
+      var s = search(cells, depth - 1, false, -Infinity, Infinity);
+      cells[idx(r, c)] = '';
+      if (s > bestScore) { bestScore = s; bestCols = [c]; }
+      else if (s === bestScore) bestCols.push(c);
+    }
+    return bestCols[Math.floor(Math.random() * bestCols.length)];
+  }
+
+  // ===== Flow =====
+  function onColumn(col) {
+    if (over || thinking || turn !== HUMAN) return;
+    play(col, HUMAN);
+  }
+
+  function play(col, who) {
+    var r = dropRow(col);
+    if (r < 0) return;
+    cells[idx(r, col)] = who;
+    lastDrop = idx(r, col);
+    if (who === HUMAN) sfx.drop(); else sfx.aiDrop();
+    renderBoard();
+    var win = winnerOn(cells);
+    if (win) return finish(win);
+    if (boardFull(cells)) return finish(null);
+    turn = who === HUMAN ? AI : HUMAN;
+    renderStatus();
+    if (turn === AI) scheduleAI(); else renderBoard();
+  }
+
+  function scheduleAI() {
+    thinking = true;
+    renderStatus();
+    renderBoard();
+    setTimeout(function () {
+      if (over || mode === undefined) { thinking = false; return; }
+      var col = chooseMove();
+      thinking = false;
+      if (col < 0) { renderStatus(); return; }
+      play(col, AI);
+    }, 420);
+  }
+
+  function finish(win) {
+    over = true;
+    var s = scores[mode];
+    if (win) {
+      if (win.p === HUMAN) { s.you++; endKey = 'connectFour.winYou'; statusEl.textContent = t(endKey); sfx.win(); }
+      else { s.ai++; endKey = 'connectFour.winAI'; statusEl.textContent = t(endKey); sfx.lose(); }
+    } else {
+      s.d++;
+      endKey = 'connectFour.drawMsg';
+      statusEl.textContent = t(endKey);
+      sfx.draw();
+    }
+    saveScores();
+    renderScore();
+    renderBoard();                      // repaint the discs first…
+    var cols = boardEl.querySelectorAll('.col');
+    for (var c = 0; c < COLS; c++) cols[c].disabled = true;
+    if (win) {                          // …then mark the winning line
+      for (var k = 0; k < win.line.length; k++) cellEls[win.line[k]].classList.add('win');
+    }
+  }
+
+  function newRound() {
+    cells = new Array(ROWS * COLS).fill('');
+    turn = HUMAN; over = false; endKey = null; thinking = false; lastDrop = -1;
+    for (var i = 0; i < cellEls.length; i++) cellEls[i].className = 'cell';
+    renderBoard();
+    renderStatus();
+    renderScore();
+  }
+
+  document.getElementById('btn-new').addEventListener('click', newRound);
+  window.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (k === 'r') { newRound(); return; }
+    var n = parseInt(k, 10);
+    if (n >= 1 && n <= 7) onColumn(n - 1);
+  });
+
+  // ===== Fit the board to short viewports =====
+  /* Size the discs from the space left over after the chrome, so the 6-row
+     board never slides below the fold on landscape phones / small windows. */
+  function fitBoard() {
+    var root = document.documentElement;
+    var wrapEl = document.getElementById('wrap');
+    var gridEl = document.getElementById('board');
+    root.style.setProperty('--cw', '46px');
+    var other = wrapEl.offsetHeight - gridEl.offsetHeight;
+    var avail = window.innerHeight - 24;
+    var byH = Math.floor((avail - other - 25 - 16) / 6);   // 5 gaps + the board's own padding
+    var byW = Math.floor((Math.min(window.innerWidth, 392) - 94) / 7);
+    var cw = Math.max(24, Math.min(46, byH, byW));
+    root.style.setProperty('--cw', cw + 'px');
+  }
+  window.addEventListener('resize', fitBoard);
+
+  // ===== Boot =====
+  refreshAll();
+  newRound();
+  fitBoard();
+  WG.onChange(function () { refreshAll(); });
+})();
+</script>
+</body>
+</html>
