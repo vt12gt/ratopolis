@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="paddleDuel.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Paddle Duel — Free Online Pong-Style Game</title>
+<meta name="description" content="Play Paddle Duel, a free Pong-style paddle game vs AI. Three difficulties, angle-perfect physics, first to 7 wins. Mouse, touch or keyboard. No install.">
+<meta name="keywords" content="pong,pong game,pong online,paddle game,table tennis game,retro arcade game,free online game,html5 game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Paddle Duel — Free Online Pong-Style Game">
+<meta property="og:description" content="Classic paddle duel vs AI. Three difficulties, first to 7 wins.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏓</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px; user-select: none; touch-action: none;
+  }
+  .wrap {
+    position: relative;
+    /* 画布 520×620：宽度必须同时受「可用高度」反推约束，否则窄高视口(手机竖屏/笔记本)里
+       wrap 被 flex 压扁、画布溢出被 overflow:hidden 裁掉，底部玩法区整个掉出屏幕。
+       .839 ≈ 520/620 */
+    width: min(520px, 100%, max(200px, calc((100vh - 130px) * .839)));
+    width: min(520px, 100%, max(200px, calc((100svh - 130px) * .839)));
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 12px 14px; pointer-events: none;
+  }
+  .hud-item {
+    background: rgba(15, 30, 40, .55); border-radius: 10px; padding: 6px 12px;
+    color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1px;
+  }
+  .hud-item small { font-weight: 600; opacity: .65; font-size: 10px; letter-spacing: 1px; display: block; }
+  .hud-item.accent { color: #ffd76e; }
+  #mute-btn {
+    position: absolute; top: 56px; right: 12px;
+    background: rgba(255,255,255,.2); border-radius: 10px;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 5; box-shadow: none; border: none;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 24px;
+    background: rgba(15, 30, 40, .62); backdrop-filter: blur(3px); color: #fff;
+  }
+  .hidden { display: none !important; }
+  .title { font-size: 38px; font-weight: 800; letter-spacing: 3px; text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+  .title .sub { display: block; font-size: 12px; font-weight: 600; opacity: .75; letter-spacing: 4px; margin-top: 4px; }
+  .icon-big { font-size: 60px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+  .tip { font-size: 14px; opacity: .9; line-height: 1.7; }
+  .tip b { color: #ffd76e; }
+  .best { font-size: 13px; opacity: .7; }
+  .score-final { font-size: 52px; font-weight: 800; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .medal { font-size: 40px; }
+  .diff-row { display: flex; gap: 8px; margin: 4px 0; }
+  .chip {
+    border: none; border-radius: 999px; padding: 8px 18px; cursor: pointer;
+    background: rgba(255,255,255,.12); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 13px; font-weight: 700; transition: all .12s ease;
+  }
+  .chip.active { background: #ff9f1c; color: #fff; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .btn-primary {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: #ff9f1c; color: #fff; box-shadow: 0 5px 0 #c47a0e;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-primary:active { transform: scale(.95); box-shadow: 0 2px 0 #c47a0e; }
+  .btn-ghost {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-ghost:active { transform: scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <canvas id="game" width="520" height="620"></canvas>
+  <div class="hud">
+    <div class="hud-item"><small data-i18n="paddleDuel.hudYou">YOU</small><span id="hud-you">0</span></div>
+    <div class="hud-item accent"><small data-i18n="paddleDuel.hudLongest">LONGEST RALLY</small><span id="hud-rally">0</span></div>
+    <div class="hud-item"><small><span data-i18n="paddleDuel.hudAi">AI</span> · <span id="hud-diff">MEDIUM</span></small><span id="hud-ai">0</span></div>
+  </div>
+  <button id="mute-btn" title="Toggle sound" data-i18n-title="common.toggleSound">🔊</button>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🏓</div>
+    <div class="title"><span data-i18n="paddleDuel.title">PADDLE DUEL</span><span class="sub" data-i18n="paddleDuel.subtitle">FIRST TO 7 WINS</span></div>
+    <div class="tip" data-i18n-html="paddleDuel.tip">Move your paddle with <b>mouse</b>, <b>touch</b>, or <b>↑ ↓</b><br>Hit the ball off-center to angle your shot</div>
+    <div class="diff-row">
+      <button class="chip" data-diff="easy" data-i18n="paddleDuel.diffEasy">EASY</button>
+      <button class="chip active" data-diff="medium" data-i18n="paddleDuel.diffMedium">MEDIUM</button>
+      <button class="chip" data-diff="hard" data-i18n="paddleDuel.diffHard">HARD</button>
+    </div>
+    <div class="best" id="start-best"></div>
+    <div class="btn-row"><button class="btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="medal" id="medal">🏓</div>
+    <div class="score-final" id="final-score">0 : 0</div>
+    <div class="new-record hidden" id="new-record" data-i18n="paddleDuel.newRecord">🏆 NEW RECORD RALLY!</div>
+    <div class="best" id="over-best"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Canvas =====
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var W = 520, H = 620, WALL = 12, TOPBAR = 64;
+  var PLAY_T = TOPBAR, PLAY_B = H - 12;
+
+  function fitDPR() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fitDPR();
+  window.addEventListener('resize', fitDPR);
+
+  if (!ctx.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    hit:   function (p) { beep(360 + p * 12, 0.05, 'square', 0.08); },
+    wall:  function () { beep(280, 0.04, 'sine', 0.05); },
+    point: function () { beep(660, 0.1, 'sine', 0.1); setTimeout(function () { beep(880, 0.12, 'sine', 0.08); }, 90); },
+    lose:  function () { beep(200, 0.22, 'sawtooth', 0.12); },
+    win:   function () { [523, 659, 784, 1046].forEach(function (f, i) { setTimeout(function () { beep(f, 0.16, 'sine', 0.1); }, i * 120); }); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== State =====
+  var STATE = { READY: 0, SERVE: 1, PLAYING: 2, OVER: 3 };
+  var state = STATE.READY;
+  var BEST_KEY = 'paddleduel_best_v1';
+  var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+  var TARGET = 7;
+
+  var DIFFS = {
+    easy:   { label: 'EASY',   key: 'paddleDuel.diffEasy',   aiSpeed: 4.0, err: 0.18, ball: 4.6 },
+    medium: { label: 'MEDIUM', key: 'paddleDuel.diffMedium', aiSpeed: 6.0, err: 0.08, ball: 5.4 },
+    hard:   { label: 'HARD',   key: 'paddleDuel.diffHard',   aiSpeed: 9.0, err: 0.02, ball: 6.2 }
+  };
+  var diff = 'medium';
+
+  var PH = 74, PW = 12, PAD_X = 22;      // paddle height/width, distance from wall
+  var BALL_R = 7;
+  var player, ai, ball, trail, you, cpu, rally, longest, keys, aiWobbleT, serveT;
+
+  function reset() {
+    player = { y: (PLAY_T + PLAY_B) / 2 - PH / 2, vy: 0, squash: 1 };
+    ai = { y: (PLAY_T + PLAY_B) / 2 - PH / 2, squash: 1 };
+    ball = { x: W / 2, y: (PLAY_T + PLAY_B) / 2, vx: 0, vy: 0, speed: DIFFS[diff].ball };
+    trail = [];
+    you = 0; cpu = 0; rally = 0; longest = 0;
+    keys = {};
+    aiWobbleT = 0; serveT = 0;
+    updateHud();
+    serve(Math.random() < 0.5 ? 1 : -1);
+  }
+
+  function updateHud() {
+    document.getElementById('hud-you').textContent = you;
+    document.getElementById('hud-ai').textContent = cpu;
+    document.getElementById('hud-rally').textContent = longest;
+    document.getElementById('hud-diff').textContent = t(DIFFS[diff].key);
+  }
+  function refreshBest() {
+    document.getElementById('start-best').textContent =
+      best > 0 ? t('paddleDuel.bestRally', { n: best }) : t('paddleDuel.first');
+    document.getElementById('over-best').textContent = t('paddleDuel.bestRallyLabel', { n: best });
+    document.getElementById('hud-diff').textContent = t(DIFFS[diff].key);
+  }
+  refreshBest();
+  WG.onChange(refreshBest);
+
+  function serve(dir) {
+    state = STATE.SERVE;
+    serveT = 0;
+    ball.x = W / 2; ball.y = (PLAY_T + PLAY_B) / 2;
+    ball.vx = 0; ball.vy = 0;
+    ball.dir = dir;
+    rally = 0;
+  }
+
+  function launch() {
+    var ang = (Math.random() * 0.5 - 0.25);
+    ball.vx = Math.cos(ang) * ball.speed * ball.dir;
+    ball.vy = Math.sin(ang) * ball.speed;
+    state = STATE.PLAYING;
+    sfx.hit(50);
+  }
+
+  // ===== Input =====
+  var wrap = document.getElementById('wrap');
+  function paddleTarget(clientY) {
+    var rect = canvas.getBoundingClientRect();
+    var y = (clientY - rect.top) / rect.height * H;
+    return Math.max(PLAY_T, Math.min(PLAY_B - PH, y - PH / 2));
+  }
+  function movePointer(clientY) {
+    var t = paddleTarget(clientY);
+    player.vy = (t - player.y) * 0.3;
+    player.y = t;
+  }
+  wrap.addEventListener('pointermove', function (e) {
+    if (state === STATE.PLAYING || state === STATE.SERVE) movePointer(e.clientY);
+  });
+  wrap.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    if (state === STATE.SERVE) { launch(); return; }
+    if (state === STATE.PLAYING) movePointer(e.clientY);
+  });
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') { keys.up = true; e.preventDefault(); }
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') { keys.down = true; e.preventDefault(); }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (state === STATE.READY) startGame();
+      else if (state === STATE.SERVE) launch();
+      else if (state === STATE.OVER) retry();
+    }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+  });
+
+  function startGame() {
+    reset();
+    document.getElementById('start-overlay').classList.add('hidden');
+  }
+  function retry() {
+    reset();
+    document.getElementById('over-overlay').classList.add('hidden');
+  }
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-retry').addEventListener('click', retry);
+  document.querySelectorAll('.chip').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      diff = b.dataset.diff;
+      reset();
+      document.getElementById('start-overlay').classList.remove('hidden');
+    });
+  });
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var wonGame = you > cpu;
+    var full = wonGame
+      ? t('paddleDuel.shareWin', { you: you, cpu: cpu, rally: longest, url: location.href })
+      : t('paddleDuel.shareLose', { you: you, cpu: cpu, rally: longest, url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== Update =====
+  function bounceOffPaddle(isPlayer) {
+    var pad = isPlayer ? player : ai;
+    var padX = isPlayer ? PAD_X : W - PAD_X - PW;
+    // angle from hit offset: center = straight, edge = +/- 50 degrees
+    var off = (ball.y - (pad.y + PH / 2)) / (PH / 2);
+    off = Math.max(-1, Math.min(1, off));
+    var ang = off * (50 * Math.PI / 180);
+    var sp = Math.min(ball.speed + rally * 0.045, 13);   // every volley speeds up a bit
+    ball.vx = (isPlayer ? 1 : -1) * Math.cos(ang) * sp;
+    ball.vy = Math.sin(ang) * sp;
+    ball.x = isPlayer ? padX + PW + BALL_R + 1 : padX - BALL_R - 1;
+    pad.squash = 0.8;
+    rally++;
+    longest = Math.max(longest, rally);
+    updateHud();
+    sfx.hit(rally);
+    if (rally > best) { best = rally; localStorage.setItem(BEST_KEY, String(best)); }
+  }
+
+  function scorePoint(who) {
+    if (who === 'you') { you++; sfx.point(); player.squash = 1.15; }
+    else { cpu++; sfx.lose(); ai.squash = 1.15; }
+    updateHud();
+    if (you >= TARGET || cpu >= TARGET) { gameOver(); return; }
+    serve(who === 'you' ? 1 : -1);
+  }
+
+  function gameOver() {
+    state = STATE.OVER;
+    if (you > cpu) sfx.win();
+    document.getElementById('final-score').textContent = you + ' : ' + cpu;
+    document.getElementById('medal').textContent = you > cpu ? (you === TARGET ? '👑' : '🥇') : '🤖';
+    refreshBest();
+    document.getElementById('over-overlay').classList.remove('hidden');
+  }
+
+  function update(dt) {
+    // keyboard paddle
+    if (state === STATE.PLAYING || state === STATE.SERVE) {
+      if (keys.up) { player.vy = -9; player.y -= 9 * dt; }
+      else if (keys.down) { player.vy = 9; player.y += 9 * dt; }
+      player.y = Math.max(PLAY_T, Math.min(PLAY_B - PH, player.y));
+    }
+    player.squash += (1 - player.squash) * Math.min(1, 0.12 * dt);
+    ai.squash += (1 - ai.squash) * Math.min(1, 0.12 * dt);
+
+    if (state === STATE.SERVE) {
+      ball.y = (PLAY_T + PLAY_B) / 2 + Math.sin(performance.now() / 260) * 6;
+      // AI holds position near center while waiting
+      ai.y += ((PLAY_T + PLAY_B) / 2 - PH / 2 - ai.y) * 0.06 * dt;
+      return;
+    }
+
+    if (state !== STATE.PLAYING) return;
+
+    // ---- AI ----
+    var d = DIFFS[diff];
+    aiWobbleT -= dt;
+    if (aiWobbleT <= 0) { aiWobbleT = 30 + Math.random() * 60; ai.wobble = (Math.random() * 2 - 1) * PH * d.err * 3; }
+    var targetY;
+    if (ball.vx > 0) {
+      // predict landing y roughly
+      var predictY = ball.y + ball.vy * ((W - PAD_X - ball.x) / Math.max(0.001, ball.vx));
+      // reflect within play area
+      var span = PLAY_B - PLAY_T;
+      while (predictY < PLAY_T || predictY > PLAY_B) {
+        if (predictY < PLAY_T) predictY = PLAY_T + (PLAY_T - predictY);
+        if (predictY > PLAY_B) predictY = PLAY_B - (predictY - PLAY_B);
+      }
+      targetY = predictY - PH / 2 + (ai.wobble || 0);
+    } else {
+      targetY = (PLAY_T + PLAY_B) / 2 - PH / 2;
+    }
+    var dy = targetY - ai.y;
+    var step = Math.min(Math.abs(dy), d.aiSpeed * dt);
+    ai.y += Math.sign(dy) * step;
+    ai.y = Math.max(PLAY_T, Math.min(PLAY_B - PH, ai.y));
+
+    // ---- ball ----
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+
+    trail.push({ x: ball.x, y: ball.y, life: 1 });
+    if (trail.length > 12) trail.shift();
+
+    // top / bottom walls
+    if (ball.y - BALL_R < PLAY_T) { ball.y = PLAY_T + BALL_R; ball.vy = Math.abs(ball.vy); sfx.wall(); }
+    if (ball.y + BALL_R > PLAY_B) { ball.y = PLAY_B - BALL_R; ball.vy = -Math.abs(ball.vy); sfx.wall(); }
+
+    // player paddle (left)
+    if (ball.vx < 0 && ball.x - BALL_R <= PAD_X + PW && ball.x - BALL_R > PAD_X - 14 &&
+        ball.y > player.y - BALL_R && ball.y < player.y + PH + BALL_R) {
+      bounceOffPaddle(true);
+    }
+    // AI paddle (right)
+    if (ball.vx > 0 && ball.x + BALL_R >= W - PAD_X - PW && ball.x + BALL_R < W - PAD_X + 14 &&
+        ball.y > ai.y - BALL_R && ball.y < ai.y + PH + BALL_R) {
+      bounceOffPaddle(false);
+    }
+
+    // scoring
+    if (ball.x < -20) scorePoint('cpu');
+    else if (ball.x > W + 20) scorePoint('you');
+
+    // trail decay
+    for (var t = trail.length - 1; t >= 0; t--) {
+      trail[t].life -= 0.09 * dt;
+      if (trail[t].life <= 0) trail.splice(t, 1);
+    }
+  }
+
+  // ===== Draw =====
+  function draw() {
+    // background
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#12202f');
+    bg.addColorStop(1, '#1c3242');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // play field frame
+    ctx.strokeStyle = 'rgba(255,255,255,.18)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(WALL, PLAY_B); ctx.lineTo(WALL, PLAY_T); ctx.lineTo(W - WALL, PLAY_T); ctx.lineTo(W - WALL, PLAY_B);
+    ctx.stroke();
+
+    // dashed net
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 14]);
+    ctx.beginPath();
+    ctx.moveTo(W / 2, PLAY_T + 10);
+    ctx.lineTo(W / 2, PLAY_B - 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // big scoreboard in the middle
+    ctx.font = '800 76px -apple-system, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.09)';
+    ctx.fillText(String(you), W / 2 - 82, PLAY_T + 110);
+    ctx.fillText(String(cpu), W / 2 + 82, PLAY_T + 110);
+
+    // rally counter
+    if (state === STATE.PLAYING && rally > 0) {
+      ctx.font = '700 13px -apple-system, sans-serif';
+      ctx.fillStyle = 'rgba(255,215,110,.85)';
+      ctx.fillText(t('paddleDuel.canvasRally', { n: rally }), W / 2, PLAY_B - 16);
+    }
+
+    // trail
+    for (var i = 0; i < trail.length; i++) {
+      var tr = trail[i];
+      ctx.fillStyle = 'rgba(255,215,110,' + tr.life * 0.4 + ')';
+      ctx.beginPath();
+      ctx.arc(tr.x, tr.y, BALL_R * tr.life * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // paddles (squash on impact)
+    function drawPaddle(x, y, pad, color) {
+      var h = PH * pad.squash;
+      var yy = y + (PH - h) / 2;
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = '#f0f4f8';
+      ctx.beginPath();
+      ctx.roundRect(x, yy, PW, h, 6);
+      ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x + 2, yy + h / 2 - 9, PW - 4, 18, 4);
+      ctx.fill();
+    }
+    drawPaddle(PAD_X, player.y, player, '#ffd76e');
+    drawPaddle(W - PAD_X - PW, ai.y, ai, '#4db6ac');
+
+    // ball
+    ctx.save();
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (state === STATE.SERVE) {
+      ctx.font = '600 13px -apple-system, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,.75)';
+      ctx.textAlign = 'center';
+      ctx.fillText(t('paddleDuel.serve'), W / 2, (PLAY_T + PLAY_B) / 2 + 60);
+    }
+  }
+
+  // ===== Loop =====
+  var last = performance.now();
+  function loop(t) {
+    // 先排下一帧：即使某帧 update/draw 抛异常，也只是这一帧没画完，
+    // 不会让「下一帧永远排不上」→ 游戏永久冻结（实战踩过：一次 TypeError 冻死整局）
+    requestAnimationFrame(loop);
+    var dt = Math.min((t - last) / 16.666, 2.5);
+    last = t;
+    update(dt);
+    draw();
+  }
+  reset();
+  requestAnimationFrame(loop);
+
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+})();
+</script>
+</body>
+</html>
