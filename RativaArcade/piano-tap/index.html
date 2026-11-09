@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="pianoTap.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Piano Tap — Free Online Reaction Tapping Game</title>
+<meta name="description" content="Play Piano Tap free in your browser. Smash the lowest black tile before the board rolls past you — hit the white and you are out. No install, no signup. Works on mobile and desktop.">
+<meta name="keywords" content="piano tiles,don't tap the white tile,piano tap,tap game,reaction game,reflex game,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Piano Tap — Free Online Reaction Tapping Game">
+<meta property="og:description" content="Hit the lowest black tile, never touch the white. How many can you clear before your fingers give out?">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎹</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #14161c 0%, #262b38 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 12px; user-select: none; touch-action: none;
+  }
+  .wrap {
+    position: relative; background: #fcfcfd;
+    /* 画布 480×640：宽度必须同时受可用高度反推约束，否则视口偏矮时 wrap 被压扁、
+       棋盘底部溢出被 overflow:hidden 裁掉，滚也滚不到。0.75 = 480/640 */
+    width: min(480px, 100%, max(200px, calc((100vh - 180px) * 0.75)));
+    width: min(480px, 100%, max(200px, calc((100svh - 180px) * 0.75)));
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55);
+  }
+  canvas { display: block; width: 100%; height: auto; }
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 12px 14px; pointer-events: none;
+  }
+  .hud-item {
+    background: rgba(20, 22, 28, .82); border-radius: 10px; padding: 6px 12px;
+    color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1px;
+  }
+  .hud-item small { font-weight: 600; opacity: .6; font-size: 10px; letter-spacing: 1px; display: block; }
+  #mute-btn {
+    position: absolute; top: 58px; right: 12px;
+    background: rgba(20,22,28,.82); border-radius: 10px;
+    width: 44px; height: 44px; font-size: 18px; padding: 0; color: #fff;
+    cursor: pointer; z-index: 5; border: none;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 20px;
+    background: rgba(20, 22, 28, .82); backdrop-filter: blur(3px); color: #fff;
+  }
+  .hidden { display: none !important; }
+  .title { font-size: 34px; font-weight: 800; letter-spacing: 3px; text-shadow: 0 3px 0 rgba(0,0,0,.3); }
+  .title .sub { display: block; font-size: 12px; font-weight: 600; opacity: .7; letter-spacing: 4px; margin-top: 4px; }
+  .icon-big { font-size: 52px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+  .tip { font-size: 14px; opacity: .92; line-height: 1.75; }
+  .tip b { color: #ffd76e; }
+  .best { font-size: 13px; opacity: .7; }
+  .score-final { font-size: 48px; font-weight: 800; text-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .medal { font-size: 34px; }
+  .over-title { font-size: 20px; font-weight: 800; letter-spacing: 2px; }
+  .over-reason { font-size: 13px; opacity: .8; }
+  .btn-row { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+  button {
+    border: none; border-radius: 12px; padding: 12px 24px; min-height: 44px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease; font-family: inherit;
+  }
+  button:active { transform: scale(.95); }
+  .btn-primary { background: #4a90ff; color: #fff; box-shadow: 0 5px 0 #2a63bd; }
+  .btn-primary:active { box-shadow: 0 2px 0 #2a63bd; }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25); }
+  .btn-ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .footer {
+    margin-top: 14px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 480px;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <canvas id="game" width="480" height="640"></canvas>
+  <div class="hud">
+    <div class="hud-item"><small data-i18n="pianoTap.hudScore">TILES</small><span id="hud-score">0</span></div>
+    <div class="hud-item"><small data-i18n="pianoTap.hudBest">BEST</small><span id="hud-best">0</span></div>
+  </div>
+  <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🎹</div>
+    <div class="title"><span data-i18n="pianoTap.title">PIANO TAP</span><span class="sub" data-i18n="pianoTap.subtitle">TAP · FAST · NEVER WHITE</span></div>
+    <div class="tip" data-i18n-html="pianoTap.tip">Smash the <b>lowest black tile</b> — miss it and the board rolls past you.<br>Touch the white and you are out.<br>Keyboard: <b>D F J K</b> or <b>1 2 3 4</b></div>
+    <div class="best" id="start-best"></div>
+    <div class="btn-row"><button class="btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="medal" id="medal">🥉</div>
+    <div class="over-title" data-i18n="pianoTap.over">GAME OVER</div>
+    <div class="over-reason" id="over-reason"></div>
+    <div class="score-final" id="final-score">0</div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="best" id="over-best"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Canvas =====
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var W = 480, H = 640;
+  var COLS = 4, COLW = W / COLS, CELLH = 160;
+  var ENTRY = H + CELLH / 2;          // 块刚进入屏幕(块顶贴住底边)时的中心 y = 720
+  var MISS_AT = ENTRY + CELLH / 2;    // 目标块完全滚出顶部时的 scroll 阈值偏移 = 800
+  var GAP = 8, PADV = COLS === 4 ? 8 : 10;
+  var SCALE = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+
+  function fitDPR() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fitDPR();
+  window.addEventListener('resize', fitDPR);
+
+  if (!ctx.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    tap:   function (i) { beep(SCALE[i % SCALE.length], 0.15, 'triangle', 0.09); },
+    wrong: function () { beep(190, 0.18, 'sawtooth', 0.13); setTimeout(function () { beep(120, 0.26, 'sawtooth', 0.11); }, 110); },
+    miss:  function () { beep(150, 0.28, 'square', 0.11); setTimeout(function () { beep(96, 0.3, 'square', 0.09); }, 130); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== State =====
+  var STATE = { READY: 0, PLAYING: 1, OVER: 2 };
+  var state = STATE.READY;
+  var BEST_KEY = 'piano_tap_best_v1';
+  var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+
+  var tiles, doneCount, scroll, speed, score, deadKey;
+  var shake, guide, hintT;
+
+  // 连续两块绝不同列 —— 否则闭眼连点同一格就能过，随机化要有质量控制
+  function makeTiles(n) {
+    var arr = [], last = -1;
+    for (var i = 0; i < n; i++) {
+      var c;
+      do { c = (Math.random() * COLS) | 0; } while (c === last);
+      arr.push({ col: c });
+      last = c;
+    }
+    return arr;
+  }
+
+  function reset() {
+    tiles = makeTiles(900);
+    doneCount = 0; score = 0;
+    scroll = CELLH;              // 目标块(序号 0)恰好停在底部行
+    speed = 2.4;
+    deadKey = ''; shake = 0; guide = 1; hintT = 0;
+    updateHud();
+  }
+
+  // 预览态：多显示几个块，别让开始界面只剩一格
+  function preview() {
+    tiles = makeTiles(900);
+    doneCount = 0; score = 0;
+    scroll = CELLH * 4;
+    speed = 2.4; deadKey = ''; shake = 0; guide = 1; hintT = 0;
+    updateHud();
+  }
+
+  function updateHud() {
+    document.getElementById('hud-score').textContent = score;
+    document.getElementById('hud-best').textContent = best;
+  }
+
+  // ===== DOM =====
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+  function refreshBest() {
+    document.getElementById('start-best').textContent = best > 0 ? t('common.bestScore', { n: best }) : t('pianoTap.first');
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: best });
+    if (deadKey) document.getElementById('over-reason').textContent = t(deadKey);
+  }
+  refreshBest();
+  WG.onChange(refreshBest);
+
+  // ===== Gameplay =====
+  function tileY(i) { return ENTRY - scroll + CELLH * i; }
+  function targetY() { return tileY(doneCount); }
+
+  function tapColumn(col) {
+    if (state === STATE.READY) { startGame(); return; }
+    if (state !== STATE.PLAYING) return;
+    if (col < 0 || col >= COLS) return;
+    var tgt = tiles[doneCount];
+    if (!tgt) return;
+    if (targetY() > ENTRY) return;            // 目标块还在屏幕下方 → 忽略，不惩罚误触
+    if (col === tgt.col) {
+      doneCount++; score = doneCount;
+      sfx.tap(doneCount - 1);
+      hintT = 5;
+      updateHud();
+    } else {
+      die('wrong');
+    }
+  }
+
+  function update(dt) {
+    scroll += speed * dt;
+    if (scroll - CELLH * doneCount > MISS_AT) { die('miss'); return; }
+    speed = Math.min(5.2, 2.4 + Math.floor(doneCount / 8) * 0.25);
+    guide = doneCount >= 6 ? 0 : 1 - doneCount / 6;
+    if (hintT > 0) hintT -= dt;
+  }
+
+  function die(reason) {
+    if (state === STATE.OVER) return;
+    state = STATE.OVER;
+    deadKey = reason === 'wrong' ? 'pianoTap.overWrong' : 'pianoTap.overMiss';
+    shake = 16;
+    if (reason === 'wrong') sfx.wrong(); else sfx.miss();
+    var isRecord = score > best;
+    if (isRecord) { best = score; localStorage.setItem(BEST_KEY, String(best)); }
+    document.getElementById('medal').textContent = isRecord ? '👑' : (score >= 40 ? '🥇' : '🥉');
+    document.getElementById('new-record').classList.toggle('hidden', !isRecord);
+    document.getElementById('final-score').textContent = score;
+    refreshBest();
+    overOverlay.classList.remove('hidden');
+  }
+
+  function startGame() {
+    reset(); state = STATE.PLAYING;
+    startOverlay.classList.add('hidden');
+    overOverlay.classList.add('hidden');
+  }
+  function retry() { startGame(); }
+  document.getElementById('btn-start').addEventListener('click', startGame);
+  document.getElementById('btn-retry').addEventListener('click', retry);
+
+  // ===== Input =====
+  var KEYCOL = { d: 0, f: 1, j: 2, k: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    if (k === ' ') { e.preventDefault(); if (state === STATE.READY) startGame(); else if (state === STATE.OVER) retry(); return; }
+    if (k === 'enter') { e.preventDefault(); if (state === STATE.OVER) retry(); return; }
+    if (KEYCOL[k] === undefined) return;
+    e.preventDefault();
+    if (e.repeat) return;                     // 按住不放不算连点，必须是真按键
+    tapColumn(KEYCOL[k]);
+  });
+
+  document.getElementById('wrap').addEventListener('pointerdown', function (e) {
+    if (e.target && e.target.id === 'mute-btn') return;
+    if (e.target && e.target.closest && e.target.closest('.btn-row')) return;
+    if (state === STATE.READY) { startGame(); return; }
+    if (state !== STATE.PLAYING) return;
+    var r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    var x = (e.clientX - r.left) / r.width * W;
+    tapColumn(Math.floor(x / COLW));
+  });
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var full = t('pianoTap.share', { n: score, url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== Draw =====
+  function draw() {
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      shake *= 0.86; if (shake < 0.6) shake = 0;
+    }
+
+    ctx.fillStyle = '#fcfcfd';
+    ctx.fillRect(-40, -40, W + 80, H + 80);
+
+    // 行分隔线（跟着滚动一起走）
+    var off = scroll % CELLH;
+    ctx.strokeStyle = '#ececf2'; ctx.lineWidth = 2;
+    for (var gy = -off; gy < H + CELLH; gy += CELLH) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+    // 列分隔线
+    ctx.strokeStyle = '#e4e4ec'; ctx.lineWidth = 2;
+    for (var c = 1; c < COLS; c++) {
+      ctx.beginPath(); ctx.moveTo(c * COLW, 0); ctx.lineTo(c * COLW, H); ctx.stroke();
+    }
+
+    // 块
+    var from = Math.max(0, doneCount - 10);
+    var to = Math.min(tiles.length - 1, doneCount + 6);
+    for (var i = from; i <= to; i++) {
+      var y = tileY(i), h = CELLH - GAP, top = y - h / 2;
+      if (top > H + CELLH || top + h < -CELLH) continue;
+      var t2 = tiles[i];
+      var x = t2.col * COLW + PADV, w = COLW - PADV * 2;
+      ctx.beginPath(); ctx.roundRect(x, top, w, h, 12);
+      if (i < doneCount) { ctx.fillStyle = '#d9d9e2'; ctx.fill(); }
+      else { ctx.fillStyle = '#17171a'; ctx.fill(); }
+      if (i === doneCount && guide > 0) {      // 新手引导：前三块描个高亮边
+        ctx.strokeStyle = 'rgba(74,144,255,' + (guide * 0.95).toFixed(2) + ')';
+        ctx.lineWidth = 4; ctx.stroke();
+      }
+      if (i < doneCount && i >= doneCount - 2) {  // 刚点掉的两块留一道浅色描边
+        ctx.strokeStyle = 'rgba(74,144,255,.35)'; ctx.lineWidth = 3; ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // ===== Loop =====
+  var last = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);              // ★ 先排帧，单帧异常最多丢一帧
+    var dt = Math.min((now - last) / 16.666, 2.5);
+    last = now;
+    if (state === STATE.PLAYING) update(dt);
+    draw();
+  }
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+
+  preview();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
