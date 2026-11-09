@@ -1083,6 +1083,7 @@ function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);a
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
 function syncBoostBtn(){bb.classList.toggle('hidden',!(running&&!paused&&!ended&&player&&player.alive));mm.classList.toggle('hidden',!(running&&!ended&&player));lb.classList.toggle('hidden',!(running&&!ended&&player));$('pause').classList.toggle('hidden',!(mpOnline&&running&&!ended))}
 function update(dt){
+ if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathExit();return}
  if(!running||paused)return;
  if(mpRole==='client'){mpClientTick(dt);return}if(mpRole==='host')mpHostTick(dt);secretTick();wbTick();
  if(player.alive)gameTime+=dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
@@ -1103,7 +1104,7 @@ function update(dt){
  if(mode==='team'&&player.alive){if(teamScore[0]>=M.tgoal)endGame('win');else if(teamScore[1]>=M.tgoal)endGame('time')}
  if(bossWinT>0){bossWinT-=dt;if(bossWinT<=0)endGame('win')}
  evT-=dt;if(!ev&&evT<=0&&player.alive)startEvent();eventTick(dt);
- if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathExit()}\n if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(mpOnline&&!olDeathModeExempt()){olShowDeathSummary()}else if(canRevive())offerRevive();else endGame('dead')}}
+ if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(mpOnline&&!olDeathModeExempt()){olShowDeathSummary()}else if(canRevive())offerRevive();else endGame('dead')}}
  if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.add('hidden')}
  const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2;
  cam.x+=(tx-cam.x)*Math.min(1,dt*5);cam.y+=(ty-cam.y)*Math.min(1,dt*5);
