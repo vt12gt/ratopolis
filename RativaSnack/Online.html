@@ -381,6 +381,18 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
  #sheetBody .donation-reasons article:nth-child(-n+2){display:flex}
 }
 
+
+/* v87 — coleta em lote e destaque visual para eventos */
+.collect-all{width:100%;margin:0 0 8px!important;min-height:38px!important;font-size:12px!important;letter-spacing:.3px}
+.evt{display:grid!important;grid-template-columns:58px minmax(0,1fr)!important;gap:10px!important;padding:12px!important;border:1px solid #76509a!important;border-radius:13px!important;background:linear-gradient(135deg,#211532,#302044)!important;align-content:start!important}
+.evt .ei{font-size:44px!important;align-self:start!important;text-align:center!important}
+.evt .et{display:flex!important;flex-direction:column!important;gap:7px!important;min-width:0!important}
+.evt .et>b{font-size:19px!important;line-height:1.15!important;color:#fff!important}
+.evt .et>span{font-size:12px!important;line-height:1.35!important;color:#d7c9e8!important}
+.evt .et .bar{margin:3px 0!important}
+.evt .et em{display:block!important;padding:9px 10px!important;border:1px solid #8d6a36!important;border-radius:10px!important;background:#302515!important;color:#fff1bd!important;font-size:14px!important;font-weight:900!important;font-style:normal!important;line-height:1.25!important}
+.evt .et small{font-size:10px!important;line-height:1.35!important;color:#d0c0e2!important}
+@media(max-height:430px){.evt{grid-template-columns:42px minmax(0,1fr)!important;padding:7px!important;gap:7px!important}.evt .ei{font-size:34px!important}.evt .et{gap:4px!important}.evt .et>b{font-size:15px!important}.evt .et>span{font-size:10px!important}.evt .et em{padding:6px!important;font-size:12px!important}}
 </style></head>
 <body><div id="rotateNotice" role="status" aria-live="polite"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>GIRE O CELULAR</h2><p>O RativaSnack Online foi feito para jogar na horizontal. Vire o aparelho para continuar.</p></div></div><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -1158,6 +1170,7 @@ function bossVariant(b){if(wbRun)b.hp=wbHpNow();const k=wbRun?3:(prog.bossWins||
 function missionClaim(i){const m=prog.missions[i];if(!m||!m.d||m.c)return;m.c=1;addXp(m.xp);earn(Math.round(m.xp/2),'missão');prog.mDone=(prog.mDone||0)+1;if(!prog.mAll&&prog.mDone>=3){prog.mAll=1;addXp(MALL_XP);earn(30,'missão');showToast('🏆 3 missões do dia! +'+MALL_XP+' XP',3)}
  if((prog.mRef||0)<6){prog.mRef=(prog.mRef||0)+1;const used=new Set(prog.missions.map(x=>x.id)),g=genMissions(today()+prog.mRef*31+7).find(x=>!used.has(x.id))||genMissions(today()+prog.mRef*53+11)[0];prog.missions[i]={id:g.id,v:g.v,xp:g.xp,p:0,d:0,c:0}}
  checkAch();saveProg();sfx('bonus')}
+function missionClaimAll(){const ready=prog.missions.map((m,i)=>m.d&&!m.c?i:-1).filter(i=>i>=0);if(!ready.length){showToast('Nenhuma missão concluída para coletar.',2);return 0}for(const i of ready)missionClaim(i);showToast('🎁 '+ready.length+' missão(ões) coletada(s)!',3);return ready.length}
 function achCollect(id){const a=ACH.find(x=>x.id===id);if(!a||!prog.achR[id]||prog.ach[id])return;delete prog.achR[id];prog.ach[id]=1;addXp(a.xp);earn(Math.round(a.xp/2),'conquista');checkAch();saveProg();sfx('bonus')}
 const achReady=()=>ACH.some(a=>prog.achR[a.id]),ladReady=()=>ladHeads().some(h=>LT[h.k].v()>=h.T)||prog.missions.some(m=>m.d&&!m.c)||rwReady()||seasReady()||wbReady();
 function dotsUpdate(){const a=$('dotA'),m=$('dotM');if(a)a.classList.toggle('hidden',!achReady());if(m)m.classList.toggle('hidden',!ladReady())}
@@ -1393,7 +1406,7 @@ function renderSheet(name){sheetName=name;let h='';
  const pager=(arr,page,size)=>{const pages=Math.max(1,Math.ceil(arr.length/size));page=Math.min(Math.max(0,page),pages-1);return{items:arr.slice(page*size,page*size+size),page,pages}};
  const pgBar=(key,P)=>P.pages>1?`<span class="pg"><button data-act="pg:${key}:-1">‹</button><i>${P.page+1}/${P.pages}</i><button data-act="pg:${key}:1">›</button></span>`:'';
  if(name==='games'){h=`<div class="fit tiles">${Object.keys(MODES).map(k=>`<button class="tile${k===mode?' on':''}" data-act="mode:${k}"><b>${MICON[k]}</b><span>${MODES[k].name}</span><small>🏆 ${fmtBest(k)}</small></button>`).join('')}</div><button class="primary play" data-act="playnow:1">▶ JOGAR ${MODES[mode].name.toUpperCase()}</button>`}
- else if(name==='challenges'||name==='missions'){ensureDay();h=`<div class="mgrid">${ladderHtml()}${prog.missions.map((m,i)=>({m,i})).sort((a,b)=>(+(b.m.d&&!b.m.c))-(+(a.m.d&&!a.m.c))).map(({m,i})=>{const d=MPOOL.find(x=>x.id===m.id),rdy=m.d&&!m.c;return `<div class="mc2${rdy?' rdy':''}"><b>${d.t(m.v)}</b><div class="bar"><i style="width:${Math.round(m.p/m.v*100)}%"></i></div><small>${m.c?'✓ Resgatada':m.d?'🎁 Concluída!':m.p+'/'+m.v}</small>${rdy?`<button class="tgs on" data-act="mc:${i}">Resgatar +${m.xp} XP +${Math.round(m.xp/2)} 🧀</button>`:`<em>+${m.xp} XP • +${Math.round(m.xp/2)} 🧀</em>`}</div>`}).join('')}</div><p class="note">Completar as 3 dá +${MALL_XP} XP. Novas missões todo dia; cada uma paga uma única vez.</p>`}
+ else if(name==='challenges'||name==='missions'){ensureDay();const readyM=prog.missions.filter(m=>m.d&&!m.c).length;h=`${readyM?`<button class="primary play collect-all" data-act="mcall:1">🎁 COLETAR TUDO (${readyM})</button>`:''}<div class="mgrid">${ladderHtml()}${prog.missions.map((m,i)=>({m,i})).sort((a,b)=>(+(b.m.d&&!b.m.c))-(+(a.m.d&&!a.m.c))).map(({m,i})=>{const d=MPOOL.find(x=>x.id===m.id),rdy=m.d&&!m.c;return `<div class="mc2${rdy?' rdy':''}"><b>${d.t(m.v)}</b><div class="bar"><i style="width:${Math.round(m.p/m.v*100)}%"></i></div><small>${m.c?'✓ Resgatada':m.d?'🎁 Concluída!':m.p+'/'+m.v}</small>${rdy?`<button class="tgs on" data-act="mc:${i}">Resgatar +${m.xp} XP +${Math.round(m.xp/2)} 🧀</button>`:`<em>+${m.xp} XP • +${Math.round(m.xp/2)} 🧀</em>`}</div>`}).join('')}</div><p class="note">Completar as 3 dá +${MALL_XP} XP. Novas missões todo dia; cada uma paga uma única vez.</p>`}
  else if(name==='events'){const e=evtOf(),st=evtState(),t=today(),up=[1,2,3].map(k=>DEVT[(t+k)%DEVT.length]),hs=prog.evHist.slice(-5).reverse();
  h=`<div class="fit evt"><div class="ei">${e.i}</div><div class="et"><b>${e.n}</b><span>${e.d}</span><div class="bar"><i style="width:${Math.round(st.p/e.v*100)}%"></i></div><small>${st.d?'✅ Objetivo cumprido hoje!':'Objetivo: '+e.g+' ('+st.p+'/'+e.v+')'}</small><em>Recompensa: 🧀 120 + 60 XP • termina à meia-noite</em><small>Próximos: ${up.map(x=>x.i+' '+x.n).join(' • ')}</small><small>Histórico: ${hs.length?hs.map(x=>{const d=DEVT.find(y=>y.id===x.id);return (d?d.i:'')+' '+(t-x.d)+'d atrás'}).join(' • '):'nenhuma participação ainda'}</small></div></div><p class="note">O evento muda todo dia e vale em todos os modos.</p>${wbHtml()}${seasHtml()}`}
   else if(name==='gallery'){const ids=Object.keys(RATS).filter(k=>!RATS[k].hid),own=ids.filter(ratOwned).length;
@@ -1493,6 +1506,7 @@ function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=a
  else if(k==='ctl'&&['arrastar','joystick','toque'].includes(v))prefs.ctl=v;else if((k==='sens'||k==='csz'||k==='vol'||k==='dead')&&+v>=0&&+v<=2)prefs[k]=+v;else if(k==='diff'&&+v>=0&&+v<DIFFS.length)prefs.diff=+v;else if(k==='qual'&&QUAL[v]){prefs.quality=v;resize()}
  else if(k==='turn'&&+v>=0&&+v<TURNS.length)prefs.turn=+v;
  else if(k==='mc'){missionClaim(+v);menuInfo();renderSheet(sheetName);return}
+ else if(k==='mcall'){missionClaimAll();menuInfo();renderSheet(sheetName);return}
  else if(k==='ratlock'){const r=RATS[v];if(r)showToast('🔒 '+r.n+(r.ex?' é prêmio de evento (veja Evento e Semana)':' desbloqueia no nível '+r.lv),3);return}
  else if(k==='rat'&&(v==='nenhum'||RATS[v]&&ratOwned(v))){prefs.rat=v;savePrefs();renderSheet(sheetName==='gallery'?'gallery':'custom');return}
  else if(k==='seasc'){seasClaim();menuInfo();renderSheet('events');return}
