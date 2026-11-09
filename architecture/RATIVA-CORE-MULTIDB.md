@@ -113,3 +113,38 @@ Cadastro/login/logout, emissão e revogação de sessão, `/api/me` como valida�
 - Migrar grupos de rotas por domínio, começando por leitura de perfil/progresso/rankings; depois recompensas, loja/inventário/VIP, eventos/presentes e editor de cenários.
 - Manter contratos JSON atuais para não exigir mudança simultânea no cliente.
 - Só apontar o cliente para o novo serviço depois de testes de integração e validação das rotas equivalentes. Nenhum binding de produção deve ser alterado nesta fase.
+
+
+## Primeira entrega de código do serviço Rativapolis (desenvolvimento)
+
+Foi criado `workers/rativapolis-api-dev.js` e implantado como Worker separado `rativapolis-api-dev`. Ele não substitui nem altera o Worker Portal legado.
+
+Bindings confirmados no Worker:
+- `PORTAL_DB` → `ratopolis-dev-v31` (identidade/sessões centrais).
+- `POLIS_DB` → `rativapolis-dev-isolated` (perfis e dados do jogo).
+
+### Endpoints iniciais
+
+- `GET /health` e `GET /api/rativapolis/health`: diagnóstico de conectividade e contagem de contas/perfis.
+- `GET /api/rativapolis/profile`, `/api/rativapolis/profile/personal` e `/api/rativapolis/me`: perfil de jogo, com nickname e papel lidos do Portal.
+- `GET /api/rativapolis/progression/me`: nível, XP, VIP e moedas do perfil Polis.
+- `GET /api/rativapolis/rankings` e `/api/rativapolis/rankings/level`: ranking público por nível/XP, paginado.
+- `GET /api/rativapolis/players`: lista pública de jogadores ativos.
+
+### Regras implementadas
+
+- Bearer é validado por hash SHA-256 contra sessão ativa no Portal.
+- Perfil local é localizado por `portal_user_id`; não há fallback por nickname, e-mail ou ID legado.
+- Nickname local é sincronizado a partir do Portal.
+- As consultas e escritas de perfil usam somente `POLIS_DB`; nenhuma senha ou sessão é copiada para a D1 Polis.
+- O ranking usa exclusivamente `game_users` e `ratopolis_profiles` da D1 Polis.
+
+### Limites desta primeira entrega
+
+- Esta versão inicial é somente leitura para dados de jogo (a sincronização do nickname e a criação idempotente de perfil vazio são as únicas escritas de perfil).
+- Recompensas, loja, inventário, VIP pago, eventos, presentes e editor de cenários ainda não foram movidos.
+- O cliente do jogo ainda não foi apontado para o novo Worker; o Worker legado continua servindo o fluxo atual.
+- O deploy foi aceito pelo Cloudflare e os dois bindings foram confirmados pela configuração do Worker. O teste HTTP público de runtime não pôde ser concluído neste ambiente; health e endpoints precisam de smoke test externo antes de qualquer troca do cliente.
+- Nenhuma configuração de produção foi alterada.
+
+Próxima etapa: smoke tests autenticados e integração do cliente de teste com os endpoints de perfil/progresso/ranking; em seguida, implementar recompensas e os demais domínios com idempotência e auditoria.
