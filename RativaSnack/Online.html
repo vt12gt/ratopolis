@@ -300,6 +300,22 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .ol-screen .ol-action{display:block;width:100%;margin-top:14px;padding:12px 14px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffdf71,#e99b2d);color:#351b0a;font-weight:1000}
 
 .ol-screen .ol-action{margin-top:10px}.ol-screen .ol-action:active{transform:scale(.99)}#rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){#game{visibility:hidden!important}#rotateNotice{display:flex!important}}.portal-rank-link{display:block;margin:10px auto 0;text-align:center;text-decoration:none;color:#f0e7fb;width:100%;}
+
+/* v82 — ranking em duas colunas e central de doações no lobby online */
+.online-rank-list.rank-two-column{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(5,minmax(42px,auto));grid-auto-flow:column;gap:5px;max-height:none;overflow:visible;align-content:start}
+.rank-two-column .online-rank-row{grid-template-columns:22px minmax(0,1fr);grid-template-rows:auto auto;gap:2px 5px;min-width:0;padding:6px 5px;align-content:center}
+.rank-two-column .online-rank-row i{grid-row:1/3;align-self:center}
+.rank-two-column .online-rank-row b{grid-column:2;grid-row:1;font-size:11px;min-width:0}
+.rank-two-column .online-rank-row span{grid-column:2;grid-row:2;text-align:left;font-size:10px}
+.rank-two-column .online-rank-row small{display:none}
+.rank-pager{gap:5px;flex-wrap:wrap}.rank-pager button{min-width:34px;padding:7px 9px}
+.donation-sheet{display:block!important;overflow-y:auto!important;max-height:calc(100dvh - 100px);padding:2px 3px 10px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.donation-total{padding:18px 12px;border:1px solid #76509a;border-radius:14px;background:linear-gradient(135deg,#171020,#302044);display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;margin-bottom:10px}
+.donation-total small{font-size:10px;font-weight:900;letter-spacing:.7px;color:#e1baff}.donation-total strong{font-size:clamp(28px,7vw,42px);color:#ffe18a;line-height:1.1}.donation-total span{font-size:10px;color:#c8b7d9}
+.donation-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px}.donation-methods article,.donation-reasons article,.donation-funds article{padding:10px;border-radius:10px;background:#1a1025;border:1px solid #ffffff1b;display:flex;flex-direction:column;gap:5px;min-width:0}.donation-methods b{font-size:14px}.donation-methods small,.donation-reasons small{color:#c8b7d9;font-size:10px;line-height:1.35}.donation-methods button{padding:10px 5px;font-size:12px;margin-top:3px}
+.donation-label{display:block;text-align:left;font-size:12px;font-weight:800;margin:10px 0 5px}.donation-sheet input{width:100%;max-width:240px;padding:10px;border:1px solid #60467b;border-radius:9px;background:#100d1d;color:#fff;font-size:17px}
+.donation-info{margin-top:12px;text-align:left}.donation-info h3{font-size:15px;margin:12px 0 7px}.donation-info p,.donation-disclaimer{font-size:11px;line-height:1.45;color:#c8b7d9}.donation-reasons{display:grid;grid-template-columns:1fr 1fr;gap:6px}.donation-reasons article{font-size:17px}.donation-reasons b{font-size:11px}.donation-funds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.donation-funds small{font-size:9px;color:#c8b7d9}.donation-funds b{font-size:clamp(13px,3vw,19px);color:#ffe18a;overflow-wrap:anywhere}.donation-info h4{font-size:12px;margin:12px 0 4px}.donation-weeks{display:grid;gap:7px;margin-top:8px}.donation-weeks>div{display:grid;grid-template-columns:60px minmax(30px,1fr) auto;align-items:center;gap:7px;font-size:10px}.donation-weeks i{height:8px;background:#38294d;border-radius:8px;overflow:hidden}.donation-weeks i b{display:block;width:0;height:100%;background:#a66bff}.donation-weeks strong{font-size:10px}.donation-disclaimer{margin-top:12px;padding:9px;background:#100d1d;border-radius:9px}
+@media(max-width:420px){.donation-funds{grid-template-columns:1fr}.donation-methods button{font-size:10px}.rank-two-column .online-rank-row{padding:5px 3px}.rank-two-column .online-rank-row b{font-size:10px}}
 </style></head>
 <body><div id="rotateNotice" role="status" aria-live="polite"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>GIRE O CELULAR</h2><p>O RativaSnack Online foi feito para jogar na horizontal. Vire o aparelho para continuar.</p></div></div><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -333,7 +349,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
-  <button class="b3d sq" data-sheet="custom"><span>🎨</span>Visual</button>
+  <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
  </div>
 </div>
 <div class="m2bot">
@@ -1268,30 +1284,28 @@ function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
 let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[];
 function drawRemoteRankingPage(){
- const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10;
+ const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10,pages=5;
  if(!list)return;
- const pages=Math.max(1,Math.ceil(remoteRankPlayers.length/pageSize));
  remoteRankPage=Math.max(1,Math.min(pages,remoteRankPage));
  const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
- list.replaceChildren();
- list.style.display='flex';list.style.flexDirection='column';list.style.gap='5px';list.style.minHeight='54px';list.style.maxHeight='260px';list.style.overflowY='auto';
- if(!players.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
- players.forEach((p,i)=>{
+ list.replaceChildren();list.className='online-rank-list rank-two-column';
+ list.style.maxHeight='none';list.style.minHeight='0';list.style.overflowY='visible';
+ if(!remoteRankPlayers.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
+ // Ordem por coluna: 1–5 à esquerda e 6–10 à direita.
+ const ordered=players.slice(0,5).concat(players.slice(5,10));
+ ordered.forEach((p,i)=>{
   const row=document.createElement('div');row.className='online-rank-row';
-  const pos=document.createElement('i');pos.textContent=(start+i+1)+'º';
-  const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||p.public_id||p.id||'Jogador';
+  const pos=document.createElement('i');pos.textContent=(start+i+1)+'.';
+  const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||'Jogador';
   const score=document.createElement('span');score.textContent=Math.max(0,Number(p.score??p.best_score??p.total_score??p.points)||0).toLocaleString('pt-BR')+' pts';
-  const detail=document.createElement('small');detail.textContent=(p.public_id?'ID '+p.public_id+' · ':'')+Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
+  const detail=document.createElement('small');detail.textContent=Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
   row.append(pos,nick,score,detail);list.append(row);
  });
  if(pager){
   pager.replaceChildren();
-  const prev=document.createElement('button');prev.className='tgs';prev.dataset.act='rankpage:prev';prev.textContent='‹ Anterior';prev.disabled=remoteRankPage===1;
-  const label=document.createElement('b');label.textContent='Página '+remoteRankPage+' de '+pages;
-  const next=document.createElement('button');next.className='tgs';next.dataset.act='rankpage:next';next.textContent='Próxima ›';next.disabled=remoteRankPage===pages;
-  pager.append(prev,label,next);
+  for(let n=1;n<=5;n++){const b=document.createElement('button');b.className='tgs'+(remoteRankPage===n?' on':'');b.textContent=String(n);b.dataset.act='rankpage:page:'+n;b.setAttribute('aria-label','Página '+n);pager.append(b);}
  }
- if(meta)meta.textContent=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores encontrados';
+ if(meta)meta.textContent=(remoteRankPeriod==='monthly'?'Classificação mensal':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • 5 páginas de 10';
 }
 async function loadRemoteRanking(period){
  remoteRankPeriod=period==='monthly'?'monthly':'best';remoteRankPage=1;
@@ -1302,7 +1316,7 @@ async function loadRemoteRanking(period){
   const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
   const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
-  remoteRankPlayers=Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[];remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||String(a.nickname||a.display_name||a.public_id||'').localeCompare(String(b.nickname||b.display_name||b.public_id||''),'pt-BR'));
+  remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
   if(meta&&remoteRankPeriod==='monthly'&&data.cycle&&data.cycle.key){const a=data.cycle.key.split('-');meta.textContent='Ciclo mensal: '+a[1]+'/'+a[0]+' • zera no próximo mês'}
   drawRemoteRankingPage();
  }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
@@ -1326,7 +1340,20 @@ function renderSheet(name){sheetName=name;let h='';
  const st=prog.achR[a0.id]?'🎁 Pronta! Toque em Coletar':prog.ach[a0.id]?'✓ Conquistada':a0.d+(a0.p?' ('+Math.min(a0.t,Math.floor(a0.p()))+'/'+a0.t+')':''),got=ACH.filter(a=>prog.ach[a.id]).length;
  h=`<div class="achw"><div class="achnav"><button data-act="acat:-1" aria-label="Aba anterior">◀</button><b>${cn} • ${list.filter(x=>prog.ach[x.id]).length}/${list.length}${catRdy(cn)?' 🔴':''}</b><button data-act="acat:1" aria-label="Próxima aba">▶</button></div><div class="achg2">${list.map(a=>`<button class="ab${prog.ach[a.id]?' got':''}${prog.achR[a.id]?' rdy':''}${a.id===a0.id?' sel':''}" data-act="asel:${a.id}">${a.i}</button>`).join('')}</div><div class="achd"><b>${a0.i} ${a0.n}</b><span>${st}</span>${prog.achR[a0.id]?`<button class="tgs on" data-act="acol:${a0.id}">Coletar +${a0.xp} XP +${Math.round(a0.xp/2)} 🧀</button>`:`<span>+${a0.xp} XP</span>`}<small>${got}/${ACH.length} coletadas</small></div></div>`}
  else if(name==='ranking'){
-  h=`<div class="fit rkfull"><div class="online-rank"><div class="lbl">🏆 Classificação oficial RativaSnack</div><div class="seg rank-period"><button class="${remoteRankPeriod==='best'?'on':''}" data-act="rperiod:best">🏆 Melhor pontuação</button><button class="${remoteRankPeriod==='monthly'?'on':''}" data-act="rperiod:monthly">📅 Mensal</button></div><small id="remoteRankMeta" class="rank-meta">Carregando classificação…</small><div id="remoteRankList" class="online-rank-list">Carregando jogadores…</div><div id="remoteRankPager" class="rank-pager"></div></div><a class="sec portal-rank-link" href="https://vt12gt.github.io/RativaGames/?view=ranking&amp;game=ratosnack" target="_blank" rel="noopener">🏆 Ver ranking completo no portal RativaGames</a></div><p class="note">Aqui aparece somente a classificação dos jogadores. Suas conquistas e recordes pessoais ficam em Estatísticas.</p>`} else if(name==='records'){const c=[['🎮 Partidas',stats.games],['⚔️ Eliminações',stats.kills],['🧀 Queijos',stats.food],['⏱️ Tempo total',fmtTime(stats.time)],['📏 Maior tamanho',stats.bestSize],['🔥 Melhor sequência',prog.bestStreak],['🏅 Rivais especiais',prog.specials],['⭐ Nível / XP',lvlInfo(prog.xp).l+' • '+prog.xp],['💰 Saldo',eco.cheese],['📈 Queijos ganhos',eco.earned],['🛒 Queijos gastos',eco.spent],['⚡ Recorde rápido',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['🍽️ Comidas',prog.bestFood],['🏆 Melhor abate',stats.bestKills],['📊 Melhor tamanho',stats.bestSize]];
+  h=`<div class="fit rkfull"><div class="online-rank"><div class="lbl">🏆 Classificação oficial RativaSnack</div><div class="seg rank-period"><button class="${remoteRankPeriod==='best'?'on':''}" data-act="rperiod:best">🏆 Melhor pontuação</button><button class="${remoteRankPeriod==='monthly'?'on':''}" data-act="rperiod:monthly">📅 Mensal</button></div><small id="remoteRankMeta" class="rank-meta">Carregando classificação…</small><div id="remoteRankList" class="online-rank-list">Carregando jogadores…</div><div id="remoteRankPager" class="rank-pager"></div></div><a class="sec portal-rank-link" href="https://vt12gt.github.io/RativaGames/?view=ranking&amp;game=ratosnack" target="_blank" rel="noopener">🏆 Ver ranking completo no portal RativaGames</a></div><p class="note">Aqui aparece somente a classificação dos jogadores. Suas conquistas e recordes pessoais ficam em Estatísticas.</p>`} else if(name==='donations'){
+  h=`<div class="fit donation-sheet">
+   <div class="donation-total"><small>💜 TOTAL CONFIRMADO DE DOAÇÕES</small><strong id="snackDonationTotal">Carregando…</strong><span id="snackDonationUpdated">Somente pagamentos aprovados</span></div>
+   <div class="donation-methods"><article><b>⚡ PIX</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonatePix">Doar com Pix</button></article><article><b>💳 CARTÃO</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonateCard">Doar com cartão</button></article></div>
+   <label class="donation-label" for="snackDonationAmount">Valor da doação (R$)</label><input id="snackDonationAmount" type="number" min="1" max="10000" step="0.01" value="5.00">
+   <div class="notice" id="snackDonationNotice">As doações são voluntárias. Somente pagamentos confirmados pelo Mercado Pago entram no total público.</div>
+   <div class="donation-info"><h3>💜 Por que fazer uma doação?</h3><div class="donation-reasons"><article>🖥️ <b>Manter os servidores</b><small>Hospedagem, banco de dados, conexão e infraestrutura dos jogos.</small></article><article>🛠️ <b>Desenvolver novidades</b><small>Correções, mapas, eventos, recursos e melhorias de segurança.</small></article><article>📻 <b>Fortalecer a comunidade</b><small>Rádio, feed, chat, rankings e espaços para os jogadores.</small></article><article>🏆 <b>Incentivar competições</b><small>Eventos e campeonatos com regras e resultados transparentes.</small></article></div>
+   <h3>📊 Prestação de contas</h3><p>O total arrecadado é atualizado com pagamentos aprovados. A divisão abaixo é uma previsão de destinação, não comprovação de despesas ou repasses realizados.</p>
+   <div class="donation-funds"><article><small>Total recebido</small><b id="snackDonationAuditTotal">—</b></article><article><small>Destinação planejada · 60%</small><b id="snackDonationPrize">—</b></article><article><small>Operação e infraestrutura · 40%</small><b id="snackDonationProject">—</b></article></div>
+   <h4>Histórico semanal</h4><small id="snackDonationAuditUpdated">Aguardando dados do servidor</small><div class="donation-weeks"><div><span>Semana 1</span><i><b id="snackDonationBar1"></b></i><strong id="snackDonationWeek1">—</strong></div><div><span>Semana 2</span><i><b id="snackDonationBar2"></b></i><strong id="snackDonationWeek2">—</strong></div><div><span>Semana 3</span><i><b id="snackDonationBar3"></b></i><strong id="snackDonationWeek3">—</strong></div></div>
+   <p class="donation-disclaimer">A doação é voluntária e não garante moedas, itens, VIP, vantagem competitiva ou tratamento especial dentro do jogo. Não envie dinheiro por fora do checkout oficial.</p></div>
+  </div>`;
+ }
+ else if(name==='records'){const c=[['🎮 Partidas',stats.games],['⚔️ Eliminações',stats.kills],['🧀 Queijos',stats.food],['⏱️ Tempo total',fmtTime(stats.time)],['📏 Maior tamanho',stats.bestSize],['🔥 Melhor sequência',prog.bestStreak],['🏅 Rivais especiais',prog.specials],['⭐ Nível / XP',lvlInfo(prog.xp).l+' • '+prog.xp],['💰 Saldo',eco.cheese],['📈 Queijos ganhos',eco.earned],['🛒 Queijos gastos',eco.spent],['⚡ Recorde rápido',bestQuick],['⏳ Sobrevivência',fmtTime(stats.bestTime)],['🎯 Desafio',stats.bestChallenge],['🔵 Equipes',prog.mrec.team],['👹 Chefe',prog.mrec.boss],['🌊 Infinito',prog.mrec.infinite],['🍽️ Comidas',prog.bestFood],['🏆 Melhor abate',stats.bestKills],['📊 Melhor tamanho',stats.bestSize]];
   h=`<div class="fit rkl"><div class="lbl">🏅 Melhores partidas pessoais</div><div class="cells2">${prog.top.slice(0,3).map((t,i)=>`<div><small>${i+1}º • ${MICON[t.m]||''} ${MODES[t.m].name}</small><b>${t.s} pts</b></div>`).join('')||'<div><small>Recordes</small><b>Jogue para registrar</b></div>'}</div></div><div class="fit cells">${c.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`}
  else if(name==='hist'){h=`<div class="fit hist">${eco.hist.slice(-10).reverse().map(x=>`<div><span>${x.s}</span><b class="${x.d>0?'pos':'neg'}">${x.d>0?'+':''}${x.d}</b><small>→ ${x.b}</small></div>`).join('')||'<p class="note">Nenhuma transação ainda.</p>'}</div>`}
  else if(name==='skills'){h=`<div class="fit sk">${Object.keys(SKILL_LIST).map(k=>{const c=SKILL_LIST[k],L=eco.lv[k],mx=L>=SKILL_CFG.max,cost=mx?0:skillCost(L),key='up:'+k;return`<div class="card"><b>${c.i} ${c.n}</b><small>Nv ${L}/${SKILL_CFG.max} • ${skTxt(k,L)}</small>${mx?'<small class="nx">🏆 Nível máximo!</small>':`<small class="nx">→ ${skTxt(k,L+1)}</small>`}<button class="buy${mx?' maxed':eco.cheese<cost?' poor':''}" data-act="${mx?'noop:1':key}">${mx?'NÍVEL MÁXIMO ✓':pendingBuy===key?'Confirmar • 🧀 '+cost:'Evoluir • 🧀 '+cost}</button></div>`}).join('')}</div><p class="note">${shopMsg||'Saldo: 🧀 '+eco.cheese+' • toque duas vezes para confirmar.'}</p>`}
@@ -1341,7 +1368,34 @@ function renderSheet(name){sheetName=name;let h='';
   h=`<div class="fit vis"><div class="vl"><canvas id="pvc" width="360" height="170" class="pvc"></canvas><small>Só muda a aparência; não dá vantagem.</small></div><div class="vr"><div class="tabs s">${Object.keys(T).map(k=>`<button class="${k===custTab?'on':''}" data-act="tab:${k}">${T[k][0]}</button>`).join('')}${pgBar('vis',P)}</div><div class="chipg${custTab==='cor'?' cols6':''}">${chips}</div></div></div>`}
  else{h=`<div class="fit hc">${[['🕹️ Controle','Arraste o dedo na direção que quer ir. Segure ⚡ para acelerar.'],['⚠️ Regras','Bater na parede ou em outro corpo elimina. No choque frontal o maior vence.'],['🧀 Queijos','Coma para crescer. Eliminar ratos solta queijos e dá moedas.'],['⚡ Poderes','Velocidade, ímã, escudo, ×2 e crescimento. Evolua na Loja.'],['🎮 Modos','Rápida, Sobrevivência, Desafio, Equipes, Chefe e Infinito.'],['🐭 Rivais','Guloso, Caçador, Cauteloso… e especiais: 👑 Rei, 👻 Fantasma, 🦏 Tanque.']  ,['📊 Desempenho',perfTxt()],['⬆️ Atualização','Versão '+VERSION+'. '+updTxt()],['📈 Estatísticas','Eliminações '+stats.kills+' • Queijos comidos '+stats.food+' • Maior tamanho '+stats.bestSize+' • Melhor sobrevivência '+Math.floor(stats.bestTime)+' s']].map(c=>`<div class="card"><b>${c[0]}</b><small>${c[1]}</small></div>`).join('')}</div>`}
  $('sheetBody').classList.toggle('fix',name==='shop');$('sheetBody').innerHTML=tabBar(name)+h;if(name==='gallery')$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},1.7*d)});
- if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw();if(name==='ranking')loadRemoteRanking(remoteRankPeriod)}
+ if(name==='custom'){{const pv=$('pvc'),b=pv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pv.width=Math.max(200,Math.round(b.width*d));pv.height=Math.max(120,Math.round(b.height*d));drawChip(pv,{},1.9*d)}$('sheetBody').querySelectorAll('canvas.cpv').forEach(c=>{const b=c.parentNode.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),z=+c.dataset.z||1;c.width=Math.max(80,Math.round(b.width*d));c.height=Math.max(80,Math.round(b.height*d));drawChip(c,{[c.dataset.t]:c.dataset.v},z>1?z*d:1)})}if(name==='shop')shopDraw();if(name==='ranking')loadRemoteRanking(remoteRankPeriod);if(name==='donations')loadSnackDonations()}
+const SNACK_DONATION_API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
+const snackMoney=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+async function loadSnackDonations(){
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=v};
+ const pix=$('snackDonatePix'),card=$('snackDonateCard');
+ if(pix)pix.onclick=()=>startSnackDonation('pix');if(card)card.onclick=()=>startSnackDonation('card');
+ try{
+  const response=await fetch(SNACK_DONATION_API+'/api/donations/public-summary',{cache:'no-store'}),data=await response.json();
+  if(!response.ok||!data.ok)throw new Error('summary_unavailable');
+  const total=Number(data.total_brl)||0;set('snackDonationTotal',snackMoney(total));set('snackDonationAuditTotal',snackMoney(total));set('snackDonationPrize',snackMoney(total*.6));set('snackDonationProject',snackMoney(total*.4));
+  const updated=data.updated_at?new Date(data.updated_at).toLocaleString('pt-BR'):'Atualização não informada';set('snackDonationUpdated','Atualizado: '+updated);set('snackDonationAuditUpdated','Última atualização: '+updated);
+  const weeks=Array.isArray(data.weekly)?data.weekly.slice(-3):[],values=[0,0,0];weeks.forEach((w,i)=>values[3-weeks.length+i]=Number(w.total_brl)||0);const max=Math.max(1,...values);
+  values.forEach((v,i)=>{set('snackDonationWeek'+(i+1),snackMoney(v));const bar=$('snackDonationBar'+(i+1));if(bar)bar.style.width=(v/max*100)+'%'});
+ }catch(e){set('snackDonationTotal','Indisponível');set('snackDonationUpdated','Não foi possível consultar os dados públicos.');set('snackDonationNotice','Não foi possível carregar o resumo de doações. Tente novamente mais tarde.')}
+}
+async function startSnackDonation(method){
+ const note=$('snackDonationNotice'),amount=Number($('snackDonationAmount')?.value);
+ if(!ol.token){if(note)note.textContent='Entre no Portal RativaGames e abra o jogo novamente para fazer uma doação.';return}
+ if(!Number.isFinite(amount)||amount<1||amount>10000){if(note)note.textContent='Informe um valor entre R$ 1,00 e R$ 10.000,00.';return}
+ const buttons=[$('snackDonatePix'),$('snackDonateCard')];buttons.forEach(b=>{if(b)b.disabled=true});
+ if(note)note.textContent='Conectando ao checkout seguro do Mercado Pago…';
+ try{
+  const response=await fetch(SNACK_DONATION_API+'/api/donations/checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ol.token},body:JSON.stringify({amount,method})});
+  const data=await response.json();if(!response.ok||!data.ok||!data.checkout_url)throw new Error(data.erro||'Não foi possível iniciar o pagamento.');
+  if(note)note.textContent='Checkout criado. Abrindo o Mercado Pago…';location.assign(data.checkout_url);
+ }catch(e){if(note)note.textContent=e.message||'Falha ao iniciar a doação. Tente novamente.';buttons.forEach(b=>{if(b)b.disabled=false})}
+}
 const GROUP={shop:'loja',items:'loja',skills:'loja',ranking:'rank',records:'rank',hist:'rank',settings:'cfg',controls:'cfg',custom:'cfg',gallery:'cfg',help:'cfg',challenges:'des',missions:'des',events:'des',daily:'des',ach:'des',rewards:'des'};
 const GTABS={loja:[['shop','🎨 Cosméticos'],['items','🛒 Itens'],['skills','🧬 Habilidades']],rank:[['ranking','🏆 Ranking'],['records','📊 Estatísticas'],['hist','🧾 Queijos']],cfg:[['settings','⚙️ Ajustes'],['controls','🕹️ Controles'],['custom','🎨 Visual'],['gallery','🖼️ Galeria'],['help','❓ Ajuda']],des:[['challenges','🎯 Missões'],['events','🌟 Evento'],['daily','🎁 Diária'],['ach','🏅 Conquistas'],['rewards','🗓️ Semana']]};
 function tabBar(n){const g=GROUP[n];if(!g)return '';const cur=n==='missions'?'challenges':n;return '<div class="tabs top">'+GTABS[g].map(t=>`<button class="${t[0]===cur?'on':''}" data-act="go:${t[0]}">${t[1]}${t[0]==='daily'&&dailyAvail()?' •':''}${t[0]==='events'&&(seasReady()||wbReady())?' 🔴':''}${t[0]==='rewards'&&rwReady()?' 🔴':''}${t[0]==='ach'&&achReady()?' 🔴':''}${t[0]==='challenges'&&ladReady()?' 🔴':''}</button>`).join('')+'</div>'}
