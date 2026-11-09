@@ -678,9 +678,9 @@ function init1(){
  rebuildSnakes();for(let i=botTarget(0);i<bots.length;i++){bots[i].alive=false;bots[i].respawnAt=0}
  const target=foodTarget();for(let i=0;i<target;i++)randFood(Math.random()<.05?1:0);
  cam.x=player.x-W/2;cam.y=player.y-H/2;$('toast').classList.add('hidden');updateHud(true);mpAttach();secretsInit();canvas.style.filter=(evtOf().id==='noite'||(seasActive()&&seasActive().id==='halloween'))?'brightness(.72) contrast(1.08)':'';EVM=evtOf().id==='corrida'?1.22:1;if(evtOf().id==='gigante')for(const b of bots)if(b.alive)b.length+=22;if(ARENA&&ARENA.o.length)showToast('🗺️ Arena: '+ARENA.n+(ARENA.o.some(a=>a[4])?' • evite as zonas vermelhas':''),3)}
-function respawnBot(i){let x=0,y=0,t=0;const far=(px,py)=>{for(const s of snakes){if(!s.alive)continue;if(Math.hypot(s.x-px,s.y-py)<260)return false;for(let j=3;j<s.segments.length;j+=3)if(Math.hypot(s.segments[j].x-px,s.segments[j].y-py)<140)return false}return true};
+function respawnOnlinePlayer(){if(!mpOnline||!player||player.alive)return;const old=player;let x=0,y=0,t=0;const far=(px,py)=>{for(const q of snakes){if(!q.alive||q===old)continue;if(Math.hypot(q.x-px,q.y-py)<300)return false;for(let j=3;j<q.segments.length;j+=3)if(Math.hypot(q.segments[j].x-px,q.segments[j].y-py)<150)return false}return true};do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<24&&(!far(x,y)||inObs(x,y,70)));const n=Math.max(3,Math.floor(old.length*.3)),ang=Math.atan2(worldH/2-y,worldW/2-x)+rand(-.6,.6);const np=mkSnake(x,y,ang,old.color,old.name,false,n,null);applyCosmetics(np);np.kills=old.kills;np.shield=3;np.localPaused=!!(paused||resumeCountdown>0);player=np;snakes[0]=np;dyingT=0;lastKiller=null;causeText='';resumeCountdown=0;$('resumeWait').classList.add('hidden');cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;pointer.dirX=Math.cos(np.angle);pointer.dirY=Math.sin(np.angle);inputLock=performance.now()+450;syncBoostBtn();showToast('💫 Você reapareceu! Perdeu 70% do tamanho e recebeu 3 s de proteção.',3);}function respawnBot(i){const previous=bots[i],respawnSize=previous&&previous.remote?Math.max(3,Math.floor(previous.length*.3)):Math.floor(rand(7,15));let x=0,y=0,t=0;const far=(px,py)=>{for(const s of snakes){if(!s.alive)continue;if(Math.hypot(s.x-px,s.y-py)<260)return false;for(let j=3;j<s.segments.length;j+=3)if(Math.hypot(s.segments[j].x-px,s.segments[j].y-py)<140)return false}return true};
  do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<12&&(!far(x,y)||inObs(x,y,70)));
- const ang=Math.atan2(worldH/2-y,worldW/2-x)+rand(-.6,.6);const b=mkSnake(x,y,ang,COLORS[(Math.random()*COLORS.length)|0],BOTS[i][0],true,Math.floor(rand(7,15)),BOTS[i][1]);bots[i]=b;snakes[i+1]=b;mpRebind(i);if(evtOf().id==='gigante')b.length+=22}
+ const ang=Math.atan2(worldH/2-y,worldW/2-x)+rand(-.6,.6);const b=mkSnake(x,y,ang,previous&&previous.remote?previous.color:COLORS[(Math.random()*COLORS.length)|0],previous&&previous.remote?previous.name:BOTS[i][0],true,respawnSize,BOTS[i][1]);bots[i]=b;snakes[i+1]=b;mpRebind(i);if(evtOf().id==='gigante')b.length+=22}
 
 // Quantidade de adversários ativos acompanha a ameaça (8 a 11); os demais ficam em reserva.
 function botTarget(T){if(mpOnline)return 3;if(mode==='boss'||mode==='treino')return 4;return Math.max(8,Math.min(BOTS.length-1,Math.round(8+3.2*T)+DIFFS[prefs.diff].count))}
@@ -818,7 +818,7 @@ function die(s,reason,by){if(!s.alive||s.localPaused)return;if(s.armor>0&&reason
  if(s===player){lastKiller=by||null;causeText=reason==='wall'?'Você bateu na parede.':by?(by===s?'Seu rato foi pego!':`Você colidiu com o corpo de ${by.name}.`):'Seu rato foi pego!';
   if(reason==='head'&&by)causeText=`Choque de frente com ${by.name}, que era maior.`;
   dyingT=.9;releaseDrag();$('pause').classList.add('hidden');sfx('death');syncMusic()}
- else s.respawnAt=gameTime+1.2}
+ else{s.respawnLength=s.remote?Math.max(3,Math.floor(s.length*.3)):0;s.respawnAt=gameTime+1.2}}
 const vics=[],byk=[];
 const dd=(x1,y1,x2,y2)=>{const a=x1-x2,b=y1-y2;return a*a+b*b};
 function sd(px,py,ax,ay,bx,by){const abx=bx-ax,aby=by-ay,t=Math.max(0,Math.min(1,((px-ax)*abx+(py-ay)*aby)/(abx*abx+aby*aby||1)));return dd(px,py,ax+abx*t,ay+aby*t)}
@@ -1139,13 +1139,13 @@ function update(dt){
  if(mpOnline&&player)player.localPaused=!!(paused||resumeCountdown>0);
  if(!paused&&resumeCountdown>0){resumeCountdown=Math.max(0,resumeCountdown-dt);const rc=$('resumeCount');if(rc)rc.textContent=String(Math.max(0,Math.ceil(resumeCountdown)));if(resumeCountdown<=0){$('resumeWait').classList.add('hidden');if(player)player.localPaused=false;syncBoostBtn()}}
  if(mpRole==='client'){mpClientTick(dt);return}if(mpRole==='host')mpHostTick(dt);secretTick();wbTick();
- if(player.alive)gameTime+=dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
+ if(player.alive||mpOnline)gameTime+=dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
  for(let i=0;i<snakes.length;i++)move(snakes[i],dt);
  {const pc=Math.round(player.boostE*100);if(pc!==boostPct){boostPct=pc;bb.style.setProperty('--p',pc)}bb.classList.toggle('on',!!player.boostActive);bb.classList.toggle('cd',player.boostE<CFG.boostMin&&!player.boostActive)}
  for(let i=0;i<snakes.length;i++){const s=snakes[i];if(s.magnetT>0&&s.alive&&!s.localPaused){const pw=s.magnetPow||1,RR=skillVal(s,'magnet','rad')*Math.sqrt(pw),R2=RR*RR,SP=300*pw;for(const f of foods){const dx=s.x-f.x,dy=s.y-f.y,d2=dx*dx+dy*dy;if(d2<R2&&d2>1){const d=Math.sqrt(d2),m=Math.min(d,SP*dt);f.x+=dx/d*m;f.y+=dy/d*m}}}}
  for(let i=0;i<snakes.length;i++)eat(snakes[i]);
  collisions();
- for(let i=0;i<bots.length;i++)if(!bots[i].alive&&gameTime>=bots[i].respawnAt&&player.alive&&(i<botTarget(threat)||(mpSlots[i]&&mpSlots[i].open)))respawnBot(i);
+ for(let i=0;i<bots.length;i++)if(!bots[i].alive&&gameTime>=bots[i].respawnAt&&(player.alive||mpOnline)&&(i<botTarget(threat)||(mpSlots[i]&&mpSlots[i].open)))respawnBot(i);
  specialRivalT-=dt;if(specialRivalT<=0&&player.alive&&mode!=='boss'&&!mpOnline){if(bots.some(b=>b.alive&&b.special))specialRivalT=10;else{const i=bots.findIndex(b=>!b.alive);if(i>=0){spawnSpecial(i,evtOf().id==='noite'?2:evtOf().id==='cacadaouro'?1:1+((Math.random()*3)|0));specialRivalT=rand(80,110)*(evtOf().id==='tesouro'?.55:evtOf().id==='noite'?.5:evtOf().id==='cacadaouro'?.45:1)}else specialRivalT=8}}
  if(!running)return;
  if(foods.length<foodTarget()&&Math.random()<dt*8)randFood(Math.random()<.05?1:0);
@@ -1157,7 +1157,7 @@ function update(dt){
  if(mode==='team'&&player.alive){if(teamScore[0]>=M.tgoal)endGame('win');else if(teamScore[1]>=M.tgoal)endGame('time')}
  if(bossWinT>0){bossWinT-=dt;if(bossWinT<=0)endGame('win')}
  evT-=dt;if(!ev&&evT<=0&&player.alive)startEvent();eventTick(dt);
- if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(mpOnline&&!olDeathModeExempt()){olShowDeathSummary()}else if(canRevive())offerRevive();else endGame('dead')}}
+ if(dyingT>0){dyingT-=dt;if(dyingT<=0){if(mpOnline){respawnOnlinePlayer()}else if(canRevive())offerRevive();else endGame('dead')}}
  if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.add('hidden')}
  const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2;
  cam.x+=(tx-cam.x)*Math.min(1,dt*5);cam.y+=(ty-cam.y)*Math.min(1,dt*5);
@@ -1165,7 +1165,7 @@ function update(dt){
  lbT-=dt;if(lbT<=0){lbT=.4;refreshLb()}
  hudT-=dt;if(hudT<=0){hudT=.1;updateHud()}}
 
-function endGame(kind){document.body.classList.remove('playing');mpBroadcastEnd();dcEnd();
+function endGame(kind){if(mpOnline)return;document.body.classList.remove('playing');mpBroadcastEnd();dcEnd();
  if(ended)return;if(player.alive)refreshLb();ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();$('pause').classList.add('hidden');
  const M=MODES[mode];
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
