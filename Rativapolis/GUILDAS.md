@@ -49,7 +49,7 @@ Todas as rotas privadas exigem o token de sessão do portal.
 
 ## Limites desta primeira versão
 
-- O progresso multiplayer é compartilhado pelo servidor e a interface atualiza a cada 15 segundos; ainda não há push instantâneo por WebSocket para mudanças de guilda.
+- O progresso multiplayer é compartilhado pelo servidor; o painel consulta o servidor a cada 8 segundos enquanto está aberto e atualiza imediatamente ao retornar à aba/janela. Ainda não há push instantâneo por WebSocket para mudanças de guilda.
 - As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
 - Eventos de monstros, Bosses e presença online ainda não geram progresso de missão; nesta versão, fases, queijo, bolotas e doações são os eventos ligados ao servidor.
 - O painel e a API foram salvos/deployados em desenvolvimento. Os testes com três contas/dispositivos e as operações financeiras simultâneas ainda precisam ser executados com contas reais de teste.
