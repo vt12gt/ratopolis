@@ -1,10 +1,12 @@
-const VERSION = "v39.2-progression-reward-dev";
+const VERSION = "v39.3-audit-readonly-dev";
 const ENVIRONMENT = "development";
 const SESSION_DAYS = 7;
 const PBKDF2_ITERATIONS = 100000;
+const TERMS_VERSION = "2026-11-06";
+const PRIVACY_VERSION = "2026-11-06";
 const SPADMIN_EMAIL = "juniorgmj666@gmail.com";
-const ROLES = ["spadm", "adm", "gm", "mod", "editor", "divulgador", "player"];
-const ROLE_RANK = { spadm: 5, adm: 4, gm: 3, mod: 2, editor: 1.5, divulgador: 1.25, player: 1 };
+const ROLES = ["spadm", "adm", "gm", "mod", "editor", "divulgador", "locutor", "player"];
+const ROLE_RANK = { spadm: 5, adm: 4, gm: 3, mod: 2, editor: 1.5, divulgador: 1.25, locutor: 1.1, player: 1 };
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:8158",
   "https://ratopolis-cadastro-teste.pages.dev",
@@ -27,7 +29,7 @@ export default {
     if (origin && ALLOWED_ORIGINS.has(origin)) {
       headers["Access-Control-Allow-Origin"] = origin;
       headers["Access-Control-Allow-Credentials"] = "true";
-      headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS";
+      headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
       headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Bootstrap-Secret";
       headers["Access-Control-Max-Age"] = "86400";
     }
@@ -40,6 +42,24 @@ export default {
 
       if (path === "/" && method === "GET") return reply({ ok: true, projeto: "Ratopolis API", versao: VERSION, ambiente: ENVIRONMENT });
       if (path === "/health" && method === "GET") return reply({ ok: true, projeto: "Ratopolis", versao: VERSION, ambiente: ENVIRONMENT });
+
+      // Registros de IP: consulta exclusiva do SpAdmin, com auditoria da visualizacao.
+      if (path === "/api/admin/privacy/access-logs" && method === "GET") {
+        etapaAtual = "consulta restrita dos registros de acesso";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria ou sessao invalida." }, 401);
+        if (actor.role !== "spadm") return reply({ ok: false, erro: "Acesso restrito ao SpAdmin." }, 403);
+        const pageInput = Number.parseInt(url.searchParams.get("page") || "1", 10);
+        const limitInput = Number.parseInt(url.searchParams.get("limit") || "50", 10);
+        const page = Number.isFinite(pageInput) ? Math.max(1, Math.min(pageInput, 100000)) : 1;
+        const limit = Number.isFinite(limitInput) ? Math.max(1, Math.min(limitInput, 100)) : 50;
+        const offset = (page - 1) * limit;
+        const totalRow = await env.DB.prepare("SELECT COUNT(*) AS total FROM ratopolis_access_logs").first();
+        const logs = await env.DB.prepare("SELECT l.id, l.user_id, u.nickname, l.event_type, l.ip_address, l.user_agent, l.created_at, l.expires_at FROM ratopolis_access_logs l LEFT JOIN ratopolis_users u ON u.id = l.user_id ORDER BY l.created_at DESC LIMIT ? OFFSET ?").bind(limit, offset).all();
+        const at = new Date().toISOString();
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, 'privacy_access_logs_viewed', NULL, ?, ?)").bind(crypto.randomUUID(), actor.id, JSON.stringify({ page, limit }), at).run();
+        return reply({ ok: true, pagina: page, limite: limit, total: Number(totalRow?.total || 0), registros: logs.results });
+      }
 
       if (path === "/db-check" && method === "GET") {
         etapaAtual = "verificacao do banco";
@@ -232,7 +252,7 @@ export default {
 
       if (path === "/api/players" && method === "GET") {
         etapaAtual = "busca dos jogadores";
-        const result = await env.DB.prepare(`SELECT u.id, u.nickname, u.role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
+        const result = await env.DB.prepare(`SELECT u.id, u.nickname, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
         return reply({ ok: true, jogadores: result.results });
       }
 
@@ -242,9 +262,15 @@ export default {
         const nickname = normalizeNickname(body.nickname);
         const email = normalizeEmail(body.email);
         const password = body.password;
+        const ageCategory = body.age_category;
+        const termsVersion = body.terms_version;
+        const privacyVersion = body.privacy_version;
         if (!nickname || nickname.length < 3 || nickname.length > 20 || !/^[a-zA-Z0-9_]+$/.test(nickname)) return reply({ ok: false, erro: "Nickname deve ter de 3 a 20 caracteres, usando letras, numeros ou underline." }, 400);
         if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply({ ok: false, erro: "Informe um e-mail valido." }, 400);
         if (typeof password !== "string" || password.length < 8 || password.length > 128) return reply({ ok: false, erro: "A senha deve ter entre 8 e 128 caracteres." }, 400);
+        if (!["minor", "adult"].includes(ageCategory)) return reply({ ok: false, erro: "Informe se voce e menor ou maior de 18 anos." }, 400);
+        if (body.terms_accepted !== true || body.privacy_accepted !== true || body.adult_presence_ack !== true) return reply({ ok: false, erro: "Leia e aceite os Termos, a Politica de Privacidade e o aviso sobre jogadores de diferentes idades." }, 400);
+        if (termsVersion !== TERMS_VERSION || privacyVersion !== PRIVACY_VERSION) return reply({ ok: false, erro: "Os documentos foram atualizados. Recarregue a pagina e leia as versoes atuais." }, 409);
         etapaAtual = "verificacao de cadastro existente";
         const existing = await env.DB.prepare("SELECT id FROM ratopolis_users WHERE lower(nickname) = lower(?) OR lower(email) = lower(?) LIMIT 1").bind(nickname, email).first();
         if (existing) return reply({ ok: false, erro: "Nickname ou e-mail ja cadastrado." }, 409);
@@ -253,6 +279,9 @@ export default {
         const sessionId = crypto.randomUUID();
         const now = new Date();
         const createdAt = now.toISOString();
+        const logExpiresAt = sixMonthsFrom(now).toISOString();
+        const ipAddress = request.headers.get("CF-Connecting-IP") || null;
+        const userAgent = (request.headers.get("User-Agent") || "").slice(0, 300) || null;
         const expiresAt = new Date(now.getTime() + SESSION_DAYS * 86400000).toISOString();
         const salt = crypto.getRandomValues(new Uint8Array(16));
         const saltEncoded = toBase64url(salt);
@@ -265,7 +294,9 @@ export default {
           env.DB.prepare("INSERT INTO ratopolis_profiles (user_id, level, xp, vip_level, coins) VALUES (?, 1, 0, 0, 0)").bind(userId),
           env.DB.prepare("INSERT INTO ratopolis_credentials (user_id, password_hash, password_salt) VALUES (?, ?, ?)").bind(userId, passwordHashValue, saltEncoded),
           env.DB.prepare("INSERT INTO ratopolis_sessions (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)").bind(sessionId, userId, tokenHash, expiresAt),
-          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, NULL, ?, ?, ?, ?)").bind(crypto.randomUUID(), "register", userId, JSON.stringify({ nickname }), createdAt)
+          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, NULL, ?, ?, ?, ?)").bind(crypto.randomUUID(), "register", userId, JSON.stringify({ nickname }), createdAt),
+          env.DB.prepare("INSERT INTO ratopolis_legal_acceptances (id, user_id, terms_version, privacy_version, age_category, adult_presence_ack, accepted_at) VALUES (?, ?, ?, ?, ?, 1, ?)").bind(crypto.randomUUID(), userId, termsVersion, privacyVersion, ageCategory, createdAt),
+          env.DB.prepare("INSERT INTO ratopolis_access_logs (id, user_id, event_type, ip_address, user_agent, created_at, expires_at) VALUES (?, ?, 'register', ?, ?, ?, ?)").bind(crypto.randomUUID(), userId, ipAddress, userAgent, createdAt, logExpiresAt)
         ]);
         return reply({ ok: true, mensagem: "Cadastro realizado com sucesso.", jogador: { id: userId, nickname, email, role: "player", status: "active", level: 1, xp: 0, vip_level: 0, coins: 0 }, token, expires_at: expiresAt }, 201);
       }
@@ -290,9 +321,12 @@ export default {
         const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400000).toISOString();
         const createdAt = new Date().toISOString();
         await env.DB.batch([
+          env.DB.prepare("DELETE FROM ratopolis_sessions WHERE user_id = ?").bind(user.id),
           env.DB.prepare("INSERT INTO ratopolis_sessions (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)").bind(sessionId, user.id, tokenHash, expiresAt),
-          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), user.id, "login", user.id, "{}", createdAt)
+          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), user.id, "login", user.id, "{}", createdAt),
+          env.DB.prepare("INSERT INTO ratopolis_access_logs (id, user_id, event_type, ip_address, user_agent, created_at, expires_at) VALUES (?, ?, 'login', ?, ?, ?, ?)").bind(crypto.randomUUID(), user.id, request.headers.get("CF-Connecting-IP") || null, (request.headers.get("User-Agent") || "").slice(0, 300) || null, createdAt, sixMonthsFrom(new Date(createdAt)).toISOString())
         ]);
+        if (env.ROOM_SESSION_REVOKE_SECRET) { try { const revoke = await fetch("https://ratopolis-room-server-v1.juniorgmj69.workers.dev/api/rooms/session-replaced", { method: "POST", headers: { "Content-Type": "application/json", "X-Session-Revoke-Secret": env.ROOM_SESSION_REVOKE_SECRET }, body: JSON.stringify({ playerId: user.id }) }); if (!revoke.ok) console.warn("ratopolis_previous_game_session_revoke_failed", { status: revoke.status }); } catch (e) { console.warn("ratopolis_previous_game_session_revoke_unreachable", { name: e?.name || "Error" }); } }
         const profile = await env.DB.prepare("SELECT level, xp, vip_level, coins FROM ratopolis_profiles WHERE user_id = ?").bind(user.id).first();
         return reply({ ok: true, mensagem: "Login realizado com sucesso.", jogador: { id: user.id, nickname: user.nickname, email: user.email, role: user.role, status: user.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 }, token, expires_at: expiresAt });
       }
@@ -302,33 +336,42 @@ export default {
       if (path === "/api/store/webhook/mercadopago" && method === "POST") {
         etapaAtual = "webhook Mercado Pago";
         if (!env.MP_ACCESS_TOKEN) return reply({ ok: false, erro: "Pagamento nao configurado." }, 503);
-        let notice;
-        try { notice = await request.json(); } catch { return reply({ ok: false, erro: "Notificacao invalida." }, 400); }
+        let notice = {};
+        try { notice = await request.json(); } catch { /* Mercado Pago pode enviar o ID pela query string. */ }
         const paymentId = String(notice?.data?.id || url.searchParams.get("data.id") || url.searchParams.get("id") || "").trim();
-        if (!paymentId || !/^[0-9]{1,30}$/.test(paymentId)) return reply({ ok: true, ignorado: true });
+        if (!paymentId || !/^[0-9]{1,30}$/.test(paymentId)) return reply({ ok: true, ignorado: true, motivo: "ID de pagamento ausente." });
         const paymentResponse = await fetch("https://api.mercadopago.com/v1/payments/" + encodeURIComponent(paymentId), {
           headers: { Authorization: "Bearer " + env.MP_ACCESS_TOKEN, Accept: "application/json" }
         });
-        if (!paymentResponse.ok) return reply({ ok: false, erro: "Nao foi possivel confirmar o pagamento." }, 502);
-        const payment = await paymentResponse.json();
-        if (payment.status !== "approved") return reply({ ok: true, status: payment.status || "pending" });
+        const payment = await paymentResponse.json().catch(() => ({}));
+        if (!paymentResponse.ok) return reply({ ok: false, erro: "Nao foi possivel confirmar o pagamento no Mercado Pago." }, 502);
         const orderId = String(payment.external_reference || "");
-        if (!orderId) return reply({ ok: true, ignorado: true });
-        const order = await env.DB.prepare("SELECT id, user_id, amount_cents, currency, status FROM ratopolis_store_orders WHERE id = ? AND provider = 'mercadopago'").bind(orderId).first();
-        if (!order) return reply({ ok: true, ignorado: true });
-        if (Number(payment.transaction_amount) !== 4.99 || payment.currency_id !== "BRL" ||
-            Number(order.amount_cents) !== 499 || order.currency !== "BRL" ||
-            (payment.external_reference && payment.external_reference !== order.id)) {
-          return reply({ ok: false, erro: "Pagamento nao corresponde ao pedido." }, 409);
+        if (!orderId) return reply({ ok: true, ignorado: true, motivo: "Pagamento sem referencia de pedido." });
+        const order = await env.DB.prepare("SELECT id,user_id,product_code,amount_cents,currency,status,provider_payment_id FROM ratopolis_store_orders WHERE id=? AND provider='mercadopago' LIMIT 1").bind(orderId).first();
+        if (!order) return reply({ ok: true, ignorado: true, motivo: "Pedido nao encontrado." });
+        if (order.product_code !== "vip_30_days" || Number(order.amount_cents) !== 499 || order.currency !== "BRL" ||
+            Number(payment.transaction_amount) !== 4.99 || payment.currency_id !== "BRL" || String(payment.external_reference || "") !== order.id) {
+          return reply({ ok: false, erro: "Pagamento nao corresponde ao pedido VIP." }, 409);
         }
-        if (order.status === "approved") return reply({ ok: true, processado: true });
-        if (order.status !== "pending") return reply({ ok: true, ignorado: true });
-        const marker = new Date().toISOString() + "#" + crypto.randomUUID();
+        const now = new Date().toISOString();
+        if (payment.status !== "approved") {
+          const statusMap = { rejected: "rejected", cancelled: "cancelled", refunded: "refunded", charged_back: "charged_back" };
+          const nextStatus = statusMap[payment.status];
+          if (nextStatus && order.status !== "approved") {
+            await env.DB.prepare("UPDATE ratopolis_store_orders SET status=?, provider_payment_id=COALESCE(provider_payment_id,?), updated_at=? WHERE id=? AND status='pending'").bind(nextStatus,String(payment.id),now,order.id).run();
+          }
+          return reply({ ok: true, status: payment.status || "pending" });
+        }
+        if (order.provider_payment_id && String(order.provider_payment_id) !== String(payment.id)) return reply({ ok: false, erro: "Pedido associado a outro pagamento." }, 409);
+        if (order.status !== "pending" && order.status !== "approved") return reply({ ok: true, ignorado: true, motivo: "Pedido nao esta pendente." });
+        // As duas consultas são executadas em lote. O last_order_id impede renovar 30 dias
+        // novamente quando o Mercado Pago repetir a mesma notificação.
         await env.DB.batch([
-          env.DB.prepare("UPDATE ratopolis_store_orders SET status = 'approved', provider_payment_id = ?, paid_at = ?, updated_at = ? WHERE id = ? AND status = 'pending' AND (provider_payment_id IS NULL OR provider_payment_id = ?)").bind(String(payment.id), marker, new Date().toISOString(), order.id, String(payment.id)),
-          env.DB.prepare("INSERT INTO ratopolis_paid_vip (user_id, expires_at, last_order_id, updated_at) SELECT o.user_id, strftime('%Y-%m-%dT%H:%M:%fZ', max(julianday(COALESCE(v.expires_at, ?)), julianday(?)) + 30), o.id, ? FROM ratopolis_store_orders o LEFT JOIN ratopolis_paid_vip v ON v.user_id = o.user_id WHERE o.id = ? AND o.status = 'approved' AND o.paid_at = ? ON CONFLICT(user_id) DO UPDATE SET expires_at = excluded.expires_at, last_order_id = excluded.last_order_id, updated_at = excluded.updated_at").bind(new Date().toISOString(), new Date().toISOString(), new Date().toISOString(), order.id, marker)
+          env.DB.prepare("UPDATE ratopolis_store_orders SET status='approved', provider_payment_id=?, paid_at=COALESCE(paid_at,?), updated_at=? WHERE id=? AND status IN ('pending','approved') AND (provider_payment_id IS NULL OR provider_payment_id=?)").bind(String(payment.id),now,now,order.id,String(payment.id)),
+          env.DB.prepare("INSERT INTO ratopolis_paid_vip (user_id,expires_at,last_order_id,updated_at) SELECT o.user_id, strftime('%Y-%m-%dT%H:%M:%fZ', datetime(max(COALESCE(v.expires_at, ?), ?), '+30 days')), o.id, ? FROM ratopolis_store_orders o LEFT JOIN ratopolis_paid_vip v ON v.user_id=o.user_id WHERE o.id=? AND o.status='approved' AND o.provider_payment_id=? ON CONFLICT(user_id) DO UPDATE SET expires_at=excluded.expires_at,last_order_id=excluded.last_order_id,updated_at=excluded.updated_at WHERE ratopolis_paid_vip.last_order_id IS NOT excluded.last_order_id")
+            .bind(now,now,now,order.id,String(payment.id))
         ]);
-        return reply({ ok: true, processado: true });
+        return reply({ ok: true, processado: true, status: "approved" });
       }
 
       if (path === "/api/store/checkout" && method === "POST") {
@@ -803,21 +846,69 @@ export default {
         return reply({ ok: true, mensagem: "SpAdmin inicial ativado.", role: verified.role });
       }
 
+      if (path === "/api/internal/radio/live/claim" && method === "POST") {
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!["spadm", "adm", "locutor"].includes(actor.role)) return reply({ ok: false, erro: "Permissao de locutor necessaria." }, 403);
+        const now = new Date(), expires = new Date(now.getTime() + 60000).toISOString(), leaseId = crypto.randomUUID();
+        const result = await env.DB.batch([
+          env.DB.prepare("INSERT INTO ratopolis_radio_live_lock (singleton, lease_id, owner_user_id, expires_at) VALUES (1, ?, ?, ?) ON CONFLICT(singleton) DO UPDATE SET lease_id = excluded.lease_id, owner_user_id = excluded.owner_user_id, expires_at = excluded.expires_at WHERE ratopolis_radio_live_lock.expires_at <= ?").bind(leaseId, actor.id, expires, now.toISOString()),
+          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) SELECT ?, ?, 'radio_live_lock_claimed', ?, ?, ? WHERE EXISTS (SELECT 1 FROM ratopolis_radio_live_lock WHERE singleton = 1 AND lease_id = ?)").bind(crypto.randomUUID(), actor.id, actor.id, JSON.stringify({ lease_id: leaseId }), now.toISOString(), leaseId)
+        ]);
+        if (!Number(result?.[0]?.meta?.changes || 0)) return reply({ ok: false, erro: "Ja existe outro locutor transmitindo." }, 409);
+        return reply({ ok: true, leaseId, expiresAt: expires, owner: actor.nickname });
+      }
+      if (path === "/api/internal/radio/audit" && method === "POST") {
+        const actor = await authenticate(request, env); if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (!["spadm", "adm", "locutor"].includes(actor.role)) return reply({ ok: false, erro: "Permissao da equipe da radio necessaria." }, 403);
+        const body = await readJson(request), action = String(body.action || ""), allowed = ["radio_track_updated", "radio_track_deleted", "radio_playlist_saved", "radio_playlist_renamed", "radio_playlist_deleted", "radio_schedule_updated", "radio_request_updated", "radio_ads_updated", "radio_playback_control"];
+        if (!allowed.includes(action)) return reply({ ok: false, erro: "Acao de auditoria nao permitida." }, 400);
+        const requiredPermission = action.startsWith("radio_track_") ? "manageRadioLibrary" : action.startsWith("radio_playlist_") ? "manageRadioPlaylists" : action === "radio_schedule_updated" ? "manageRadioSchedule" : action === "radio_ads_updated" ? "manageRadioAds" : action === "radio_playback_control" ? "manageRadioPlayback" : "viewRadioRequests";
+        if (permissionsFor(actor.role)[requiredPermission] !== true) return reply({ ok: false, erro: "Permissao insuficiente para esta auditoria." }, 403);
+        const details = JSON.stringify(body.details || {}).slice(0, 1800), target = typeof body.targetUserId === "string" ? body.targetUserId.slice(0, 128) : null;
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, action, target, details, new Date().toISOString()).run();
+        return reply({ ok: true });
+      }
+      if (path === "/api/internal/radio/live/started" && method === "POST") {
+        const actor = await authenticate(request, env); if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        const body = await readJson(request), leaseId = String(body.leaseId || ""), sessionId = String(body.sessionId || "");
+        const lock = await env.DB.prepare("SELECT owner_user_id FROM ratopolis_radio_live_lock WHERE singleton = 1 AND lease_id = ?").bind(leaseId).first();
+        if (!lock || lock.owner_user_id !== actor.id) return reply({ ok: false, erro: "Reserva de locucao invalida." }, 409);
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, "radio_live_started", actor.id, JSON.stringify({ lease_id: leaseId, session_id: sessionId }), new Date().toISOString()).run();
+        return reply({ ok: true });
+      }
+      if (path === "/api/internal/radio/live/heartbeat" && method === "POST") {
+        const actor = await authenticate(request, env); if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        const body = await readJson(request), leaseId = String(body.leaseId || ""), expires = new Date(Date.now() + 60000).toISOString();
+        const result = await env.DB.prepare("UPDATE ratopolis_radio_live_lock SET expires_at = ? WHERE singleton = 1 AND lease_id = ? AND owner_user_id = ?").bind(expires, leaseId, actor.id).run();
+        if (!Number(result?.meta?.changes || 0)) return reply({ ok: false, erro: "Reserva de locucao expirada." }, 409);
+        return reply({ ok: true, expiresAt: expires });
+      }
+      if (path === "/api/internal/radio/live/release" && method === "POST") {
+        const actor = await authenticate(request, env); if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        const body = await readJson(request), leaseId = String(body.leaseId || "");
+        const current = await env.DB.prepare("SELECT owner_user_id FROM ratopolis_radio_live_lock WHERE singleton = 1 AND lease_id = ?").bind(leaseId).first();
+        if (!current) return reply({ ok: true, released: false });
+        const adminOverride = actor.role === "spadm" || actor.role === "adm";
+        if (current.owner_user_id !== actor.id && !adminOverride) return reply({ ok: false, erro: "Somente o locutor atual ou um administrador pode encerrar esta reserva." }, 403);
+        const result = await env.DB.prepare("DELETE FROM ratopolis_radio_live_lock WHERE singleton = 1 AND lease_id = ?").bind(leaseId).run();
+        const released = Number(result?.meta?.changes || 0) > 0;
+        if (released) await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, 'radio_live_lock_released', ?, ?, ?)").bind(crypto.randomUUID(), actor.id, current.owner_user_id, JSON.stringify({ lease_id: leaseId, admin_override: adminOverride }), new Date().toISOString()).run();
+        return reply({ ok: true, released });
+      }
       if (path === "/api/admin/me" && method === "GET") {
         etapaAtual = "consulta das permissoes administrativas";
         const actor = await authenticate(request, env);
         if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
-        return reply({ ok: true, autorizado: ROLE_RANK[actor.role] >= ROLE_RANK.mod || actor.role === "editor", role: actor.role, permissoes: permissionsFor(actor.role) });
+        return reply({ ok: true, autorizado: ROLE_RANK[actor.role] >= ROLE_RANK.mod || actor.role === "editor" || actor.role === "locutor", role: actor.role, permissoes: permissionsFor(actor.role) });
       }
 
+      // Auditoria administrativa: leitura protegida, sem endpoints de alteracao/exclusao.
       if (path === "/api/admin/audit" && method === "GET") {
         etapaAtual = "consulta protegida do historico de auditoria";
         const actor = await authenticate(request, env);
         if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
-        if (actor.role !== "spadm" && actor.role !== "adm") {
-          return reply({ ok: false, erro: "Somente SpAdmin e ADM podem consultar a auditoria." }, 403);
-        }
-
+        if (actor.role !== "spadm" && actor.role !== "adm") return reply({ ok: false, erro: "Somente SpAdmin e ADM podem consultar a auditoria." }, 403);
         const pageInput = Number.parseInt(url.searchParams.get("page") || "1", 10);
         const limitInput = Number.parseInt(url.searchParams.get("limit") || "50", 10);
         const page = Number.isFinite(pageInput) ? Math.max(1, Math.min(pageInput, 100000)) : 1;
@@ -825,30 +916,15 @@ export default {
         const offset = (page - 1) * limit;
         const action = (url.searchParams.get("action") || "").trim().slice(0, 100);
         const search = (url.searchParams.get("q") || "").trim().slice(0, 120);
-        const conditions = [];
-        const values = [];
+        const conditions = []; const values = [];
         if (action) { conditions.push("a.action = ?"); values.push(action); }
-        if (search) {
-          conditions.push("(a.action LIKE ? OR a.details LIKE ? OR COALESCE(actor.nickname, '') LIKE ? OR COALESCE(target.nickname, '') LIKE ?)");
-          const pattern = "%" + search + "%";
-          values.push(pattern, pattern, pattern, pattern);
-        }
+        if (search) { conditions.push("(a.action LIKE ? OR a.details LIKE ? OR COALESCE(actor.nickname, '') LIKE ? OR COALESCE(target.nickname, '') LIKE ?)"); const pattern = "%" + search + "%"; values.push(pattern, pattern, pattern, pattern); }
         const where = conditions.length ? " WHERE " + conditions.join(" AND ") : "";
         const joins = " FROM ratopolis_audit_logs a LEFT JOIN ratopolis_users actor ON actor.id = a.actor_user_id LEFT JOIN ratopolis_users target ON target.id = a.target_user_id";
         const totalRow = await env.DB.prepare("SELECT COUNT(*) AS total" + joins + where).bind(...values).first();
-        const result = await env.DB.prepare(
-          "SELECT a.id, a.actor_user_id, actor.nickname AS actor_nickname, a.action, a.target_user_id, target.nickname AS target_nickname, a.details, a.created_at" +
-          joins + where + " ORDER BY a.created_at DESC, a.id DESC LIMIT ? OFFSET ?"
-        ).bind(...values, limit, offset).all();
-        return reply({
-          ok: true,
-          somente_leitura: true,
-          pagina: page,
-          limite: limit,
-          total: Number(totalRow?.total || 0),
-          total_paginas: Math.ceil(Number(totalRow?.total || 0) / limit),
-          registros: result.results
-        });
+        const result = await env.DB.prepare("SELECT a.id, a.actor_user_id, actor.nickname AS actor_nickname, a.action, a.target_user_id, target.nickname AS target_nickname, a.details, a.created_at" + joins + where + " ORDER BY a.created_at DESC, a.id DESC LIMIT ? OFFSET ?").bind(...values, limit, offset).all();
+        const total = Number(totalRow?.total || 0);
+        return reply({ ok: true, somente_leitura: true, pagina: page, limite: limit, total, total_paginas: Math.ceil(total / limit), registros: result.results });
       }
 
       if (path === "/api/admin/users" && method === "GET") {
@@ -856,7 +932,7 @@ export default {
         const actor = await authenticate(request, env);
         if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
         if (ROLE_RANK[actor.role] < ROLE_RANK.mod) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
-        const result = await env.DB.prepare("SELECT u.id, u.nickname, u.email, u.role, u.status, u.created_at, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_profiles p ON p.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
+        const result = await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, u.created_at, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
         return reply({ ok: true, jogadores: result.results });
       }
 
@@ -871,15 +947,13 @@ export default {
         if (ROLE_RANK[actor.role] < ROLE_RANK.adm) return reply({ ok: false, erro: "Somente SpAdmin e ADM podem gerenciar cargos." }, 403);
         if (newRole === "spadm") return reply({ ok: false, erro: "O cargo SpAdmin nao pode ser atribuido por esta rota." }, 403);
         if (ROLE_RANK[newRole] >= ROLE_RANK[actor.role]) return reply({ ok: false, erro: "Voce nao pode atribuir um cargo igual ou superior ao seu." }, 403);
-        const target = await env.DB.prepare("SELECT id, nickname, role FROM ratopolis_users WHERE id = ? AND status = 'active' LIMIT 1").bind(targetId).first();
+        const target = await env.DB.prepare("SELECT u.id, u.nickname, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE u.id = ? AND u.status = 'active' LIMIT 1").bind(targetId).first();
         if (!target) return reply({ ok: false, erro: "Jogador ativo nao encontrado." }, 404);
         if (target.role === "spadm") return reply({ ok: false, erro: "O SpAdmin protegido nao pode ser alterado por esta rota." }, 403);
         if (ROLE_RANK[target.role] >= ROLE_RANK[actor.role]) return reply({ ok: false, erro: "Voce nao pode alterar um usuario com cargo igual ou superior ao seu." }, 403);
         const now = new Date().toISOString();
-        await env.DB.batch([
-          env.DB.prepare("UPDATE ratopolis_users SET role = ? WHERE id = ? AND status = 'active'").bind(newRole, targetId),
-          env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, "admin_role_change", targetId, JSON.stringify({ from: target.role, to: newRole, nickname: target.nickname }), now)
-        ]);
+        const roleWrites = newRole === "locutor" ? [env.DB.prepare("UPDATE ratopolis_users SET role = 'player' WHERE id = ? AND status = 'active'").bind(targetId), env.DB.prepare("INSERT INTO ratopolis_radio_staff (user_id, role, granted_by, granted_at) VALUES (?, 'locutor', ?, ?) ON CONFLICT(user_id) DO UPDATE SET role = 'locutor', granted_by = excluded.granted_by, granted_at = excluded.granted_at").bind(targetId, actor.id, now)] : [env.DB.prepare("DELETE FROM ratopolis_radio_staff WHERE user_id = ?").bind(targetId), env.DB.prepare("UPDATE ratopolis_users SET role = ? WHERE id = ? AND status = 'active'").bind(newRole, targetId)];
+        await env.DB.batch([...roleWrites, env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, "admin_role_change", targetId, JSON.stringify({ from: target.role, to: newRole, nickname: target.nickname }), now)]);
         return reply({ ok: true, mensagem: "Cargo atualizado.", jogador: { id: target.id, nickname: target.nickname, role: newRole } });
       }
 
@@ -961,21 +1035,6 @@ export default {
             env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, "scenario_created", null, JSON.stringify({ scenario_id: id, name, version: 1 }), at)
           ]);
           return reply({ ok: true, mensagem: "Cenário salvo como rascunho.", cenario: { id, name, description, status: "draft", current_version: 1, version_id: versionId } }, 201);
-        }
-        if (routeId && method === "DELETE" && !routeId[2]) {
-          if (!canReviewScenarios) return reply({ ok: false, erro: "Somente SpAdmin e Admin podem excluir cenários do servidor." }, 403);
-          const scenario = await loadScenario(routeId[1]);
-          if (!scenario) return reply({ ok: false, erro: "Cenário não encontrado." }, 404);
-          const at = now();
-          await env.DB.batch([
-            env.DB.prepare("DELETE FROM ratopolis_scenario_reviews WHERE scenario_id = ?").bind(scenario.id),
-            env.DB.prepare("DELETE FROM ratopolis_scenario_versions WHERE scenario_id = ?").bind(scenario.id),
-            env.DB.prepare("DELETE FROM ratopolis_scenarios WHERE id = ?").bind(scenario.id),
-            env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, NULL, ?, ?)").bind(crypto.randomUUID(), actor.id, "scenario_deleted", JSON.stringify({ scenario_id: scenario.id, name: scenario.name, previous_status: scenario.status }), at)
-          ]);
-          const remaining = await loadScenario(scenario.id);
-          if (remaining) return reply({ ok: false, erro: "A exclusão não foi confirmada pelo banco de dados." }, 500);
-          return reply({ ok: true, deleted: true, id: scenario.id, mensagem: "Cenário e versões excluídos do servidor." });
         }
         if (routeId && method === "GET" && !routeId[2]) {
           if (!canEditScenarios) return reply({ ok: false, erro: "Acesso ao editor negado." }, 403);
@@ -1105,14 +1164,29 @@ export default {
       if (error instanceof SyntaxError && ["leitura do cadastro", "leitura do login", "alteracao administrativa de cargo", "validacao da recompensa interna", "editor de cenarios"].includes(etapaAtual)) return reply({ ok: false, erro: "O corpo da requisicao deve ser um JSON valido." }, 400);
       return reply({ ok: false, erro: "Erro interno da API.", etapa: etapaAtual }, 500);
     }
+  },
+  async scheduled(controller, env, ctx) {
+    if (!env.DB) return;
+    const now = new Date().toISOString();
+    await env.DB.prepare("DELETE FROM ratopolis_access_logs WHERE expires_at <= ?").bind(now).run();
   }
 };
+
+function sixMonthsFrom(date) {
+  const result = new Date(date);
+  const day = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + 6);
+  const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
+  result.setUTCDate(Math.min(day, lastDay));
+  return result;
+}
 
 async function authenticate(request, env) {
   const token = getBearer(request);
   if (!token) return null;
   const tokenHash = await sha256(token);
-  return await env.DB.prepare("SELECT u.id, u.nickname, u.email, u.role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
+  return await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
 }
 function safeJson(value, fallback) { try { return JSON.parse(value); } catch { return fallback; } }
 function getBearer(request) {
@@ -1121,6 +1195,8 @@ function getBearer(request) {
   return match ? match[1] : "";
 }
 function permissionsFor(role) {
+  const radioAdmin = ROLE_RANK[role] >= ROLE_RANK.adm;
+  const radioStaff = radioAdmin || role === "locutor";
   return {
     viewAdminPanel: ROLE_RANK[role] >= ROLE_RANK.mod || role === "editor",
     viewUsers: ROLE_RANK[role] >= ROLE_RANK.mod,
@@ -1128,7 +1204,17 @@ function permissionsFor(role) {
     manageStaff: ROLE_RANK[role] >= ROLE_RANK.adm,
     manageSpAdmin: false,
     editScenarios: ROLE_RANK[role] >= ROLE_RANK.adm || role === "editor",
-    promoteSocial: role === "divulgador"
+    promoteSocial: role === "divulgador",
+    viewRadioPanel: radioStaff,
+    viewRadioLibrary: radioStaff,
+    viewRadioRequests: radioStaff,
+    viewRadioSchedule: radioStaff,
+    manageRadioPlayback: radioStaff,
+    manageRadioLibrary: radioAdmin,
+    manageRadioPlaylists: radioAdmin,
+    manageRadioSchedule: radioAdmin,
+    manageRadioAds: radioAdmin,
+    manageRadioSettings: radioAdmin
   };
 }
 async function readJson(request) { return await request.json(); }
