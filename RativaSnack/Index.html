@@ -15,9 +15,9 @@
 <body>
 <main class="card">
 <div class="logo">🐭🧀</div><h1>RATIVA SNACK</h1>
-<p class="sub">Escolha seu modo. O Offline funciona sem internet e sem servidor. O Online abre o lobby multiplayer para você escolher a modalidade.</p>
+<p class="sub">Escolha seu modo. O Offline funciona sem internet e sem servidor. O Online é acessado exclusivamente pelo Portal Rativa Games com sua conta. O Offline funciona sem internet.</p>
 <div class="choices">
-<a class="choice online" id="goOnline" href="Online.html"><span>🌐</span><div>ONLINE MULTIPLAYER<small>Entre no lobby e escolha sua partida online</small></div></a>
+<a class="choice online" id="goOnline" href="https://vt12gt.github.io/RativaGames/"><span>🌐</span><div>ONLINE MULTIPLAYER<small>Entre no lobby e escolha sua partida online</small></div></a>
 <a class="choice offline" id="goOffline" href="Offline.html"><span>🎮</span><div>OFFLINE<small>Jogue imediatamente, sem servidor</small></div></a>
 <a class="choice portal" id="goPortal" href="https://vt12gt.github.io/RativaGames/"><span>🏠</span><div>PORTAL RATIVA GAMES<small>Conta, novidades e outros jogos</small></div></a>
 </div>
@@ -30,10 +30,7 @@ function net(){const ok=navigator.onLine!==false;statusEl.textContent=ok?'🟢 C
 addEventListener('online',net);addEventListener('offline',net);net();
 document.getElementById('goOnline').addEventListener('click',e=>{
  if(navigator.onLine===false){e.preventDefault();alert('Sem Internet, conecte-se para jogar online.');return}
- e.preventDefault();
- let target='Online.html';
- try{const token=localStorage.getItem('ratopolis_session_token')||'';if(token)target+='#ratopolis_token='+encodeURIComponent(token)}catch(_){}
- location.href=target;
+ e.preventDefault();location.href='https://vt12gt.github.io/RativaGames/';
 });
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
