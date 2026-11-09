@@ -1,4 +1,4 @@
-const ALLOWED_ORIGINS = new Set(["https://vt12gt.github.io", "https://ratopolis-cadastro-teste.pages.dev"]);
+const ALLOWED_ORIGINS = new Set(["https://vt12gt.github.io", "https://ratopolis-cadastro-teste.pages.dev","https://rativa-ids-preview.pages.dev"]);
 function makeHeaders(origin) {
   const h = {"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff","vary":"Origin"};
   if (origin && ALLOWED_ORIGINS.has(origin)) {
