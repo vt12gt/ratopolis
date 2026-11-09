@@ -818,6 +818,37 @@ export default {
         return reply({ ok: true, jogador: { id: authUser.id, nickname: authUser.nickname, email: authUser.email, role: authUser.role, status: authUser.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 } });
       }
 
+      // Dados pessoais privados: nome e nascimento são imutáveis após o primeiro registro.
+      if (path === "/api/profile/personal" && (method === "GET" || method === "POST")) {
+        etapaAtual = "perfil pessoal privado";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS ratopolis_personal_profiles (user_id TEXT PRIMARY KEY, full_name TEXT NOT NULL, birth_date TEXT NOT NULL, whatsapp TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES ratopolis_users(id))").run();
+        if (method === "GET") {
+          const profile = await env.DB.prepare("SELECT full_name, birth_date, whatsapp FROM ratopolis_personal_profiles WHERE user_id = ?").bind(actor.id).first();
+          return reply({ ok: true, profile: profile || { full_name: "", birth_date: "", whatsapp: "" } });
+        }
+        const body = await readJson(request);
+        const fullName = typeof body.full_name === "string" ? body.full_name.trim().replace(/\\s+/g, " ") : "";
+        const birthDate = typeof body.birth_date === "string" ? body.birth_date.trim() : "";
+        const whatsapp = typeof body.whatsapp === "string" ? body.whatsapp.trim() : "";
+        if (fullName.length < 5 || fullName.length > 100 || fullName.split(" ").filter(Boolean).length < 2) return reply({ ok: false, erro: "Informe seu nome completo (nome e sobrenome), com até 100 caracteres." }, 400);
+        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate + "T00:00:00Z")) || birthDate >= new Date().toISOString().slice(0,10)) return reply({ ok: false, erro: "Informe uma data de nascimento valida no passado." }, 400);
+        const digits = whatsapp.replace(/\\D/g, "");
+        if (digits.length < 10 || digits.length > 13) return reply({ ok: false, erro: "Informe um WhatsApp com DDD e numero valido." }, 400);
+        const existing = await env.DB.prepare("SELECT full_name, birth_date FROM ratopolis_personal_profiles WHERE user_id = ?").bind(actor.id).first();
+        const now = new Date().toISOString();
+        if (existing && (existing.full_name !== fullName || existing.birth_date !== birthDate)) return reply({ ok: false, erro: "Nome completo e data de nascimento ja foram registrados e nao podem ser alterados. Voce pode atualizar somente o WhatsApp." }, 409);
+        if (existing) {
+          await env.DB.prepare("UPDATE ratopolis_personal_profiles SET whatsapp = ?, updated_at = ? WHERE user_id = ?").bind(whatsapp, now, actor.id).run();
+        } else {
+          await env.DB.prepare("INSERT INTO ratopolis_personal_profiles (user_id, full_name, birth_date, whatsapp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)").bind(actor.id, fullName, birthDate, whatsapp, now, now).run();
+        }
+        await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, existing ? "profile_whatsapp_updated" : "profile_personal_created", actor.id, JSON.stringify({ full_name_locked: true, birth_date_locked: true, whatsapp_updated: true }), now).run();
+        const saved = await env.DB.prepare("SELECT full_name, birth_date, whatsapp FROM ratopolis_personal_profiles WHERE user_id = ?").bind(actor.id).first();
+        return reply({ ok: true, profile: saved, identity_locked: true });
+      }
+
       if (path === "/api/logout" && method === "POST") {
         etapaAtual = "encerramento da sessao";
         const token = getBearer(request);
