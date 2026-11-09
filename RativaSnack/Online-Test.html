@@ -917,7 +917,7 @@ function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,ca
  W=WEEK.map((g,i)=>card(g.n,g.v(),g.t,prog.wkClaim>>i&1,'wkc:'+i,'+'+g.c+' 🧀 +'+g.x+' XP')).sort((a,b)=>a.k-b.k),M=MARCOS.map((m,i)=>card(m.n,m.v(),m.t,prog.mkClaim>>i&1,'mkc:'+i,'+'+m.c+' 🧀'+(m.rat?' + 🐀':''))).sort((a,b)=>a.k-b.k);
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
-const RATO_SERVER_URL='https://rativasnack-authoritative-test.onrender.com';   // servidor Node.js multiplayer publicado na Render
+const RATO_SERVER_URL='https://rativasnack-system-host-test.onrender.com';   // servidor Node.js multiplayer publicado na Render
 let mpOnline=false;const OL_KEY='ratoSnackOnline',ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,players:[],tries:0,bye:false,view:false,profile:null,serverOnly:false};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={campos_obrigatorios:'Informe seu usuário/e-mail e senha.',credenciais:'Usuário/e-mail ou senha incorretos.',muitas_tentativas:'Muitas tentativas. Aguarde 1 minuto.',sessao_invalida:'Sessão Ratópolis expirada. Entre novamente.',ratopolis_indisponivel:'O serviço de login do Ratópolis está indisponível.'};
