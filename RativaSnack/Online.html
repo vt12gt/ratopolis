@@ -425,7 +425,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{overflow:visible!important;min-height:auto!important}
 #sheetBody>.donation-sheet>.donation-scroll .donation-total{margin-bottom:0}
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{margin-top:0}
-</style><style>
+\n/* v100: área do jogo acompanha a viewport real de celulares e tablets */\n#game{position:fixed;inset:0 auto auto 0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);}\n</style><style>
 #paused .panel{width:min(760px,96vw);max-height:92vh;overflow:auto;padding:clamp(12px,2.2vw,22px)}
 #paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
 #paused .pause-head button{min-height:44px;font-size:clamp(12px,1.7vw,16px);font-weight:1000}
@@ -778,8 +778,8 @@ function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.b
 /*PURE-END*/
 
 let vig=null;
-function resize(){W=innerWidth;H=innerHeight;dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
-addEventListener('resize',resize);resize();
+function resize(){const vv=window.visualViewport;W=Math.max(1,Math.round(vv&&vv.width?vv.width:window.innerWidth));H=Math.max(1,Math.round(vv&&vv.height?vv.height:window.innerHeight));document.documentElement.style.setProperty('--rativa-vw',W+'px');document.documentElement.style.setProperty('--rativa-vh',H+'px');dpr=Math.max(1,Math.min(devicePixelRatio||1,1.5,QUAL[prefs.quality].dpr,1400/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
+addEventListener('resize',resize);addEventListener('orientationchange',resize);addEventListener('pageshow',resize);if(window.visualViewport){visualViewport.addEventListener('resize',resize);visualViewport.addEventListener('scroll',resize)}resize();
 
 /* ============ Áudio (WebAudio, só após toque do usuário) ============ */
 let ac=null,sfxG=null,musG=null,musTimer=0,nextT=0,mStep=0,lastEatSfx=0;
