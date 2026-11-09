@@ -61,7 +61,8 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 
 - Snack: 2 contas com perfil, 2 perfis, 6 itens de inventário e 1 ciclo de ranking.
 - Polis: 19 contas, 19 perfis, 51 eventos de recompensa, 5 cenários, 6 versões, 1 revisão, 45 itens de registro, 31 itens de catálogo e 1 presente.
-- `PRAGMA foreign_key_check`: zero violações após a cópia inicial.
+- `PRAGMA foreign_key_check`: zero violações após a cópia inicial e novamente após as migrações/vínculos nas duas D1s.
+- Contagens após vínculo: Snack 2 usuários, 2 perfis, 6 itens de inventário e 1 ciclo de ranking; Polis 19 usuários, 19 perfis, 51 eventos de recompensa e 5 cenários.
 
 ## Próximas etapas obrigatórias antes de produção
 
