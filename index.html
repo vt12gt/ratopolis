@@ -881,6 +881,7 @@ async function toggleRadio(){
 }
 $('radioVolume').addEventListener('input',e=>{$('radioAudio').volume=Number(e.target.value);$('radioLiveAudio').volume=Number(e.target.value)});
 loadLiveRankings();setInterval(loadLiveRankings,15000);configureRadio();
+const portalRankParams=new URLSearchParams(window.location.search);if(portalRankParams.get('view')==='ranking'){go('ranking');showGameRanking(portalRankParams.get('game')==='ratosnack'?'ratosnack':'general');}
 communitySessionRestore.finally(()=>{connectCommunityChat();if(sessionToken&&currentPlayer){refreshGamePresence();gamePresenceTimer=setInterval(refreshGamePresence,15000)}});
 
 
