@@ -3973,7 +3973,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 #rpChatRoomTab #chatLog{flex:1;min-height:60px;max-height:none;overflow:auto}
 #rpChatRoomTab #chatHead{flex:0 0 auto}
 #rpChatRoomTab #chatForm{flex:0 0 auto}
-#rpChatTocaFrame{width:100%;height:100%;min-height:180px;flex:1;border:0;border-radius:8px;background:#100d1d}
+#rpChatTocaLog{flex:1;min-height:45px;overflow:auto;display:flex;flex-direction:column;gap:4px;padding:6px;color:#f6efd2;font-size:12px;line-height:1.3}#rpChatTocaLog .rp-toca-msg{overflow-wrap:anywhere;padding:4px 6px;border-radius:6px;background:rgba(255,246,220,.09)}#rpChatTocaLog .rp-toca-meta{display:block;color:#bcd2bf;font-size:9px;margin-top:2px}#rpChatTocaForm{display:flex;gap:5px;padding:4px 6px;border-top:1px solid rgba(255,255,255,.1)}#rpChatTocaInput{flex:1;min-width:0;height:28px;padding:0 8px;border:1px solid #2a7a58;border-radius:8px;background:rgba(4,16,11,.85);color:#f6efd2;font-size:16px}#rpChatTocaForm button{height:28px;padding:0 10px;border:1px solid #e7c35a;border-radius:8px;background:linear-gradient(180deg,#3c9a55,#1d6d3a);color:#fff5c6;font-weight:900;font-size:11px}#rpChatTocaState{font-size:10px;color:#cfe3c8}
 #chatPanel{display:none!important}
 @media(max-width:560px){#rpChatTabs button{font-size:10px;padding:6px 2px}}
 </style>
@@ -4014,25 +4014,59 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const roomBody=document.createElement('div');roomBody.id='rpChatRoomTab';roomBody.hidden=true;
    roomBody.append(roomHead,roomLog,roomForm);
    const toca=document.createElement('div');toca.id='rpChatTocaTab';toca.hidden=true;
-   const frame=document.createElement('iframe');frame.id='rpChatTocaFrame';frame.title='Chat da Toca — Comunidade RativaGames';frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';frame.src='https://vt12gt.github.io/RativaGames/';
-   toca.appendChild(frame);
+   const tocaHead=document.createElement('div');tocaHead.className='rm-gchat-head';tocaHead.innerHTML='<b>💬 CHAT DA TOCA · PORTAL</b><span id="rpChatTocaState">desconectado</span>';
+   const tocaLog=document.createElement('div');tocaLog.id='rpChatTocaLog';tocaLog.setAttribute('role','log');tocaLog.setAttribute('aria-live','polite');
+   const tocaForm=document.createElement('form');tocaForm.id='rpChatTocaForm';tocaForm.innerHTML='<input id="rpChatTocaInput" maxlength="250" autocomplete="off" placeholder="Mensagem para a Toca…" aria-label="Mensagem para o Chat da Toca"><button type="submit">ENVIAR</button>';
+   toca.append(tocaHead,tocaLog,tocaForm);
    world.append(tabs,worldBody,roomBody,toca);
+   let tocaSocket=null,tocaConnecting=false,tocaReconnectTimer=null,tocaConnectSeq=0;
+   const TOCA_CHAT_API='https://ratopolis-community-chat-preview.juniorgmj69.workers.dev';
+   function tocaLine(nick,message,time,role){
+    const row=document.createElement('div');row.className='rp-toca-msg';
+    const who=document.createElement('b');who.textContent=({spadmin:'👑 ',admin:'🛡️ ',gm:'⭐ ',moderador:'🔨 ',player:'🐭 ',guest:'👤 '})[String(role||'guest').toLowerCase()]+(nick||'Visitante');
+    const body=document.createElement('div');body.textContent=message||'';
+    const meta=document.createElement('small');meta.className='rp-toca-meta';meta.textContent=time||'Agora';
+    row.append(who,body,meta);tocaLog.appendChild(row);while(tocaLog.children.length>80)tocaLog.removeChild(tocaLog.firstChild);tocaLog.scrollTop=tocaLog.scrollHeight;
+   }
+   function tocaStatus(v){const el=document.getElementById('rpChatTocaState');if(el)el.textContent=v;}
+   async function connectTocaChat(){
+    if(tocaConnecting||tocaSocket&&tocaSocket.readyState<=1)return;
+    tocaConnecting=true;const seq=++tocaConnectSeq;tocaStatus('conectando…');
+    try{
+     let token='';try{token=window.__ratopolisGetTabSessionToken?.()||localStorage.getItem('ratopolis_session_token')||'';}catch(_){}
+     const nick=(document.getElementById('rmNickname')?.textContent||'').trim()||'Visitante';
+     const headers={'Content-Type':'application/json'};if(token)headers.Authorization='Bearer '+token;
+     const response=await fetch(TOCA_CHAT_API+'/api/ticket',{method:'POST',headers:headers,body:JSON.stringify({nickname:nick})});
+     const ticket=await response.json();if(seq!==tocaConnectSeq)return;
+     if(!response.ok||!ticket.ok)throw new Error(ticket.error||'Não foi possível entrar no Chat da Toca');
+     const socket=new WebSocket(ticket.websocket+'?ticket='+encodeURIComponent(ticket.ticket));tocaSocket=socket;
+     socket.onopen=function(){if(seq===tocaConnectSeq)tocaStatus('conectado ao portal');};
+     socket.onmessage=function(event){
+      try{const d=JSON.parse(event.data);
+       if(d.type==='ready'){tocaLog.replaceChildren();(d.history||[]).slice(-50).forEach(m=>tocaLine(m.nickname,m.text,m.createdAt?new Date(m.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Agora',m.role));tocaStatus('● '+(d.online||0)+' online na Toca');}
+       else if(d.type==='chat_message'){const m=d.message||{};tocaLine(m.nickname,m.text,m.createdAt?new Date(m.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Agora',m.role); }
+       else if(d.type==='announcement'){tocaLine('📢 AVISO · '+(d.nickname||'Equipe'),d.text,new Date(d.createdAt||Date.now()).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),d.role||'admin');}
+       else if(d.type==='presence')tocaStatus('● '+(d.online||0)+' online na Toca');
+       else if(d.type==='error')tocaStatus(d.message||'erro no chat');
+      }catch(_){}
+     };
+     socket.onclose=function(){if(seq!==tocaConnectSeq)return;tocaSocket=null;tocaStatus('reconectando…');clearTimeout(tocaReconnectTimer);tocaReconnectTimer=setTimeout(connectTocaChat,5000);};
+     socket.onerror=function(){try{socket.close()}catch(_){}};
+    }catch(err){if(seq===tocaConnectSeq){tocaStatus('offline · '+String(err.message||'falha').slice(0,55));clearTimeout(tocaReconnectTimer);tocaReconnectTimer=setTimeout(connectTocaChat,7000);}}
+    finally{tocaConnecting=false;}
+   }
+   tocaForm.addEventListener('submit',function(e){
+    e.preventDefault();const input=document.getElementById('rpChatTocaInput'),message=input.value.trim();if(!message)return;
+    if(!tocaSocket||tocaSocket.readyState!==WebSocket.OPEN){tocaStatus('conectando… tente novamente');connectTocaChat();return;}
+    tocaSocket.send(JSON.stringify({type:'chat_message',text:message}));input.value='';
+   });
    function selectTab(name){
     worldBody.hidden=name!=='world';roomBody.hidden=name!=='room';toca.hidden=name!=='toca';
     tabs.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.chatTab===name));});
     if(name==='room'&&roomToggle&&roomToggle.getAttribute('aria-expanded')==='true')roomToggle.click();
-    if(name==='toca'&&frame.contentWindow){try{frame.contentWindow.toggleCommunityChat?.(true);}catch(_){}}
+    if(name==='toca')connectTocaChat();
    }
    tabs.addEventListener('click',function(e){const b=e.target.closest('[data-chat-tab]');if(b)selectTab(b.dataset.chatTab);});
-   frame.addEventListener('load',function(){
-    try{
-     const d=frame.contentDocument;if(!d)return;
-     let css=d.getElementById('rativa-toca-embed-style');
-     if(!css){css=d.createElement('style');css.id='rativa-toca-embed-style';d.head.appendChild(css);}
-     css.textContent='html,body{margin:0!important;width:100%!important;height:100%!important;overflow:hidden!important;background:#100d1d!important}body>*:not(#communityChat){display:none!important}#communityChat{display:flex!important;position:fixed!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important;z-index:999999!important}#communityChat.hidden{display:flex!important}#chatToggle{display:none!important}';
-     frame.contentWindow.toggleCommunityChat?.(true);
-    }catch(e){console.warn('Chat da Toca incorporado:',e);}
-   });
    selectTab('world');
   }
  }
