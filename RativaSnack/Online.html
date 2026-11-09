@@ -936,7 +936,7 @@ async function olSyncProgress(){
   if(Number.isFinite(Number(saved.bestQuick)))bestQuick=Math.max(0,Math.min(1e9,Math.floor(Number(saved.bestQuick))));
  }else{
   prog.xp=Math.min(XP.max,Math.max(0,Number(profile.xp)||0));prog.lvlRw=Math.max(1,Number(profile.level)||1);
-  stats.games=Math.max(0,Number(profile.games_played)||0);stats.wins=Math.max(0,Number(profile.wins)||0);
+  stats.games=Math.max(0,Number(profile.games_played)||0);stats.wins=Math.max(0,Number(profile.wins)||0);eco.cheese=Math.max(0,Number(profile.coins)||0);
   bestQuick=Math.max(0,Number(profile.best_score)||0);
  }
  ol.xp=Math.max(0,Number(prog.xp)||0);ol.level=Math.max(1,lvlInfo(ol.xp).l);
