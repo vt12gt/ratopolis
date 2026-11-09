@@ -58,6 +58,7 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 - Migrações de IDs curtos aplicadas nas três D1s de desenvolvimento: Portal 19/19 RV, Snack 2/2 RS e Polis 19/19 RP; todos únicos, com formato válido e sem vínculo órfão.
 - Triggers de validação e imutabilidade aplicados nas três bases; IDs antigos de desenvolvimento foram substituídos antes da homologação/publicação.
 - Os Workers de desenvolvimento têm geradores de cinco caracteres e o Core devolve o ID RV. A integração ainda exige homologação completa; nenhum binding de produção foi alterado.
+- O perfil do Portal exibe o ID RV da conta e os IDs RS/RP separados na aba Jogos, consultando o Core.
 
 ## Dados migrados em desenvolvimento
 
