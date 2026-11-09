@@ -116,6 +116,6 @@ else status('🟡 Sem sessão conectada. Você pode jogar Offline; para jogar On
 addEventListener('online',()=>{if(!portalToken){try{portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||''}catch(e){}}if(portalToken)validateConnection()});
 addEventListener('offline',()=>status('🔴 Sem internet — o modo Offline continua disponível.'));
 addEventListener('storage',event=>{if(event.key===PORTAL_TOKEN_KEY&&event.newValue){portalToken=event.newValue;validateConnection()}});
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+// O Service Worker único é registrado pelo portal Rativa Games.
 </script>
 </body></html>
