@@ -379,6 +379,29 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 @media(max-width:420px){.donation-funds{grid-template-columns:1fr}.donation-methods button{font-size:10px}.rank-two-column .online-rank-row{padding:5px 3px}.rank-two-column .online-rank-row b{font-size:10px}}
 
 
+
+/* Doações: painel compacto em duas colunas na tela horizontal. */
+.donation-sheet .donation-scroll{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:7px;align-content:start;}
+.donation-sheet .donation-total{grid-column:1/-1;margin:0;padding:10px 8px;gap:2px}
+.donation-sheet .donation-total strong{font-size:clamp(24px,4vw,34px)}
+.donation-sheet .donation-methods{grid-column:1;grid-row:2;gap:6px}
+.donation-sheet .donation-methods article{padding:7px;gap:3px}
+.donation-sheet .donation-methods button{padding:8px 4px;margin-top:1px}
+.donation-sheet .donation-label{grid-column:1;grid-row:3;margin:2px 0 0}
+.donation-sheet #snackDonationAmount{grid-column:1;grid-row:4;max-width:100%;padding:8px}
+.donation-sheet #snackDonationNotice{grid-column:1;grid-row:5;margin:0;padding:7px;font-size:10px}
+.donation-sheet .donation-info{grid-column:2;grid-row:2 / span 4;margin:0}
+.donation-sheet .donation-info h3{font-size:13px;margin:4px 0}
+.donation-sheet .donation-info p{font-size:10px;line-height:1.3;margin:4px 0}
+.donation-sheet .donation-reasons{gap:4px}
+.donation-sheet .donation-reasons article{padding:6px;gap:2px;font-size:14px}
+.donation-sheet .donation-reasons b{font-size:10px}
+.donation-sheet .donation-reasons small{font-size:9px;line-height:1.2}
+.donation-sheet .donation-funds{gap:4px}
+.donation-sheet .donation-funds article{padding:6px;gap:2px}
+.donation-sheet .donation-weeks{gap:4px;margin-top:4px}
+.donation-sheet .donation-disclaimer{margin-top:6px;padding:6px;font-size:9px}
+@media(max-height:430px){.donation-sheet .donation-total{padding:6px}.donation-sheet .donation-info h3{font-size:12px}.donation-sheet .donation-methods small{font-size:9px}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -410,8 +433,8 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
  <div class="side">
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
-  <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
   <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
+  <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
  </div>
 </div>
 <div class="m2bot">
@@ -859,6 +882,8 @@ function botThink0(s){if(s.boss){s.ai=.1;return}
 function addSeg(s){const t=s.segments[s.segments.length-1];s.segments.push({x:t.x,y:t.y});s.length++}
 function move(s,dt){
  if(!s.alive)return;
+ if((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)){s.mpAwayShield=true;s.shield=999;return}
+ if(s.mpAwayShield){s.mpAwayShield=false;s.shield=0}
  if(s.isBot){s.ai-=dt;if(s.ai<=0)botThink(s)}else if(pointer.down&&pointer.hasDirection){s.targetAngle=Math.atan2(pointer.dirY,pointer.dirX)}
  if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v,dt)}
  const spd=s.speedBase*(s.isBot?(1+.08*threat+(mode==='infinite'?Math.min(.35,.03*wave):0))*(s.special?1:DIFFS[prefs.diff].spd):1)*(ev&&ev.id==='vento'?1.15:1)*Math.max(s.boostT>0?skillVal(s,'boost','mul'):1,s.boostActive?CFG.boostMult:1);
@@ -919,7 +944,7 @@ const vics=[],byk=[];
 const dd=(x1,y1,x2,y2)=>{const a=x1-x2,b=y1-y2;return a*a+b*b};
 function sd(px,py,ax,ay,bx,by){const abx=bx-ax,aby=by-ay,t=Math.max(0,Math.min(1,((px-ax)*abx+(py-ay)*aby)/(abx*abx+aby*aby||1)));return dd(px,py,ax+abx*t,ay+aby*t)}
 /* ===== Multiplayer local: sala por Wi-Fi/hotspot (WebRTC, sem internet). O anfitrião roda a partida; os convidados mandam direção e recebem o estado. ===== */
-let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpDeadMsg=false;const mpSlots=[],mpConns=[];
+let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpDeadMsg=false,mpAway=false;const mpSlots=[],mpConns=[];
 const mpEnc=o=>btoa(JSON.stringify(o)),mpDec=t=>JSON.parse(atob(String(t).replace(/\s/g,'')));
 const mpIce=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(r,3000)});
 const mpEl=id=>document.getElementById(id);
@@ -934,7 +959,7 @@ async function mpHostNew(){const pc=new RTCPeerConnection({iceServers:[]}),dc=pc
  dc.onopen=()=>{c.open=true;mpUI()};dc.onclose=()=>{c.open=false;mpUI()};
  dc.onmessage=e=>mpHostMsg(c,e.data);
  mpConns.push(c);await pc.setLocalDescription(await pc.createOffer());await mpIce(pc);c.code=mpEnc({s:pc.localDescription.sdp});return c}
-function mpHostMsg(c,data){try{const m=JSON.parse(data);if(typeof m.e==='number'&&m.e>=0&&m.e<EMO.length){const i=mpSlots.indexOf(c);if(i>=0&&bots[i]){bots[i].emote=m.e;bots[i].emoteT=2.5}}if(m.h&&!c.uid){c.nick=cleanNick(String(m.h));mpUI()}
+function mpHostMsg(c,data){try{const m=JSON.parse(data);if(typeof m.away==='boolean')c.away=m.away;if(typeof m.e==='number'&&m.e>=0&&m.e<EMO.length){const i=mpSlots.indexOf(c);if(i>=0&&bots[i]){bots[i].emote=m.e;bots[i].emoteT=2.5}}if(m.h&&!c.uid){c.nick=cleanNick(String(m.h));mpUI()}
  if(m.rat&&RATS[m.rat])c.rat=m.rat;if(typeof m.hat==='string'&&(m.hat==='nenhum'||HAT_DEF[m.hat]))c.hat=m.hat;if(typeof m.cloth==='string'&&(m.cloth==='nenhum'||CLOTH_DEF[m.cloth]))c.cloth=m.cloth;if(typeof m.col==='string'&&/^#[0-9a-f]{6}$/i.test(m.col))c.col=m.col;if(typeof m.sk==='string'&&/^[a-z]{1,14}$/.test(m.sk))c.sk=m.sk;
  if(typeof m.a==='number'&&isFinite(m.a)){c.ang=m.a;c.boost=m.b?1:0}else if(m.h||m.rat){const i=mpSlots.indexOf(c);if(i>=0&&bots[i])mpBind(bots[i],c)}}catch(_){}}
 function mpHostView(){mpBox(`<b>🏠 Sua sala</b> • <span id="mpSt"></span><p>1) Envie este código ao amigo:</p>${mpTA('mpOff',1)}<p>2) Cole aqui o código de resposta dele:</p>${mpTA('mpAns')}${mpB('Conectar','mpAccept()')}${mpB('➕ Outro jogador','mpHostAdd()')}${mpB('▶ Iniciar','mpStart()')}${mpX}`);const c=mpConns[mpConns.length-1];if(c)mpEl('mpOff').value=c.code;mpUI()}
@@ -971,8 +996,8 @@ function mpApply(m){if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==AREN
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
  gameTime=mpN(m.t);score=me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
 function mpClientTick(dt){if(!player)return;{const k=Math.min(1,dt*16);for(const sn of snakes){if(sn.tx!==undefined){const dx=(sn.tx-sn.x)*k,dy=(sn.ty-sn.y)*k;sn.x+=dx;sn.y+=dy;for(const q of sn.segments){q.x+=dx;q.y+=dy}}}}const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
- if(pointer.down&&pointer.hasDirection)mpAng=Math.atan2(pointer.dirY,pointer.dirX);
- mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:boostHold?1:0}))}
+ if(!mpAway&&pointer.down&&pointer.hasDirection)mpAng=Math.atan2(pointer.dirY,pointer.dirX);
+ mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:!mpAway&&boostHold?1:0,away:!!mpAway}))}
  mpAcc2+=dt;if(mpAcc2>.3){mpAcc2=0;updateHud(true)}}
 const LT=[{n:'Partidas',b:3,p:1.55,v:()=>stats.games,t:n=>`Jogue ${n} partidas`},{n:'Queijos',b:60,p:1.9,v:()=>stats.food,t:n=>`Coma ${n} queijos no total`},{n:'Eliminações',b:4,p:1.75,v:()=>stats.kills,t:n=>`Elimine ${n} ratos no total`},{n:'Tempo',b:5,p:1.7,v:()=>Math.floor(stats.time/60),t:n=>`Jogue ${n} minutos no total`},{n:'Pontuação',b:300,p:1.6,v:()=>bestQuick,t:n=>`Faça ${n} pontos na partida rápida`},{n:'Sobrevivência',b:20,p:1.3,v:()=>Math.floor(stats.bestTime),t:n=>`Sobreviva ${n} segundos`},{n:'Tamanho',b:10,p:1,v:()=>stats.bestSize,t:n=>`Chegue ao tamanho ${n}`},{n:'Diários',b:1,p:1,v:()=>prog.dcPlays,t:n=>`Faça ${n} desafios diários`},{n:'Nível',b:2,p:1.4,v:()=>lvlInfo(prog.xp).l,t:n=>`Chegue ao nível ${n}`},{n:'Rodada',b:1,p:.95,v:()=>stats.bestKills,t:n=>`Elimine ${n} ratos em uma partida`}];
 const ladThr=(k,i)=>Math.max(1,Math.round(LT[k].b*Math.pow(i+1,LT[k].p)));
@@ -1243,15 +1268,18 @@ function applyRevenge(){if(!pendingRevenge)return;const r=pendingRevenge;pending
  if(b){b.rival=true;showToast('🎯 Revanche: '+b.name+' está marcado!',3)}}
 
 function startGame0(m){
+ mpAway=false;
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
- running=true;paused=false;ended=false;releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
+ running=true;paused=false;ended=false;mpAway=false;$('pause').textContent=mpOnline?'SAIR':'Ⅱ';$('resume').textContent='CONTINUAR';$('quit').textContent=mpOnline?'VOLTAR AO MENU':'SAIR AO MENU';$('restart').classList.toggle('hidden',!!mpOnline);releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);$('pauseStats').innerHTML=[['Pontos',score],['Tamanho',player.length],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}
+function mpExitOverlay(){if(!mpOnline||!running||ended||!player||!player.alive){togglePause();return}mpAway=true;releaseDrag();player.boostActive=false;player.shield=999;fillPause();$('paused').classList.remove('hidden');$('resume').textContent='VOLTAR À PARTIDA';$('restart').classList.add('hidden');$('quit').textContent='VOLTAR AO MENU';$('pause').textContent='VOLTAR'}
+function mpReturnToGame(){if(!mpOnline){togglePause();return}$('paused').classList.add('hidden');$('restart').classList.remove('hidden');$('resume').textContent='CONTINUAR';$('quit').textContent='SAIR AO MENU';$('pause').textContent='SAIR';releaseDrag();mpAway=true;showToast('Você voltará à partida em 5 segundos. Seu rato ficará protegido.',4);setTimeout(()=>{if(mpOnline&&running&&!ended){mpAway=false;if(player)player.shield=0;showToast('Você voltou à partida!',2)}},5000)}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;paused=!paused;if(paused){releaseDrag();player.boostActive=false;fillPause()}$('paused').classList.toggle('hidden',!paused);$('pause').textContent=paused?'▶':'Ⅱ';if(paused)flushSave();syncBoostBtn();syncMusic()}
-function toMenu(){if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
+function toMenu(){mpAway=false;if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
 
 /* ============ Menu, personalização, recordes, ajustes ============ */
 function menuInfo(){ensureOwn();dotsUpdate();$('modeName').textContent=MICON[mode]+' '+MODES[mode].name;$('modeDesc').textContent=MODES[mode].desc+(mode==='daily'?(prog.dcDay===today()?' Hoje: '+prog.dcBest+' pts. Volte amanhã para um novo desafio.':' Disponível hoje: uma tentativa por dia!'):'');$('startBest').textContent='Recorde: '+fmtBest()+' • 🧀 '+eco.cheese;$('bestN').textContent=(mode==='quick'?bestQuick:fmtBest().replace(' pts',''));$('coinN').textContent=eco.cheese;updateHud(true);drawPreview('pvm');menuProg()}
@@ -1583,7 +1611,7 @@ function saveNick(){const v=cleanNick($('nickIn').value);if(v.length<2){$('nickI
 $('nickOk').onclick=saveNick;$('nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')saveNick()});$('whoBtn').onclick=()=>showNick(false);
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;if(sheetName==='settings')renderSheet('settings')});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updReady=true;showToast('⬆️ Nova versão disponível! Feche e abra o jogo para atualizar.',5)}})})}).catch(()=>{}));
-if(!prefs.nick)setTimeout(()=>showNick(true),250);$('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;startGame(mode)};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=togglePause;$('resume').onclick=togglePause;$('restart').onclick=()=>startGame(mode);$('quit').onclick=toMenu;
+if(!prefs.nick)setTimeout(()=>showNick(true),250);$('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;startGame(mode)};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=()=>mpOnline?mpExitOverlay():togglePause;$('resume').onclick=()=>mpOnline?mpReturnToGame():togglePause;$('restart').onclick=()=>startGame(mode);$('quit').onclick=toMenu;
 addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key&&e.key.toLowerCase()==='p'))togglePause()});
 document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidden){flushSave();if(running&&!paused&&player.alive)togglePause();try{if(ac)ac.suspend()}catch(e){}}else{try{if(ac&&prefs.music||ac&&prefs.sfx)ac.resume()}catch(e){}}syncMusic()});
 addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
