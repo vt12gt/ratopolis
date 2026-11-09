@@ -5,7 +5,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#4a2f9f"><title>Rato Snack</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;min-height:0;position:fixed;inset:0;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:fixed;inset:0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);overflow:hidden;}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1c1129;color:#ffffff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}#game{position:relative;width:100vw;height:100dvh;overflow:hidden}canvas{position:absolute;inset:0;touch-action:none;width:100%;height:100%;display:block}
 .hud{position:absolute;inset:0;padding:calc(env(safe-area-inset-top) + 9px) 12px calc(env(safe-area-inset-bottom) + 10px);pointer-events:none}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.brand{font-weight:1000;font-size:clamp(18px,3.3vw,29px);letter-spacing:-.4px}.brand span,h1 span{color:#ffd34e}
 .stats{display:flex;gap:6px}.pill{background:#1d122ad9;border:1px solid #ffffff16;border-radius:10px;padding:6px 10px;min-width:62px;text-align:center}.pill small{display:block;color:#bfafd2;font-size:9px;text-transform:uppercase;letter-spacing:.7px;font-weight:800}.pill strong{font-size:clamp(15px,2.4vw,21px)}#score{color:#ffd34e}#size{color:#75f0bd}#kills{color:#ff8fa5}
 .tip{position:absolute;left:50%;top:76px;transform:translateX(-50%);font-size:12px;color:#eaddf9;background:#1d122ad9;border:1px solid #ffffff12;padding:7px 12px;border-radius:99px;white-space:nowrap;transition:opacity .4s}
@@ -336,7 +336,8 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 @media(orientation:landscape) and (max-height:420px){.entry-card{padding:12px 20px}.entry-logo{font-size:34px;margin-bottom:4px}.entry-card h1{font-size:25px}.entry-card .subtitle{margin:4px auto 10px}.entry-actions{grid-template-columns:repeat(3,1fr);gap:7px}.entry-btn{min-height:68px;padding:8px;gap:5px;flex-direction:column;justify-content:center;text-align:center;font-size:12px}.entry-btn span{font-size:21px}.entry-btn small{font-size:9px}.entry-foot{margin-top:7px}}
 
 #rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){body.playing #rotateNotice{display:flex}}.portal-rank-link{display:block;margin:10px auto 0;text-align:center;text-decoration:none;color:#f0e7fb;width:100%;}
-\n/* v100: área do jogo acompanha a viewport real de celulares e tablets */\n#game{position:fixed;inset:0 auto auto 0;width:var(--rativa-vw,100vw);height:var(--rativa-vh,100dvh);}\n</style><style>
+
+</style><style>
 #paused .panel{width:min(760px,96vw);max-height:92vh;overflow:auto;padding:clamp(12px,2.2vw,22px)}
 #paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
 #paused .pause-head button{min-height:44px;font-size:clamp(12px,1.7vw,16px);font-weight:1000}
@@ -732,9 +733,8 @@ function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.b
 /*PURE-END*/
 
 let vig=null;
-function resize(){const vv=window.visualViewport;const root=document.documentElement;const vw=Math.max(1,Math.round(vv&&vv.width||root.clientWidth||window.innerWidth||1));const vh=Math.max(1,Math.round(vv&&vv.height||root.clientHeight||window.innerHeight||1));W=vw;H=vh;root.style.setProperty('--rativa-vw',vw+'px');root.style.setProperty('--rativa-vh',vh+'px');dpr=Math.max(1,Math.min(devicePixelRatio||1,2,QUAL[prefs.quality].dpr,1600/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}}
-const resizeAfterLayout=()=>{resize();requestAnimationFrame(()=>requestAnimationFrame(resize))};
-addEventListener('resize',resizeAfterLayout,{passive:true});addEventListener('orientationchange',()=>setTimeout(resizeAfterLayout,180),{passive:true});addEventListener('pageshow',resizeAfterLayout);addEventListener('load',resizeAfterLayout);if(window.visualViewport){visualViewport.addEventListener('resize',resizeAfterLayout,{passive:true});visualViewport.addEventListener('scroll',resizeAfterLayout,{passive:true})}resizeAfterLayout();
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.max(1,Math.min(devicePixelRatio||1,2,QUAL[prefs.quality].dpr,1600/Math.max(W,H)));const cw=Math.round(W*dpr),ch=Math.round(H*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(dpr,0,0,dpr,0,0);vig=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,Math.max(W,H)*.7);vig.addColorStop(0,'#2a1b5088');vig.addColorStop(1,'#150f2a00')}if(running&&!paused&&H>W&&W<=700)togglePause()}
+addEventListener('resize',resize);resize();
 
 /* ============ Áudio (WebAudio, só após toque do usuário) ============ */
 let ac=null,sfxG=null,musG=null,musTimer=0,nextT=0,mStep=0,lastEatSfx=0;
