@@ -1213,8 +1213,10 @@ async function olVerifyRatopolisSession(){
   // Não exige um segundo toque em "Jogar Online" e não inicia partida local.
   olApplyIdentity();
   showToast('Conta RativaGames conectada: '+ol.nick+'. Procurando sala online…',3);
-  try{await olSyncProgress();olApplyIdentity()}
-  catch(syncError){console.warn('RativaSnack: perfil/sincronização indisponível; mantendo a sessão autenticada',syncError)}
+  // Sincronização de progresso em segundo plano: nunca segura a entrada na sala.
+  olSyncProgress().then(()=>{olApplyIdentity()}).catch(syncError=>{
+   console.warn('RativaSnack: perfil/sincronização indisponível; mantendo a sessão autenticada',syncError);
+  });
   await olDoPlay();
   return;
  }catch(e){
