@@ -1207,7 +1207,7 @@ function applyRevenge(){if(!pendingRevenge)return;const r=pendingRevenge;pending
  if(b){b.rival=true;showToast('🎯 Revanche: '+b.name+' está marcado!',3)}}
 
 function startGame0(m){
- document.body.classList.remove('online-access');document.body.classList.add('playing');
+ document.body.classList.remove('online-access');document.body.classList.add('playing');if(mpOnline)resize();
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));$('pause').classList.remove('hidden');$('pause').classList.toggle('online-exit',!!mpOnline);$('pause').textContent='SAIR';
@@ -1323,7 +1323,7 @@ function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=a
  else if(k==='mp'){mpOpen();return}
  else if(k==='bk'){if(v==='export')bkExport();else bkImport();return}
  else if(k==='tog'&&(v==='sfx'||v==='music'||v==='fullscreen'||v==='boostLeft'||v==='vib'||v==='stickLeft'||v==='arrows'||v==='bigtxt'||v==='cblind'||v==='autoq')){prefs[v]=!prefs[v];if(v==='bigtxt'||v==='cblind')applyA11y();bb.classList.toggle('left',prefs.boostLeft);if(v==='sfx'||v==='music'){ensureAudio();applyVolumes();if(v==='sfx'&&prefs.sfx)sfx('bonus')}}
- savePrefs();renderSheet(sheetName)}
+ if(mpServerAuthoritative&&(k==='turn'||k==='sens'))olSend({t:'appearance',turnRate:olTurnRate()});savePrefs();renderSheet(sheetName)}
 
 /* ============ Desenho ============ */
 function background(){const sw=CFG.solidWalls,wx=-cam.x,wy=-cam.y;ctx.fillStyle=sw?'#0d0a1c':'#150f2a';ctx.fillRect(0,0,W,H);
