@@ -51,14 +51,19 @@ function readSession(){
  try{
   if(incoming){
    portalToken=incoming;portalNick=nick.slice(0,24);
+   // Persistir o token ANTES de limpar o hash ou abrir Online.html.
+   sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}));
    history.replaceState(null,'',location.pathname+location.search);
   }else{
-   // O portal e o jogo estão no mesmo domínio: a sessão principal fica no localStorage.
    portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||'';
    if(!portalToken){
     const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
     if(saved&&typeof saved.token==='string')portalToken=saved.token;
     if(saved&&saved.nick)portalNick=String(saved.nick).slice(0,24);
+   }
+   if(portalToken){
+    const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
+    sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:String(saved?.id||''),nick:String(portalNick||saved?.nick||'').slice(0,24)}));
    }
   }
  }catch(e){console.warn('RativaSnack: não foi possível recuperar a sessão',e)}
@@ -106,7 +111,10 @@ readSession();
 document.getElementById('goOnline').addEventListener('click',async e=>{
  e.preventDefault();
  if(navigator.onLine===false){status('🔴 Sem internet — conecte-se para entrar no Online.');return}
- if(!onlineReady){const valid=await validateConnection();if(!valid)return}
+ if(!portalToken){await validateConnection();return}
+ // Uma falha temporária do /api/me não pode apagar nem bloquear a entrega da sessão.
+ if(!onlineReady)await validateConnection();
+ if(!portalToken){status('🔒 Entre na sua conta RativaGames para jogar Online.');return}
  const next='Online.html#ratopolis_token='+encodeURIComponent(portalToken)+'&ratopolis_nick='+encodeURIComponent(portalNick);
  location.href=next;
 });
