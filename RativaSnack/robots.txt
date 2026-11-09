@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /server/
+Disallow: /android/
+Disallow: /.github/
+
+Sitemap: https://vt12gt.github.io/Ratosnak/sitemap.xml
