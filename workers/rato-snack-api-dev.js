@@ -1,4 +1,4 @@
-const VERSION='rato-snack-api-dev-v2-central-identity';
+const VERSION='rato-snack-api-dev-v3-short-public-ids';
 const ORIGINS=new Set(['https://vt12gt.github.io','https://ratopolis-cadastro-teste.pages.dev','http://localhost:8158','http://localhost:8787']);
 const out=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 function bearer(r){const m=(r.headers.get('Authorization')||'').match(/^Bearer\s+(\S+)$/i);return m?m[1]:''}
