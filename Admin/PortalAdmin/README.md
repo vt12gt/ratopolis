@@ -23,3 +23,7 @@ Os serviços centrais, rádio e comunidade gravam eventos administrativos na tab
 O painel de Comunidade conecta ao Worker `ratopolis-community-chat-preview` por ticket temporário e WebSocket. A interface reflete as permissões por cargo; o Worker continua sendo a autoridade final para cada operação. Membros online são obtidos por presença em tempo real. O feed de publicações dos jogadores não possui ação administrativa de exclusão neste módulo.\n\nA migração do painel legado é feita por etapas. Telas locais/demo não são tratadas como operações reais e não devem ser removidas até existir substituto conectado ao servidor e testado.
 
 O mapa de responsabilidades está em [SEPARACAO_PAINES.md](./SEPARACAO_PAINES.md). O portal público único continua sendo o `index.html` da raiz do repositório.
+
+
+## Interface administrativa por abas
+A página `index.html` é a central única do Admin RativaGames, com identidade visual do portal e navegação por abas. Os módulos Comunidade, Doações, Equipe, Ranking, Premiações, Auditoria, Rádio e Estatísticas da rádio são carregados dentro da área de conteúdo, preservando suas validações de acesso no servidor. O painel Admin RativaPolis permanece separado.
