@@ -39,12 +39,12 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 
 ## IDs públicos
 
-- Portal: `RV-` (registro central ainda precisa de migração própria).
-- RativaSnack: `RS-`.
-- Rativapolis: `RP-`.
-- IDs públicos são curtos, imutáveis, únicos dentro do respectivo produto e gerados exclusivamente no servidor.
-- `workers/lib/game-public-id.js` gera RS/RP com aleatoriedade criptográfica e verificação de colisão; UNIQUE no banco é a proteção final. O chamador deve tratar colisões concorrentes com retentativa limitada.
-- O ID público principal RV ainda não foi ativado.
+- Portal: `RV-XXXXX`; RativaSnack: `RS-XXXXX`; Rativapolis: `RP-XXXXX`.
+- Cada ID tem exatamente cinco caracteres aleatórios após o prefixo (oito caracteres no total), gerados com aleatoriedade criptográfica no servidor.
+- IDs públicos são curtos, imutáveis e únicos dentro do respectivo produto. Não são senha, token ou prova de autenticação.
+- `workers/lib/game-public-id.js` gera RS/RP com verificação de colisão; o índice UNIQUE no banco é a proteção final. O chamador trata colisões concorrentes com retentativa limitada.
+- O Portal possui gerador próprio RV e coluna `ratopolis_users.public_id`; os UUIDs internos continuam sendo as chaves relacionais e nunca são substituídos pelo ID público.
+- Antes da homologação, os IDs de desenvolvimento foram normalizados para o novo formato. Depois de atribuídos, triggers no D1 impedem alteração dos IDs.
 
 ## Estado desta entrega (desenvolvimento)
 
@@ -55,7 +55,9 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 - Migrações `0003_portal_identity_link.sql` aplicadas nas duas D1s de desenvolvimento.
 - Vínculos conferidos: 2/2 perfis Snack e 19/19 perfis Polis; nenhuma correspondência ausente, duplicada ou nickname divergente.
 - Core `rativa-core-dev` implantado com os três bindings de desenvolvimento.
-- Nenhum Worker de produção teve binding alterado nesta etapa. O Worker principal `ratopolis-api-dev-v30` ainda concentra autenticação/Portal e lógica de Polis; a separação do backend Polis é a próxima etapa.
+- Migrações de IDs curtos aplicadas nas três D1s de desenvolvimento: Portal 19/19 RV, Snack 2/2 RS e Polis 19/19 RP; todos únicos, com formato válido e sem vínculo órfão.
+- Triggers de validação e imutabilidade aplicados nas três bases; IDs antigos de desenvolvimento foram substituídos antes da homologação/publicação.
+- Os Workers de desenvolvimento têm geradores de cinco caracteres e o Core devolve o ID RV. A integração ainda exige homologação completa; nenhum binding de produção foi alterado.
 
 ## Dados migrados em desenvolvimento
 
