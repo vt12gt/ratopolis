@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="minesweeper.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Minesweeper — Free Online Minesweeper Game</title>
+<meta name="description" content="Play the classic Minesweeper free in your browser. Three difficulties, first-click-safe, timer and flag counter. No install, works on mobile and desktop.">
+<meta name="keywords" content="minesweeper,free minesweeper,online minesweeper,classic minesweeper,minesweeper game,html5 game,browser game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Minesweeper — Free Online Minesweeper Game">
+<meta property="og:description" content="Flag the mines, clear the field. First click is always safe.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💣</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 14px; user-select: none; -webkit-user-select: none;
+  }
+  .wrap {
+    position: relative;
+    width: min(560px, 100%);
+    background: rgba(15, 30, 40, .55);
+    border-radius: 16px; padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    /* 30×16 硬难度在手机上放不下整块棋盘，允许横向滑动查看（.cell 已设 touch-action: manipulation） */
+    overflow-x: auto;
+  }
+  .hidden { display: none !important; }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; gap: 8px; flex-wrap: wrap;
+  }
+  .counter {
+    background: rgba(0,0,0,.35); border-radius: 10px; padding: 6px 14px;
+    color: #ffd76e; font-size: 18px; font-weight: 800; letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .counter small { display: block; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: 1px; font-weight: 700; }
+  .diff-row { display: flex; gap: 6px; }
+  .diff-btn {
+    border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer;
+    background: rgba(255,255,255,.12); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 13px; font-weight: 700; transition: all .12s ease;
+  }
+  .diff-btn.active { background: #ff9f1c; color: #fff; }
+  .face-btn, #mute-btn {
+    border: none; border-radius: 10px; width: 42px; height: 42px;
+    font-size: 20px; cursor: pointer; background: rgba(255,255,255,.15); padding: 0;
+  }
+  .face-btn:active, #mute-btn:active { transform: scale(.92); }
+  #board {
+    display: grid; gap: 2px; margin: 0 auto;
+    background: rgba(0,0,0,.3); padding: 6px; border-radius: 10px;
+    touch-action: manipulation;
+  }
+  .cell {
+    width: var(--cs); height: var(--cs);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; font-weight: 800;
+    font-size: calc(var(--cs) * 0.52);
+    background: #4a6b52; cursor: pointer;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.2);
+    transition: background .08s ease;
+    /* iOS 长按会弹「拷贝/查找」气泡并打断触摸序列，导致长按插旗失效 */
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+  }
+  .cell:hover { background: #587d61; }
+  .cell.open { background: #22352a; cursor: default; box-shadow: none; }
+  .cell.mine-hit { background: #b33939; }
+  .cell.mine-shown { background: #2a2020; }
+  .cell.flag-wrong { background: #3a2a2a; }
+  .n1 { color: #6db3f2; } .n2 { color: #7cb342; } .n3 { color: #e57373; }
+  .n4 { color: #9575cd; } .n5 { color: #ffb74d; } .n6 { color: #4db6ac; }
+  .n7 { color: #f06292; } .n8 { color: #e0e0e0; }
+  .msg {
+    margin-top: 12px; text-align: center; color: #fff; font-size: 15px; font-weight: 700;
+    min-height: 22px; letter-spacing: .5px;
+  }
+  .msg.win { color: #7cb342; } .msg.lose { color: #e57373; }
+  .hint { margin-top: 4px; text-align: center; color: rgba(255,255,255,.45); font-size: 11px; }
+  .btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+  .btn-primary {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: #ff9f1c; color: #fff; box-shadow: 0 5px 0 #c47a0e;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-primary:active { transform: scale(.95); box-shadow: 0 2px 0 #c47a0e; }
+  .btn-ghost {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-ghost:active { transform: scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="counter"><small data-i18n="minesweeper.hudMines">MINES</small><span id="mine-count">10</span> ⚑</div>
+    <div class="diff-row">
+      <button class="diff-btn active" data-diff="easy">9×9</button>
+      <button class="diff-btn" data-diff="medium">16×16</button>
+      <button class="diff-btn" data-diff="hard">30×16</button>
+    </div>
+    <div class="counter"><small data-i18n="minesweeper.hudTime">TIME</small><span id="time">0</span> s</div>
+    <button class="face-btn" id="face-btn" data-i18n-title="minesweeper.newGame" title="New game">🙂</button>
+    <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  </div>
+  <div id="board"></div>
+  <div class="msg" id="msg"></div>
+  <div class="hint" data-i18n-html="minesweeper.hint">Left click / tap to reveal · Right click / long-press to flag 🚩</div>
+  <div class="btn-row hidden" id="share-row">
+    <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+    <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Difficulty presets =====
+  var DIFFS = {
+    easy:   { cols: 9,  rows: 9,  mines: 10, cs: 36 },
+    medium: { cols: 16, rows: 16, mines: 40, cs: 26 },
+    hard:   { cols: 30, rows: 16, mines: 99, cs: 22 }
+  };
+  var bestKeyBase = 'minesweeper_best_';
+
+  var diff = 'easy';
+  var cols, rows, mines, grid, opened, flags, started, over, won, timer, seconds, firstClick;
+  var board = document.getElementById('board');
+  var msg = document.getElementById('msg');
+  var shareRow = document.getElementById('share-row');
+  var cells = [];
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.1, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    open:  function () { beep(500, 0.05, 'sine', 0.06); },
+    flag:  function () { beep(700, 0.06, 'square', 0.05); },
+    boom:  function () { beep(120, 0.4, 'sawtooth', 0.16); setTimeout(function(){ beep(70, 0.5, 'sawtooth', 0.14); }, 150); },
+    win:   function () { [523, 659, 784, 1046].forEach(function (f, i) { setTimeout(function () { beep(f, 0.15, 'sine', 0.1); }, i * 120); }); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Grid model =====
+  // cell: { mine: bool, adj: 0-8, state: 'closed'|'open'|'flag'|'?' }
+  function idx(x, y) { return y * cols + x; }
+  function neighbors(x, y) {
+    var out = [];
+    for (var dy = -1; dy <= 1; dy++) {
+      for (var dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        var nx = x + dx, ny = y + dy;
+        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) out.push([nx, ny]);
+      }
+    }
+    return out;
+  }
+
+  function placeMines(safeX, safeY) {
+    // first-click-safe: exclude the clicked cell and all its neighbors
+    var banned = {};
+    banned[idx(safeX, safeY)] = true;
+    neighbors(safeX, safeY).forEach(function (n) { banned[idx(n[0], n[1])] = true; });
+    var placed = 0;
+    while (placed < mines) {
+      var i = Math.floor(Math.random() * cols * rows);
+      if (banned[i] || grid[i].mine) continue;
+      grid[i].mine = true;
+      placed++;
+    }
+    for (var y = 0; y < rows; y++) {
+      for (var x = 0; x < cols; x++) {
+        var c = grid[idx(x, y)];
+        c.adj = 0;
+        neighbors(x, y).forEach(function (n) { if (grid[idx(n[0], n[1])].mine) c.adj++; });
+      }
+    }
+  }
+
+  function newGame() {
+    var d = DIFFS[diff];
+    cols = d.cols; rows = d.rows; mines = d.mines;
+    grid = []; opened = 0; flags = 0;
+    started = false; over = false; won = false; firstClick = true;
+    stopTimer(); seconds = 0;
+    document.getElementById('time').textContent = '0';
+    document.getElementById('mine-count').textContent = mines;
+    document.getElementById('face-btn').textContent = '🙂';
+    msg.textContent = ''; msg.className = 'msg';
+    shareRow.classList.add('hidden');
+    buildBoard();
+  }
+
+  function buildBoard() {
+    board.innerHTML = '';
+    cells = [];
+    board.style.gridTemplateColumns = 'repeat(' + cols + ', var(--cs))';
+    // 格子尺寸同时受可用宽/高约束，否则窄高窗口(手机横屏/小笔记本)里棋盘会被裁掉。
+    // 保底 16px 保证可点击；30×16 这类宽棋盘在手机上放不下时靠 .wrap 的横向滚动查看。
+    var csU = (window.CSS && CSS.supports && CSS.supports('height', '100svh')) ? 'svh' : 'vh';
+    var gapH = 2 * (cols - 1), gapV = 2 * (rows - 1);
+    board.style.setProperty('--cs', 'min(' + DIFFS[diff].cs + 'px, ' +
+      'max(16px, calc((100vw - 100px - ' + gapH + 'px) / ' + cols + ')), ' +
+      'max(16px, calc((100' + csU + ' - 300px - ' + gapV + 'px) / ' + rows + ')))');
+    for (var i = 0; i < cols * rows; i++) {
+      grid.push({ mine: false, adj: 0, state: 'closed' });
+      var el = document.createElement('div');
+      el.className = 'cell';
+      el.dataset.i = i;
+      board.appendChild(el);
+      cells.push(el);
+    }
+  }
+
+  // ===== Reveal logic =====
+  function reveal(x, y) {
+    var i = idx(x, y), c = grid[i];
+    if (c.state === 'open' || c.state === 'flag') return;
+    // flood fill for zero cells
+    var stack = [[x, y]];
+    while (stack.length) {
+      var p = stack.pop();
+      var pi = idx(p[0], p[1]), pc = grid[pi];
+      if (pc.state === 'open' || pc.state === 'flag') continue;
+      pc.state = 'open';
+      opened++;
+      paintCell(p[0], p[1]);
+      if (pc.adj === 0 && !pc.mine) {
+        neighbors(p[0], p[1]).forEach(function (n) {
+          var nc = grid[idx(n[0], n[1])];
+          if (nc.state !== 'open') stack.push(n);
+        });
+      }
+    }
+    sfx.open();
+    checkWin();
+  }
+
+  function chord(x, y) {
+    // chord: if number satisfied by flags, reveal remaining neighbors
+    var c = grid[idx(x, y)];
+    if (c.state !== 'open' || c.adj === 0) return;
+    var nb = neighbors(x, y);
+    var f = nb.filter(function (n) { return grid[idx(n[0], n[1])].state === 'flag'; }).length;
+    if (f !== c.adj) return;
+    nb.forEach(function (n) {
+      var nc = grid[idx(n[0], n[1])];
+      if (nc.state === 'closed' && !over) {
+        if (nc.mine) { lose(n[0], n[1]); }
+        else reveal(n[0], n[1]);
+      }
+    });
+  }
+
+  function toggleFlag(x, y) {
+    var i = idx(x, y), c = grid[i];
+    if (c.state === 'open' || over) return;
+    if (c.state === 'flag') { c.state = 'closed'; flags--; cells[i].textContent = ''; }
+    else { c.state = 'flag'; flags++; cells[i].textContent = '🚩'; sfx.flag(); }
+    document.getElementById('mine-count').textContent = mines - flags;
+  }
+
+  function handleCell(x, y, isChord) {
+    if (over) return;
+    if (firstClick) {
+      firstClick = false;
+      placeMines(x, y);
+      started = true; startTimer();
+    }
+    var c = grid[idx(x, y)];
+    if (isChord) { chord(x, y); return; }
+    if (c.state === 'flag') return;
+    if (c.mine) { lose(x, y); return; }
+    reveal(x, y);
+  }
+
+  function lose(hx, hy) {
+    over = true; stopTimer();
+    sfx.boom();
+    document.getElementById('face-btn').textContent = '😵';
+    grid[idx(hx, hy)].state = 'open';
+    for (var i = 0; i < grid.length; i++) {
+      var c = grid[i], el = cells[i];
+      if (c.mine && c.state !== 'flag') {
+        el.classList.add('mine-shown');
+        el.textContent = '💣';
+        if (i === idx(hx, hy)) el.classList.add('mine-hit');
+      } else if (!c.mine && c.state === 'flag') {
+        el.classList.add('flag-wrong');
+        el.textContent = '❌';
+      }
+    }
+    msg.textContent = t('minesweeper.boom');
+    msg.className = 'msg lose';
+    shareRow.classList.remove('hidden');
+    saveBest(false);
+  }
+
+  function checkWin() {
+    if (opened === cols * rows - mines && !over) {
+      over = true; won = true; stopTimer();
+      sfx.win();
+      document.getElementById('face-btn').textContent = '😎';
+      // auto-flag remaining mines
+      for (var i = 0; i < grid.length; i++) {
+        if (grid[i].mine && grid[i].state !== 'flag') {
+          grid[i].state = 'flag'; cells[i].textContent = '🚩';
+        }
+      }
+      flags = mines;
+      document.getElementById('mine-count').textContent = 0;
+      msg.textContent = t('minesweeper.cleared', { cols: cols, rows: rows, sec: seconds });
+      msg.className = 'msg win';
+      shareRow.classList.remove('hidden');
+      saveBest(true);
+    }
+  }
+
+  function saveBest(wonNow) {
+    var key = bestKeyBase + diff;
+    var prev = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+    if (wonNow && (prev === 0 || seconds < prev)) {
+      localStorage.setItem(key, String(seconds));
+    }
+  }
+
+  function paintCell(x, y) {
+    var i = idx(x, y), c = grid[i], el = cells[i];
+    el.classList.add('open');
+    if (c.adj > 0) {
+      el.textContent = c.adj;
+      el.classList.add('n' + c.adj);
+    }
+  }
+
+  // ===== Timer =====
+  function startTimer() { timer = setInterval(function () { seconds++; document.getElementById('time').textContent = seconds; }, 1000); }
+  function stopTimer() { if (timer) clearInterval(timer); timer = null; }
+
+  // ===== Input (click / right-click / long-press) =====
+  var pressTimer = null, longPressed = false, pressIdx = -1;
+
+  // ★ 手机上「一次长按」会同时惊动**三个**事件源,任意两个各 toggleFlag 一次就互相抵消:
+  //     ① touchstart 起来的 400ms 长按计时器                        → 插旗 🚩
+  //     ② 浏览器随后补发的合成 mousedown(也会起一个 400ms 计时器)    → 再 toggle = 取消
+  //     ③ 系统在长按约 500ms 时触发的 contextmenu(Android 必发)      → 再 toggle = 取消
+  //   玩家看到的就是「红旗出现后立刻消失」= 无法插旗。PC 只有 ③ 一条路径,所以完全正常。
+  //
+  //   治法分两层:
+  //   [结构化] 插旗收敛成唯一入口 flagAction(),按「同一格 + 300ms」去重 —— 与事件来源、
+  //            到达顺序、触发次数都无关,以后再冒出第 4 个事件源也不会中。
+  //            DEDUP_MS(300) 必须 < 长按阈值(400):玩家「再长按一次取消插旗」两次 toggle
+  //            之间至少隔一个完整长按(400ms+),因此合法操作绝不会被误去重。
+  //   [分派]   contextmenu 只服务鼠标右键(PC),触摸进行中 / 刚抬手的 contextmenu 是长按的
+  //            伴生事件,直接丢弃。注意这里**不能**套 flagAction 的去重窗 —— PC 玩家快速
+  //            连点右键取消插旗(实测 150ms 间隔)是合法操作,去重会把它吃掉。
+  //   另外长按后浏览器补发的 click 会把格子翻开(取消插旗时格子已从 'flag' 变回 'closed',
+  //   handleCell 的旗子守卫兜不住,是雷就爆),故按「同格 + 时间窗」拦掉。
+  var touchActive = false, touchEndAt = 0, SYNTH_MS = 700;
+  var lastToggleAt = 0, lastToggleIdx = -1, DEDUP_MS = 300;
+  var lastFlagAt = 0, lastFlagIdx = -1;
+
+  // 长按路径的唯一插旗入口:同格 300ms 内的重复触发(来自另一个事件源)直接丢弃
+  function flagAction(i) {
+    var now = Date.now();
+    if (i === lastToggleIdx && now - lastToggleAt < DEDUP_MS) return;
+    lastToggleIdx = i; lastToggleAt = now;
+    lastFlagAt = now; lastFlagIdx = i;
+    toggleFlag(i % cols, Math.floor(i / cols));
+  }
+
+  board.addEventListener('mousedown', function (e) {
+    if (e.button === 0) {
+      if (touchActive || Date.now() - touchEndAt < SYNTH_MS) return; // 触摸衍生的 mousedown:整体忽略
+      var el = e.target.closest('.cell');
+      if (!el) return;
+      pressIdx = parseInt(el.dataset.i, 10);
+      longPressed = false;
+      pressTimer = setTimeout(function () {
+        longPressed = true;
+        flagAction(pressIdx);
+      }, 400);
+    }
+  });
+  board.addEventListener('mouseup', function () { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+  board.addEventListener('mouseleave', function () { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+
+  board.addEventListener('click', function (e) {
+    var el = e.target.closest('.cell');
+    if (!el) return;
+    if (longPressed) { longPressed = false; return; } // long-press already handled as flag
+    var i = parseInt(el.dataset.i, 10);
+    if (i === lastFlagIdx && Date.now() - lastFlagAt < SYNTH_MS) return; // 合成 click:不要连带翻开格子
+    handleCell(i % cols, Math.floor(i / cols), false);
+  });
+
+  board.addEventListener('contextmenu', function (e) {
+    e.preventDefault();                                                 // 任何来源都不弹系统菜单
+    if (touchActive || Date.now() - touchEndAt < SYNTH_MS) return;      // 长按伴生的 contextmenu:插旗已由 touchstart 计时器完成
+    var el = e.target.closest('.cell');
+    if (!el) return;
+    var i = parseInt(el.dataset.i, 10);
+    toggleFlag(i % cols, Math.floor(i / cols));                         // PC 右键:直接 toggle,支持快速连点取消
+  });
+
+  // touch: tap = reveal, long-press = flag
+  board.addEventListener('touchstart', function (e) {
+    touchActive = true; // 必须在任何 return 之前:本次触摸衍生出的 mousedown 都要被忽略
+    var el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+    var c = el && el.closest ? el.closest('.cell') : null;
+    if (!c) return;
+    var i = parseInt(c.dataset.i, 10);
+    longPressed = false;
+    pressTimer = setTimeout(function () {
+      longPressed = true;
+      flagAction(i);
+    }, 400);
+  }, { passive: true });
+
+  function endTouch() {
+    touchActive = false; touchEndAt = Date.now();
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  }
+  board.addEventListener('touchend', endTouch);
+  board.addEventListener('touchcancel', endTouch);
+
+  // double-click / double-tap = chord
+  board.addEventListener('dblclick', function (e) {
+    var el = e.target.closest('.cell');
+    if (!el) return;
+    var i = parseInt(el.dataset.i, 10);
+    handleCell(i % cols, Math.floor(i / cols), true);
+  });
+
+  document.getElementById('face-btn').addEventListener('click', newGame);
+  document.getElementById('btn-retry').addEventListener('click', newGame);
+
+  document.querySelectorAll('.diff-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.diff-btn').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      diff = b.dataset.diff;
+      newGame();
+    });
+  });
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var key = bestKeyBase + diff;
+    var bestS = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+    var txt;
+    if (won) {
+      txt = t(bestS && seconds <= bestS ? 'minesweeper.shareWin' : 'minesweeper.shareWinPlain',
+              { diff: diff.toUpperCase(), sec: seconds, url: location.href });
+    } else {
+      txt = t('minesweeper.shareLose', { url: location.href });
+    }
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
+    } else fallbackCopy(txt, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== i18n: keep JS-rendered result message in the current language =====
+  function refreshMsg() {
+    if (!over) return;
+    msg.textContent = won ? t('minesweeper.cleared', { cols: cols, rows: rows, sec: seconds }) : t('minesweeper.boom');
+  }
+  WG.onChange(refreshMsg);
+
+  newGame();
+})();
+</script>
+</body>
+</html>
