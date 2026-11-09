@@ -9,12 +9,14 @@ function randomSuffix(length = 7) {
 }
 
 /**
- * Allocate a short, public, game-scoped ID.
- * The database UNIQUE constraint is the final collision guard.
- * Never use this ID as a password, bearer token, or authorization proof.
+ * Allocate a short public ID for a game database that owns game_users.
+ * RS = RativaSnack, RP = Rativapolis. RV (Portal) needs its own registry
+ * migration and must not be allocated through this game-database helper.
+ * The database UNIQUE constraint remains the final collision guard.
+ * Never use a public ID as a password, bearer token, or authorization proof.
  */
 export async function generatePublicGameId(db, prefix) {
-  if (!["RV", "RS", "RP"].includes(prefix)) throw new Error("invalid_game_prefix");
+  if (!["RS", "RP"].includes(prefix)) throw new Error("invalid_game_prefix");
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = prefix + "-" + randomSuffix();
     const exists = await db.prepare("SELECT 1 AS found FROM game_users WHERE public_id = ? LIMIT 1").bind(candidate).first();
