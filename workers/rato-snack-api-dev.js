@@ -1,4 +1,4 @@
-const VERSION='rato-snack-api-dev-v3-short-public-ids';
+const VERSION='rato-snack-api-dev-v7-ranking-include-active-players';
 const ORIGINS=new Set(['https://vt12gt.github.io','https://ratopolis-cadastro-teste.pages.dev','https://rativa-ids-preview.pages.dev','http://localhost:8158','http://localhost:8787']);
 const out=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 function bearer(r){const m=(r.headers.get('Authorization')||'').match(/^Bearer\s+(\S+)$/i);return m?m[1]:''}
@@ -52,9 +52,50 @@ export default {async scheduled(event,env,ctx){if(!env.DB)return;const now=new D
  const u=new URL(request.url),p=u.pathname.replace(/\/+$/,'')||'/';
  if(p==='/'||p==='/health')return out({ok:true,service:'rato-snack-api',version:VERSION,environment:'development',identity:'rativa-games-portal'},200,cors);
  if(!p.startsWith('/api/rato-snack/'))return out({ok:false,error:'not_found'},404,cors);
- if(p==='/api/rato-snack/leaderboard'&&request.method==='GET'){const n=Math.max(1,Math.min(50,parseInt(u.searchParams.get('limit')||'20',10)||20)),period=(u.searchParams.get('period')||'monthly').toLowerCase();if(period==='top5'){const v=await env.DB.prepare("SELECT s.cycle_key,s.position,u.public_id AS user_id,s.nickname_snapshot AS nickname,s.total_score AS score,s.games_count,s.snapshot_at,c.status AS prize_status FROM rato_snack_rank_snapshots s JOIN rato_snack_rank_cycles c ON c.cycle_key=s.cycle_key JOIN game_users u ON u.id=s.user_id ORDER BY s.cycle_key DESC,s.position ASC LIMIT 5").all();return out({ok:true,period:'top5',players:v.results||[],updated_at:new Date().toISOString(),note:'Top 5 congelado do último fechamento; histórico preservado.'},200,cors)}if(!['monthly','total'].includes(period))return out({ok:false,error:'invalid_period'},400,cors);await ensureRecentClosures(env.DB,new Date());let v,cycle=null;if(period==='monthly'){cycle=cycleFor(new Date());v=await env.DB.prepare("SELECT u.public_id AS id,u.nickname,COALESCE(SUM(r.score),0) AS score,COUNT(r.id) AS games_played FROM rato_snack_records r JOIN game_users u ON u.id=r.user_id WHERE r.mode='online' AND r.created_at>=? AND r.created_at<=? AND u.status='active' GROUP BY r.user_id ORDER BY score DESC,games_played DESC,u.nickname COLLATE NOCASE ASC LIMIT ?").bind(cycle.start.toISOString(),cycle.close.toISOString(),String(n)).all()}else{v=await env.DB.prepare("SELECT u.public_id AS id,u.nickname,COALESCE(SUM(r.score),0) AS score,COUNT(r.id) AS games_played FROM rato_snack_records r JOIN game_users u ON u.id=r.user_id WHERE r.mode='online' AND u.status='active' GROUP BY r.user_id ORDER BY score DESC,games_played DESC,u.nickname COLLATE NOCASE ASC LIMIT ?").bind(String(n)).all()}return out({ok:true,period,cycle:cycle?{key:cycle.key,starts_at:cycle.start.toISOString(),closes_at:cycle.close.toISOString()}:null,players:v.results||[],updated_at:new Date().toISOString(),note:period==='monthly'?'Soma das pontuações de todas as partidas online registradas no ciclo.':'Soma permanente das pontuações de todas as partidas online registradas.'},200,cors)}
+ if(p==='/api/rato-snack/leaderboard'&&request.method==='GET'){
+  const n=Math.max(1,Math.min(50,parseInt(u.searchParams.get('limit')||'20',10)||20)),period=(u.searchParams.get('period')||'best').toLowerCase();
+  if(period==='top5'){
+   const v=await env.DB.prepare("SELECT s.cycle_key,s.position,u.public_id AS user_id,s.nickname_snapshot AS nickname,s.total_score AS score,s.games_count,s.snapshot_at,c.status AS prize_status FROM rato_snack_rank_snapshots s JOIN rato_snack_rank_cycles c ON c.cycle_key=s.cycle_key JOIN game_users u ON u.id=s.user_id ORDER BY s.cycle_key DESC,s.position ASC LIMIT 5").all();
+   return out({ok:true,period:'top5',players:v.results||[],updated_at:new Date().toISOString(),note:'Top 5 congelado do último fechamento; histórico preservado.'},200,cors)
+  }
+  if(!['best','monthly','total'].includes(period))return out({ok:false,error:'invalid_period'},400,cors);
+  if(period==='best'){
+   const v=await env.DB.prepare("SELECT u.public_id AS id,u.public_id AS public_id,u.nickname AS nickname,u.nickname AS display_name,COALESCE(p.best_score,0) AS score,COALESCE(p.games_played,0) AS games_played FROM game_users u LEFT JOIN rato_snack_profiles p ON p.user_id=u.id WHERE u.status='active' ORDER BY score DESC,games_played DESC,u.nickname COLLATE NOCASE ASC LIMIT ?").bind(String(n)).all();
+   return out({ok:true,period,players:v.results||[],updated_at:new Date().toISOString(),note:'Melhor pontuação individual registrada por conta.'},200,cors)
+  }
+  await ensureRecentClosures(env.DB,new Date());let v,cycle=null;
+  if(period==='monthly'){
+   cycle=cycleFor(new Date());
+   v=await env.DB.prepare("SELECT u.public_id AS id,u.public_id AS public_id,u.nickname,u.nickname AS display_name,COALESCE(SUM(r.score),0) AS score,COUNT(r.id) AS games_played FROM game_users u LEFT JOIN rato_snack_records r ON r.user_id=u.id AND r.mode='online' AND r.created_at>=? AND r.created_at<=? WHERE u.status='active' GROUP BY u.id ORDER BY score DESC,games_played DESC,u.nickname COLLATE NOCASE ASC LIMIT ?").bind(cycle.start.toISOString(),cycle.close.toISOString(),String(n)).all()
+  }else{
+   v=await env.DB.prepare("SELECT u.public_id AS id,u.public_id AS public_id,u.nickname,u.nickname AS display_name,COALESCE(SUM(r.score),0) AS score,COUNT(r.id) AS games_played FROM game_users u LEFT JOIN rato_snack_records r ON r.user_id=u.id AND r.mode='online' WHERE u.status='active' GROUP BY u.id ORDER BY score DESC,games_played DESC,u.nickname COLLATE NOCASE ASC LIMIT ?").bind(String(n)).all()
+  }
+  return out({ok:true,period,cycle:cycle?{key:cycle.key,starts_at:cycle.start.toISOString(),closes_at:cycle.close.toISOString()}:null,players:v.results||[],updated_at:new Date().toISOString(),note:period==='monthly'?'Soma das pontuações de todas as partidas online registradas no ciclo.':'Soma permanente das pontuações de todas as partidas online registradas.'},200,cors)
+ }
  const a=await auth(request,env);if(!a)return out({ok:false,error:'invalid_session'},401,cors);const id=a.id;
  try{
+  if(p==='/api/rato-snack/save'&&request.method==='GET'){
+   const row=await env.DB.prepare('SELECT save_json,updated_at FROM rato_snack_cloud_saves WHERE user_id=?').bind(id).first();
+   let save=null;if(row){try{save=JSON.parse(row.save_json)}catch(e){return out({ok:false,error:'saved_data_corrupt'},500,cors)}}
+   return out({ok:true,save,updated_at:row?.updated_at||null},200,cors)
+  }
+  if(p==='/api/rato-snack/save'&&request.method==='POST'){
+   const b=await body(request);
+   if(!b||!b.save||typeof b.save!=='object'||Array.isArray(b.save))return out({ok:false,error:'invalid_save'},400,cors);
+   const save={stats:b.save.stats&&typeof b.save.stats==='object'&&!Array.isArray(b.save.stats)?b.save.stats:{},prog:b.save.prog&&typeof b.save.prog==='object'&&!Array.isArray(b.save.prog)?b.save.prog:{},eco:b.save.eco&&typeof b.save.eco==='object'&&!Array.isArray(b.save.eco)?b.save.eco:{},bestQuick:Number.isFinite(Number(b.save.bestQuick))?Math.max(0,Math.min(1000000000,Math.floor(Number(b.save.bestQuick)))):0};
+   await profile(env.DB,id);
+   const old=await env.DB.prepare('SELECT save_json FROM rato_snack_cloud_saves WHERE user_id=?').bind(id).first();
+   let oldBest=0;if(old?.save_json){try{oldBest=Number(JSON.parse(old.save_json).bestQuick)||0}catch(e){}}
+   const oldProfile=await env.DB.prepare('SELECT best_score FROM rato_snack_profiles WHERE user_id=?').bind(id).first();
+   const best=Math.min(1000000000,Math.floor(Math.max(save.bestQuick,oldBest,Number(oldProfile?.best_score)||0)));
+   save.bestQuick=best;
+   const json=JSON.stringify(save);if(json.length>150000)return out({ok:false,error:'save_too_large'},413,cors);
+   const now=new Date().toISOString();
+   await env.DB.prepare('INSERT INTO rato_snack_cloud_saves (user_id,save_json,updated_at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET save_json=excluded.save_json,updated_at=excluded.updated_at').bind(id,json,now).run();
+   const xp=Math.max(0,Math.min(1000000000,Math.floor(Number(save.prog.xp)||0))),level=Math.max(1,Math.min(10000,Math.floor(Number(save.prog.lvlRw)||1))),coins=Math.max(0,Math.min(1000000000,Math.floor(Number(save.eco.cheese)||0))),games=Math.max(0,Math.min(1000000000,Math.floor(Number(save.stats.games)||0))),wins=Math.max(0,Math.min(1000000000,Math.floor(Number(save.stats.wins)||0)));
+   await env.DB.prepare('UPDATE rato_snack_profiles SET level=?,xp=?,coins=?,best_score=MAX(best_score,?),games_played=?,wins=?,updated_at=? WHERE user_id=?').bind(level,xp,coins,best,games,wins,now,id).run();
+   return out({ok:true,saved:true,best_score:best,updated_at:now},200,cors)
+  }
   if(p==='/api/rato-snack/sync'&&request.method==='GET'){await profile(env.DB,id);const v=await env.DB.prepare('SELECT level,xp FROM rato_snack_profiles WHERE user_id=?').bind(id).first();const ach=await env.DB.prepare('SELECT achievement_code,progress,unlocked_at FROM rato_snack_achievements WHERE user_id=?').bind(id).all();const inv=await env.DB.prepare('SELECT item_code,quantity,equipped FROM rato_snack_inventory WHERE user_id=?').bind(id).all();return out({ok:true,profile:v,achievements:ach.results||[],inventory:inv.results||[]},200,cors)}
   if(p==='/api/rato-snack/sync'&&request.method==='POST')return out({ok:false,error:'server_authoritative_only'},409,cors);
   if(p==='/api/rato-snack/profile'&&request.method==='GET'){await profile(env.DB,id);const v=await env.DB.prepare('SELECT level,xp,coins,best_score,games_played,wins,created_at,updated_at FROM rato_snack_profiles WHERE user_id=?').bind(id).first();return out({ok:true,profile:v,identity:{nickname:a.nickname,public_id:a.public_id}},200,cors)}
