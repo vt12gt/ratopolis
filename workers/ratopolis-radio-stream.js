@@ -113,7 +113,7 @@ export default { async fetch(request,env) {
  const url=new URL(request.url), origin=request.headers.get("Origin")||"";
  if(origin && !ALLOWED_ORIGINS.has(origin)) return json({ok:false,error:"origin_not_allowed"},403,origin);
  if(request.method==="OPTIONS") return new Response(null,{status:204,headers:cors(origin)});
- if(url.pathname==="/"||url.pathname==="/health") return json({ok:true,service:"ratopolis-radio-stream",storage:"R2",status:"ready"},200,origin);
+ if(url.pathname==="/"||url.pathname==="/health") return json({ok:true,service:"ratopolis-radio-stream",version:"v1.1.1-audit-complete",storage:"R2",status:"ready"},200,origin);
  if(url.pathname==='/api/live/status'&&request.method==='GET'){let l=await readLiveState(env);if(l.active&&Date.now()-Number(l.lastSeen||l.startedAt||0)>75000){l={active:false,stoppedAt:Date.now(),reason:'publisher_timeout'};await writeLiveState(env,l)}return json({ok:true,live:{active:l.active===true,sessionId:l.active?l.sessionId:null,trackName:l.active?l.trackName:'radio-live',title:l.title||'Locução ao vivo',owner:l.owner||null,startedAt:l.startedAt||null}},200,origin)}
  if(url.pathname==='/api/live/publish'&&request.method==='POST'){
   if(!(await hasRadioPermission(request,env,'manageRadioPlayback')))return json({ok:false,error:'admin_permission_required'},403,origin);
