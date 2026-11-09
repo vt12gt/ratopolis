@@ -382,7 +382,7 @@ button:disabled{opacity:.55;cursor:wait}
 <div class="actions" style="margin-top:14px"><button class="primary" onclick="go('account')" id="profileLoginBtn">Entrar / criar conta</button><button class="goldbtn play-cta hidden" onclick="playGame()" id="profilePlayBtn">▶ JOGAR</button><button class="primary hidden" onclick="openAdminPanel()" id="adminPanelBtn">🛡️ Painel administrativo</button><button class="goldbtn hidden" onclick="openRadioAdmin()" id="radioAdminBtn">♫ Administração da rádio</button>
 <button class="ghost hidden" onclick="logout()" id="logoutBtn">Sair da conta</button></div><div id="profileMessage" class="status">Entre na sua conta para acessar seu perfil e jogar.</div></div></section>
 <section id="shop" class="page"><div class="section-head"><div><h2>💜 Apoie a RativaGames</h2><p>Sua contribuição ajuda a manter o projeto vivo e a construir novidades.</p></div><span class="tag goldtag">Doação voluntária</span></div>
- <article class="card"><div class="donation-hero-total" aria-label="Total fictício de doações: mil duzentos e cinquenta reais"><span>💜 TOTAL DE DOAÇÕES · DEMONSTRAÇÃO</span><strong id="donationHeroAmount">R$ 1.250,00</strong><small>VALOR SIMULADO · NÃO REPRESENTA DINHEIRO RECEBIDO</small></div><h3>Escolha como deseja contribuir</h3><p>Queremos facilitar o apoio à RativaGames. As opções previstas são Pix e cartão, com confirmação segura e registro vinculado à sua conta.</p><div class="grid" style="margin-top:12px"><div class="card" style="background:#100d1d"><div class="itememoji">⚡</div><h3>Doar com Pix</h3><p>Pagamento rápido, direto pelo aplicativo do seu banco.</p><button class="primary" id="donatePixBtn" type="button" onclick="requireDonationLogin('Pix')">Entrar para doar com Pix</button></div><div class="card" style="background:#100d1d"><div class="itememoji">💳</div><h3>Doar com cartão</h3><p>Contribua usando cartão por meio de um provedor de pagamento seguro.</p><button class="primary" id="donateCardBtn" type="button" onclick="requireDonationLogin('cartão')">Entrar para doar com cartão</button></div></div><div class="notice">🔐 Para contribuir, é necessário entrar na sua conta RativaGames. Depois do login, as opções de Pix e cartão ficam vinculadas à sua conta. Os pagamentos ainda estão em preparação e serão liberados quando a integração segura estiver pronta. Não envie dinheiro por fora do portal.</div></article>
+ <article class="card"><div class="donation-hero-total" aria-label="Total fictício de doações: mil duzentos e cinquenta reais"><span>💜 TOTAL DE DOAÇÕES · AGUARDANDO DADOS</span><strong id="donationHeroAmount">R$ 1.250,00</strong><small>SOMENTE PAGAMENTOS APROVADOS</small></div><h3>Escolha como deseja contribuir</h3><p>Queremos facilitar o apoio à RativaGames. As opções previstas são Pix e cartão, com confirmação segura e registro vinculado à sua conta.</p><label for="donationAmount" style="display:block;margin:12px 0 6px;font-weight:800">Valor da doação (R$)</label><input id="donationAmount" type="number" min="1" max="10000" step="0.01" value="5.00" style="width:100%;max-width:260px;padding:12px;border-radius:10px;border:1px solid #60467b;background:#100d1d;color:#fff;font-size:18px"><div class="grid" style="margin-top:12px"><div class="card" style="background:#100d1d"><div class="itememoji">⚡</div><h3>Doar com Pix</h3><p>Pagamento pelo checkout seguro do Mercado Pago.</p><button class="primary" id="donatePixBtn" type="button" onclick="startDonation('pix')">Doar com Pix</button></div><div class="card" style="background:#100d1d"><div class="itememoji">💳</div><h3>Doar com cartão</h3><p>Contribua usando cartão pelo checkout seguro.</p><button class="primary" id="donateCardBtn" type="button" onclick="startDonation('card')">Doar com cartão</button></div></div><div class="notice" id="donationPaymentNotice">🔐 Pagamento em ambiente de testes do Mercado Pago. É necessário entrar na conta RativaGames. Só pagamentos confirmados pelo Mercado Pago entram no total público. Não envie dinheiro por fora do portal.</div></article>
  <div class="section-head"><div><h2>Por que fazer uma doação?</h2><p>O apoio é voluntário e ajuda a comunidade inteira.</p></div></div>
  <div class="grid">
   <article class="card"><div class="itememoji">🖥️</div><h3>Manter os servidores</h3><p>Contribuir com os custos de hospedagem, banco de dados, conexão e infraestrutura necessária para os jogos e o portal funcionarem.</p></article>
@@ -391,10 +391,10 @@ button:disabled{opacity:.55;cursor:wait}
   <article class="card"><div class="itememoji">🏆</div><h3>Incentivar competições</h3><p>Permitir que o projeto prepare eventos e campeonatos, com regras públicas e resultados auditáveis quando essa etapa estiver validada.</p></article>
  </div>
  <article class="card" style="margin-top:12px"><h3>O que o apoiador recebe?</h3><p>A doação é uma forma voluntária de ajudar o projeto, não uma compra. Ela não garante moedas, itens, VIP, vantagem competitiva ou tratamento especial dentro dos jogos. O objetivo é manter uma experiência justa para todos.</p><h3>📊 Auditoria pública das doações</h3><p>Quando os pagamentos forem ativados, manteremos um registro financeiro verificável das contribuições recebidas. O total arrecadado será conferido e atualizado publicamente toda semana, com histórico dos valores recebidos e destinados, sem expor dados pessoais ou informações de pagamento dos doadores. A auditoria deverá permitir que a comunidade acompanhe quanto entrou e como os recursos foram distribuídos.</p><section id="donationAuditDemo" aria-label="Demonstração da auditoria de doações" style="margin:14px 0;padding:15px;border:1px solid #b88635;border-radius:16px;background:linear-gradient(145deg,#302342,#171020)">
- <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3 style="margin:0;color:#ffe18a">📊 Painel de auditoria financeira</h3><span style="display:inline-block;padding:5px 9px;border-radius:8px;background:#704d1c;color:#fff0b5;font-size:10px;font-weight:950;letter-spacing:.5px">DADOS FICTÍCIOS · DEMONSTRAÇÃO</span></div>
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3 style="margin:0;color:#ffe18a">📊 Painel de auditoria financeira</h3><span style="display:inline-block;padding:5px 9px;border-radius:8px;background:#704d1c;color:#fff0b5;font-size:10px;font-weight:950;letter-spacing:.5px">DADOS REAIS · PAGAMENTOS APROVADOS</span></div>
  <p style="margin:8px 0 12px;color:#e3d8ef">Prévia visual de como a prestação de contas poderá funcionar. Nenhum valor abaixo representa doação recebida, saldo bancário ou pagamento realizado.</p>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px">
-  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Total simulado recebido</small><strong id="donationAuditTotal" style="display:block;color:#ffe18a;font-size:23px">R$ 1.250,00</strong></div>
+  <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Total aprovado recebido</small><strong id="donationAuditTotal" style="display:block;color:#ffe18a;font-size:23px">R$ 1.250,00</strong></div>
   <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Fundo de premiação (60%)</small><strong id="donationPrizeFund" style="display:block;color:#d6a5ff;font-size:23px">R$ 750,00</strong></div>
   <div style="padding:12px;border-radius:12px;background:#100d1d;border:1px solid #493064"><small style="color:#bdb0d5">Projeto e infraestrutura (40%)</small><strong id="donationProjectFund" style="display:block;color:#7df0bd;font-size:23px">R$ 500,00</strong></div>
  </div>
@@ -469,8 +469,9 @@ let currentPlayer=null;
 const $=id=>document.getElementById(id);
 function syncPortalAccess(){const logged=!!(sessionToken&&currentPlayer);['communityNav','gamesNav','profileNav','homeGameChooser'].forEach(id=>{const el=$(id);if(el)el.classList.toggle('hidden',!logged)});const loginCta=$('homeLoginBtn');if(loginCta)loginCta.classList.toggle('hidden',logged);['chatToggle','communityChat'].forEach(id=>{const el=$(id);if(el)el.classList.remove('hidden')});}
 function go(id){const authenticated=!!(sessionToken&&currentPlayer);syncPortalAccess();if(['community','minigame','profile'].includes(id)&&!authenticated){showToast('Entre na sua conta para acessar essa área.');id='account';}if(id==='account'&&authenticated)id='profile';if(id==='profile'&&!authenticated){id='account';}document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===id));window.scrollTo({top:0,behavior:'smooth'});}
-function requireDonationLogin(method){if(!sessionToken||!currentPlayer){showToast('Entre na sua conta para fazer uma doação por '+method+'.');go('account');return false;}showToast('O pagamento por '+method+' ainda está em preparação.');return false;}
-function updateDonationAccess(){const logged=!!(sessionToken&&currentPlayer);const pix=$('donatePixBtn'),card=$('donateCardBtn');if(pix){pix.textContent=logged?'Pix · em preparação':'Entrar para doar com Pix';pix.disabled=logged;pix.onclick=()=>requireDonationLogin('Pix');}if(card){card.textContent=logged?'Cartão · em preparação':'Entrar para doar com cartão';card.disabled=logged;card.onclick=()=>requireDonationLogin('cartão');}}
+function requireDonationLogin(method){if(!sessionToken||!currentPlayer){showToast('Entre na sua conta para doar com '+method+'.');go('account');return false;}return true;}
+async function startDonation(method){if(!requireDonationLogin(method==='pix'?'Pix':'cartão'))return;const amount=Number($('donationAmount')?.value);if(!Number.isFinite(amount)||amount<1||amount>10000){showToast('Informe um valor entre R$ 1,00 e R$ 10.000,00.');return;}const buttons=[$('donatePixBtn'),$('donateCardBtn')];buttons.forEach(b=>{if(b)b.disabled=true;});const note=$('donationPaymentNotice');if(note)note.textContent='Conectando ao Mercado Pago…';try{const response=await fetch(API+'/api/donations/checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},body:JSON.stringify({amount,method})});const data=await response.json();if(!response.ok||!data.ok||!data.checkout_url)throw new Error(data.erro||'Não foi possível iniciar o pagamento.');if(note)note.textContent='Checkout criado. Você será direcionado ao Mercado Pago em ambiente de testes.';window.location.assign(data.checkout_url);}catch(error){showToast(error.message||'Falha ao iniciar doação.');if(note)note.textContent='Não foi possível iniciar o checkout. Tente novamente.';buttons.forEach(b=>{if(b)b.disabled=false;});}}
+function updateDonationAccess(){const logged=!!(sessionToken&&currentPlayer);const pix=$('donatePixBtn'),card=$('donateCardBtn');if(pix){pix.textContent=logged?'Doar com Pix':'Entrar para doar com Pix';pix.disabled=false;pix.onclick=()=>logged?startDonation('pix'):requireDonationLogin('Pix');}if(card){card.textContent=logged?'Doar com cartão':'Entrar para doar com cartão';card.disabled=false;card.onclick=()=>logged?startDonation('card'):requireDonationLogin('cartão');}}
 function showGameRanking(which){const rg=$('rankingGeneral'),rp=$('rankingRatopolis'),rs=$('rankingRativaSnack');if(rg)rg.classList.toggle('hidden',which!=='general');if(rp)rp.classList.toggle('hidden',which!=='ratopolis');if(rs)rs.classList.toggle('hidden',which!=='ratosnack');loadLiveRankings()}
 function showToast(message){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 function setStatus(id,message,type=''){const el=$(id);el.textContent=message;el.className='status'+(type?' '+type:'')}
@@ -794,29 +795,32 @@ communitySessionRestore.finally(()=>{connectCommunityChat();if(sessionToken&&cur
 </script>
 
 <script id="rativaDonationDemoSync">
-/* Fonte única dos números fictícios. Substituir por endpoint seguro após integração financeira. */
 (function(){
- const demo = {
-  total:1250,
-  prizePercent:60,
-  projectPercent:40,
-  weeks:[320,410,520],
-  updatedAt:'08/11/2026'
- };
  const money = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
  const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
- const prize = demo.total * demo.prizePercent / 100;
- const project = demo.total * demo.projectPercent / 100;
- setText('donationTopTotal','💜 Doações: '+money(demo.total)+' · DEMO');
- setText('donationHeroAmount',money(demo.total));
- setText('donationAuditTotal',money(demo.total));
- setText('donationPrizeFund',money(prize));
- setText('donationProjectFund',money(project));
- setText('donationAuditUpdated',demo.updatedAt);
- demo.weeks.forEach((amount,index)=>setText('donationWeek'+(index+1),money(amount)));
- const bars=document.querySelectorAll('#donationAuditDemo .donation-week-bar');
- const max=Math.max.apply(null,demo.weeks);
- bars.forEach((bar,index)=>bar.style.width=(max?demo.weeks[index]/max*100:0)+'%');
+ const setBar = (index,width) => { const bars=document.querySelectorAll('#donationAuditDemo .donation-week-bar'); if(bars[index]) bars[index].style.width=width+'%'; };
+ async function load(){
+  try{
+   const response=await fetch(API+'/api/donations/public-summary',{cache:'no-store'});
+   if(!response.ok) throw new Error('summary_unavailable');
+   const data=await response.json(); if(!data.ok) throw new Error('summary_invalid');
+   const total=Number(data.total_brl)||0, prize=total*.60, project=total*.40;
+   setText('donationTopTotal','💜 Doações: '+money(total));
+   setText('donationHeroAmount',money(total));
+   setText('donationAuditTotal',money(total));
+   setText('donationPrizeFund',money(prize));
+   setText('donationProjectFund',money(project));
+   setText('donationAuditUpdated',new Date(data.updated_at).toLocaleString('pt-BR'));
+   const weeks=Array.isArray(data.weekly)?data.weekly.slice(-3):[];
+   const vals=[0,0,0]; weeks.forEach((w,i)=>vals[3-weeks.length+i]=Number(w.total_brl)||0);
+   const max=Math.max(1,...vals);
+   vals.forEach((v,i)=>{setText('donationWeek'+(i+1),money(v));setBar(i,v/max*100);});
+   const hero=document.querySelector('.donation-hero-total'); if(hero){hero.setAttribute('aria-label','Total confirmado de doações: '+money(total));const labels=hero.querySelectorAll('span,small');if(labels[0])labels[0].textContent='TOTAL CONFIRMADO · MERCADO PAGO';if(labels[0])labels[0].style.color='#7df0bd';if(labels[1])labels[1].textContent='SOMENTE PAGAMENTOS APROVADOS';}
+   const notice=document.getElementById('donationPaymentNotice'); if(notice)notice.textContent='🔐 Checkout do Mercado Pago em ambiente de testes. Somente pagamentos aprovados entram no total público.';
+   const pill=document.getElementById('donationTopTotal'); if(pill)pill.title='Total de doações confirmadas pelo Mercado Pago';
+  }catch(e){setText('donationTopTotal','💜 Doações: aguardando conexão');}
+ }
+ load();
 })();
 </script>
 </body>
