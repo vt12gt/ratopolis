@@ -112,7 +112,7 @@ document.getElementById('goOnline').addEventListener('click',async e=>{
 });
 document.getElementById('goOffline').addEventListener('click',()=>{});
 if(portalToken)validateConnection();
-else returnToPortal('🔒 Conta não encontrada. Voltando ao portal RativaGames…');
+else status('🟡 Sem sessão conectada. Você pode jogar Offline; para jogar Online, entre na sua conta RativaGames.');
 addEventListener('online',()=>{if(!portalToken){try{portalToken=localStorage.getItem(PORTAL_TOKEN_KEY)||''}catch(e){}}if(portalToken)validateConnection()});
 addEventListener('offline',()=>status('🔴 Sem internet — o modo Offline continua disponível.'));
 addEventListener('storage',event=>{if(event.key===PORTAL_TOKEN_KEY&&event.newValue){portalToken=event.newValue;validateConnection()}});
