@@ -1437,7 +1437,7 @@ function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=a
  else if(k==='lc'){ladderClaim(+v);menuInfo();renderSheet(sheetName);return}
  else if(k==='ss'){renderSheet('season');return}
  else if(k==='ssc'){if(ssClaim(+v))sfx('bonus');menuInfo();renderSheet('season');return}
- else if(k==='cloudrank'&&['best','monthly','total'].includes(v)){cloudRankPeriod=v;loadCloudRanking();return}else if(k==='donate'&&v==='portal'){window.open('https://vt12gt.github.io/RativaGames/?open=shop','_blank','noopener');return}else if(k==='mp'){mpOpen();return}
+ else if(k==='mp'){mpOpen();return}
  else if(k==='bk'){if(v==='export')bkExport();else bkImport();return}
  else if(k==='tog'&&(v==='sfx'||v==='music'||v==='fullscreen'||v==='boostLeft'||v==='vib'||v==='stickLeft'||v==='arrows'||v==='bigtxt'||v==='cblind'||v==='autoq')){prefs[v]=!prefs[v];if(v==='bigtxt'||v==='cblind')applyA11y();bb.classList.toggle('left',prefs.boostLeft);if(v==='sfx'||v==='music'){ensureAudio();applyVolumes();if(v==='sfx'&&prefs.sfx)sfx('bonus')}}
  savePrefs();renderSheet(sheetName)}
