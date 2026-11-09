@@ -3571,22 +3571,31 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    throw err;
   }finally{clearTimeout(timeout);}
  }
+ function humanRoomPlayers(data){
+  return extractPlayers(data).filter(p=>{
+   if(typeof p==='string')return true;
+   if(!p||typeof p!=='object')return false;
+   const id=String(p.id||p.playerId||p.userId||p.user_id||'');
+   return p.npc!==true&&!id.startsWith('npc_');
+  });
+ }
  function renderPlayers(data){
   if(!participantsEl)return;
   participantsEl.replaceChildren();
-  const players=extractPlayers(data);
+  const players=humanRoomPlayers(data);
+  const onlineCount=players.filter(p=>!p||typeof p!=='object'||!p.disconnectedAt).length;
   if(!players.length){
-   const empty=document.createElement('div');empty.className='online-participant';empty.textContent='Nenhum participante retornado pelo servidor.';participantsEl.appendChild(empty);
-   return;
+   const empty=document.createElement('div');empty.className='online-participant';empty.textContent='Nenhum jogador conectado.';participantsEl.appendChild(empty);
+  }else{
+   players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='online-participant';
+    const name=document.createElement('span');name.textContent=playerLabel(p,i);row.appendChild(name);
+    const id=p&&typeof p==='object'?(p.id||p.user_id||p.userId||p.playerId):null;
+    if(id){const small=document.createElement('small');small.textContent=p.disconnectedAt?'Reconectando…':'● Online';row.appendChild(small);}
+    participantsEl.appendChild(row);
+   });
   }
-  players.forEach((p,i)=>{
-   const row=document.createElement('div');row.className='online-participant';
-   const name=document.createElement('span');name.textContent=playerLabel(p,i);row.appendChild(name);
-   const id=p&&typeof p==='object'?(p.id||p.user_id||p.userId||p.playerId):null;
-   if(id){const small=document.createElement('small');small.textContent='Participante online';row.appendChild(small);}
-   participantsEl.appendChild(row);
-  });
-  const title=$('participantsTitle');if(title)title.textContent='👥 Participantes online';
+  const title=$('participantsTitle');if(title)title.textContent='👥 Jogadores online · '+onlineCount+'/50';
  }
  function drawRemoteAvatars(){
   // Os jogadores remotos já são desenhados pelo renderizador original do canvas.
@@ -3599,9 +3608,26 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  function getLocalPlayerId(){return String(window.ratopolisPlayerId||window.playerId||'');}
  function renderCommunityRoomPlayers(players){
   const list=document.getElementById('cdRoomPlayers'),count=document.getElementById('cdRoomCount');if(!list)return;
-  const items=Array.isArray(players)?players:[];list.replaceChildren();if(count)count.textContent=String(items.length||1);
-  if(!items.length){const row=document.createElement('div');row.className='cd-player';row.textContent='🐭 '+(playerNickname||'Você')+' — aguardando lista do servidor';list.appendChild(row);return;}
-  items.forEach((p,i)=>{const row=document.createElement('div');row.className='cd-player';const name=document.createElement('span');const nick=playerLabel(p,i);const id=p&&typeof p==='object'?(p.id||p.playerId||p.userId||p.user_id):'';const self=String(id)===String(getLocalPlayerId());name.textContent='🐭 '+nick+(self?' (você)':'');const status=document.createElement('span');status.textContent='●';status.setAttribute('aria-label','Online');row.append(name,status);list.appendChild(row);});
+  const items=(Array.isArray(players)?players:[]).filter(p=>{
+   if(typeof p==='string')return true;
+   if(!p||typeof p!=='object')return false;
+   const id=String(p.id||p.playerId||p.userId||p.user_id||'');
+   return p.npc!==true&&!id.startsWith('npc_');
+  });
+  const onlineCount=items.filter(p=>!p||typeof p!=='object'||!p.disconnectedAt).length;
+  list.replaceChildren();if(count)count.textContent=String(onlineCount);
+  if(!items.length){const row=document.createElement('div');row.className='cd-player';row.textContent='Aguardando jogadores…';list.appendChild(row);return;}
+  items.forEach((p,i)=>{
+   const row=document.createElement('div');row.className='cd-player';
+   const name=document.createElement('span');const nick=playerLabel(p,i);
+   const id=p&&typeof p==='object'?(p.id||p.playerId||p.userId||p.user_id):'';
+   const self=String(id)===String(getLocalPlayerId());
+   name.textContent='🐭 '+nick+(self?' (você)':'');
+   const status=document.createElement('span');
+   status.textContent=p&&typeof p==='object'&&p.disconnectedAt?'↻':'●';
+   status.setAttribute('aria-label',p&&typeof p==='object'&&p.disconnectedAt?'Reconectando':'Online');
+   row.append(name,status);list.appendChild(row);
+  });
  }
  function applyRoomState(data){
   roomState=data||roomState||{};updateRoleChoice(roomState);
