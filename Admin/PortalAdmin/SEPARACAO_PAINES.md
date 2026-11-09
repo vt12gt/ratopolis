@@ -50,3 +50,22 @@ O arquivo legado é um HTML monolítico com navegação e JavaScript compartilha
 ## Critério de conclusão
 
 Um módulo só será considerado migrado quando funcionar no painel de destino, validar autorização no servidor, registrar auditoria quando aplicável e não depender de dados locais demonstrativos para operações que prometem alterar dados reais.
+
+
+## Etapa executada: Equipe e cargos
+
+Foi criado `Equipe/index.html` como módulo do Admin Geral. Ele usa os endpoints existentes do Worker `ratopolis-api-dev-v30`:
+
+- `GET /api/admin/me`: valida sessão e permissões no servidor.
+- `GET /api/admin/users`: consulta contas e cargos atuais.
+- `POST /api/admin/role`: altera cargo, com validação de hierarquia no servidor e gravação de `admin_role_change` em `ratopolis_audit_logs` na mesma operação de banco.
+
+A interface só habilita alterações quando a resposta do servidor concede `manageStaff` e o cargo é SpAdmin ou ADM. A rota do Worker impede atribuir SpAdmin, alterar usuário de cargo igual/superior ou promover alguém a cargo igual/superior ao operador.
+
+**Limites identificados:** a lista consultada é a base de contas do Worker RativaPolis v30; não está comprovado ainda que RativaSnack compartilha integralmente a mesma identidade/backend. A tela antiga `Equipe e permissões` do painel RativaPolis é explicitamente um diretório/matriz local de demonstração, não uma gestão real da equipe. Ela deve permanecer no legado até validar que o novo módulo atende o escopo compartilhado e então ser removida em commit separado. O Worker grava auditoria para alterações de cargo, mas ainda não foi encontrada rota de leitura dos registros administrativos gerais; a tela de Auditoria antiga também é local/demo. Portanto, o histórico completo e sua consulta central ainda não estão migrados.
+
+## Próximas tarefas técnicas
+
+1. Criar rota protegida de consulta/paginação da auditoria administrativa no Worker, com autorização específica e sem permitir edição/exclusão de logs.
+2. Validar identidade compartilhada entre RativaPolis e RativaSnack antes de chamar o diretório de contas de totalmente global.
+3. Migrar os demais módulos gerais um a um, preservando a versão antiga até teste concluído.
