@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="ticTacToe.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Tic Tac Toe — Free Online Game vs Computer</title>
+<meta name="description" content="Play Tic Tac Toe free in your browser. Beat an unbeatable AI or grab a friend for two-player mode. No install, no signup, works on mobile and desktop.">
+<meta name="keywords" content="tic tac toe,free tic tac toe,online tic tac toe,noughts and crosses,vs computer,2 player game,html5 game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Tic Tac Toe — Free Online Game vs Computer">
+<meta property="og:description" content="Three in a row wins. Three difficulties, plus a two-player mode.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --cs: min(96px, 26vw, 18vh);
+    --cs: min(96px, 26vw, 18svh);
+    --x: #ff7b54;
+    --o: #4fc3f7;
+  }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 14px 12px; user-select: none;
+  }
+  .wrap {
+    position: relative; width: min(360px, 100%);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 18px 16px 20px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  #mute-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,.16); border-radius: 10px; color: #fff;
+    width: 40px; height: 40px; font-size: 18px; padding: 0;
+    cursor: pointer; z-index: 5; box-shadow: none; border: none;
+  }
+  .head { text-align: center; }
+  .head h1 { font-size: 26px; font-weight: 800; letter-spacing: 2px; color: #fff; }
+  .head .sub { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: 3px; color: rgba(255,255,255,.6); }
+  .modes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .mode {
+    border: none; border-radius: 999px; padding: 10px 14px; min-height: 44px;
+    background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .8px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .mode:hover { background: rgba(255,255,255,.18); }
+  .mode.active { background: #ff9f1c; color: #fff; }
+  .status {
+    min-height: 24px; font-size: 14px; font-weight: 800; letter-spacing: 1px;
+    color: #ffd76e; text-align: center;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, var(--cs));
+    grid-template-rows: repeat(3, var(--cs));
+    gap: 8px;
+  }
+  .cell {
+    border: none; border-radius: 14px; background: rgba(255,255,255,.09);
+    font-family: inherit; font-weight: 800; font-size: calc(var(--cs) * .52); line-height: 1;
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .12s, transform .1s;
+  }
+  .cell:hover { background: rgba(255,255,255,.15); }
+  .cell:active { transform: scale(.96); }
+  .cell.x { color: var(--x); }
+  .cell.o { color: var(--o); }
+  .cell.win { background: rgba(255,215,110,.22); animation: flash .6s ease-in-out infinite; }
+  .cell.preview-x::after { content: "X"; opacity: .22; color: var(--x); }
+  .cell.preview-o::after { content: "O"; opacity: .22; color: var(--o); }
+  @keyframes flash { 0%,100% { background: rgba(255,215,110,.16) } 50% { background: rgba(255,215,110,.38) } }
+  .score { display: flex; gap: 8px; width: 100%; }
+  .score-item {
+    flex: 1; text-align: center; background: rgba(255,255,255,.07);
+    border-radius: 12px; padding: 8px 4px;
+  }
+  .score-item .val { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.1; }
+  .score-item small { display: block; margin-top: 2px; font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; color: rgba(255,255,255,.6); }
+  .score-item.x-side .val { color: var(--x); }
+  .score-item.o-side .val { color: var(--o); }
+  button.btn {
+    border: none; border-radius: 12px; padding: 12px 24px; min-height: 44px;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+    font-family: inherit; transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button.btn:active { transform: scale(.95); }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .btn-ghost:active { box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .tip { font-size: 11px; color: rgba(255,255,255,.5); text-align: center; line-height: 1.5; }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+  /* Short viewports (landscape phones, small laptop windows): drop the secondary
+     chrome and tighten the gaps so the whole board stays on screen instead of
+     sliding below the fold. */
+  @media (max-height: 720px) {
+    .wrap { gap: 8px; padding: 12px 14px 14px; }
+    .head .sub, .tip { display: none; }
+    .score-item { padding: 5px 4px; }
+    .score-item small { font-size: 8px; }
+  }
+  @media (max-height: 480px) {
+    .head h1 { font-size: 18px; }
+    .status { min-height: 18px; font-size: 12px; }
+    .score { display: none; }
+    button.btn { min-height: 38px; padding: 8px 18px; font-size: 13px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap" id="wrap">
+  <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  <div class="head">
+    <h1 data-i18n="ticTacToe.title">TIC TAC TOE</h1>
+    <div class="sub" data-i18n="ticTacToe.subtitle">THREE IN A ROW WINS</div>
+  </div>
+
+  <div class="modes" id="modes"></div>
+  <div class="status" id="status"></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="score">
+    <div class="score-item x-side"><div class="val" id="sc-x">0</div><small id="lb-x">YOU</small></div>
+    <div class="score-item"><div class="val" id="sc-d">0</div><small id="lb-d">DRAWS</small></div>
+    <div class="score-item o-side"><div class="val" id="sc-o">0</div><small id="lb-o">AI</small></div>
+  </div>
+
+  <button class="btn btn-ghost" id="btn-new" data-i18n="ticTacToe.newRound">NEW ROUND</button>
+  <div class="tip" data-i18n="ticTacToe.tip">Get three in a row — across, down or diagonally.</div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    place: function () { beep(520, 0.06, 'square', 0.07); },
+    ai:    function () { beep(360, 0.07, 'triangle', 0.07); },
+    win:   function () { beep(660, 0.1, 'square', 0.09); setTimeout(function () { beep(880, 0.12, 'square', 0.08); }, 90); setTimeout(function () { beep(1180, 0.16, 'square', 0.07); }, 190); },
+    lose:  function () { beep(300, 0.16, 'sawtooth', 0.1); setTimeout(function () { beep(180, 0.24, 'sawtooth', 0.1); }, 140); },
+    draw:  function () { beep(420, 0.12, 'sine', 0.08); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Constants =====
+  var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  var MODES = ['easy', 'hard', '2p'];
+  var SCORE_KEY = 'tic_tac_toe_score_v1';
+
+  // ===== State =====
+  var board = ['', '', '', '', '', '', '', '', ''];
+  var mode = 'hard';
+  var turn = 'X';
+  var over = false;
+  var thinking = false;
+  var scores = loadScores();
+  var endKey = null;          // key of the final status line, so a language switch can rebuild it
+
+  function loadScores() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(SCORE_KEY) || '{}');
+      var out = {};
+      MODES.forEach(function (m) {
+        out[m] = { x: (raw[m] && raw[m].x) || 0, o: (raw[m] && raw[m].o) || 0, d: (raw[m] && raw[m].d) || 0 };
+      });
+      return out;
+    } catch (e) {
+      var empty = {};
+      MODES.forEach(function (m) { empty[m] = { x: 0, o: 0, d: 0 }; });
+      return empty;
+    }
+  }
+  function saveScores() {
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify(scores)); } catch (e) {}
+  }
+
+  function is2P() { return mode === '2p'; }
+  function humanSide() { return 'X'; }
+  function aiSide() { return 'O'; }
+
+  // ===== DOM =====
+  var boardEl = document.getElementById('board');
+  var statusEl = document.getElementById('status');
+  var modesEl = document.getElementById('modes');
+  var cells = [];
+
+  for (var i = 0; i < 9; i++) {
+    (function (idx) {
+      var b = document.createElement('button');
+      b.className = 'cell';
+      b.type = 'button';
+      b.dataset.i = String(idx);
+      b.addEventListener('click', function () { onCell(idx); });
+      boardEl.appendChild(b);
+      cells.push(b);
+    })(i);
+  }
+
+  function renderModes() {
+    modesEl.innerHTML = '';
+    var labels = { easy: t('ticTacToe.modeEasy'), hard: t('ticTacToe.modeHard'), '2p': t('ticTacToe.mode2p') };
+    MODES.forEach(function (m) {
+      var b = document.createElement('button');
+      b.className = 'mode' + (m === mode ? ' active' : '');
+      b.type = 'button';
+      b.textContent = labels[m];
+      b.dataset.mode = m;
+      b.addEventListener('click', function () {
+        if (mode === m) return;
+        mode = m;
+        renderModes();
+        newRound(true);
+      });
+      modesEl.appendChild(b);
+    });
+  }
+
+  function labelsFor() {
+    if (is2P()) return { x: t('ticTacToe.p1'), o: t('ticTacToe.p2') };
+    return { x: t('ticTacToe.you'), o: t('ticTacToe.ai') };
+  }
+
+  function renderScore() {
+    var s = scores[mode], lb = labelsFor();
+    document.getElementById('sc-x').textContent = s.x;
+    document.getElementById('sc-o').textContent = s.o;
+    document.getElementById('sc-d').textContent = s.d;
+    document.getElementById('lb-x').textContent = lb.x;
+    document.getElementById('lb-o').textContent = lb.o;
+    document.getElementById('lb-d').textContent = t('ticTacToe.draws');
+  }
+
+  function setStatus(text) { statusEl.textContent = text; }
+
+  function renderStatus() {
+    var lb = labelsFor();
+    if (over) { if (endKey) setStatus(t(endKey)); return; }
+    if (thinking) { setStatus(t('ticTacToe.thinking')); return; }
+    setStatus(t('ticTacToe.turn', { p: turn === 'X' ? lb.x : lb.o }));
+  }
+
+  function renderBoard() {
+    for (var i = 0; i < 9; i++) {
+      var el = cells[i];
+      el.className = 'cell';
+      el.textContent = board[i];
+      if (board[i] === 'X') el.classList.add('x');
+      if (board[i] === 'O') el.classList.add('o');
+      el.disabled = over || !!board[i] || thinking || (mode !== '2p' && turn !== humanSide());
+    }
+  }
+
+  function refreshAll() {
+    renderModes();
+    renderBoard();
+    renderStatus();
+    renderScore();
+  }
+
+  function previewHint(i) {
+    if (over || thinking || board[i]) return;
+    if (mode !== '2p' && turn !== humanSide()) return;
+    return turn === 'X' ? 'preview-x' : 'preview-o';
+  }
+  // hover preview (desktop nicety — no effect on touch devices)
+  boardEl.addEventListener('mouseover', function (e) {
+    var el = e.target.closest ? e.target.closest('.cell') : null;
+    if (!el) return;
+    var cls = previewHint(Number(el.dataset.i));
+    if (cls) el.classList.add(cls);
+  });
+  boardEl.addEventListener('mouseout', function (e) {
+    var el = e.target.closest ? e.target.closest('.cell') : null;
+    if (el) el.classList.remove('preview-x', 'preview-o');
+  });
+
+  // ===== Rules =====
+  function winnerOf(b) {
+    for (var i = 0; i < LINES.length; i++) {
+      var L = LINES[i];
+      if (b[L[0]] && b[L[0]] === b[L[1]] && b[L[0]] === b[L[2]]) return { p: b[L[0]], line: L };
+    }
+    return null;
+  }
+  function isFull(b) {
+    for (var i = 0; i < 9; i++) if (!b[i]) return false;
+    return true;
+  }
+
+  // minimax — the "impossible" brain (perfect play never loses)
+  function score(b, toMove, depth) {
+    var w = winnerOf(b);
+    if (w) return w.p === aiSide() ? 10 - depth : depth - 10;
+    if (isFull(b)) return 0;
+    var best = toMove === aiSide() ? -Infinity : Infinity;
+    for (var i = 0; i < 9; i++) {
+      if (b[i]) continue;
+      b[i] = toMove;
+      var s = score(b, toMove === 'X' ? 'O' : 'X', depth + 1);
+      b[i] = '';
+      if (toMove === aiSide()) { if (s > best) best = s; }
+      else { if (s < best) best = s; }
+    }
+    return best;
+  }
+  function bestMove(b) {
+    var bi = -1, bs = -Infinity;
+    for (var i = 0; i < 9; i++) {
+      if (b[i]) continue;
+      b[i] = aiSide();
+      var s = score(b, humanSide(), 1);
+      b[i] = '';
+      if (s > bs) { bs = s; bi = i; }
+    }
+    return bi;
+  }
+  function randomMove(b) {
+    var open = [];
+    for (var i = 0; i < 9; i++) if (!b[i]) open.push(i);
+    return open[Math.floor(Math.random() * open.length)];
+  }
+
+  // ===== Flow =====
+  function onCell(i) {
+    if (over || thinking || board[i]) return;
+    if (mode !== '2p' && turn !== humanSide()) return;
+    place(i, turn);
+  }
+
+  function place(i, player) {
+    board[i] = player;
+    if (player === 'X') sfx.place(); else sfx.ai();
+    renderBoard();
+    var w = winnerOf(board);
+    if (w) return finish(w);
+    if (isFull(board)) return finish(null);
+    turn = player === 'X' ? 'O' : 'X';
+    renderStatus();
+    if (mode !== '2p' && turn === aiSide()) scheduleAI();
+  }
+
+  function scheduleAI() {
+    thinking = true;
+    renderStatus();
+    renderBoard();
+    setTimeout(function () {
+      // mode may have changed while the AI was "thinking"
+      if (over || mode === '2p' || turn !== aiSide()) { thinking = false; return; }
+      var mv;
+      if (mode === 'easy') {
+        mv = Math.random() < 0.25 ? bestMove(board) : randomMove(board);
+      } else {
+        mv = bestMove(board);
+      }
+      thinking = false;
+      if (mv === undefined || mv < 0 || board[mv]) {
+        var open = [];
+        for (var i = 0; i < 9; i++) if (!board[i]) open.push(i);
+        mv = open.length ? open[Math.floor(Math.random() * open.length)] : -1;
+      }
+      if (mv < 0) { renderStatus(); return; }
+      place(mv, aiSide());
+    }, 380);
+  }
+
+  function finish(w) {
+    over = true;
+    var s = scores[mode];
+    var line = [];
+    if (w) {
+      line = w.line;
+      if (w.p === 'X') { s.x++; line.forEach(function (i) { cells[i].classList.add('win'); }); }
+      else { s.o++; line.forEach(function (i) { cells[i].classList.add('win'); }); }
+      endKey = is2P() ? (w.p === 'X' ? 'ticTacToe.winP1' : 'ticTacToe.winP2')
+                      : (w.p === 'X' ? 'ticTacToe.winYou' : 'ticTacToe.winAI');
+      setStatus(t(endKey));
+      if (w.p === 'X') sfx.win(); else sfx.lose();
+    } else {
+      s.d++;
+      endKey = 'ticTacToe.drawMsg';
+      setStatus(t(endKey));
+      sfx.draw();
+    }
+    saveScores();
+    renderScore();
+    renderBoard();
+  }
+
+  function newRound(keepScore) {
+    board = ['', '', '', '', '', '', '', '', ''];
+    turn = 'X';
+    over = false;
+    endKey = null;
+    thinking = false;
+    cells.forEach(function (c) { c.className = 'cell'; c.textContent = ''; c.disabled = false; });
+    renderBoard();
+    renderStatus();
+    if (!keepScore) renderScore();
+  }
+
+  document.getElementById('btn-new').addEventListener('click', function () { newRound(true); });
+
+  // keyboard: 1-9 place, R for a new round
+  window.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (k === 'r') { newRound(true); return; }
+    var n = parseInt(k, 10);
+    if (n >= 1 && n <= 9) onCell(n - 1);
+  });
+
+  // ===== Fit the board to short viewports =====
+  /* Measure everything except the board, then size the cells so the whole card
+     still fits the viewport — otherwise the bottom row slides below the fold
+     and the game looks broken. */
+  function fitBoard() {
+    var root = document.documentElement;
+    var wrapEl = document.getElementById('wrap');
+    var gridEl = document.getElementById('board');
+    root.style.setProperty('--cs', '96px');
+    var other = wrapEl.offsetHeight - gridEl.offsetHeight;
+    var avail = window.innerHeight - 24;
+    var byH = Math.floor((avail - other - 16) / 3);
+    var byW = Math.floor((Math.min(window.innerWidth, 400) - 24 - 28 - 16) / 3);
+    var cs = Math.max(34, Math.min(96, byH, byW));
+    root.style.setProperty('--cs', cs + 'px');
+  }
+  window.addEventListener('resize', fitBoard);
+
+  // ===== Boot =====
+  refreshAll();
+  fitBoard();
+  WG.onChange(function () { refreshAll(); });
+})();
+</script>
+</body>
+</html>
