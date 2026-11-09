@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="airHockey.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Air Hockey — Free Online Table Hockey Game</title>
+<meta name="description" content="Play Air Hockey free in your browser. Drag your mallet, angle real physics shots and beat the AI to seven goals. Three difficulty levels. No install, works on mobile and desktop.">
+<meta name="keywords" content="air hockey,table hockey,tabletop hockey,arcade game,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Air Hockey — Free Online Table Hockey Game">
+<meta property="og:description" content="Drag your mallet, shoot with real physics, first to seven goals wins.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏒</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0d1226 0%, #16244a 60%, #1d2a55 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 10px 10px 4px; user-select: none;
+    touch-action: none;
+  }
+  .panel {
+    position: relative;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .topbar { display: flex; justify-content: flex-end; }
+  .topbar:empty { display: none; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer;
+  }
+  .wrap {
+    position: relative;
+    width: min(400px, 100%, max(180px, calc((100vh - 180px) * .625)));
+    width: min(400px, 100%, max(180px, calc((100svh - 180px) * .625)));
+    border-radius: 14px; overflow: hidden; background: #0a1226;
+  }
+  canvas { display: block; width: 100%; height: auto; touch-action: none; }
+  .overlay {
+    position: absolute; inset: 0; border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 7px; text-align: center; padding: 14px;
+    background: rgba(6, 10, 26, .88); backdrop-filter: blur(3px); color: #fff; z-index: 6;
+  }
+  .hidden { display: none !important; }
+  .over-title { font-size: 21px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 12.5px; opacity: .8; line-height: 1.6; }
+  .final-line { font-size: 14px; font-weight: 700; }
+  .final-line b { font-size: 24px; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 3px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .diffs { display: flex; gap: 6px; margin: 2px 0; flex-wrap: wrap; justify-content: center; }
+  .diffs button {
+    min-height: 44px; min-width: 44px; border-radius: 11px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 800; letter-spacing: .5px; font-family: inherit;
+    background: rgba(255,255,255,.13); color: #fff; padding: 0 12px;
+  }
+  .diffs button.on { background: #35d0ff; color: #06303d; box-shadow: 0 3px 0 #187d9e; }
+  .over-btns { display: flex; gap: 8px; margin-top: 4px; width: 100%; max-width: 330px; }
+  .over-btns button, #btn-start {
+    flex: 1; min-height: 46px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+  }
+  .btn-primary { background: #35d0ff; color: #05303d; box-shadow: 0 4px 0 #187d9e; }
+  .btn-ghost { background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+  .icon-big { font-size: 38px; }
+  .footer {
+    margin-top: 8px; color: rgba(255,255,255,.5); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a { color: rgba(255,255,255,.78); text-decoration: none; display: inline-block; min-width: 44px; min-height: 44px; line-height: 44px; }
+  .footer a:hover { color: #ffd76e; }
+  /* 手机横屏：页脚挪到右侧当侧栏，把整条纵向让给球台 */
+  @media (orientation: landscape) and (max-height: 560px) {
+    body { flex-direction: row; align-items: center; justify-content: center; padding: 6px; }
+    .panel { flex: 0 1 auto; padding: 6px; }
+    .wrap { width: min(400px, 100%, max(150px, calc((100svh - 24px) * .625))); }
+    .over-title { font-size: 17px; }
+    .over-sub { font-size: 11px; }
+    .icon-big { font-size: 24px; }
+    .diffs button { min-height: 44px; font-size: 11px; padding: 0 9px; }
+    .footer { width: 142px; flex: 0 0 auto; max-width: none; margin: 0 0 0 8px; font-size: 11px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="topbar">
+    <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+  </div>
+
+  <div class="wrap" id="wrap">
+    <canvas id="game" width="400" height="640"></canvas>
+
+    <div class="overlay hidden" id="over-overlay">
+      <div class="over-title" id="over-title"></div>
+      <div class="final-line" id="final-line"></div>
+      <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+      <div class="over-sub" id="over-best"></div>
+      <div class="over-btns">
+        <button class="btn-primary" id="btn-again" data-i18n="common.playAgain">PLAY AGAIN</button>
+        <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="start-overlay">
+      <div class="icon-big">🏒</div>
+      <div class="over-title" data-i18n="airHockey.title">AIR HOCKEY</div>
+      <div class="over-sub" data-i18n-html="airHockey.tip">Drag your mallet with the <b>mouse or finger</b> (arrow keys also work).<br>Hit the puck with a <b>moving mallet</b> to shoot it at an angle.<br>First to <b>7 goals</b> wins. Pick a difficulty:</div>
+      <div class="diffs" id="diffs">
+        <button data-diff="0" data-i18n="airHockey.easy">EASY</button>
+        <button data-diff="1" data-i18n="airHockey.medium">MEDIUM</button>
+        <button data-diff="2" data-i18n="airHockey.hard">HARD</button>
+      </div>
+      <div class="over-sub" id="start-best"></div>
+      <button class="btn-primary" id="btn-start" data-i18n="common.start" style="margin-top:2px;padding:12px 28px;flex:0 0 auto;">START</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var W = 400, H = 640;
+  var WALL = 8, TOP_BAR = 52, BOT_BAR = 10;
+  var PLAY_L = WALL, PLAY_R = W - WALL, PLAY_T = TOP_BAR, PLAY_B = H - BOT_BAR;
+  var GOAL_W = 148, GOAL_L = (W - GOAL_W) / 2, GOAL_R = (W + GOAL_W) / 2;
+  var PUCK_R = 11, PAD_R = 26;
+  var WIN_SCORE = 7;
+  var SUBSTEPS = 6;
+  var MAX_SPEED = 12.5, MIN_SHOT = 4.2;
+  var ST = { IDLE: 0, PLAY: 1, PAUSE: 2, OVER: 3 };
+  var STORE_KEY = 'air_hockey_best_v1';
+
+  var DIFFS = [
+    { key: 'easy',   speed: 4.6, track: 0.42, predict: 0.10, err: 46 },
+    { key: 'medium', speed: 6.0, track: 0.70, predict: 0.35, err: 24 },
+    { key: 'hard',   speed: 7.8, track: 0.92, predict: 0.70, err: 10 }
+  ];
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var wrapEl = document.getElementById('wrap');
+  var panelEl = document.getElementById('panel');
+  var footerEl = document.querySelector('.footer');
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+
+  // ===== 音效 =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    hit:     function (v) { beep(420 + Math.min(v, 8) * 34, 0.05, 'square', 0.07); },
+    wall:    function () { beep(240, 0.035, 'sine', 0.045); },
+    score:   function () { [660, 880].forEach(function (f, i) { setTimeout(function () { beep(f, 0.14, 'triangle', 0.09); }, i * 90); }); },
+    concede: function () { beep(200, 0.2, 'sawtooth', 0.1); },
+    win:     function () { [523, 659, 784, 1046].forEach(function (f, i) { setTimeout(function () { beep(f, 0.18, 'triangle', 0.09); }, i * 100); }); },
+    lose:    function () { [420, 330, 250].forEach(function (f, i) { setTimeout(function () { beep(f, 0.22, 'sawtooth', 0.1); }, i * 140); }); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== 状态 =====
+  var player = { x: W / 2, y: PLAY_B - 80, px: W / 2, py: PLAY_B - 80, vx: 0, vy: 0 };
+  var ai = { x: W / 2, y: PLAY_T + 80, px: W / 2, py: PLAY_T + 80, vx: 0, vy: 0 };
+  var puck = { x: W / 2, y: H / 2, vx: 0, vy: 0 };
+  var state = ST.IDLE, playerScore = 0, aiScore = 0, diff = 1, pauseT = 0;
+  var started = false, overKey = null, endRec = false;
+  var lastBit = 0, trail = [], flashT = 0, flashWho = '';
+  var bestStreak = 0, storedDiff = 1, streak = 0;
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
+    bestStreak = raw.streak || 0; storedDiff = (raw.diff === 0 || raw.diff === 1 || raw.diff === 2) ? raw.diff : 1;
+  } catch (e) { bestStreak = 0; storedDiff = 1; }
+  diff = storedDiff;
+
+  function saveStore() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ diff: diff, streak: bestStreak })); } catch (e) {}
+  }
+  function clampPaddles() {
+    player.x = Math.max(PLAY_L + PAD_R, Math.min(PLAY_R - PAD_R, player.x));
+    player.y = Math.max(H / 2 + PAD_R, Math.min(PLAY_B - PAD_R, player.y));
+    ai.x = Math.max(PLAY_L + PAD_R, Math.min(PLAY_R - PAD_R, ai.x));
+    ai.y = Math.max(PLAY_T + PAD_R, Math.min(H / 2 - PAD_R, ai.y));
+  }
+  function serve(towardPlayer) {
+    puck.x = W / 2;
+    puck.y = H / 2;
+    puck.vx = (Math.random() - 0.5) * 2.2;
+    puck.vy = towardPlayer ? 3.4 : -3.4;
+    trail = [];
+  }
+  function resetPositions() {
+    player.x = W / 2; player.y = PLAY_B - 80;
+    ai.x = W / 2; ai.y = PLAY_T + 80;
+    player.px = player.x; player.py = player.y; player.vx = player.vy = 0;
+    ai.px = ai.x; ai.py = ai.y; ai.vx = ai.vy = 0;
+  }
+  function newMatch() {
+    playerScore = 0; aiScore = 0; streak = 0;
+    state = ST.IDLE; started = false; overKey = null; endRec = false;
+    resetPositions(); puck.x = W / 2; puck.y = H / 2; puck.vx = puck.vy = 0;
+    trail = []; flashT = 0;
+    overOverlay.classList.add('hidden');
+    startOverlay.classList.remove('hidden');
+    paintDiffButtons();
+    refreshAll(); draw();
+  }
+  function begin() {
+    if (state === ST.PLAY || state === ST.PAUSE) return;
+    started = true;
+    startOverlay.classList.add('hidden');
+    overOverlay.classList.add('hidden');
+    resetPositions();
+    serve(Math.random() < 0.5);
+    state = ST.PLAY;
+    saveStore();
+  }
+  function endMatch(playerWon) {
+    state = ST.OVER;
+    if (playerWon) { streak++; if (streak > bestStreak) { bestStreak = streak; endRec = true; } sfx.win(); }
+    else { streak = 0; sfx.lose(); }
+    saveStore();
+    overKey = playerWon ? 'airHockey.youWin' : 'airHockey.youLose';
+    document.getElementById('new-record').classList.toggle('hidden', !endRec);
+    refreshOver(); refreshBest();
+    overOverlay.classList.remove('hidden');
+  }
+  function goalFor(who) {
+    if (state !== ST.PLAY) return;
+    flashT = 26; flashWho = who;
+    if (who === 'player') { playerScore++; sfx.score(); } else { aiScore++; sfx.concede(); }
+    state = ST.PAUSE;
+    pauseT = 66;
+    puck.vx = puck.vy = 0;
+    puck.x = W / 2; puck.y = H / 2;
+    trail = [];
+    if (playerScore >= WIN_SCORE) { endMatch(true); return; }
+    if (aiScore >= WIN_SCORE) { endMatch(false); return; }
+    draw();
+  }
+
+  // ===== 物理：子步进，防止高速穿墙 / 穿拍 =====
+  function collideWalls() {
+    if (puck.x - PUCK_R < PLAY_L) { puck.x = PLAY_L + PUCK_R; puck.vx = Math.abs(puck.vx); sfx.wall(); }
+    if (puck.x + PUCK_R > PLAY_R) { puck.x = PLAY_R - PUCK_R; puck.vx = -Math.abs(puck.vx); sfx.wall(); }
+    if (puck.y - PUCK_R < PLAY_T) {
+      if (puck.x > GOAL_L && puck.x < GOAL_R) { goalFor('player'); return; }
+      puck.y = PLAY_T + PUCK_R; puck.vy = Math.abs(puck.vy); sfx.wall();
+    }
+    if (puck.y + PUCK_R > PLAY_B) {
+      if (puck.x > GOAL_L && puck.x < GOAL_R) { goalFor('ai'); return; }
+      puck.y = PLAY_B - PUCK_R; puck.vy = -Math.abs(puck.vy); sfx.wall();
+    }
+  }
+  function collidePaddle(p, attackUp) {
+    var dx = puck.x - p.x, dy = puck.y - p.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    var minD = PUCK_R + PAD_R;
+    if (d >= minD) return;
+    if (d < 0.001) { dx = 0; dy = attackUp ? -1 : 1; d = 1; }
+    var nx = dx / d, ny = dy / d;
+    puck.x = p.x + nx * minD;
+    puck.y = p.y + ny * minD;
+    // 沿法线反射（相对球拍的运动）
+    var rel = (puck.vx - p.vx) * nx + (puck.vy - p.vy) * ny;
+    if (rel < 0) { puck.vx -= 2 * rel * nx; puck.vy -= 2 * rel * ny; }
+    // ★ 球拍速度传给球，才有角度
+    puck.vx += p.vx * 0.9;
+    puck.vy += p.vy * 0.9;
+    // 保证有纵向分量，别让球在两端之间横着磨
+    if (Math.abs(puck.vy) < 0.9) puck.vy = (attackUp ? -1 : 1) * 0.9;
+    var sp = Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy);
+    if (sp > MAX_SPEED) { puck.vx *= MAX_SPEED / sp; puck.vy *= MAX_SPEED / sp; }
+    else if (sp > 0.01 && sp < MIN_SHOT) { puck.vx *= MIN_SHOT / sp; puck.vy *= MIN_SHOT / sp; }
+    sfx.hit(sp);
+  }
+  function movePuck(dt) {
+    var steps = SUBSTEPS;
+    var sx = puck.vx * dt / steps, sy = puck.vy * dt / steps;
+    for (var i = 0; i < steps; i++) {
+      if (state !== ST.PLAY) return;
+      puck.x += sx; puck.y += sy;
+      collideWalls();
+      if (state !== ST.PLAY) return;
+      collidePaddle(player, true);
+      collidePaddle(ai, false);
+    }
+    trail.push({ x: puck.x, y: puck.y });
+    if (trail.length > 12) trail.shift();
+  }
+
+  // ===== AI =====
+  function aiTarget(dt) {
+    var d = DIFFS[diff], tg;
+    if (puck.y < PLAY_T + (PLAY_B - PLAY_T) * 0.55 && puck.vy < 2.4) {
+      // 球在己方半场 → 绕到球的"上方"，把它往玩家球门打
+      var behind = puck.y - (PAD_R + PUCK_R) * 0.82;
+      if (behind < PLAY_T + PAD_R) behind = puck.y + (PAD_R + PUCK_R) * 0.82;
+      tg = { x: puck.x + (Math.random() - 0.5) * d.err, y: behind };
+    } else {
+      // 回防：按预测落点站在自家门前
+      var px2 = puck.x + puck.vx * d.predict * 26;
+      tg = { x: W / 2 + (px2 - W / 2) * d.track + (Math.random() - 0.5) * d.err * 0.5, y: PLAY_T + 52 };
+    }
+    return tg;
+  }
+  function updateAI(dt) {
+    var tg = aiTarget(dt);
+    var dx = tg.x - ai.x, dy = tg.y - ai.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    var step = DIFFS[diff].speed * dt;
+    if (d > step && d > 0.001) { ai.x += dx / d * step; ai.y += dy / d * step; }
+    else { ai.x = tg.x; ai.y = tg.y; }
+  }
+
+  // ===== 帧更新 =====
+  function step(dt) {
+    if (flashT > 0) flashT -= dt;
+    if (state !== ST.PLAY) {
+      if (state === ST.PAUSE) {
+        pauseT -= dt;
+        if (pauseT <= 0) { resetPositions(); serve(aiScore > playerScore); state = ST.PLAY; }
+      }
+      updatePaddleVel();
+      return;
+    }
+    updatePaddleVel();
+    updateAI(dt);
+    clampPaddles();
+    movePuck(dt);
+  }
+  function updatePaddleVel() {
+    player.vx = Math.max(-16, Math.min(16, player.x - player.px));
+    player.vy = Math.max(-16, Math.min(16, player.y - player.py));
+    player.px = player.x; player.py = player.y;
+    ai.vx = Math.max(-16, Math.min(16, ai.x - ai.px));
+    ai.vy = Math.max(-16, Math.min(16, ai.y - ai.py));
+    ai.px = ai.x; ai.py = ai.y;
+  }
+
+  // ===== 绘制 =====
+  var COL_SURF = '#0e1a38', COL_LINE = 'rgba(140,190,255,.28)';
+  function draw() {
+    var sx = canvas.width / W, sy = canvas.height / H;
+    ctx.setTransform(sx, 0, 0, sy, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a1226';
+    ctx.fillRect(0, 0, W, H);
+    // 台面
+    ctx.fillStyle = COL_SURF;
+    roundRect(WALL, PLAY_T, PLAY_R - PLAY_L, PLAY_B - PLAY_T, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(90,150,255,.55)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // 中线 + 中圈
+    ctx.strokeStyle = COL_LINE;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([9, 9]);
+    ctx.beginPath(); ctx.moveTo(PLAY_L, H / 2); ctx.lineTo(PLAY_R, H / 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(W / 2, H / 2, 58, 0, Math.PI * 2); ctx.stroke();
+    // 球门
+    drawGoal(true); drawGoal(false);
+    // 计分板
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '800 30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#35d0ff';
+    ctx.fillText(String(playerScore), W / 2 - 56, 26);
+    ctx.fillStyle = 'rgba(255,255,255,.45)';
+    ctx.font = '800 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillText('—', W / 2, 26);
+    ctx.fillStyle = '#ff4d6d';
+    ctx.font = '800 30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillText(String(aiScore), W / 2 + 56, 26);
+    ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.fillText(t('airHockey.hudTo', { n: WIN_SCORE }), W / 2, 44);
+    // 进球闪光
+    if (flashT > 0) {
+      ctx.globalAlpha = Math.max(0, flashT / 26) * 0.5;
+      ctx.fillStyle = flashWho === 'player' ? '#35d0ff' : '#ff4d6d';
+      ctx.fillRect(WALL, PLAY_T, PLAY_R - PLAY_L, PLAY_B - PLAY_T);
+      ctx.globalAlpha = 1;
+    }
+    // 拖尾
+    for (var i = 0; i < trail.length; i++) {
+      ctx.globalAlpha = (i / trail.length) * 0.28;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(trail[i].x, trail[i].y, PUCK_R * (0.35 + i / trail.length * 0.5), 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // 球拍
+    drawMallet(ai, '#ff4d6d', '#ffb3c1');
+    drawMallet(player, '#35d0ff', '#b3ecff');
+    // 冰球
+    ctx.fillStyle = '#f2f6ff';
+    ctx.beginPath(); ctx.arc(puck.x, puck.y, PUCK_R + 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#131a2e';
+    ctx.beginPath(); ctx.arc(puck.x, puck.y, PUCK_R - 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.75)';
+    ctx.beginPath(); ctx.arc(puck.x - 2.5, puck.y - 2.5, 2.6, 0, Math.PI * 2); ctx.fill();
+  }
+  function drawGoal(top) {
+    var y = top ? PLAY_T - 7 : PLAY_B + 1;
+    ctx.fillStyle = top ? '#ff4d6d' : '#35d0ff';
+    roundRect(GOAL_L, y, GOAL_W, 7, 3.5);
+    ctx.fill();
+  }
+  function drawMallet(m, body, ring) {
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.beginPath(); ctx.arc(m.x + 1.5, m.y + 2.5, PAD_R, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.arc(m.x, m.y, PAD_R, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = ring;
+    ctx.beginPath(); ctx.arc(m.x, m.y, PAD_R * 0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.28)';
+    ctx.beginPath(); ctx.arc(m.x, m.y, PAD_R * 0.24, 0, Math.PI * 2); ctx.fill();
+  }
+  function roundRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ===== HUD / 文案 =====
+  function paintDiffButtons() {
+    var btns = document.querySelectorAll('#diffs button');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', parseInt(btns[i].dataset.diff, 10) === diff);
+  }
+  function refreshBest() {
+    var line = bestStreak > 0 ? t('airHockey.bestStreak', { n: bestStreak }) : t('airHockey.first');
+    document.getElementById('start-best').textContent = line;
+    document.getElementById('over-best').textContent = bestStreak > 0 ? t('airHockey.bestStreak', { n: bestStreak }) : '';
+  }
+  function refreshOver() {
+    if (!overKey) { document.getElementById('over-title').textContent = ''; document.getElementById('final-line').innerHTML = ''; return; }
+    document.getElementById('over-title').textContent = t(overKey);
+    document.getElementById('final-line').innerHTML = t('airHockey.final', { n: playerScore, m: aiScore });
+  }
+  function refreshAll() { refreshOver(); refreshBest(); paintDiffButtons(); }
+  WG.onChange(function () { refreshAll(); fit(); });
+
+  // ===== 尺寸自适应 =====
+  function fit() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var land = vw > vh && vh <= 560;
+    var bcs = getComputedStyle(document.body);
+    var pcs = getComputedStyle(panelEl);
+    var padY = parseFloat(bcs.paddingTop || 0) + parseFloat(bcs.paddingBottom || 0) +
+               parseFloat(pcs.paddingTop || 0) + parseFloat(pcs.paddingBottom || 0) + 2;
+    var chrome = panelEl.offsetHeight - wrapEl.offsetHeight;
+    if (!(chrome > 0)) chrome = land ? 16 : 20;
+    var footerH = 0;
+    if (!land && footerEl) {
+      var fcs = getComputedStyle(footerEl);
+      footerH = footerEl.offsetHeight + parseFloat(fcs.marginTop || 0) + 6;
+    }
+    var availH = vh - padY - footerH - chrome;
+    var padX = parseFloat(bcs.paddingLeft || 0) + parseFloat(bcs.paddingRight || 0) +
+               parseFloat(pcs.paddingLeft || 0) + parseFloat(pcs.paddingRight || 0) + 2;
+    var availW = vw - padX - (land ? 142 : 0);
+    var w = Math.min(400, availH * (W / H), availW);
+    if (!(w > 0)) w = 200;
+    wrapEl.style.width = Math.max(120, Math.round(w)) + 'px';
+    resizeCanvas();
+  }
+  function resizeCanvas() {
+    var r = wrapEl.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.round(r.width * dpr));
+    canvas.height = Math.max(1, Math.round(r.height * dpr));
+    draw();
+  }
+
+  // ===== 输入 =====
+  var keys = {};
+  function pointerToBoard(clientX, clientY) {
+    var r = canvas.getBoundingClientRect();
+    return { x: (clientX - r.left) / r.width * W, y: (clientY - r.top) / r.height * H };
+  }
+  function movePlayerTo(bx, by) {
+    player.x = bx; player.y = by;
+    clampPaddles();
+  }
+  function onPointer(e) {
+    if (state === ST.IDLE) begin();
+    if (state !== ST.PLAY && state !== ST.PAUSE) return;
+    var p = pointerToBoard(e.clientX, e.clientY);
+    movePlayerTo(p.x, p.y);
+    if (e.cancelable) e.preventDefault();
+  }
+  canvas.addEventListener('pointermove', onPointer);
+  canvas.addEventListener('pointerdown', function (e) {
+    if (state === ST.IDLE) begin();
+    onPointer(e);
+    try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  // 触摸兜底：某些环境不派发 pointer* 给 canvas
+  canvas.addEventListener('touchstart', function (e) {
+    if (state === ST.IDLE) begin();
+    var tp = e.touches && e.touches[0];
+    if (tp) movePlayerTo(pointerToBoard(tp.clientX, tp.clientY).x, pointerToBoard(tp.clientX, tp.clientY).y);
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function (e) {
+    var tp = e.touches && e.touches[0];
+    if (tp) movePlayerTo(pointerToBoard(tp.clientX, tp.clientY).x, pointerToBoard(tp.clientX, tp.clientY).y);
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('click', function () { if (state === ST.IDLE) begin(); });
+  // 点面板任意空白处也能开局（手机盲点也要进得去；按钮除外，免得点难度就开局）
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== document.body) { if (el.tagName === 'BUTTON') return; el = el.parentNode; }
+    if (state === ST.IDLE && !started) begin();
+  });
+
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    if (k === 'arrowleft' || k === 'a' || k === 'arrowright' || k === 'd' ||
+        k === 'arrowup' || k === 'w' || k === 'arrowdown' || k === 's') {
+      keys[k] = true;
+      if (state === ST.IDLE) begin();
+      e.preventDefault(); return;
+    }
+    if (k === '1' || k === '2' || k === '3') { setDiff(parseInt(k, 10) - 1); e.preventDefault(); return; }
+    if (k === 'enter' || k === ' ') { begin(); e.preventDefault(); return; }
+    if (k === 'r') { newMatch(); e.preventDefault(); return; }
+  });
+  window.addEventListener('keyup', function (e) { keys[String(e.key || '').toLowerCase()] = false; });
+  function applyKeys(dt) {
+    var vx = 0, vy = 0;
+    if (keys['arrowleft'] || keys['a']) vx -= 1;
+    if (keys['arrowright'] || keys['d']) vx += 1;
+    if (keys['arrowup'] || keys['w']) vy -= 1;
+    if (keys['arrowdown'] || keys['s']) vy += 1;
+    if (!vx && !vy) return;
+    if (state === ST.IDLE) begin();
+    if (state !== ST.PLAY && state !== ST.PAUSE) return;
+    movePlayerTo(player.x + vx * 7.6 * dt, player.y + vy * 7.6 * dt);
+  }
+  function setDiff(n) {
+    if (!(n >= 0 && n <= 2)) return;
+    diff = n;
+    paintDiffButtons();
+    saveStore();
+  }
+  document.getElementById('diffs').addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== this && el.dataset.diff === undefined) el = el.parentNode;
+    if (!el || el === this || el.dataset.diff === undefined) return;
+    setDiff(parseInt(el.dataset.diff, 10));
+  });
+  document.getElementById('btn-start').addEventListener('click', begin);
+  document.getElementById('btn-again').addEventListener('click', newMatch);
+
+  // ===== 分享 =====
+  function shareText() { return t('airHockey.share', { n: playerScore, m: aiScore, url: location.href }); }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var full = shareText(), btn = document.getElementById('btn-share');
+    function done() { btn.textContent = t('common.copied'); setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    else fallbackCopy(full, done);
+  });
+
+  // ===== 主循环 =====
+  var last = performance.now(), acc = 0;
+  function loop(ts) {
+    requestAnimationFrame(loop);            // ★ 先排下一帧
+    var dt = Math.min((ts - last) / 16.666, 2.5);
+    last = ts;
+    acc += dt;
+    var guard = 0;
+    while (acc >= 1 && guard++ < 6) { acc -= 1; applyKeys(1); step(1); }
+    draw();
+  }
+  document.addEventListener('visibilitychange', function () { last = performance.now(); acc = 0; });
+  requestAnimationFrame(loop);
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fit, 80);
+  });
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', function () { setTimeout(fit, 300); });
+
+  // ===== 探针接口（只读快照 + 手动驱动帧）=====
+  window.__st = function () {
+    return {
+      playerX: player.x, playerY: player.y, aiX: ai.x, aiY: ai.y,
+      puckX: puck.x, puckY: puck.y,
+      puckVX: puck.vx, puckVY: puck.vy,
+      puckSpeed: Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy),
+      playerScore: playerScore, aiScore: aiScore, state: state, diff: diff,
+      winScore: WIN_SCORE, started: started
+    };
+  };
+  window.__bounds = function () { return { left: PLAY_L, right: PLAY_R, top: PLAY_T, bottom: PLAY_B, puckR: PUCK_R, padR: PAD_R }; };
+  window.__drive = function (n) { for (var i = 0; i < n; i++) { applyKeys(1); step(1); } draw(); };
+
+  newMatch();
+  fit();
+  setTimeout(fit, 60);
+})();
+</script>
+</body>
+</html>
