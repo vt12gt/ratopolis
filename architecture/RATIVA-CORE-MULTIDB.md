@@ -164,3 +164,10 @@ As respostas mantêm as chaves legadas `jogador`, `progresso`, `jogadores`, `pag
 O deploy atualizado de desenvolvimento foi aceito em 2026-11-09 e os bindings foram conferidos novamente: `PORTAL_DB` → `ratopolis-dev-v31`; `POLIS_DB` → `rativapolis-dev-isolated`.
 
 Limites: o teste HTTP de runtime continua bloqueado pelo ambiente de execução (requisições ao domínio workers.dev são negadas antes de chegar ao Worker). A rota privada `/api/profile/personal` que trata nome completo/data de nascimento/WhatsApp não foi copiada para o serviço de jogo; continua sendo dado privado do Portal. O cliente do jogo ainda não foi alterado nem conectado. Antes de integrar, localizar o frontend correto e conferir todos os endpoints chamados por ele, especialmente rotas POST de recompensas, loja, inventário, cenários e autenticação. Nenhuma configuração de produção foi alterada.
+
+
+## Localização do cliente Rativapolis no repositório unificado
+
+O repositório único é `vt12gt/RativaGames`; não existe dependência de um repositório separado `ratopolis`. A árvore da branch principal foi conferida em 2026-11-09. O cliente de jogo atualmente identificado é `ratopolis_v1.56.0.html` na raiz do repositório (574 KB). Também existem protótipos antigos `ratopolis_v1.53.6_*.html`, a cópia `ratopolis_v1.56.0_teste_matchmaking.html`, a pasta administrativa `Admin/RativaPolis/` e o Portal em `index.html`.
+
+O cliente v1.56.0 ainda aponta `PROGRESSION_API` para `ratopolis-api-dev-v30` e envia recompensas por `POST /api/progression/reward`, além de consultar `GET /api/progression/me`. Portanto, não se deve alterar apenas a URL para `rativapolis-api-dev`: a versão atual desse Worker tem a leitura de progressão, mas ainda não tem a escrita de recompensas necessária. A migração segura seguinte é implementar e validar a gravação idempotente de recompensas na D1 Polis, preservando o formato JSON e os limites de segurança do cliente; só então conectar uma cópia de teste do HTML, mantendo o arquivo principal intacto.
