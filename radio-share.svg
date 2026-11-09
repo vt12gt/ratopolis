@@ -18,10 +18,10 @@
  <g transform="translate(450 100)">
   <text x="0" y="70" font-family="Arial,sans-serif" font-size="34" font-weight="900" letter-spacing="7" fill="#f4d56b">SINTONIZE A ALEGRIA</text>
   <text x="-5" y="190" font-family="Arial,sans-serif" font-size="104" font-weight="1000" letter-spacing="-4" fill="#fff" stroke="#180c32" stroke-width="12" paint-order="stroke">RÁDIO</text>
-  <text x="-5" y="300" font-family="Arial,sans-serif" font-size="105" font-weight="1000" letter-spacing="-5" fill="url(#gold)" stroke="#180c32" stroke-width="13" paint-order="stroke">RATÓPOLIS</text>
+  <text x="-5" y="300" font-family="Arial,sans-serif" font-size="82" font-weight="1000" letter-spacing="-3" fill="url(#gold)" stroke="#180c32" stroke-width="13" paint-order="stroke">RATIVA GAMES</text>
   <text x="4" y="358" font-family="Arial,sans-serif" font-size="35" font-style="italic" font-weight="700" fill="#f7dfff">Sempre com você!</text>
   <g transform="translate(0 410)"><rect width="275" height="68" rx="22" fill="url(#purple)"/><path d="M31 18v32l28-16z" fill="#fff"/><text x="78" y="44" font-family="Arial,sans-serif" font-size="25" font-weight="900" fill="#fff">OUÇA AGORA</text></g>
   <g transform="translate(300 410)" font-family="Arial,sans-serif" font-size="18" font-weight="800" fill="#fff"><rect width="360" height="68" rx="20" fill="#ffffff12" stroke="#9d55ff" stroke-width="2"/><text x="20" y="28">🎵 MÚSICA  •  🎙️ AO VIVO</text><text x="20" y="52">💬 PEDIDOS  •  🐭 COMUNIDADE</text></g>
  </g>
- <path d="M0 555h1200v75H0z" fill="#090614" opacity=".9"/><path d="M0 555h1200" stroke="#c35aff" stroke-width="4"/><text x="55" y="601" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#e9d9ff">RATÓPOLIS • MÚSICA, INFORMAÇÃO E BOA COMPANHIA</text><text x="1140" y="601" text-anchor="end" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#ffd64e">24H NO AR</text>
+ <path d="M0 555h1200v75H0z" fill="#090614" opacity=".9"/><path d="M0 555h1200" stroke="#c35aff" stroke-width="4"/><text x="55" y="601" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#e9d9ff">RATIVA GAMES • MÚSICA, INFORMAÇÃO E BOA COMPANHIA</text><text x="1140" y="601" text-anchor="end" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#ffd64e">24H NO AR</text>
 </svg>
