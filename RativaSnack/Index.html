@@ -108,13 +108,12 @@ async function validateConnection(){
  }finally{clearTimeout(timer);checking=false}
 }
 readSession();
-document.getElementById('goOnline').addEventListener('click',async e=>{
+document.getElementById('goOnline').addEventListener('click',e=>{
  e.preventDefault();
  if(navigator.onLine===false){status('🔴 Sem internet — conecte-se para entrar no Online.');return}
- if(!portalToken){await validateConnection();return}
- // Uma falha temporária do /api/me não pode apagar nem bloquear a entrega da sessão.
- if(!onlineReady)await validateConnection();
- if(!portalToken){status('🔒 Entre na sua conta RativaGames para jogar Online.');return}
+ if(!portalToken){status('🔒 Entre na sua conta RativaGames para jogar Online.');returnToPortal('É necessário entrar na conta para jogar Online.');return}
+ // Entrega a sessão diretamente ao cliente Online. A validação e a conexão multiplayer
+ // acontecem uma única vez no próprio jogo, sem uma etapa intermediária que atrase a entrada.
  const next='Online.html#ratopolis_token='+encodeURIComponent(portalToken)+'&ratopolis_nick='+encodeURIComponent(portalNick);
  location.href=next;
 });
