@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="reversi.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Reversi — Free Online Othello Board Game</title>
+<meta name="description" content="Play Reversi (Othello) free in your browser. Flank your opponent's discs to flip them, against an AI in three difficulties. Legal moves are highlighted. No install, works on mobile and desktop.">
+<meta name="keywords" content="reversi,othello,reversi online,othello game,board game,black and white discs,vs computer,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Reversi — Free Online Othello Board Game">
+<meta property="og:description" content="Flank a line of discs and flip them to your colour. Three difficulty levels, highlighted legal moves, full undo.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚪</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #14251c 0%, #213d2e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 10px 8px 4px;
+    user-select: none; touch-action: manipulation;
+  }
+  .panel {
+    position: relative;
+    --cs: 42px;            /* 格子边长，由 JS 的 fit() 覆写 */
+    --gap: 2px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .side { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .boardcol { display: flex; align-items: center; justify-content: center; }
+
+  .topbar { display: flex; align-items: center; gap: 6px; width: 100%; }
+  .stat {
+    flex: 1; background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 3px 6px; text-align: center; color: #fff; min-width: 0;
+  }
+  .stat small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px; opacity: .55; }
+  .stat span { font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer; font-family: inherit;
+  }
+
+  .modes { display: flex; gap: 6px; width: 100%; }
+  .mode {
+    flex: 1 1 0; min-width: 0; min-height: 40px; border: none; border-radius: 10px;
+    background: rgba(255,255,255,.10); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .5px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .mode:hover { background: rgba(255,255,255,.18); }
+  .mode.active { background: #f0a500; color: #2a1d00; }
+
+  .status {
+    min-height: 20px; width: 100%; font-size: 13px; font-weight: 800;
+    letter-spacing: .5px; color: #ffd76e; text-align: center;
+  }
+  #hint {
+    width: 100%; margin-top: -2px; font-size: 12px; font-weight: 700;
+    color: #ffb4a0; text-align: center; line-height: 1.4;
+  }
+  /* 没有提示时整块塌掉，别白占纵向（手机横屏最缺的就是纵向） */
+  #hint:empty { display: none; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, var(--cs));
+    grid-template-rows: repeat(8, var(--cs));
+    gap: var(--gap);
+    padding: calc(var(--gap) * 1.5);
+    background: #1d6b45;
+    border-radius: 12px;
+    box-shadow: inset 0 3px 12px rgba(0,0,0,.45);
+  }
+  .cell {
+    position: relative; background: #2c8757; border-radius: 3px;
+    cursor: pointer; transition: background .12s;
+  }
+  .cell:hover { background: #359a65; }
+  /* 合法落点提示：空心的半透明小圆点 */
+  .cell.legal::after {
+    content: ''; position: absolute; inset: 28%; border-radius: 50%;
+    background: rgba(255,255,255,.34);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.22);
+  }
+  .cell.cursor { box-shadow: 0 0 0 3px #ffd76e inset; z-index: 2; }
+  .cell.nope { animation: nope .3s ease; }
+  @keyframes nope { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+
+  /* 棋子：<span> 必须 display:block，否则行内元素忽略百分比尺寸 → 塌成 0×0（SPECS 14） */
+  .disc { display: block; position: absolute; inset: 6%; border-radius: 50%; transform-origin: center; }
+  .disc.b { background: radial-gradient(circle at 34% 30%, #78828e, #1b1f25 62%, #05070a); }
+  .disc.w { background: radial-gradient(circle at 34% 30%, #ffffff, #e3e9ee 62%, #98a7b3); }
+  /* 翻面：纯 2D scaleX 两段式（1→0→1），中点正好不可见 → 视觉上就是"翻过来"，
+     完全不碰 preserve-3d，避开 SPECS 15 的静默降级坑 */
+  .disc.flip { animation: flipX .3s ease-in-out both; }
+  @keyframes flipX {
+    0%   { transform: scaleX(1); }
+    50%  { transform: scaleX(.06); }
+    100% { transform: scaleX(1); }
+  }
+
+  .actions { display: flex; gap: 8px; width: 100%; }
+  .actions button {
+    flex: 1; min-height: 44px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px; font-family: inherit;
+    transition: transform .12s ease;
+  }
+  .actions button:active { transform: scale(.96); }
+  .actions button:disabled { opacity: .4; cursor: default; }
+  .btn-primary { background: #4a90ff; color: #fff; box-shadow: 0 4px 0 #2a63bd; }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+
+  .overlay {
+    position: absolute; inset: 0; border-radius: 18px; z-index: 6;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 18px;
+    background: rgba(10, 22, 16, .86); backdrop-filter: blur(3px); color: #fff;
+  }
+  .hidden { display: none !important; }
+  .over-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 13px; opacity: .8; line-height: 1.6; }
+  .icon-big { font-size: 40px; }
+  .final-line { font-size: 15px; font-weight: 700; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .over-btns { display: flex; gap: 8px; margin-top: 6px; width: 100%; }
+  .over-btns button {
+    flex: 1; min-height: 44px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 800; font-family: inherit;
+  }
+  .start-btn { margin-top: 6px; padding: 12px 28px; }
+
+  .footer {
+    margin-top: 10px; color: rgba(255,255,255,.5); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a {
+    color: rgba(255,255,255,.78); text-decoration: none; display: inline-block;
+    min-width: 44px; min-height: 44px; line-height: 44px;
+  }
+  .footer a:hover { color: #ffd76e; }
+
+  /* 横屏 / 矮窗口（视口高 ≤700px）：改成左右分栏 —— 棋盘靠左、HUD/按钮靠右。
+     竖排时纵向只剩 ~160px（格子被压到 20px 点不准），横排后棋盘高度可用 ~550px。
+     挖掉的都是「不是触控目标」的纵向浪费，触控目标一律保持 ≥44px。 */
+  @media (orientation: landscape) and (max-height: 700px) {
+    body { padding: 2px 6px 2px; }
+    .panel { flex-direction: row; align-items: center; padding: 6px; gap: 8px; }
+    .boardcol { order: -1; }
+    .side { width: min(272px, 40vw); flex: 0 0 auto; gap: 6px; }
+    .footer { max-width: none; margin-top: 4px; line-height: 1.4; font-size: 11px; }
+    /* 横向明明有余量、纵向只剩几十像素时，把站点工具行与页脚文字并到同一行 ——
+       省下的是「不是触控目标」的折行高度，三键仍各自 44×44 */
+    .footer .wg-tools { display: inline-flex; vertical-align: middle; margin-right: 8px; }
+    .mode { font-size: 10px; }
+    .status { min-height: 16px; font-size: 12px; }
+    .overlay { padding: 10px; gap: 5px; }
+    .over-title { font-size: 18px; }
+    .over-sub, .final-line { font-size: 12px; }
+    .icon-big { font-size: 26px; }
+    .actions button, .over-btns button { min-height: 44px; font-size: 13px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="side">
+    <div class="topbar">
+      <div class="stat"><small data-i18n="reversi.black">BLACK</small><span id="hud-black">2</span></div>
+      <div class="stat"><small data-i18n="reversi.white">WHITE</small><span id="hud-white">2</span></div>
+      <div class="stat"><small data-i18n="reversi.wins">WINS</small><span id="hud-wins">0</span></div>
+      <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+    </div>
+
+    <div class="modes" id="modes"></div>
+    <div class="status" id="status"></div>
+    <div id="hint"></div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="btn-undo" data-i18n="reversi.undo">UNDO</button>
+      <button class="btn-ghost" id="btn-restart" data-i18n="reversi.restart">RESTART</button>
+    </div>
+  </div>
+
+  <div class="boardcol">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="over-sub" data-i18n="reversi.over">GAME OVER</div>
+    <div class="over-title" id="over-title"></div>
+    <div class="final-line" id="final-line"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="over-sub" id="over-best"></div>
+    <div class="over-btns">
+      <button class="btn-primary" id="btn-again" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share2" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">⚪</div>
+    <div class="over-title" data-i18n="reversi.title">REVERSI</div>
+    <div class="over-sub" data-i18n-html="reversi.tip">You play <b>black</b> and move first.<br>Drop a disc so it <b>flanks a line</b> of the computer's discs — every disc in that line flips to your colour.<br>Whoever holds the most discs at the end wins. Tap a highlighted square.</div>
+    <div class="over-sub" id="start-best"></div>
+    <button class="btn-primary start-btn" id="btn-start" data-i18n="common.start">START</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var N = 8, CELLS = 64;
+  var HUMAN = 'B', AI = 'W';
+  var MODES = ['easy', 'normal', 'hard'];
+  var SCORE_KEY = 'reversi_best_v1';
+  // 8 个方向：上/下/左/右/四条斜线
+  var DIRS = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+  // 位置权重表：角极重、角旁格（X 位）极负 —— Normal 档靠它，Hard 档在搜索里也用它
+  var W8 = [
+     120, -24,  20,   6,   6,  20, -24, 120,
+     -24, -46,  -6,  -4,  -4,  -6, -46, -24,
+      20,  -6,  14,   3,   3,  14,  -6,  20,
+       6,  -4,   3,   2,   2,   3,  -4,   6,
+       6,  -4,   3,   2,   2,   3,  -4,   6,
+      20,  -6,  14,   3,   3,  14,  -6,  20,
+     -24, -46,  -6,  -4,  -4,  -6, -46, -24,
+     120, -24,  20,   6,   6,  20, -24, 120
+  ];
+
+  var panel = document.getElementById('panel');
+  var boardEl = document.getElementById('board');
+  var sideEl = document.querySelector('.side');
+  var footerEl = document.querySelector('.footer');
+  var hintEl = document.getElementById('hint');
+  var statusEl = document.getElementById('status');
+
+  // ===== 音效 =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    place: function () { beep(430, 0.05, 'square', 0.06); setTimeout(function () { beep(250, 0.07, 'square', 0.05); }, 45); },
+    ai:    function () { beep(300, 0.06, 'triangle', 0.06); },
+    bad:   function () { beep(150, 0.11, 'sawtooth', 0.05); },
+    win:   function () { [0, 110, 220, 330].forEach(function (d, i) { setTimeout(function () { beep(560 + i * 160, 0.16, 'triangle', 0.09); }, d); }); },
+    lose:  function () { beep(320, 0.18, 'sawtooth', 0.09); setTimeout(function () { beep(190, 0.26, 'sawtooth', 0.09); }, 150); },
+    draw:  function () { beep(420, 0.14, 'sine', 0.08); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== 状态 =====
+  var board = new Array(CELLS).fill('');
+  var discEls = [], cellEls = [];
+  var turn = HUMAN, over = false, winner = '', cursor = 0;
+  var passNote = '';                 // 谁被迫 pass（用于提示）
+  var mode = 'normal';
+  var history = [];                  // 撤销栈：每次「人走一步」前存一份完整局面
+  var endKey = null;
+  var lastResult = null;             // { b, w, winner }
+  var stats = loadStats();
+
+  function loadStats() {
+    var out = {};
+    MODES.forEach(function (m) { out[m] = { w: 0, l: 0, d: 0 }; });
+    try {
+      var raw = JSON.parse(localStorage.getItem(SCORE_KEY) || '{}') || {};
+      MODES.forEach(function (m) {
+        if (raw[m]) out[m] = { w: raw[m].w || 0, l: raw[m].l || 0, d: raw[m].d || 0 };
+      });
+    } catch (e) {}
+    return out;
+  }
+  function saveStats() {
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify(stats)); } catch (e) {}
+  }
+
+  // ===== 规则 =====
+  function other(p) { return p === HUMAN ? AI : HUMAN; }
+
+  // 落在 i 位能夹住哪些子（返回下标数组；不合法返回 null）
+  function flipsFor(b, i, p) {
+    if (b[i]) return null;
+    var r = (i / N) | 0, c = i % N, out = [], any = false, d;
+    for (d = 0; d < 8; d++) {
+      var dr = DIRS[d][0], dc = DIRS[d][1];
+      var rr = r + dr, cc = c + dc, line = [];
+      while (rr >= 0 && rr < N && cc >= 0 && cc < N && b[rr * N + cc] && b[rr * N + cc] !== p) {
+        line.push(rr * N + cc); rr += dr; cc += dc;
+      }
+      if (line.length && rr >= 0 && rr < N && cc >= 0 && cc < N && b[rr * N + cc] === p) {
+        out = out.concat(line); any = true;
+      }
+    }
+    return any ? out : null;
+  }
+  function legalMoves(b, p) {
+    var out = [];
+    for (var i = 0; i < CELLS; i++) if (flipsFor(b, i, p)) out.push(i);
+    return out;
+  }
+  function applyTo(b, i, p) {
+    var f = flipsFor(b, i, p);
+    if (!f) return null;
+    b[i] = p;
+    for (var k = 0; k < f.length; k++) b[f[k]] = p;
+    return [i].concat(f);
+  }
+  function tally(b) {
+    var c = { B: 0, W: 0 };
+    for (var i = 0; i < CELLS; i++) if (b[i]) c[b[i]]++;
+    return c;
+  }
+
+  // ===== AI =====
+  /* Easy  : 只贪心吃最多子
+     Normal: 位置权重表（角极重、角旁格极负）+ 贪心
+     Hard  : minimax + alpha-beta（深度 4）+ 角/边/机动性/稳定子 的权重函数 */
+  var DEPTH = { easy: 0, normal: 1, hard: 4 };
+  var nodes = 0, NODE_CAP = 220000;
+
+  function positional(b, p) {
+    var s = 0, i;
+    for (i = 0; i < CELLS; i++) {
+      if (b[i] === p) s += W8[i];
+      else if (b[i]) s -= W8[i];
+    }
+    return s;
+  }
+  // 稳定子（不会被吃回来的子）：粗略按「四个角方向上连成一片」估算
+  function stableCount(b, p) {
+    var s = 0, i, r, c;
+    for (i = 0; i < CELLS; i++) {
+      if (b[i] !== p) continue;
+      r = (i / N) | 0; c = i % N;
+      var corner = (r === 0 || r === N - 1) && (c === 0 || c === N - 1);
+      var edge = (r === 0 || r === N - 1 || c === 0 || c === N - 1);
+      s += corner ? 3 : (edge ? 1 : 0);
+    }
+    return s;
+  }
+  function evaluate(b, p) {
+    var o = other(p);
+    var mob = legalMoves(b, p).length - legalMoves(b, o).length;
+    var disc = 0, i;
+    for (i = 0; i < CELLS; i++) { if (b[i] === p) disc++; else if (b[i]) disc--; }
+    return positional(b, p) * 1.0 + mob * 12 + stableCount(b, p) * 6 + disc * 1.5;
+  }
+  function terminalScore(b, p) {
+    var t = tally(b);
+    if (t.B === t.W) return 0;
+    return (p === 'B' ? t.B - t.W : t.W - t.B) * 10000;
+  }
+  // 走法排序：优先角、优先能吃的子多 —— 让 alpha-beta 剪得更狠
+  function orderMoves(b, p, moves) {
+    var scored = moves.map(function (i) {
+      var f = flipsFor(b, i, p) || [];
+      return { i: i, s: W8[i] * 3 + f.length * 2 };
+    });
+    scored.sort(function (x, y) { return y.s - x.s; });
+    return scored.map(function (o) { return o.i; });
+  }
+  function search(b, p, depth, alpha, beta) {
+    if (++nodes > NODE_CAP) return evaluate(b, p);
+    var me = legalMoves(b, p);
+    if (depth === 0) return evaluate(b, p);
+    if (!me.length) {
+      if (!legalMoves(b, other(p)).length) return terminalScore(b, p);   // 双方都无子可落 → 终局
+      return -search(b, other(p), depth - 1, -beta, -alpha);             // 只能 pass
+    }
+    var order = orderMoves(b, p, me), best = -Infinity, k;
+    for (k = 0; k < order.length; k++) {
+      var nb = b.slice();
+      applyTo(nb, order[k], p);
+      var s = -search(nb, other(p), depth - 1, -beta, -alpha);
+      if (s > best) best = s;
+      if (best > alpha) alpha = best;
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+  function chooseMove(p) {
+    var moves = legalMoves(board, p);
+    if (!moves.length) return -1;
+    var i;
+    if (mode === 'easy') {
+      // 纯贪心：吃子最多；并列随机
+      var bestA = -1, bestN = -1;
+      for (i = 0; i < moves.length; i++) {
+        var n = (flipsFor(board, moves[i], p) || []).length;
+        if (n > bestN) { bestN = n; bestA = moves[i]; }
+        else if (n === bestN && Math.random() < 0.5) bestA = moves[i];
+      }
+      return bestA;
+    }
+    if (mode === 'normal') {
+      var bestB = -Infinity, pickB = moves[0];
+      for (i = 0; i < moves.length; i++) {
+        var s = W8[moves[i]] * 3 + (flipsFor(board, moves[i], p) || []).length * 4;
+        if (s > bestB) { bestB = s; pickB = moves[i]; }
+      }
+      return pickB;
+    }
+    // hard：一层层加深，逐层选出最优（同等分随机，避免每局一模一样）
+    nodes = 0;
+    var bestS = -Infinity, bests = [];
+    var order = orderMoves(board, p, moves);
+    for (i = 0; i < order.length; i++) {
+      var nb = board.slice();
+      applyTo(nb, order[i], p);
+      var sc = -search(nb, other(p), DEPTH.hard - 1, -Infinity, Infinity);
+      if (sc > bestS) { bestS = sc; bests = [order[i]]; }
+      else if (sc === bestS) bests.push(order[i]);
+      if (nodes > NODE_CAP) break;
+    }
+    return bests[(Math.random() * bests.length) | 0];
+  }
+
+  // ===== DOM 构建 =====
+  for (var ci = 0; ci < CELLS; ci++) {
+    (function (idx) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.i = String(idx);
+      var d = document.createElement('span');
+      d.className = 'disc';
+      cell.appendChild(d);
+      boardEl.appendChild(cell);
+      cellEls.push(cell);
+      discEls.push(d);
+    })(ci);
+  }
+
+  function render(flipList, delay) {
+    var fl = flipList || [], i;
+    for (i = 0; i < CELLS; i++) {
+      var d = discEls[i], v = board[i];
+      d.style.animationDelay = '';
+      d.className = 'disc' + (v ? ' ' + v.toLowerCase() : '');
+    }
+    if (fl.length) {
+      for (i = 0; i < fl.length; i++) {
+        var dd = discEls[fl[i]];
+        dd.style.animationDelay = (delay || 0) + 'ms';
+        void dd.offsetWidth;                 // 强制重排，让动画能重新触发
+        dd.classList.add('flip');
+      }
+    }
+  }
+  function renderHints() {
+    var lm = legalMoves(board, HUMAN);
+    for (var i = 0; i < CELLS; i++) {
+      var c = cellEls[i];
+      c.classList.toggle('legal', !over && turn === HUMAN && !board[i] && lm.indexOf(i) >= 0);
+      c.classList.toggle('cursor', !over && i === cursor);
+    }
+  }
+
+  // ===== HUD / 文案 =====
+  function modeLabel(m) {
+    if (m === 'easy') return t('reversi.modeEasy');
+    if (m === 'normal') return t('reversi.modeNormal');
+    return t('reversi.modeHard');
+  }
+  function renderModes() {
+    var modesEl = document.getElementById('modes');
+    modesEl.innerHTML = '';
+    MODES.forEach(function (m) {
+      var b = document.createElement('button');
+      b.className = 'mode' + (m === mode ? ' active' : '');
+      b.type = 'button';
+      b.dataset.mode = m;
+      b.textContent = modeLabel(m);
+      b.addEventListener('click', function () {
+        if (mode === m) return;
+        mode = m;
+        newGame();
+      });
+      modesEl.appendChild(b);
+    });
+  }
+  function renderHud() {
+    var c = tally(board);
+    document.getElementById('hud-black').textContent = c.B;
+    document.getElementById('hud-white').textContent = c.W;
+    document.getElementById('hud-wins').textContent = stats[mode].w;
+    document.getElementById('btn-undo').disabled = history.length === 0;
+    document.getElementById('btn-restart').disabled = false;
+  }
+  function renderStatus() {
+    if (over) {
+      statusEl.textContent = endKey ? t(endKey) : '';
+      return;
+    }
+    statusEl.textContent = t('reversi.turnLegal', {
+      p: turn === HUMAN ? t('reversi.you') : t('reversi.ai'),
+      n: legalMoves(board, turn).length
+    });
+  }
+  function renderHint() {
+    if (over) { hintEl.textContent = ''; return; }
+    if (passNote === HUMAN) hintEl.textContent = t('reversi.passYou');
+    else if (passNote === AI) hintEl.textContent = t('reversi.passAI');
+    else hintEl.textContent = '';
+  }
+  function renderOver() {
+    if (!over || !lastResult) return;
+    var r = lastResult;
+    document.getElementById('over-title').textContent =
+      r.winner === 'B' ? t('reversi.overWin') : (r.winner === 'W' ? t('reversi.overLose') : t('reversi.overDraw'));
+    document.getElementById('final-line').textContent = t('reversi.finalScore', { b: r.b, w: r.w });
+    document.getElementById('over-best').textContent = stats[mode].w > 0
+      ? t('common.bestScore', { n: stats[mode].w }) : t('reversi.first');
+    document.getElementById('new-record').classList.toggle('hidden', !r.record);
+  }
+  function renderStartBest() {
+    var s = stats[mode];
+    document.getElementById('start-best').textContent = s.w > 0
+      ? t('common.bestScore', { n: s.w })
+      : t('reversi.first');
+  }
+  function refreshAll() {
+    renderModes(); renderHud(); renderStatus(); renderHint(); renderOver(); renderStartBest(); fit();
+  }
+
+  // ===== 流程 =====
+  function startPosition() {
+    board = new Array(CELLS).fill('');
+    board[3 * N + 3] = 'W'; board[3 * N + 4] = 'B';
+    board[4 * N + 3] = 'B'; board[4 * N + 4] = 'W';
+  }
+  function newGame() {
+    startPosition();
+    turn = HUMAN; over = false; winner = ''; cursor = 27; passNote = '';
+    history = []; lastResult = null; endKey = null;
+    render(null, 0); renderHints(); refreshAll();
+    startOverlay.classList.remove('hidden');
+    overOverlay.classList.add('hidden');
+  }
+
+  /* AI 是同步出手的（状态在同一 tick 里就落定），只有 CSS 动画用 animation-delay
+     做前后错开。这样撤销/重开/结算的状态永远收敛，事件驱动的探针也能在同一个
+     同步体里把一整局走完 —— 不需要等 setTimeout。 */
+  function aiPlay(lm) {
+    var i = chooseMove(AI);
+    if (i < 0) i = lm[0];
+    var fl = applyTo(board, i, AI);
+    sfx.ai();
+    render(fl, 280);                       // AI 的翻面比人晚 280ms，视觉上一前一后
+    turn = HUMAN;
+  }
+  function advance() {
+    var guard = 0;
+    while (guard++ < 14) {
+      if (!legalMoves(board, HUMAN).length && !legalMoves(board, AI).length) { endGame(); return; }
+      var lm = legalMoves(board, turn);
+      if (!lm.length) { passNote = turn; turn = other(turn); continue; }
+      if (turn === AI) { aiPlay(lm); continue; }
+      return;
+    }
+  }
+  function humanMove(i) {
+    if (over || turn !== HUMAN) return false;
+    var f = flipsFor(board, i, HUMAN);
+    if (!f) {
+      var el = cellEls[i];
+      el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope');
+      sfx.bad();
+      return false;
+    }
+    history.push(board.slice());
+    var fl = applyTo(board, i, HUMAN);
+    sfx.place();
+    render(fl, 0);
+    turn = AI;
+    advance();
+    renderHints(); renderHud(); renderStatus(); renderHint();
+    return true;
+  }
+  function endGame() {
+    over = true;
+    var c = tally(board);
+    winner = c.B > c.W ? 'B' : (c.W > c.B ? 'W' : '');
+    var rec = false;
+    if (winner === 'B') { stats[mode].w++; rec = true; endKey = 'reversi.overWin'; sfx.win(); }
+    else if (winner === 'W') { stats[mode].l++; endKey = 'reversi.overLose'; sfx.lose(); }
+    else { stats[mode].d++; endKey = 'reversi.overDraw'; sfx.draw(); }
+    saveStats();
+    lastResult = { b: c.B, w: c.W, winner: winner, record: rec };
+    renderHints(); renderHud(); renderStatus(); renderHint(); renderOver(); renderStartBest();
+    overOverlay.classList.remove('hidden');
+  }
+  function undo() {
+    if (!history.length) return;
+    board = history.pop();
+    turn = HUMAN; over = false; winner = ''; passNote = ''; lastResult = null; endKey = null;
+    var lm = legalMoves(board, HUMAN);
+    if (lm.length) cursor = lm[0];
+    overOverlay.classList.add('hidden');
+    render(null, 0); renderHints(); refreshAll();
+    sfx.place();
+  }
+
+  // ===== 输入（指针 + 键盘双路）=====
+  boardEl.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== boardEl && el.dataset.i === undefined) el = el.parentNode;
+    if (!el || el === boardEl) return;
+    var i = parseInt(el.dataset.i, 10);
+    cursor = i;
+    humanMove(i);
+  });
+  document.getElementById('btn-start').addEventListener('click', function () {
+    startOverlay.classList.add('hidden');
+    renderHints();
+  });
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-restart').addEventListener('click', function () {
+    newGame();
+    startOverlay.classList.add('hidden');
+  });
+  document.getElementById('btn-again').addEventListener('click', function () {
+    newGame();
+    startOverlay.classList.add('hidden');
+  });
+
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    var r = (cursor / N) | 0, c = cursor % N;
+    if (k === 'arrowleft' || k === 'a') { cursor = r * N + Math.max(0, c - 1); renderHints(); e.preventDefault(); return; }
+    if (k === 'arrowright' || k === 'd') { cursor = r * N + Math.min(N - 1, c + 1); renderHints(); e.preventDefault(); return; }
+    if (k === 'arrowup' || k === 'w') { cursor = Math.max(0, r - 1) * N + c; renderHints(); e.preventDefault(); return; }
+    if (k === 'arrowdown' || k === 's') { cursor = Math.min(N - 1, r + 1) * N + c; renderHints(); e.preventDefault(); return; }
+    if (k === 'enter' || k === ' ') { humanMove(cursor); e.preventDefault(); return; }
+    if (k === 'u' || k === 'z') { undo(); e.preventDefault(); return; }
+    if (k === 'r') { newGame(); startOverlay.classList.add('hidden'); e.preventDefault(); return; }
+  });
+
+  // ===== 分享 =====
+  function shareText() {
+    var r = lastResult || tally(board);
+    return t('reversi.share', { n: (r.b !== undefined ? r.b : 0) + ':' + (r.w !== undefined ? r.w : 0), url: location.href });
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.getElementById('btn-share2').addEventListener('click', function () {
+    var full = shareText(), btn = document.getElementById('btn-share2');
+    function done() {
+      btn.textContent = t('common.copied');
+      setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+
+  // ===== 尺寸自适应 =====
+  /* 棋盘恒为 8×8，但边长得同时满足「宽度够」与「高度够」：
+     竖屏可用高度 = 视口 − body 内边距 − 面板内边距 − 页脚 − 侧栏(.side) − 余量；
+     横屏是左右分栏，改为减掉侧栏的宽度。两处都实测，不写死魔数。 */
+  var GAP = 2, MIN_C = 20, MAX_C = 68;
+  var mqLandscape = window.matchMedia('(orientation: landscape) and (max-height: 700px)');
+  function fit() {
+    var bcs = getComputedStyle(document.body);
+    var pcs = getComputedStyle(panel);
+    var bodyPadV = parseFloat(bcs.paddingTop) + parseFloat(bcs.paddingBottom);
+    var bodyPadH = parseFloat(bcs.paddingLeft) + parseFloat(bcs.paddingRight);
+    var panelPadV = parseFloat(pcs.paddingTop) + parseFloat(pcs.paddingBottom);
+    var panelPadH = parseFloat(pcs.paddingLeft) + parseFloat(pcs.paddingRight);
+    var fcs = footerEl ? getComputedStyle(footerEl) : null;
+    var footerH = footerEl ? footerEl.offsetHeight + parseFloat(fcs.marginTop || 0) : 90;
+    var land = mqLandscape.matches;
+    var BORDER = 2, BOARD_PAD = GAP * 3;   // 面板描边 + 棋盘自身内边距（必须从预算里扣掉，否则会横向溢出几像素）
+    var availH, availW;
+    if (land) {
+      availH = window.innerHeight - bodyPadV - panelPadV - BORDER - BOARD_PAD - footerH - 4;
+      availW = window.innerWidth - bodyPadH - panelPadH - BORDER - BOARD_PAD - sideEl.offsetWidth - 8 - 4;
+    } else {
+      availH = window.innerHeight - bodyPadV - panelPadV - BORDER - BOARD_PAD - footerH - sideEl.offsetHeight - 4;
+      availW = window.innerWidth - bodyPadH - panelPadH - BORDER - BOARD_PAD - 4;
+    }
+    var cs = Math.floor(Math.min((availW - (N - 1) * GAP) / N, (availH - (N - 1) * GAP) / N));
+    cs = Math.max(MIN_C, Math.min(MAX_C, cs));
+    panel.style.setProperty('--cs', cs + 'px');
+    panel.style.setProperty('--gap', GAP + 'px');
+  }
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fit, 80);
+  });
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', function () { setTimeout(fit, 300); });
+
+  // ===== 启动 =====
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+  WG.onChange(function () { refreshAll(); });
+  newGame();
+  fit();
+  setTimeout(fit, 120);
+})();
+</script>
+</body>
+</html>
