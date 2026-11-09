@@ -810,6 +810,47 @@ export default {
         return reply({ ok: true, autorizado: ROLE_RANK[actor.role] >= ROLE_RANK.mod || actor.role === "editor", role: actor.role, permissoes: permissionsFor(actor.role) });
       }
 
+      if (path === "/api/admin/audit" && method === "GET") {
+        etapaAtual = "consulta protegida do historico de auditoria";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (actor.role !== "spadm" && actor.role !== "adm") {
+          return reply({ ok: false, erro: "Somente SpAdmin e ADM podem consultar a auditoria." }, 403);
+        }
+
+        const pageInput = Number.parseInt(url.searchParams.get("page") || "1", 10);
+        const limitInput = Number.parseInt(url.searchParams.get("limit") || "50", 10);
+        const page = Number.isFinite(pageInput) ? Math.max(1, Math.min(pageInput, 100000)) : 1;
+        const limit = Number.isFinite(limitInput) ? Math.max(1, Math.min(limitInput, 100)) : 50;
+        const offset = (page - 1) * limit;
+        const action = (url.searchParams.get("action") || "").trim().slice(0, 100);
+        const search = (url.searchParams.get("q") || "").trim().slice(0, 120);
+        const conditions = [];
+        const values = [];
+        if (action) { conditions.push("a.action = ?"); values.push(action); }
+        if (search) {
+          conditions.push("(a.action LIKE ? OR a.details LIKE ? OR COALESCE(actor.nickname, '') LIKE ? OR COALESCE(target.nickname, '') LIKE ?)");
+          const pattern = "%" + search + "%";
+          values.push(pattern, pattern, pattern, pattern);
+        }
+        const where = conditions.length ? " WHERE " + conditions.join(" AND ") : "";
+        const joins = " FROM ratopolis_audit_logs a LEFT JOIN ratopolis_users actor ON actor.id = a.actor_user_id LEFT JOIN ratopolis_users target ON target.id = a.target_user_id";
+        const totalRow = await env.DB.prepare("SELECT COUNT(*) AS total" + joins + where).bind(...values).first();
+        const result = await env.DB.prepare(
+          "SELECT a.id, a.actor_user_id, actor.nickname AS actor_nickname, a.action, a.target_user_id, target.nickname AS target_nickname, a.details, a.created_at" +
+          joins + where + " ORDER BY a.created_at DESC, a.id DESC LIMIT ? OFFSET ?"
+        ).bind(...values, limit, offset).all();
+        return reply({
+          ok: true,
+          somente_leitura: true,
+          pagina: page,
+          limite: limit,
+          total: Number(totalRow?.total || 0),
+          total_paginas: Math.ceil(Number(totalRow?.total || 0) / limit),
+          registros: result.results
+        });
+      }
+
       if (path === "/api/admin/users" && method === "GET") {
         etapaAtual = "consulta administrativa de jogadores";
         const actor = await authenticate(request, env);
