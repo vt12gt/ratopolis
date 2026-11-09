@@ -245,7 +245,7 @@ const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin || '';
   try {
     if (url.pathname === '/health' && req.method === 'GET') {
-      return json(res, 200, { ok: true, service: 'rato-snack-realtime', version: '1.0.0', rooms: rooms.size, onlinePlayers: socketsByUser.size }, origin);
+      return json(res, 200, { ok: true, service: 'rato-snack-realtime', version: '1.1.0', rooms: rooms.size, onlinePlayers: socketsByUser.size }, origin);
     }
     if (url.pathname === '/api/login' && req.method === 'POST') {
       const body = await readBody(req);
