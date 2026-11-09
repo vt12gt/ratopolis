@@ -252,7 +252,7 @@ export default {
 
       if (path === "/api/players" && method === "GET") {
         etapaAtual = "busca dos jogadores";
-        const result = await env.DB.prepare(`SELECT u.id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
+        const result = await env.DB.prepare(`SELECT u.id, u.public_id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id WHERE u.status = 'active' ORDER BY u.created_at DESC LIMIT 100`).all();
         return reply({ ok: true, jogadores: result.results });
       }
 
@@ -276,6 +276,7 @@ export default {
         if (existing) return reply({ ok: false, erro: "Nickname ou e-mail ja cadastrado." }, 409);
         etapaAtual = "geracao das credenciais";
         const userId = crypto.randomUUID();
+        const publicId = await allocatePortalPublicId(env.DB);
         const sessionId = crypto.randomUUID();
         const now = new Date();
         const createdAt = now.toISOString();
@@ -290,7 +291,7 @@ export default {
         const tokenHash = await sha256(token);
         etapaAtual = "gravacao do cadastro no D1";
         await env.DB.batch([
-          env.DB.prepare("INSERT INTO ratopolis_users (id, nickname, email, role, status, created_at) VALUES (?, ?, ?, 'player', 'active', ?)").bind(userId, nickname, email, createdAt),
+          env.DB.prepare("INSERT INTO ratopolis_users (id, public_id, nickname, email, role, status, created_at) VALUES (?, ?, ?, ?, 'player', 'active', ?)").bind(userId, publicId, nickname, email, createdAt),
           env.DB.prepare("INSERT INTO ratopolis_profiles (user_id, level, xp, vip_level, coins) VALUES (?, 1, 0, 0, 0)").bind(userId),
           env.DB.prepare("INSERT INTO ratopolis_credentials (user_id, password_hash, password_salt) VALUES (?, ?, ?)").bind(userId, passwordHashValue, saltEncoded),
           env.DB.prepare("INSERT INTO ratopolis_sessions (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)").bind(sessionId, userId, tokenHash, expiresAt),
@@ -298,7 +299,7 @@ export default {
           env.DB.prepare("INSERT INTO ratopolis_legal_acceptances (id, user_id, terms_version, privacy_version, age_category, adult_presence_ack, accepted_at) VALUES (?, ?, ?, ?, ?, 1, ?)").bind(crypto.randomUUID(), userId, termsVersion, privacyVersion, ageCategory, createdAt),
           env.DB.prepare("INSERT INTO ratopolis_access_logs (id, user_id, event_type, ip_address, user_agent, created_at, expires_at) VALUES (?, ?, 'register', ?, ?, ?, ?)").bind(crypto.randomUUID(), userId, ipAddress, userAgent, createdAt, logExpiresAt)
         ]);
-        return reply({ ok: true, mensagem: "Cadastro realizado com sucesso.", jogador: { id: userId, nickname, email, role: "player", status: "active", level: 1, xp: 0, vip_level: 0, coins: 0 }, token, expires_at: expiresAt }, 201);
+        return reply({ ok: true, mensagem: "Cadastro realizado com sucesso.", jogador: { id: userId, public_id: publicId, nickname, email, role: "player", status: "active", level: 1, xp: 0, vip_level: 0, coins: 0 }, token, expires_at: expiresAt }, 201);
       }
 
       if (path === "/api/login" && method === "POST") {
@@ -308,12 +309,13 @@ export default {
         const password = body.password;
         if (!identifier || identifier.length > 254 || typeof password !== "string" || password.length === 0 || password.length > 128) return reply({ ok: false, erro: "Nickname, email ou senha incorretos." }, 401);
         etapaAtual = "busca da conta para login";
-        const user = await env.DB.prepare("SELECT u.id, u.nickname, u.email, u.role, u.status, c.password_hash, c.password_salt FROM ratopolis_users u JOIN ratopolis_credentials c ON c.user_id = u.id WHERE lower(u.nickname) = lower(?) OR lower(u.email) = lower(?) LIMIT 1").bind(identifier, identifier).first();
+        const user = await env.DB.prepare("SELECT u.id, u.public_id, u.nickname, u.email, u.role, u.status, c.password_hash, c.password_salt FROM ratopolis_users u JOIN ratopolis_credentials c ON c.user_id = u.id WHERE lower(u.nickname) = lower(?) OR lower(u.email) = lower(?) LIMIT 1").bind(identifier, identifier).first();
         if (!user || user.status !== "active") return reply({ ok: false, erro: "Nickname, email ou senha incorretos." }, 401);
         if (typeof user.password_salt !== "string" || typeof user.password_hash !== "string") return reply({ ok: false, erro: "Credenciais da conta invalidas." }, 500);
         etapaAtual = "verificacao da senha";
         const hash = await passwordHash(password, fromBase64url(user.password_salt));
         if (!constantTimeEqual(hash, user.password_hash)) return reply({ ok: false, erro: "Nickname, email ou senha incorretos." }, 401);
+        const publicId = await ensurePortalPublicId(env.DB,user.id,user.public_id);
         etapaAtual = "criacao da sessao";
         const sessionId = crypto.randomUUID();
         const token = toBase64url(crypto.getRandomValues(new Uint8Array(32)));
@@ -328,7 +330,7 @@ export default {
         ]);
         if (env.ROOM_SESSION_REVOKE_SECRET) { try { const revoke = await fetch("https://ratopolis-room-server-v1.juniorgmj69.workers.dev/api/rooms/session-replaced", { method: "POST", headers: { "Content-Type": "application/json", "X-Session-Revoke-Secret": env.ROOM_SESSION_REVOKE_SECRET }, body: JSON.stringify({ playerId: user.id }) }); if (!revoke.ok) console.warn("ratopolis_previous_game_session_revoke_failed", { status: revoke.status }); } catch (e) { console.warn("ratopolis_previous_game_session_revoke_unreachable", { name: e?.name || "Error" }); } }
         const profile = await env.DB.prepare("SELECT level, xp, vip_level, coins FROM ratopolis_profiles WHERE user_id = ?").bind(user.id).first();
-        return reply({ ok: true, mensagem: "Login realizado com sucesso.", jogador: { id: user.id, nickname: user.nickname, email: user.email, role: user.role, status: user.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 }, token, expires_at: expiresAt });
+        return reply({ ok: true, mensagem: "Login realizado com sucesso.", jogador: { id: user.id, public_id: publicId, nickname: user.nickname, email: user.email, role: user.role, status: user.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 }, token, expires_at: expiresAt });
       }
 
 
@@ -904,7 +906,7 @@ export default {
         const authUser = await authenticate(request, env);
         if (!authUser) return reply({ ok: false, erro: "Autenticacao necessaria ou sessao invalida." }, 401);
         const profile = await env.DB.prepare("SELECT level, xp, vip_level, coins FROM ratopolis_profiles WHERE user_id = ?").bind(authUser.id).first();
-        return reply({ ok: true, jogador: { id: authUser.id, nickname: authUser.nickname, email: authUser.email, role: authUser.role, status: authUser.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 } });
+        return reply({ ok: true, jogador: { id: authUser.id, public_id: authUser.public_id, nickname: authUser.nickname, email: authUser.email, role: authUser.role, status: authUser.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 } });
       }
 
       // Dados pessoais privados: nome e nascimento são imutáveis após o primeiro registro.
@@ -1302,11 +1304,38 @@ function sixMonthsFrom(date) {
   return result;
 }
 
+const PUBLIC_ID_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+function newPortalPublicId(){
+  const bytes=crypto.getRandomValues(new Uint8Array(5));
+  return "RV-"+Array.from(bytes,x=>PUBLIC_ID_ALPHABET[x%PUBLIC_ID_ALPHABET.length]).join("");
+}
+async function allocatePortalPublicId(db){
+  for(let attempt=0;attempt<12;attempt++){
+    const candidate=newPortalPublicId();
+    const exists=await db.prepare("SELECT 1 AS found FROM ratopolis_users WHERE public_id=? LIMIT 1").bind(candidate).first();
+    if(!exists)return candidate;
+  }
+  throw new Error("portal_public_id_allocation_retry_exhausted");
+}
+async function ensurePortalPublicId(db,userId,currentValue){
+  if(currentValue)return currentValue;
+  for(let attempt=0;attempt<12;attempt++){
+    const candidate=await allocatePortalPublicId(db);
+    try{await db.prepare("UPDATE ratopolis_users SET public_id=? WHERE id=? AND (public_id IS NULL OR public_id='')").bind(candidate,userId).run();}catch{}
+    const row=await db.prepare("SELECT public_id FROM ratopolis_users WHERE id=? LIMIT 1").bind(userId).first();
+    if(row?.public_id)return row.public_id;
+  }
+  throw new Error("portal_public_id_backfill_failed");
+}
+
 async function authenticate(request, env) {
   const token = getBearer(request);
   if (!token) return null;
   const tokenHash = await sha256(token);
-  return await env.DB.prepare("SELECT u.id, u.nickname, u.email, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
+  const user = await env.DB.prepare("SELECT u.id, u.public_id, u.nickname, u.email, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, s.id AS session_id FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id = s.user_id LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' LIMIT 1").bind(tokenHash, new Date().toISOString()).first();
+  if(!user)return null;
+  const publicId=await ensurePortalPublicId(env.DB,user.id,user.public_id);
+  return {...user,public_id:publicId};
 }
 function safeJson(value, fallback) { try { return JSON.parse(value); } catch { return fallback; } }
 function getBearer(request) {
