@@ -1,4 +1,4 @@
-const VERSION = "v39.3-audit-readonly-dev";
+const VERSION = "v39.4-audit-radio-coverage";
 const ENVIRONMENT = "development";
 const SESSION_DAYS = 7;
 const PBKDF2_ITERATIONS = 100000;
@@ -861,9 +861,9 @@ export default {
       if (path === "/api/internal/radio/audit" && method === "POST") {
         const actor = await authenticate(request, env); if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
         if (!["spadm", "adm", "locutor"].includes(actor.role)) return reply({ ok: false, erro: "Permissao da equipe da radio necessaria." }, 403);
-        const body = await readJson(request), action = String(body.action || ""), allowed = ["radio_track_updated", "radio_track_deleted", "radio_playlist_saved", "radio_playlist_renamed", "radio_playlist_deleted", "radio_schedule_updated", "radio_request_updated", "radio_ads_updated", "radio_playback_control"];
+        const body = await readJson(request), action = String(body.action || ""), allowed = ["radio_track_uploaded", "radio_track_updated", "radio_track_deleted", "radio_playlist_saved", "radio_playlist_renamed", "radio_playlist_deleted", "radio_queue_updated", "radio_schedule_updated", "radio_request_updated", "radio_ads_updated", "radio_playback_control", "radio_control_action"];
         if (!allowed.includes(action)) return reply({ ok: false, erro: "Acao de auditoria nao permitida." }, 400);
-        const requiredPermission = action.startsWith("radio_track_") ? "manageRadioLibrary" : action.startsWith("radio_playlist_") ? "manageRadioPlaylists" : action === "radio_schedule_updated" ? "manageRadioSchedule" : action === "radio_ads_updated" ? "manageRadioAds" : action === "radio_playback_control" ? "manageRadioPlayback" : "viewRadioRequests";
+        const requiredPermission = action.startsWith("radio_track_") ? "manageRadioLibrary" : action.startsWith("radio_playlist_") || action === "radio_queue_updated" ? "manageRadioPlaylists" : action === "radio_schedule_updated" ? "manageRadioSchedule" : action === "radio_ads_updated" ? "manageRadioAds" : action === "radio_playback_control" || action === "radio_control_action" ? "manageRadioPlayback" : "viewRadioRequests";
         if (permissionsFor(actor.role)[requiredPermission] !== true) return reply({ ok: false, erro: "Permissao insuficiente para esta auditoria." }, 403);
         const details = JSON.stringify(body.details || {}).slice(0, 1800), target = typeof body.targetUserId === "string" ? body.targetUserId.slice(0, 128) : null;
         await env.DB.prepare("INSERT INTO ratopolis_audit_logs (id, actor_user_id, action, target_user_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(crypto.randomUUID(), actor.id, action, target, details, new Date().toISOString()).run();
