@@ -951,7 +951,7 @@ const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
 let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,players:[],tries:0,bye:false,view:false};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
-function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL}
+function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL;olSave()}
 function olSave(){try{localStorage.removeItem('ratoSnackOnline')}catch(e){}}
 function olClearExpired(){ol.token='';ol.id='';ol.nick='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}}
 const olHttp=u=>u.replace(/^ws/,'http').replace(/\/+$/,''),olWs=u=>u.replace(/^http/,'ws').replace(/\/+$/,'');
