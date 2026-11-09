@@ -187,3 +187,10 @@ Em 2026-11-09, o Worker `rativapolis-api-dev` foi atualizado para a versão `rat
 - CORS do Worker agora permite GET, POST e OPTIONS.
 
 O deploy foi aceito e o Worker mantém os bindings existentes: `PORTAL_DB` → `ratopolis-dev-v31`; `POLIS_DB` → `rativapolis-dev-isolated`. A validação HTTP autenticada e o teste funcional de duplicidade ainda não foram concluídos neste ambiente. Por isso, o cliente HTML oficial não foi alterado e nenhuma cópia de teste foi conectada ainda. Próxima etapa: smoke test externo autenticado (concessão, repetição do mesmo evento, evento de outro jogador e limite diário); depois, criar a cópia de teste do cliente alterando somente `PROGRESSION_API`.
+
+
+### Verificação técnica da gravação de recompensas
+
+Após o deploy v2, foi executado um teste isolado diretamente na D1 Polis de desenvolvimento usando uma conta temporária e um evento de teste. O batch de concessão criou exatamente um evento, creditou 22 XP e 10 moedas e gravou uma linha de auditoria. A repetição do mesmo `event_id` não inseriu outro evento nem alterou o saldo (permaneceu em 22 XP e 10 moedas). A conta temporária, o perfil, o evento e a auditoria de teste foram removidos ao final. As consultas `EXPLAIN` das três instruções SQL também foram aceitas pelo D1.
+
+Limitação remanescente: não foi possível chamar o domínio público `workers.dev` a partir deste ambiente; a requisição foi bloqueada antes de alcançar o Worker. Portanto, ainda falta o smoke test HTTP com bearer real para validar a integração Portal → Worker → D1, respostas 401/201/409/429 e CORS no navegador. A cópia de teste do cliente permanece pendente até esse teste externo.
