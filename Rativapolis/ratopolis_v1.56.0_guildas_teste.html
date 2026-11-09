@@ -4145,6 +4145,62 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 .guildx-empty{padding:22px;text-align:center;color:#b8cdb7;border:1px dashed #426b4b;border-radius:12px}
 .guildx-two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 @media(max-width:700px){#guildPage{padding:4px!important}.guildx-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.guildx-two{grid-template-columns:1fr}.guildx-modal{width:99vw!important;height:96dvh!important;padding:9px!important}.guildx-tabs button{font-size:10px;padding:6px 9px}}
+
+/* Guildas v2: interface compacta, sem rolagem horizontal nas abas e com foco em paisagem */
+#guildPage{padding:4px!important;overflow:hidden!important}
+#guildPage .guildx-modal{width:min(1120px,99vw)!important;height:min(760px,97dvh)!important;max-height:97dvh!important;padding:8px!important;gap:0!important}
+#guildPage .guildx-head{gap:8px;padding-bottom:5px!important}
+#guildPage .guildx-head h2{font-size:clamp(17px,2.5vw,23px)!important;margin:1px 0!important}
+#guildPage .guildx-head p{font-size:10px!important}
+#guildPage .guildx-close{width:34px!important;min-width:34px!important;height:34px!important;font-size:20px!important}
+#guildPage .guildx-notice{min-height:15px!important;padding:2px 2px!important;font-size:10px!important}
+#guildPage .guildx-tabs{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;overflow:visible!important;padding:3px 0 5px!important}
+#guildPage .guildx-tabs button{min-width:0!important;min-height:28px!important;padding:4px 3px!important;font-size:clamp(8px,1.1vw,10px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#guildPage .guildx-body{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;padding:2px 2px 5px!important;scrollbar-width:thin!important;overscroll-behavior:contain!important}
+#guildPage .guildx-grid{gap:5px!important;margin:4px 0!important}
+#guildPage .guildx-two{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+#guildPage .guildx-card{padding:8px!important;border-radius:10px!important}
+#guildPage .guildx-card h3{font-size:12px!important;margin:0 0 4px!important}
+#guildPage .guildx-card p{font-size:10px!important;line-height:1.3!important;margin:3px 0!important}
+#guildPage .guildx-stat{font-size:clamp(15px,2vw,21px)!important}
+#guildPage .guildx-form{gap:5px!important;margin:5px 0!important}
+#guildPage .guildx-form input,#guildPage .guildx-form textarea,#guildPage .guildx-form select,#guildPage .guildx-field{padding:7px!important;font-size:11px!important}
+#guildPage .guildx-form textarea{min-height:42px!important}
+#guildPage .guildx-btn{min-height:29px!important;padding:5px 8px!important;font-size:9px!important}
+#guildPage .guildx-list{gap:4px!important}
+#guildPage .guildx-item{gap:5px!important;padding:6px!important;border-radius:8px!important}
+#guildPage .guildx-item strong{font-size:10px!important}
+#guildPage .guildx-item small{font-size:9px!important;margin-top:2px!important}
+#guildPage .guildx-progress{height:7px!important;margin:4px 0!important}
+#guildPage .guildx-empty{padding:12px!important;font-size:10px!important}
+#guildPage .guildx-donate-presets{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;margin:5px 0!important}
+#guildPage .guildx-donate-presets button{min-width:0!important;padding:5px 2px!important;min-height:27px!important;font-size:9px!important}
+#guildPage .guildx-cp-rule{padding:7px!important;border:1px solid #8c7437!important;border-radius:9px!important;background:linear-gradient(120deg,rgba(217,182,79,.14),rgba(39,108,62,.16))!important;color:#f7e8ac!important;font-size:10px!important;line-height:1.35!important;margin:5px 0!important}
+#guildPage .guildx-cp-rule strong{color:#ffe08a!important}
+@media(max-width:760px) and (orientation:landscape){
+ #guildPage .guildx-modal{width:99vw!important;height:98dvh!important;max-height:98dvh!important;padding:5px!important}
+ #guildPage .guildx-head{padding-bottom:3px!important}
+ #guildPage .guildx-head p{display:none!important}
+ #guildPage .guildx-tabs{gap:3px!important;padding:2px 0 4px!important}
+ #guildPage .guildx-tabs button{min-height:25px!important;font-size:8px!important}
+ #guildPage .guildx-card{padding:6px!important}
+ #guildPage .guildx-card p{font-size:9px!important}
+ #guildPage .guildx-two{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-height:520px){
+ #guildPage .guildx-modal{height:98dvh!important;max-height:98dvh!important}
+ #guildPage .guildx-head{padding-bottom:2px!important}
+ #guildPage .guildx-kicker{font-size:8px!important;letter-spacing:1px!important}
+ #guildPage .guildx-head h2{font-size:15px!important}
+ #guildPage .guildx-close{height:29px!important;min-width:29px!important;width:29px!important}
+ #guildPage .guildx-notice{min-height:12px!important;padding:1px!important}
+ #guildPage .guildx-tabs button{min-height:23px!important;padding:3px 2px!important}
+ #guildPage .guildx-body{padding:1px!important}
+}
+@media(max-width:600px) and (orientation:portrait){
+ #guildPage .guildx-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #guildPage .guildx-two{grid-template-columns:1fr!important}
+}
 </style>
 
 <script id="rativapolis-guilds-functional-v1">
@@ -4161,6 +4217,12 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  const key=()=>{try{return crypto.randomUUID();}catch(_){return 'guild-'+Date.now()+'-'+Math.random().toString(36).slice(2);}};
  function token(){try{return window.__ratopolisGetTabSessionToken?.()||localStorage.getItem('ratopolis_session_token')||'';}catch(_){return '';}}
  function notice(t){const n=$('guildNotice');if(n)n.textContent=t||'';}
+ function updateDonationPreview(){
+  const input=$('guildDonateAmount'),preview=$('guildDonatePreview');if(!input||!preview)return;
+  const amount=Math.max(0,Math.floor(Number(input.value)||0)),remaining=Math.max(0,Number(data?.donation_cp_remaining_today??100));
+  const cp=Math.min(remaining,Math.floor(amount/100));
+  preview.textContent=amount>0?'Esta doação rende até +'+fmt(cp)+' CP · '+cheese(amount)+' para o banco da guilda.':'Escolha a quantidade para ver quantos CP você receberá.';
+ }
  async function api(path,method='GET',body=null){
   const t=token();if(!t)throw new Error('Entre na sua conta do RativaGames para usar guildas.');
   const r=await fetch(API+path,{method,cache:'no-store',headers:{'Accept':'application/json','Authorization':'Bearer '+t,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
@@ -4187,10 +4249,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   const oldMembers=new Set((previous.members||[]).map(x=>String(x.public_id)));
   if((next.members||[]).some(x=>!oldMembers.has(String(x.public_id))))guildChangeToast('🐭 Um jogador entrou para a equipe!');
  }
+ let guildLoadBusy=false;
  async function load(){
-  notice('Sincronizando com o servidor...');
-  try{const previous=data;const next=await api('/api/guilds/me');detectGuildChanges(previous,next);data=next;guildSnapshotReady=true;render();notice('Dados sincronizados com o servidor.');}
-  catch(e){$('guildBody').innerHTML='<div class="guildx-empty">⚠️ '+esc(e.message)+'</div>';notice('Não foi possível carregar a guilda.');}
+  if(guildLoadBusy)return;guildLoadBusy=true;const hadData=!!data;
+  if(!hadData)notice('Conectando à guilda…');
+  try{const previous=data;const next=await api('/api/guilds/me');detectGuildChanges(previous,next);data=next;guildSnapshotReady=true;render();if(!hadData)notice('Conectado · dados sincronizados');}
+  catch(e){if(!data)$('guildBody').innerHTML='<div class="guildx-empty">⚠️ '+esc(e.message)+'</div>';notice(data?'Sem atualização · mantendo dados exibidos':('Não foi possível conectar: '+e.message));}
+  finally{guildLoadBusy=false;}
  }
  function tabs(list){$('guildTabs').innerHTML=list.map(x=>'<button type="button" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join('');}
  function empty(t){return '<div class="guildx-empty">'+esc(t)+'</div>';}
@@ -4226,13 +4291,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
  }
  function renderOverview(){
   const g=data.guild,level=Number(g.level)||1,xp=Number(g.xp)||0,base=(level-1)*1000,progress=level>=50?100:Math.min(100,Math.max(0,(xp-base)/1000*100));
-  $('guildBody').innerHTML='<div class="guildx-grid"><div class="guildx-card"><div class="guildx-label">NÍVEL DA GUILDA</div><div class="guildx-stat">⭐ '+fmt(level)+'/50</div></div><div class="guildx-card"><div class="guildx-label">EXPERIÊNCIA</div><div class="guildx-stat">'+fmt(xp)+' XP</div></div><div class="guildx-card"><div class="guildx-label">MEMBROS</div><div class="guildx-stat">'+fmt(g.members)+'/'+fmt(g.member_limit)+'</div></div><div class="guildx-card"><div class="guildx-label">BANCO COLETIVO</div><div class="guildx-stat">'+cheese(g.bank_cheese)+'</div></div></div><div class="guildx-card"><div class="guildx-row"><h3>'+esc(g.emblem)+' '+esc(g.name)+' ['+esc(g.tag)+']</h3><span class="guildx-pill">'+esc(g.my_role).toUpperCase()+'</span></div><p>'+esc(g.description||'Sem apresentação cadastrada.')+'</p><div class="guildx-progress"><i style="width:'+progress+'%"></i></div><p>'+fmt(xp-base)+' / 1.000 XP para o próximo nível · '+(level>=50?'Nível máximo alcançado':'faltam '+fmt(1000-(xp-base))+' XP')+'</p><p>👑 Fundada em '+esc(g.created_at)+' · Doações totais: '+cheese(g.total_donations)+'</p><p><strong>Mural:</strong> '+esc(g.bulletin||'Nenhum comunicado publicado.')+'</p></div><div class="guildx-two"><div class="guildx-card"><h3>🎯 Missões ativas</h3><p>'+fmt((data.missions||[]).filter(m=>m.status==='active').length)+' missões em andamento.</p>'+btn('VER MISSÕES','goto-missions')+'</div><div class="guildx-card"><h3>👥 Sua equipe</h3><p>'+fmt(g.members)+' membros fazem parte da guilda.</p>'+btn('GERENCIAR MEMBROS','goto-members')+'</div></div>';
+  $('guildBody').innerHTML='<div class="guildx-grid"><div class="guildx-card"><div class="guildx-label">NÍVEL DA GUILDA</div><div class="guildx-stat">⭐ '+fmt(level)+'/50</div></div><div class="guildx-card"><div class="guildx-label">EXPERIÊNCIA</div><div class="guildx-stat">'+fmt(xp)+' XP</div></div><div class="guildx-card"><div class="guildx-label">MEMBROS</div><div class="guildx-stat">'+fmt(g.members)+'/'+fmt(g.member_limit)+'</div></div><div class="guildx-card"><div class="guildx-label">BANCO COLETIVO</div><div class="guildx-stat">'+cheese(g.bank_cheese)+'</div></div></div><div class="guildx-card"><div class="guildx-row"><h3>'+esc(g.emblem)+' '+esc(g.name)+' ['+esc(g.tag)+']</h3><span class="guildx-pill">'+esc(g.my_role).toUpperCase()+'</span></div><p>'+esc(g.description||'Sem apresentação cadastrada.')+'</p><div class="guildx-progress"><i style="width:'+progress+'%"></i></div><p>'+fmt(xp-base)+' / 1.000 XP para o próximo nível · '+(level>=50?'Nível máximo alcançado':'faltam '+fmt(1000-(xp-base))+' XP')+'</p><div class="guildx-cp-rule">🏅 <strong>Seu CP: '+fmt(g.my_contribution_points||0)+'</strong> · CP mede sua participação. Doe queijo ou conclua fases válidas para ganhar pontos.</div><p>👑 Fundada em '+esc(g.created_at)+' · Doações totais: '+cheese(g.total_donations)+'</p><p><strong>Mural:</strong> '+esc(g.bulletin||'Nenhum comunicado publicado.')+'</p></div><div class="guildx-two"><div class="guildx-card"><h3>🎯 Missões ativas</h3><p>'+fmt((data.missions||[]).filter(m=>m.status==='active').length)+' missões em andamento.</p>'+btn('VER MISSÕES','goto-missions')+'</div><div class="guildx-card"><h3>👥 Sua equipe</h3><p>'+fmt(g.members)+' membros fazem parte da guilda.</p>'+btn('GERENCIAR MEMBROS','goto-members')+'</div></div>';
  }
  function renderMembers(){
   const g=data.guild,canInvite=['leader','vice','general','officer'].includes(g.my_role),leader=g.my_role==='leader';
   let html='<div class="guildx-card"><div class="guildx-row"><h3>👥 Membros ('+fmt(g.members)+'/'+fmt(g.member_limit)+')</h3><span class="guildx-pill">LIMITE ATUAL</span></div>';
   if(canInvite)html+='<form id="guildInviteForm" class="guildx-form"><input id="guildInvitePlayer" placeholder="Nickname ou ID RP-..." required><button class="guildx-btn">CONVIDAR JOGADOR</button></form>';
-  html+='</div><div class="guildx-list">'+(data.members||[]).map(m=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(m.nickname)+' <span class="guildx-pill">'+esc(m.role).toUpperCase()+'</span></strong><small>'+esc(m.public_id)+' · Nível '+fmt(m.level)+' · Contribuiu '+cheese(m.contribution_total)+'</small></div>'+(leader&&m.role!=='leader'?'<select class="guildx-field" data-role-for="'+esc(m.public_id)+'"><option value="recruit" '+(m.role==='recruit'?'selected':'')+'>Recruta</option><option value="member" '+(m.role==='member'?'selected':'')+'>Membro</option><option value="veteran" '+(m.role==='veteran'?'selected':'')+'>Veterano</option><option value="officer" '+(m.role==='officer'?'selected':'')+'>Oficial</option><option value="general" '+(m.role==='general'?'selected':'')+'>General</option><option value="vice" '+(m.role==='vice'?'selected':'')+'>Vice-líder</option></select><button class="guildx-btn secondary" data-action="role-save" data-id="'+esc(m.public_id)+'">SALVAR CARGO</button>':'')+(leader&&m.role!=='leader'?'<button class="guildx-btn danger" data-action="remove" data-id="'+esc(m.public_id)+'">EXPULSAR</button>':'')+'</div>').join('')+'</div>';
+  html+='</div><div class="guildx-list">'+(data.members||[]).map(m=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(m.nickname)+' <span class="guildx-pill">'+esc(m.role).toUpperCase()+'</span></strong><small>'+esc(m.public_id)+' · Nível '+fmt(m.level)+' · Doou '+cheese(m.contribution_total)+' · 🏅 '+fmt(m.contribution_points||0)+' CP</small></div>'+(leader&&m.role!=='leader'?'<select class="guildx-field" data-role-for="'+esc(m.public_id)+'"><option value="recruit" '+(m.role==='recruit'?'selected':'')+'>Recruta</option><option value="member" '+(m.role==='member'?'selected':'')+'>Membro</option><option value="veteran" '+(m.role==='veteran'?'selected':'')+'>Veterano</option><option value="officer" '+(m.role==='officer'?'selected':'')+'>Oficial</option><option value="general" '+(m.role==='general'?'selected':'')+'>General</option><option value="vice" '+(m.role==='vice'?'selected':'')+'>Vice-líder</option></select><button class="guildx-btn secondary" data-action="role-save" data-id="'+esc(m.public_id)+'">SALVAR CARGO</button>':'')+(leader&&m.role!=='leader'?'<button class="guildx-btn danger" data-action="remove" data-id="'+esc(m.public_id)+'">EXPULSAR</button>':'')+'</div>').join('')+'</div>';
   if((data.applications||[]).length&&['leader','vice','general','officer'].includes(g.my_role))html+='<div class="guildx-card"><h3>📨 Solicitações de entrada</h3><div class="guildx-list">'+data.applications.map(a=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(a.nickname)+'</strong><small>'+esc(a.public_id)+' · '+esc(a.created_at)+'</small></div><button class="guildx-btn" data-action="application-accept" data-id="'+esc(a.id)+'">APROVAR</button><button class="guildx-btn danger" data-action="application-reject" data-id="'+esc(a.id)+'">RECUSAR</button></div>').join('')+'</div></div>';
   $('guildBody').innerHTML=html;
  }
@@ -4240,11 +4305,12 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   $('guildBody').innerHTML='<div class="guildx-card"><h3>🎯 Missões coletivas</h3><p>O progresso é contado pelo servidor quando fases válidas são concluídas e quando o queijo é doado.</p></div><div class="guildx-list">'+(data.missions||[]).map(m=>{const pct=Math.min(100,Number(m.progress)/Math.max(1,Number(m.target))*100);return '<div class="guildx-card"><div class="guildx-row"><h3>'+esc(m.title)+'</h3><span class="guildx-pill">'+(m.status==='completed'?'CONCLUÍDA':'EM ANDAMENTO')+'</span></div><p>'+esc(m.description)+'</p><div class="guildx-progress"><i style="width:'+pct+'%"></i></div><div class="guildx-row"><small>'+fmt(m.progress)+' / '+fmt(m.target)+'</small><small>🏅 +'+fmt(m.reward_xp)+' XP para guilda</small></div><p class="guildx-muted">Prazo: '+esc(m.ends_at||'Sem prazo')+' · '+esc(m.difficulty)+'</p></div>';}).join('')+'</div>';
  }
  function renderBank(){
-  const g=data.guild,canWithdraw=['leader','vice'].includes(g.my_role);
-  $('guildBody').innerHTML='<div class="guildx-grid"><div class="guildx-card"><div class="guildx-label">BANCO DA GUILDA</div><div class="guildx-stat">'+cheese(g.bank_cheese)+'</div></div><div class="guildx-card"><div class="guildx-label">SEU SALDO PESSOAL</div><div class="guildx-stat">'+cheese(data.coins)+'</div></div><div class="guildx-card"><div class="guildx-label">TOTAL DOADO</div><div class="guildx-stat">'+cheese(g.total_donations)+'</div></div><div class="guildx-card"><div class="guildx-label">XP DA GUILDA</div><div class="guildx-stat">'+fmt(g.xp)+' XP</div></div></div><div class="guildx-two"><div class="guildx-card"><h3>🧀 Fazer doação</h3><p>O queijo será descontado do seu saldo e creditado no banco da guilda na mesma operação.</p><form id="guildDonateForm" class="guildx-form"><input id="guildDonateAmount" type="number" min="1" max="100000" step="1" placeholder="Quantidade de queijo" required><button class="guildx-btn">DOAR QUEIJO</button></form></div>'+(canWithdraw?'<div class="guildx-card"><h3>🏦 Retirar do banco</h3><p>Somente líder e vice-líder podem transferir queijo do banco para o próprio saldo.</p><form id="guildWithdrawForm" class="guildx-form"><input id="guildWithdrawAmount" type="number" min="1" max="50000" step="1" placeholder="Quantidade" required><button class="guildx-btn secondary">RETIRAR</button></form></div>':'<div class="guildx-card"><h3>🔒 Saques protegidos</h3><p>Retiradas ficam disponíveis apenas para líder e vice-líder.</p></div>')+'</div>';
+  const g=data.guild,canWithdraw=['leader','vice'].includes(g.my_role),remaining=Math.max(0,Number(data.donation_cp_remaining_today??100));
+  $('guildBody').innerHTML='<div class="guildx-grid"><div class="guildx-card"><div class="guildx-label">BANCO DA GUILDA</div><div class="guildx-stat">'+cheese(g.bank_cheese)+'</div></div><div class="guildx-card"><div class="guildx-label">SEU SALDO PESSOAL</div><div class="guildx-stat">'+cheese(data.coins)+'</div></div><div class="guildx-card"><div class="guildx-label">TOTAL DOADO</div><div class="guildx-stat">'+cheese(g.total_donations)+'</div></div><div class="guildx-card"><div class="guildx-label">SEUS CP</div><div class="guildx-stat">🏅 '+fmt(g.my_contribution_points||0)+'</div></div></div><div class="guildx-two"><div class="guildx-card"><h3>🧀 Contribuir com a guilda</h3><p>O queijo sai do seu saldo e entra diretamente no banco coletivo.</p><div class="guildx-cp-rule">🏅 <strong>CP por doação:</strong> cada 100 queijos = +1 CP. Restam <strong>'+fmt(remaining)+' CP</strong> de limite por doação hoje. A guilda também recebe 1 XP por 100 queijos, respeitando o limite diário de XP.</div><div class="guildx-donate-presets"><button type="button" class="guildx-btn secondary" data-donate-preset="100">100 🧀</button><button type="button" class="guildx-btn secondary" data-donate-preset="500">500 🧀</button><button type="button" class="guildx-btn secondary" data-donate-preset="1000">1.000 🧀</button><button type="button" class="guildx-btn secondary" data-donate-preset="5000">5.000 🧀</button></div><form id="guildDonateForm" class="guildx-form"><input id="guildDonateAmount" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Quantidade de queijo" required><button class="guildx-btn">DOAR AGORA</button></form><p id="guildDonatePreview" class="guildx-muted">Escolha a quantidade para ver quantos CP você receberá.</p><p class="guildx-muted">Também ganha +2 CP por fase concluída e validada pelo servidor. Limite atual de recompensas de fase: 10 por dia.</p></div>'+(canWithdraw?'<div class="guildx-card"><h3>🏦 Retirar do banco</h3><p>Somente líder e vice-líder podem transferir queijo do banco para o próprio saldo.</p><form id="guildWithdrawForm" class="guildx-form"><input id="guildWithdrawAmount" type="number" min="1" max="50000" step="1" placeholder="Quantidade" required><button class="guildx-btn secondary">RETIRAR</button></form></div>':'<div class="guildx-card"><h3>🔒 Banco protegido</h3><p>O banco é coletivo. Somente líder e vice-líder podem retirar queijo; compras da loja dependem de cargo autorizado e nível da guilda.</p><p>O histórico registra depósitos, retiradas e compras.</p></div>')+'</div>';
+  updateDonationPreview();
  }
  function renderDonations(){
-  $('guildBody').innerHTML='<div class="guildx-two"><div class="guildx-card"><h3>🏅 Maiores doadores</h3>'+(data.donors||[]).map((d,i)=>'<div class="guildx-item"><div class="guildx-item-main"><strong>#'+(i+1)+' '+esc(d.nickname)+'</strong><small>'+esc(d.public_id)+'</small></div><b>'+cheese(d.contribution_total)+'</b></div>').join('')+'</div><div class="guildx-card"><h3>📒 Extrato do banco</h3>'+(data.transactions||[]).map(t=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(({donation:'Doação',withdrawal:'Retirada',shop_purchase:'Compra na loja'}[t.type]||t.type))+' · '+esc(t.nickname)+'</strong><small>'+esc(t.note||'')+' · '+esc(t.created_at)+'</small></div><b>'+((t.type==='donation'?'+':'−')+cheese(t.amount))+'</b></div>').join('')+'</div></div>';
+  $('guildBody').innerHTML='<div class="guildx-two"><div class="guildx-card"><h3>🏅 Ranking de contribuição</h3><p>Classificado por CP conquistados no jogo e nas doações.</p>'+(data.donors||[]).map((d,i)=>'<div class="guildx-item"><div class="guildx-item-main"><strong>#'+(i+1)+' '+esc(d.nickname)+'</strong><small>'+cheese(d.contribution_total)+' doados</small></div><b>🏅 '+fmt(d.contribution_points||0)+' CP</b></div>').join('')+'</div><div class="guildx-card"><h3>📒 Extrato do banco</h3>'+(data.transactions||[]).map(t=>'<div class="guildx-item"><div class="guildx-item-main"><strong>'+esc(({donation:'Doação',withdrawal:'Retirada',shop_purchase:'Compra na loja'}[t.type]||t.type))+' · '+esc(t.nickname)+'</strong><small>'+esc(t.note||'')+' · '+esc(t.created_at)+'</small></div><b>'+((t.type==='donation'?'+':'−')+cheese(t.amount))+'</b></div>').join('')+'</div></div>';
  }
  function renderShop(){
   $('guildBody').innerHTML='<div class="guildx-card"><h3>🛍️ Loja da guilda</h3><p>Itens comprados são registrados como patrimônio desbloqueado da guilda. O banco coletivo paga as compras.</p></div><div class="guildx-grid">'+(data.shop||[]).map(i=>'<div class="guildx-card"><h3>'+esc(i.name)+'</h3><p>'+esc(i.description)+'</p><p>🔓 Nível '+fmt(i.min_level)+' · '+cheese(i.price_cheese)+'</p><button class="guildx-btn" data-action="shop-buy" data-code="'+esc(i.item_code)+'" '+(Number(data.guild.level)<Number(i.min_level)||Number(data.guild.bank_cheese)<Number(i.price_cheese)?'disabled':'')+'>COMPRAR COM BANCO</button></div>').join('')+'</div><div class="guildx-card"><h3>📦 Itens adquiridos</h3>'+((data.purchases||[]).length?data.purchases.map(p=>'<div class="guildx-item"><strong>'+esc(p.name)+'</strong><small>'+esc(p.created_at)+' · '+cheese(p.price_total)+'</small></div>').join(''):empty('A guilda ainda não comprou itens.'))+'</div>';
@@ -4266,6 +4332,8 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   try{await api(path,'POST',body);notice(message||'Operação concluída.');await load();}
   catch(e){notice(e.message);}
  }
+ page.addEventListener('input',e=>{if(e.target?.id==='guildDonateAmount')updateDonationPreview();});
+ page.addEventListener('click',e=>{const preset=e.target.closest('[data-donate-preset]');if(preset){const input=$('guildDonateAmount');if(input){input.value=preset.dataset.donatePreset;updateDonationPreview();}}});
  page.addEventListener('submit',async e=>{
   const form=e.target;if(!form||!form.id)return;e.preventDefault();
   if(form.id==='guildCreateForm'){await postAndRefresh('/api/guilds/create',{name:$('guildName').value,tag:$('guildTag').value,description:$('guildDescription').value,emblem:$('guildEmblem').value},'Guilda criada!');tab='overview';}
@@ -4290,14 +4358,14 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(a==='leave-guild'){if(!confirm('Deseja sair da guilda?'))return;await postAndRefresh('/api/guilds/leave',{},'Você saiu da guilda.');tab='create';return;}
   if(a==='close-guild'){if(!confirm('Encerrar definitivamente esta guilda? O histórico financeiro será mantido.'))return;await postAndRefresh('/api/guilds/close',{},'Guilda encerrada.');tab='create';return;}
  });
- function open(){document.getElementById('start')?.classList.add('hidden');document.getElementById('rmHome')?.classList.add('hidden');page.classList.remove('hidden');tab='overview';load().then(()=>{if(data&&!data.member){tab='create';render();loadExplore('');}});}
+ function open(){document.getElementById('start')?.classList.add('hidden');document.getElementById('rmHome')?.classList.add('hidden');page.classList.remove('hidden');tab='overview';if(data)render();else $('guildBody').innerHTML='<div class="guildx-empty">Conectando à sua guilda…</div>';load().then(()=>{if(data&&!data.member){tab='create';render();loadExplore('');}});}
  function close(){page.classList.add('hidden');document.getElementById('start')?.classList.remove('hidden');}
  document.addEventListener('click',function(e){
   const trigger=e.target.closest('#rmGuild,#homeGuild,#menuGuild,#openGuild');
   if(trigger){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();return;}
   if(e.target.closest('#guildBackTop')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();close();return;}
  },true);
- let guildRefreshBusy=false;async function refreshGuildWhenVisible(){if(page.classList.contains("hidden")||document.visibilityState!=="visible"||guildRefreshBusy||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;guildRefreshBusy=true;try{await load();}finally{guildRefreshBusy=false;}}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshGuildWhenVisible();});window.addEventListener("focus",refreshGuildWhenVisible);setInterval(refreshGuildWhenVisible,8000);
+ let guildRefreshBusy=false;async function refreshGuildWhenVisible(){if(page.classList.contains("hidden")||document.visibilityState!=="visible"||guildRefreshBusy||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;guildRefreshBusy=true;try{await load();}finally{guildRefreshBusy=false;}}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshGuildWhenVisible();});window.addEventListener("focus",refreshGuildWhenVisible);setInterval(refreshGuildWhenVisible,15000);
  window.RativaGuilds={open,refresh:load};
 })();
 </script>
