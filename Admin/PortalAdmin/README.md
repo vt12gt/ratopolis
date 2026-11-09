@@ -10,7 +10,7 @@ Este diretório é a entrada do Admin Geral e reúne os módulos administrativos
 
 - `Equipe/index.html`: gestão de cargos da base global de contas, compartilhada por RativaPolis e RativaSnack.
 - `Auditoria/index.html`: consulta somente leitura do histórico administrativo central, com filtros e paginação.\n- `Comunidade/index.html`: moderação em tempo real, banimentos, revisão de avatares e denúncias e comunicados.\n- `Ranking/index.html`: consulta autenticada do ranking geral por XP e do ranking por nível, usando os endpoints de leitura `/api/rankings` e `/api/rankings/level`.
-- `Premiacoes/index.html`: simulador da regra de reserva de 60% para o Top 5, com percentuais configuráveis, cálculo em reais e regras mensais de contato/retorno. Não registra pagamentos nem grava apuração oficial; depende de endpoints seguros para isso.
+- `Premiacoes/index.html`: simulador da regra de reserva de 60% para o Top 5, com percentuais configuráveis, cálculo em reais e regras mensais de contato/retorno. A entrada é exibida somente a SpAdmin e Admin autorizado/ativo; a própria página valida sessão, autorização e cargo via `/api/admin/me`. Não registra pagamentos nem grava apuração oficial; depende de endpoints seguros para isso.
 - `Radio/radio_admin.html`: painel de controle da rádio.
 - `Radio/radio_stats.html`: estatísticas e relatório de audiência.
 
