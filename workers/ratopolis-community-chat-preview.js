@@ -99,12 +99,12 @@ if(d.type==="moderate"){
  if(!["spadmin","admin","gm"].includes(p.role)){send(s,{type:"error",message:"Somente SpAdmin, Admin e GM podem moderar."});return}
  const target=String(d.target||"");const action=String(d.action||"");
  if(!target||!["mute","unmute","ban","unban"].includes(action))return;
- let targetRole=null;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target)targetRole=a.role||"guest"}catch{}}
+ let targetRole=null,targetNickname=target;for(const sock of sockets()){try{const a=sock.deserializeAttachment();if(a?.playerId===target){targetRole=a.role||"guest";targetNickname=a.nickname||target}}catch{}}
  if(["spadmin","admin","gm"].includes(targetRole)){send(s,{type:"error",message:"A equipe não pode moderar outro membro da equipe."});return}
  if(action==="mute"||action==="ban"){let targetNickname=target;for(const sock of sockets())try{const a=sock.deserializeAttachment();if(a?.playerId===target)targetNickname=a.nickname||target}catch{}moderation[target]={...(moderation[target]||{}),[action]:{by:p.playerId,nickname:p.nickname,nicknameTarget:targetNickname,at:now}};}
  else if(action==="unmute")delete moderation[target]?.mute;
  else if(action==="unban")delete moderation[target]?.ban;
- await this.ctx.storage.put("moderation",moderation);const moderationAudit={mute:"community_member_muted",unmute:"community_member_unmuted",ban:"community_member_banned",unban:"community_member_unbanned"};await this.audit(p,moderationAudit[action],{target_player_key:target,target_role:targetRole||null});
+ await this.ctx.storage.put("moderation",moderation);const moderationAudit={mute:"community_member_muted",unmute:"community_member_unmuted",ban:"community_member_banned",unban:"community_member_unbanned"};await this.audit(p,moderationAudit[action],{target_player_key:target,target_role:targetRole||null,target_nickname:targetNickname});
  if(action==="ban"){for(const sock of sockets()){try{if(sock.deserializeAttachment()?.playerId===target){send(sock,{type:"moderation_blocked",kind:"ban",message:"Seu acesso ao chat foi bloqueado pela equipe."});sock.close(1008,"chat banned")}}catch{}}}
  if(action==="mute"){for(const sock of sockets()){try{if(sock.deserializeAttachment()?.playerId===target)send(sock,{type:"moderation_blocked",kind:"mute",message:"Você está impedido de enviar mensagens pela equipe."})}catch{}}}
  this.broadcast({type:"moderation_changed",target,action});send(s,{type:"moderation_result",ok:true,action});return;
