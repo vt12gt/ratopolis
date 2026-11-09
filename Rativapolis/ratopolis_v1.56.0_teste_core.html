@@ -1054,10 +1054,10 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
  <nav class="rm-nav" id="rmNav" aria-label="Menu principal">
   <button id="menuPlay" class="rm-btn rm-primary" type="button"><span class="rm-ico">▶</span><span class="rm-lbl">JOGAR</span></button>
   <button id="menuRooms" class="rm-btn" type="button" hidden aria-hidden="true" tabindex="-1" style="display:none!important"><span class="rm-ico">🚪</span><span class="rm-lbl">CRIAR SALA · EM BREVE</span></button>
-  <button id="menuMyHome" class="rm-btn" type="button"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
-  <button id="menuMiniGame" class="rm-btn" type="button"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
+  <button id="menuMyHome" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🏡</span><span class="rm-lbl">MEU LAR</span></button>
+  <button id="menuMiniGame" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🎮</span><span class="rm-lbl">MINI GAME</span></button>
   <button id="rmFriends" class="rm-btn" type="button"><span class="rm-ico">👥</span><span class="rm-lbl">AMIGOS</span></button>
-  <button id="rmRanking" class="rm-btn" type="button"><span class="rm-ico">🏆</span><span class="rm-lbl">RANKING</span></button>
+  <button id="rmRanking" class="rm-btn legacy-hidden" type="button" hidden aria-hidden="true" tabindex="-1"><span class="rm-ico">🏆</span><span class="rm-lbl">RANKING</span></button>
   <button id="rmAchievements" class="rm-btn" type="button"><span class="rm-ico">🏅</span><span class="rm-lbl">CONQUISTAS</span></button>
   <button id="rmSettings" class="rm-btn" type="button"><span class="rm-ico">⚙️</span><span class="rm-lbl">CONFIGURAÇÕES</span></button>
  </nav>
@@ -1478,11 +1478,9 @@ let wardrobeMode='bag',wardrobeCategory='Todos';
 const wardrobeCategories=['Todos','Skins','Chapéus','Roupas','Mochilas','Acessórios'];
 const futureCosmetics=[{cat:'Skins',icon:'🐭',name:'Pelo caramelo',desc:'Uma nova cor de pelagem para seu ratinho.'},{cat:'Roupas',icon:'🧥',name:'Jaqueta de explorador',desc:'Roupa cosmética para futuras atualizações.'},{cat:'Mochilas',icon:'🎒',name:'Mochila de aventureiro',desc:'Leve seus itens com estilo.'},{cat:'Acessórios',icon:'🕶️',name:'Óculos estilosos',desc:'Um acessório para personalizar o visual.'}];
 function renderWardrobe(){const list=document.getElementById('wardrobeItems'),tabs=document.getElementById('wardrobeTabs'),extras=document.getElementById('shopExtras');if(!list||!tabs||!extras)return;list.innerHTML='';tabs.innerHTML='';extras.innerHTML='';document.getElementById('wardrobeCoins').textContent=coins;
- const cats=wardrobeMode==='shop'?['Todos','Skins','Chapéus','Roupas','Mochilas','Acessórios','VIP','Diamantes']:wardrobeCategories;
+ const cats=wardrobeMode==='shop'?['Todos','Skins','Chapéus','Roupas','Mochilas','Acessórios']:wardrobeCategories;
  for(const cat of cats){const b=document.createElement('button');b.type='button';b.textContent=cat;b.className=cat===wardrobeCategory?'active':'';b.addEventListener('click',()=>{wardrobeCategory=cat;renderWardrobe()});tabs.appendChild(b)}
- if(wardrobeMode==='shop'&&(wardrobeCategory==='Todos'||wardrobeCategory==='VIP')){renderVIPPanel();if(wardrobeCategory==='VIP')renderVIPSkins(extras)}
- if(wardrobeMode==='shop'&&wardrobeCategory==='Skins')renderVIPSkins(extras);
- if(wardrobeMode==='shop'&&(wardrobeCategory==='Todos'||wardrobeCategory==='Diamantes')){const dia=document.createElement('div');dia.className='shop-note';dia.innerHTML='<strong>💎 Diamantes</strong><br>Futuramente haverá pacotes de diamantes comprados com dinheiro real. Nenhuma cobrança ou compra está ativa nesta versão.';extras.appendChild(dia)}
+
  let items=[];
  const hatCat=h=>h.id==='none'||h.id.startsWith('team')?'Skins':(/^shopBackpack$/.test(h.id)?'Mochilas':(/^shopScarf$/.test(h.id)?'Roupas':(/shopGlasses|cape|wings|leaf|aura|halo|brooch|levelLeaf|crystal/i.test(h.id+' '+h.name)?'Acessórios':(/crown|wizard|goldEars|ratopolisCrown|shopHelmet/i.test(h.id+' '+h.name)?'Chapéus':'Chapéus'))));
  if(['Todos','Skins','Chapéus','Acessórios','Roupas','Mochilas'].includes(wardrobeCategory)){items=hatDefs.filter(h=>wardrobeCategory==='Todos'||hatCat(h)===wardrobeCategory).map(h=>({...h,category:hatCat(h),existing:true}));}
@@ -3951,6 +3949,95 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
 })();
 </script>
 
+
+<style id="rativapolis-rebrand-v1561">
+#menuMyHome,#menuMiniGame,#rmRanking,#menuRooms,#homeVIP,#gameVIPBtn,#hudVip,#vipMiniGame,#rmVip,.rm-vip,.vip-panel{display:none!important}
+#rmNav .rm-btn.legacy-hidden{display:none!important}
+#rmNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#rmNav #menuPlay{grid-column:1/-1}
+#rmNav .rm-btn{min-width:0}
+#rmNav #rmShop{background:linear-gradient(135deg,#f4d77c,#d99d31);color:#34250b}
+#rmNav #rmGuild{background:linear-gradient(135deg,#315f9b,#203d69);color:#fff}
+#rmNav #rmTitles{background:linear-gradient(135deg,#7553a7,#4b3477);color:#fff}
+#rmNav #rmAchievements{background:linear-gradient(135deg,#287b57,#17543b);color:#fff}
+#rmNav #rmSettings{background:linear-gradient(135deg,#52656c,#34464c);color:#fff}
+#rmNav #rmFriends{background:linear-gradient(135deg,#397c85,#24555e);color:#fff}
+#rmHome{display:none!important}
+#rmGlobalChat{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;margin:0!important;display:flex!important;flex-direction:column!important;background:rgba(10,32,24,.25)!important;border:0!important;box-shadow:none!important}
+#rmGlobalChat .rm-gchat-log{flex:1!important;min-height:0!important;max-height:none!important}
+#rpChatTabs{display:flex;gap:5px;flex:0 0 auto}
+#rpChatTabs button{flex:1;min-width:0;border:1px solid #78977e;border-radius:8px;padding:7px 4px;background:#173d2c;color:#fff6dc;font-size:11px;font-weight:900}
+#rpChatTabs button[aria-selected="true"]{background:#ffcf55;color:#173526;border-color:#ffcf55}
+#rpChatRoomTab,#rpChatWorldTab,#rpChatTocaTab{display:flex;flex:1;min-height:0;flex-direction:column}
+#rpChatWorldTab[hidden],#rpChatRoomTab[hidden],#rpChatTocaTab[hidden]{display:none!important}
+#rpChatTocaFrame{width:100%;height:100%;min-height:0;flex:1;border:0;border-radius:8px;background:#100d1d}
+#chatPanel{gap:6px!important}
+#chatPanel #chatHead{flex:0 0 auto}
+@media(max-width:560px){#rpChatTabs button{font-size:10px;padding:6px 2px}}
+</style>
+<script id="rativapolis-menu-chat-v1561">
+(function(){
+ 'use strict';
+ function boot(){
+  const nav=document.getElementById('rmNav');
+  if(!nav||nav.dataset.rativaV1561==='1')return;
+  nav.dataset.rativaV1561='1';
+  function addButton(id,icon,label,click){
+   const b=document.createElement('button');b.type='button';b.id=id;b.className='rm-btn';b.innerHTML='<span class="rm-ico">'+icon+'</span><span class="rm-lbl">'+label+'</span>';b.addEventListener('click',click);nav.appendChild(b);return b;
+  }
+  addButton('rmGuild','🛡️','GUILDA',function(){
+   document.getElementById('start').classList.add('hidden');
+   document.getElementById('rmHome').classList.add('hidden');
+   renderGuildPage();document.getElementById('guildPage').classList.remove('hidden');
+  });
+  addButton('rmShop','🎨','LOJA · SKINS',function(){
+   document.getElementById('start').classList.add('hidden');
+   openWardrobe('shop',true);
+  });
+  addButton('rmTitles','👑','TÍTULOS',function(){
+   openTitlesChallenges(true);
+   requestAnimationFrame(function(){document.querySelector('#achievements .tc-section')?.scrollIntoView({block:'start'});});
+  });
+  const oldTitles=document.getElementById('rmAchievements');
+  if(oldTitles)oldTitles.querySelector('.rm-lbl').textContent='CONQUISTAS';
+  // O menu antigo deixa de exibir ranking/Meu Lar/Mini Game; os recursos legados permanecem no código.
+  const panel=document.getElementById('chatPanel');
+  const chatHead=document.getElementById('chatHead'),chatLog=document.getElementById('chatLog'),chatForm=document.getElementById('chatForm');
+  const world=document.getElementById('rmGlobalChat');
+  if(panel&&chatHead&&chatLog&&chatForm&&world&&!document.getElementById('rpChatTabs')){
+   const tabs=document.createElement('div');tabs.id='rpChatTabs';tabs.setAttribute('role','tablist');tabs.innerHTML=
+    '<button type="button" role="tab" data-chat-tab="room" aria-selected="true">SALA</button>'+
+    '<button type="button" role="tab" data-chat-tab="world" aria-selected="false">MUNDO</button>'+
+    '<button type="button" role="tab" data-chat-tab="toca" aria-selected="false">TOCA</button>';
+   const room=document.createElement('div');room.id='rpChatRoomTab';
+   room.append(chatHead,chatLog,chatForm);
+   const worldTab=document.createElement('div');worldTab.id='rpChatWorldTab';worldTab.hidden=true;worldTab.appendChild(world);
+   const toca=document.createElement('div');toca.id='rpChatTocaTab';toca.hidden=true;
+   const frame=document.createElement('iframe');frame.id='rpChatTocaFrame';frame.title='Chat da Toca — Comunidade RativaGames';frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';frame.src='https://vt12gt.github.io/RativaGames/';
+   frame.addEventListener('load',function(){
+    try{
+     const d=frame.contentDocument;if(!d)return;
+     let css=d.getElementById('rativa-toca-embed-style');
+     if(!css){css=d.createElement('style');css.id='rativa-toca-embed-style';d.head.appendChild(css);}
+     css.textContent='html,body{margin:0!important;width:100%!important;height:100%!important;overflow:hidden!important;background:#100d1d!important}body>*:not(#communityChat){display:none!important}#communityChat{display:flex!important;position:fixed!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important;z-index:999999!important}#communityChat.hidden{display:flex!important}#chatToggle{display:none!important}';
+     if(typeof frame.contentWindow.toggleCommunityChat==='function')frame.contentWindow.toggleCommunityChat(true);
+    }catch(e){console.warn('Chat da Toca incorporado:',e);}
+   });
+   toca.appendChild(frame);
+   panel.insertBefore(tabs,panel.firstChild);panel.append(room,worldTab,toca);
+   function selectTab(name){
+    room.hidden=name!=='room';worldTab.hidden=name!=='world';toca.hidden=name!=='toca';
+    tabs.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.chatTab===name));});
+    if(name==='toca'&&frame.contentWindow){try{frame.contentWindow.toggleCommunityChat(true);}catch(_){}}
+   }
+   tabs.addEventListener('click',function(e){const b=e.target.closest('[data-chat-tab]');if(b)selectTab(b.dataset.chatTab);});
+   panel.style.width='min(520px,68vw)';panel.style.height='min(360px,72dvh)';
+   selectTab('room');
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
 </body></html>
 
 <style>
