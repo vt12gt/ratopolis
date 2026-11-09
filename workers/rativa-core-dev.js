@@ -11,19 +11,23 @@ function makeHeaders(origin) {
 }
 const json = (data, status = 200, origin = "") => new Response(JSON.stringify(data), {status, headers:makeHeaders(origin)});
 const bearer = request => {
-  const m = (request.headers.get("Authorization") || "").match(/^Bearer\s+(\S+)$/i);
+  const m = (request.headers.get("Authorization") || "").match(/^Bearer\\s+(\\S+)$/i);
   return m ? m[1] : "";
 };
 async function sha256(value) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   let binary = "";
   for (const b of new Uint8Array(d)) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
 }
-async function authenticateAdmin(request, env) {
+async function authenticatePortal(request, env) {
   const token = bearer(request);
   if (!token || token.length < 20) return null;
-  const actor = await env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.role FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1").bind(await sha256(token), new Date().toISOString()).first();
+  return env.PORTAL_DB.prepare("SELECT u.id,u.nickname,u.role,u.status FROM ratopolis_sessions s JOIN ratopolis_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' LIMIT 1")
+    .bind(await sha256(token), new Date().toISOString()).first();
+}
+async function authenticateAdmin(request, env) {
+  const actor = await authenticatePortal(request, env);
   return actor && ["spadm", "adm"].includes(actor.role) ? actor : null;
 }
 export default {
@@ -39,12 +43,26 @@ export default {
           env.SNACK_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first(),
           env.POLIS_DB.prepare("SELECT COUNT(*) AS total FROM game_users").first()
         ]);
-        return json({ok:true,service:"rativa-core-dev",mode:"read-only-admin-search",databases:{
+        return json({ok:true,service:"rativa-core-dev",mode:"central-portal-identity-dev",databases:{
           portal:{connected:true,users:Number(portal?.total||0)},
           snack:{connected:true,users:Number(snack?.total||0)},
           polis:{connected:true,users:Number(polis?.total||0)}
         }},200,origin);
       } catch { return json({ok:false,error:"database_check_failed"},503,origin); }
+    }
+    if (request.method === "GET" && url.pathname === "/api/core/me") {
+      const actor = await authenticatePortal(request,env);
+      if (!actor) return json({ok:false,error:"portal_authentication_required"},401,origin);
+      try {
+        const [snack,polis] = await Promise.all([
+          env.SNACK_DB.prepare("SELECT public_id FROM game_users WHERE portal_user_id=? AND status='active' LIMIT 1").bind(actor.id).first(),
+          env.POLIS_DB.prepare("SELECT public_id FROM game_users WHERE portal_user_id=? AND status='active' LIMIT 1").bind(actor.id).first()
+        ]);
+        return json({ok:true,identity:{portal_user_id:actor.id,nickname:actor.nickname,role:actor.role,status:actor.status},
+          games:{rativasnack:{public_id:snack?.public_id||null},rativapolis:{public_id:polis?.public_id||null}}},200,origin);
+      } catch {
+        return json({ok:false,error:"game_identity_link_not_ready",message:"As migrações e os vínculos de identidade dos jogos ainda não foram aplicados."},503,origin);
+      }
     }
     if (request.method === "GET" && url.pathname === "/api/core/admin/search") {
       const actor = await authenticateAdmin(request,env);
