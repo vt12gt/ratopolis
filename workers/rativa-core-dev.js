@@ -11,14 +11,14 @@ function makeHeaders(origin) {
 }
 const json = (data, status = 200, origin = "") => new Response(JSON.stringify(data), {status, headers:makeHeaders(origin)});
 const bearer = request => {
-  const m = (request.headers.get("Authorization") || "").match(/^Bearer\\s+(\\S+)$/i);
+  const m = (request.headers.get("Authorization") || "").match(/^Bearer\s+(\S+)$/i);
   return m ? m[1] : "";
 };
 async function sha256(value) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   let binary = "";
   for (const b of new Uint8Array(d)) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 async function authenticatePortal(request, env) {
   const token = bearer(request);
