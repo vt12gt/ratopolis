@@ -2,8 +2,8 @@
 
 ## Implantação de desenvolvimento
 
-- API: `https://rativapolis-api-dev.juniorgmj69.workers.dev`
-- Worker: `rativapolis-api-dev-v6-guild-cp`
+- API: `https://rativapolis-guilds-dev.juniorgmj69.workers.dev`
+- Worker: `rativapolis-guilds-api-v1`
 - Banco: `rativapolis-dev-isolated` (binding `POLIS_DB`)
 - Identidade: sessão do portal RativaGames; jogador vinculado por `game_users`.
 - Economia: saldo existente em `ratopolis_profiles.coins`; a interface o apresenta como queijo.
@@ -54,10 +54,11 @@ Todas as rotas privadas exigem o token de sessão do portal.
 - O progresso multiplayer é compartilhado pelo servidor; o painel consulta o servidor a cada 8 segundos enquanto está aberto e atualiza imediatamente ao retornar à aba/janela. Ainda não há push instantâneo por WebSocket para mudanças de guilda.
 - O carregamento foi otimizado: a primeira consulta não bloqueia a abertura quando já há dados em memória; o endpoint `/api/guilds/me` executa verificações independentes em paralelo e não processa filas pesadas durante a leitura.
 - As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
-- Eventos de monstros, Bosses e presença online ainda não geram progresso de missão; nesta versão, fases, queijo, bolotas e doações são os eventos ligados ao servidor.
+- A API independente v1 já cobre identidade autenticada, consulta da guilda, busca, ranking, criação, convites, solicitações, cargos, remoção, saída, transferência, mural, doação, retirada e compra na loja. A interface de teste aponta para esse Worker.
+- Missões ainda não recebem eventos de fases, queijo coletado, bolotas, monstros ou Bosses nesta nova API. Não distribuir CP/XP por esses eventos até existir uma integração de servidor verificável. Presença online também não está ligada.
 - O Worker da API de desenvolvimento usa a versão `rativapolis-api-dev-v6-guild-cp`.
 - A interface mantém os dados em memória ao reabrir o painel, atualiza em segundo plano e consulta a API em intervalo de 15 segundos enquanto a guilda está aberta.
-- O painel e a API foram salvos/deployados em desenvolvimento. Os testes com três contas/dispositivos e as operações financeiras simultâneas ainda precisam ser executados com contas reais de teste.
+- O painel de teste e a API independente foram publicados no ambiente de desenvolvimento. Ainda faltam testes ponta a ponta com contas reais, concorrência financeira e validação de todas as rotas antes de qualquer uso oficial.
 
 ## Migração
 
