@@ -302,12 +302,15 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .ol-screen .ol-action{margin-top:10px}.ol-screen .ol-action:active{transform:scale(.99)}#rotateNotice{display:none;position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 25%,#42206e,#090611 72%);color:#fff;align-items:center;justify-content:center;text-align:center;padding:26px;font-family:system-ui,sans-serif}#rotateNotice .rotate-card{max-width:380px}#rotateNotice .rotate-icon{font-size:76px;display:block;animation:turnPhone 1.8s ease-in-out infinite}#rotateNotice h2{font-size:25px;margin:12px 0 8px}#rotateNotice p{color:#e1d5f3;font-size:15px;line-height:1.5}@keyframes turnPhone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}@media(orientation:portrait){#game{visibility:hidden!important}#rotateNotice{display:flex!important}}.portal-rank-link{display:block;margin:10px auto 0;text-align:center;text-decoration:none;color:#f0e7fb;width:100%;}
 
 /* v82 — ranking em duas colunas e central de doações no lobby online */
-.online-rank-list.rank-two-column{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(5,minmax(42px,auto));grid-auto-flow:column;gap:5px;max-height:none;overflow:visible;align-content:start}
-.rank-two-column .online-rank-row{grid-template-columns:22px minmax(0,1fr);grid-template-rows:auto auto;gap:2px 5px;min-width:0;padding:6px 5px;align-content:center}
-.rank-two-column .online-rank-row i{grid-row:1/3;align-self:center}
-.rank-two-column .online-rank-row b{grid-column:2;grid-row:1;font-size:11px;min-width:0}
-.rank-two-column .online-rank-row span{grid-column:2;grid-row:2;text-align:left;font-size:10px}
-.rank-two-column .online-rank-row small{display:none}
+/* Ranking: uma linha por jogador, sem sobreposição entre colunas */
+.online-rank-list.rank-one-column{display:grid;grid-template-columns:minmax(0,1fr);grid-auto-flow:row;grid-auto-rows:minmax(36px,auto);gap:5px;max-height:none;min-height:0;overflow:visible;align-content:start;width:100%;box-sizing:border-box}
+.rank-one-column .online-rank-row{display:grid;grid-template-columns:30px minmax(0,1fr) max-content;grid-template-rows:minmax(24px,auto);gap:6px;align-items:center;min-width:0;width:100%;box-sizing:border-box;padding:6px 9px;overflow:hidden}
+.rank-one-column .online-rank-row i{grid-column:1;grid-row:1;white-space:nowrap}
+.rank-one-column .online-rank-row b{grid-column:2;grid-row:1;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.rank-one-column .online-rank-row span{grid-column:3;grid-row:1;white-space:nowrap;text-align:right;font-size:11px}
+.rank-one-column .online-rank-row small{display:none}
+.online-rank{min-width:0;width:100%;box-sizing:border-box}
+.rank-pager{gap:6px;flex-wrap:wrap;min-width:0}
 .rank-pager{gap:5px;flex-wrap:wrap}.rank-pager button{min-width:34px;padding:7px 9px}
 .donation-sheet{display:block!important;overflow-y:auto!important;max-height:calc(100dvh - 100px);padding:2px 3px 10px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .donation-total{padding:18px 12px;border:1px solid #76509a;border-radius:14px;background:linear-gradient(135deg,#171020,#302044);display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;margin-bottom:10px}
@@ -1348,12 +1351,11 @@ function drawRemoteRankingPage(){
  if(!list)return;
  remoteRankPage=Math.max(1,Math.min(pages,remoteRankPage));
  const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
- list.replaceChildren();list.className='online-rank-list rank-two-column';
- list.style.maxHeight='none';list.style.minHeight='0';list.style.overflowY='visible';
+ list.replaceChildren();list.className='online-rank-list rank-one-column';
+ list.style.display='grid';list.style.gridTemplateColumns='minmax(0,1fr)';list.style.gridAutoFlow='row';list.style.maxHeight='none';list.style.minHeight='0';list.style.overflowY='visible';list.style.width='100%';
  if(!remoteRankPlayers.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
- // Ordem por coluna: 1–5 à esquerda e 6–10 à direita.
- const ordered=players.slice(0,5).concat(players.slice(5,10));
- ordered.forEach((p,i)=>{
+ // Cada jogador ocupa uma linha inteira; isso evita colisões em telas estreitas.
+ players.forEach((p,i)=>{
   const row=document.createElement('div');row.className='online-rank-row';
   const pos=document.createElement('i');pos.textContent=(start+i+1)+'.';
   const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||'Jogador';
