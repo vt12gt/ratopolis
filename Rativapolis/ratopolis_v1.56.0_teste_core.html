@@ -1041,7 +1041,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   "applicationCategory": "Game"
 }
 </script>
-</head>
+<style id="rpStaffPresenceAnimations">@keyframes rpStaffToastIn{from{opacity:0;transform:translateX(22px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}</style></head>
 <body>
 <div id="ratopolisLoginGate" style="position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at top,#1d4936,#061a13 70%);color:#fff8d8;display:flex;align-items:center;justify-content:center;padding:22px;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
  <div style="width:min(520px,100%);padding:26px;border:2px solid #d7b84d;border-radius:22px;background:#09251c;box-shadow:0 15px 60px #0009">
@@ -3615,6 +3615,35 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   const safe=state.shamanObjects.filter(o=>o&&typeof o==='object'&&Number.isFinite(Number(o.x))&&Number.isFinite(Number(o.y))&&Number.isFinite(Number(o.w))&&Number.isFinite(Number(o.h))).slice(0,80).map(o=>({...o,shamanPlaced:true}));
   obstacles=obstacles.filter(o=>!o.shamanPlaced).concat(safe);
  }
+ let staffPresenceState='offline',staffPresenceInFlight=null;
+ function showStaffPresenceToast(data){
+  let stack=document.getElementById('rpStaffPresenceStack');
+  if(!stack){stack=document.createElement('div');stack.id='rpStaffPresenceStack';stack.style.cssText='position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:2147483646;display:flex;flex-direction:column;gap:8px;width:min(360px,calc(100vw - 24px));pointer-events:none;font-family:system-ui,sans-serif';document.body.appendChild(stack);}
+  const online=String(data.status||'')==='online';
+  const role=String(data.role||'Staff').slice(0,32),nickname=String(data.nickname||'Equipe').slice(0,32);
+  const card=document.createElement('div');card.style.cssText='display:flex;align-items:center;gap:11px;padding:12px 14px;border:1px solid '+(online?'#6bd99b':'#9aa4b2')+';border-radius:14px;background:rgba(12,27,35,.94);color:#fff;box-shadow:0 8px 28px #0008;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:rpStaffToastIn .28s ease-out;pointer-events:none;overflow:hidden';
+  const icon=document.createElement('div');icon.textContent=online?'🟢':'⚫';icon.style.cssText='font-size:24px;flex:0 0 auto';
+  const body=document.createElement('div');body.style.cssText='min-width:0;display:flex;flex-direction:column;gap:3px';
+  const title=document.createElement('strong');title.textContent=nickname+(online?' entrou no RativaPolis!':' ficou offline.');title.style.cssText='font-size:14px;line-height:1.25;overflow-wrap:anywhere';
+  const subtitle=document.createElement('span');subtitle.textContent=role.toUpperCase()+' · AVISO GLOBAL';subtitle.style.cssText='font-size:10px;letter-spacing:1px;color:'+(online?'#8eeab0':'#c3cbd5')+';font-weight:900';
+  body.append(title,subtitle);card.append(icon,body);stack.appendChild(card);
+  while(stack.children.length>4)stack.removeChild(stack.firstChild);
+  setTimeout(()=>{card.style.transition='opacity .35s,transform .35s';card.style.opacity='0';card.style.transform='translateX(18px)';setTimeout(()=>card.remove(),380);},4600);
+ }
+ async function announceStaffPresence(status){
+  if(staffPresenceInFlight){try{await staffPresenceInFlight}catch(_){}}
+  if(status==='online'&&staffPresenceState==='online')return;
+  if(status==='offline'&&staffPresenceState!=='online')return;
+  const task=(async()=>{const role=await getVerifiedStaffRole();if(!role)return false;const token=getToken();if(!token)return false;const result=await api('/api/admin/community-announcement',{event:'presence',status},token);if(result&&result.ok)staffPresenceState=status;return !!(result&&result.ok);})();
+  staffPresenceInFlight=task;
+  try{await task;}catch(_){}
+  finally{if(staffPresenceInFlight===task)staffPresenceInFlight=null;}
+ }
+ window.addEventListener('pagehide',event=>{
+  if(event.persisted||staffPresenceState!=='online')return;
+  const token=getToken();if(!token)return;
+  try{fetch(ROOMS_API+'/api/admin/community-announcement',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({event:'presence',status:'offline'})}).catch(()=>{});staffPresenceState='offline';}catch(_){}
+ });
  async function connectRoomSocket(code){
   if(!activeRoomCode||activeRoomCode!==code)return;
   if(socketConnectInFlight)return;
@@ -3629,11 +3658,13 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
    const wsUrl=ROOMS_API.replace(/^https:/,'wss:').replace(/^http:/,'ws:')+'/ws?room='+encodeURIComponent(code)+'&ticket='+encodeURIComponent(ticketData.ticket||'');
    const ws=new WebSocket(wsUrl);roomSocket=ws;
    ws.addEventListener('open',()=>{if(roomSocket!==ws)return;connectionLost=false;setOnlineStatus('Sala online · movimento conectado');setMessage('Conectado à sala '+code+'. Os ratos conectados aparecem no cenário.','success');
+    announceStaffPresence('online');
     if(stateSendTimer)clearInterval(stateSendTimer);stateSendTimer=setInterval(sendLocalPlayerState,100);
    });
    ws.addEventListener('message',ev=>{if(roomSocket!==ws)return;let data;try{data=JSON.parse(ev.data)}catch(_){return;}
     if(data.type==='room_state'){roomState={...roomState,room:data.room,players:data.players||[]};applyRoomState(roomState);}
     else if(data.type==='player_state'&&data.player){const p=data.player;remotePlayers.set(String(p.id),{...p,...(p.state||{}),id:p.id,nickname:p.nickname});if(p.state&&p.state.role==='shaman'){applySyncedShamanObjects(p.state);if(String(p.id)!==String(getLocalPlayerId()||'')&&typeof window.__ratopolisSetRemoteShamanPreview==='function')window.__ratopolisSetRemoteShamanPreview(p.state.shamanPreview||null);}if(roomState&&Array.isArray(roomState.players)){const i=roomState.players.findIndex(x=>String(x.id)===String(p.id));if(i>=0)roomState.players[i]=p;else roomState.players.push(p);}drawRemoteAvatars();}
+    else if(data.type==='staff_presence'){showStaffPresenceToast(data);}
     else if(data.type==='game_announcement'){const log=document.querySelector('#chatPanel #chatLog')||document.getElementById('chatLog');if(log){const line=document.createElement('div');line.className='chat-line system';line.textContent='📢 AVISO DA EQUIPE · '+String(data.text||'').slice(0,220);log.appendChild(line);while(log.children.length>100)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight;}}
    });
    ws.addEventListener('close',()=>{if(roomSocket!==ws)return;roomSocket=null;if(stateSendTimer){clearInterval(stateSendTimer);stateSendTimer=null;}if(activeRoomCode===code){setOnlineStatus('Reconectando ao jogo…');socketRetryTimer=setTimeout(()=>connectRoomSocket(code),2500);}});
@@ -3752,6 +3783,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(!activeRoomCode){setMessage('Você não está em uma sala online.','');return true;}
   const code=activeRoomCode,token=getToken(),playerId=String(getLocalPlayerId()||'');
   if(!token){setMessage('Sessão ausente. Entre novamente antes de sair da sala online.','error');return false;}
+  announceStaffPresence('offline');
   if(leaveBtn)leaveBtn.disabled=true;
   const inGameExit=$('onlineLeaveGameBtn');if(inGameExit)inGameExit.disabled=true;
   generation++;stopPolling();
