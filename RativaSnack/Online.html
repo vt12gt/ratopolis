@@ -425,6 +425,20 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{overflow:visible!important;min-height:auto!important}
 #sheetBody>.donation-sheet>.donation-scroll .donation-total{margin-bottom:0}
 #sheetBody>.donation-sheet>.donation-scroll .donation-info{margin-top:0}
+</style><style>
+#paused .panel{width:min(760px,96vw);max-height:92vh;overflow:auto;padding:clamp(12px,2.2vw,22px)}
+#paused .pause-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+#paused .pause-head button{min-height:44px;font-size:clamp(12px,1.7vw,16px);font-weight:1000}
+#paused .pause-ranking{width:100%;border:1px solid #ffffff25;border-radius:14px;background:#160d2a99;padding:10px;box-sizing:border-box;text-align:left}
+#paused .pause-ranking h2{margin:0 0 8px;text-align:center;color:#ffd34e;font-size:clamp(14px,2vw,19px)}
+#paused .pause-rank-head,#paused .pause-rank-row{display:grid;grid-template-columns:30px minmax(72px,1.5fr) minmax(55px,.9fr) minmax(45px,.7fr) minmax(45px,.7fr);align-items:center;gap:5px}
+#paused .pause-rank-head{padding:5px 4px;color:#c8b6dd;font-size:clamp(9px,1.25vw,12px);font-weight:900;text-align:center}
+#paused .pause-rank-row{padding:7px 4px;border-top:1px solid #ffffff16;color:#fff;font-size:clamp(10px,1.5vw,14px);text-align:center;font-weight:800}
+#paused .pause-rank-row .pr-nick{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#paused .pause-rank-row .pr-pos{color:#ffd34e}
+#paused .pause-rank-row .pr-points{color:#ffd34e}
+#paused .pause-rank-empty{padding:14px;text-align:center;color:#c8b6dd;font-size:12px}
+@media(max-width:520px){#paused .panel{width:96vw;padding:10px}#paused .pause-ranking{padding:7px}#paused .pause-rank-head,#paused .pause-rank-row{grid-template-columns:23px minmax(62px,1.3fr) minmax(45px,.8fr) minmax(38px,.65fr) minmax(38px,.65fr);gap:3px}}
 </style></head>
 <body><div id="rotateNotice" role="status" aria-live="polite"><div class="rotate-card"><span class="rotate-icon">📱</span><h2>GIRE O CELULAR</h2><p>O RativaSnack Online foi feito para jogar na horizontal. Vire o aparelho para continuar.</p></div></div><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -474,7 +488,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
 
-<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><div class="btns"><button class="b3d gold" id="resume">CONTINUAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">VOLTAR AO LOBBY ONLINE</button></div></div></div></div>
+<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Partida pausada</h1><div class="pause-head"><button class="b3d gold" id="resume">▶ CONTINUAR</button><button class="b3d purple" id="quit">VOLTAR AO LOBBY</button></div><div class="pause-ranking"><h2>🏆 TOP 5 DA PARTIDA · AO VIVO</h2><div class="pause-rank-head"><span>#</span><span>JOGADOR</span><span>PONTOS</span><span>TAM.</span><span>ABATES</span></div><div id="pauseLiveRank"><div class="pause-rank-empty">Carregando classificação…</div></div></div></div></div>
 <div class="resume-wait hidden" id="resumeWait"><div class="rw-card"><b id="resumeCount">5</b><small>PREPARE-SE PARA VOLTAR</small></div></div>
 <div class="overlay hidden" id="revive"><div class="panel dlg"><div class="logo">✨</div><h1>Continuar?</h1><p class="subtitle" id="reviveTxt"></p><div class="rvbar"><i id="rvB"></i></div><div class="btns"><button class="b3d gold" id="reviveYes">CONTINUAR</button><button class="b3d purple" id="reviveNo">TERMINAR</button></div></div></div>
 <div class="overlay hidden" id="tut"><div class="panel dlg"><div class="logo" id="tutI">🎮</div><h1 id="tutT"></h1><div class="tutl" id="tutL"></div><div class="btns"><button class="b3d gold" id="tutOk">ENTENDI! JOGAR</button></div></div></div>
@@ -1288,7 +1302,7 @@ function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);a
  const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
  if(idx>=5)h+='<div class="sep"></div>'+row(player,idx);
- if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
+ if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}if(paused)refreshPauseRanking()}
 function syncBoostBtn(){bb.classList.toggle('hidden',!(running&&!paused&&!resumeCountdown&&!ended&&player&&player.alive));mm.classList.toggle('hidden',!(running&&!ended&&player));lb.classList.toggle('hidden',!(running&&!ended&&player));$('pause').classList.toggle('hidden',!(mpOnline&&running&&!ended))}
 function update(dt){
  if(olDeathActive){olDeathTimer-=dt;const ce=document.getElementById('olDeathCount');if(ce)ce.textContent=String(Math.max(0,Math.ceil(olDeathTimer)));if(olDeathTimer<=0)olFinishDeathSummary();return}
@@ -1362,7 +1376,8 @@ function startGame0(m){
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
 function expandGameScreen(){try{const el=document.documentElement;if(document.fullscreenElement){if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});return}if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
-function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);$('pauseStats').innerHTML=[['Pontos',score],['Tamanho',player.length],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}
+function refreshPauseRanking(){const el=$('pauseLiveRank');if(!el)return;const arr=snakes.filter(x=>x&&x.alive&&!x.boss).slice().sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)).slice(0,5);el.innerHTML=arr.length?arr.map((x,i)=>`<div class="pause-rank-row"><span class="pr-pos">${i+1}º</span><span class="pr-nick">${String(x.name||'Jogador').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</span><span class="pr-points">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><span>${Math.max(0,Math.floor(Number(x.length)||0))}</span><span>${Math.max(0,Math.floor(Number(x.kills)||0))}</span></div>`).join(''):'<div class="pause-rank-empty">Nenhum jogador na classificação agora.</div>'}
+function fillPause(){refreshPauseRanking()}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;if(paused){resumeFromPause();return}paused=true;resumeCountdown=0;player.localPaused=!!mpOnline;$('resumeWait').classList.add('hidden');releaseDrag();player.boostActive=false;fillPause();$('paused').classList.remove('hidden');$('pause').textContent='▶';if(mpRole==='client'&&mpDC&&mpDC.readyState==='open')mpDC.send(JSON.stringify({p:true,a:+mpAng.toFixed(2),b:0}));flushSave();syncBoostBtn();syncMusic()}
 function resumeFromPause(){if(!paused||!running||ended)return;paused=false;resumeCountdown=mpOnline?5:0;if(player)player.localPaused=!!resumeCountdown;$('pause').textContent='SAIR';$('paused').classList.add('hidden');if(resumeCountdown>0){$('resumeCount').textContent='5';$('resumeWait').classList.remove('hidden')}else if(player)player.localPaused=false;syncBoostBtn();syncMusic()}
 function toMenu(){document.body.classList.remove('playing');if(mpRole)mpLeave();else if(ol.inRoom)olLeaveRoom();mpOnline=false;mpPending=false;mpRole=null;if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;resumeCountdown=0;$('resumeWait').classList.add('hidden');ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));$('pause').classList.add('hidden');init();ended=false;$('menu').classList.remove('hidden');olApplyIdentity();menuInfo()}
