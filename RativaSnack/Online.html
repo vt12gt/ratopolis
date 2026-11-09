@@ -47,7 +47,7 @@ table.rec{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.rec t
 .bonus{left:calc(env(safe-area-inset-left) + 116px);top:calc(env(safe-area-inset-top) + 44px)}
 #mm{top:calc(env(safe-area-inset-top) + 46px)}
 #lb{position:absolute;right:calc(env(safe-area-inset-right) + 12px);top:calc(env(safe-area-inset-top) + 90px);width:134px;font-size:10.5px;line-height:1.35;background:#1d122ab3;border:1px solid #ffffff14;border-radius:8px;padding:5px 7px;pointer-events:none;z-index:3}
-#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;align-items:center;gap:4px}#lb .r .rscore{color:#ffd34e;font-weight:900;white-space:nowrap}#lb .r .rdeaths{white-space:nowrap;color:#ff9aa9;font-weight:800}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
+#lb .h{color:#bfafd2;font-weight:800;margin-bottom:2px}#lb .r{display:flex;align-items:center;gap:4px}#lb .r .rscore{color:#ffd34e;font-weight:900;white-space:nowrap}#lb .r i{font-style:normal;width:12px;color:#a890c3}#lb .r b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}#lb .r span{color:#bfafd2}#lb .me,#lb .me i,#lb .me span{color:#ffd34e}#lb .sep{height:1px;background:#ffffff1c;margin:2px 0}
 .killer{margin:6px 0;padding:8px;border-radius:10px;background:#2a1822;border:1px solid #ff5d7344;font-size:13px;font-weight:700}.rewards{font-size:12px;color:#ffe08a;margin:6px 0}
 /* Etapa 3B: menu em duas colunas e personalização */
 .brandrow{display:flex;align-items:center;gap:10px;justify-content:center}.brandrow canvas{position:static;border-radius:10px;background:#1a1025;width:100px;height:37px;flex:none}
@@ -1285,7 +1285,7 @@ function updateHud(force){
 // Ranking ao vivo por pontos da partida (desempate por eliminações): top 5 + sua posição.
 function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);arr.sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0)||b.kills-a.kills);leader=arr.length>3&&arr[0]!==player&&!arr[0].boss?arr[0]:null;
  const idx=arr.indexOf(player);if(idx>=0){myRank=idx+1;rankTotal=arr.length}
- const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b><span class="rdeaths">${Math.max(0,Math.floor(Number(x.kills)||0))} ☠️</span></div>`;
+ const row=(x,i)=>`<div class="r${x===player?' me':''}"><i>${i+1}</i><span class="rscore">${Math.max(0,Math.floor(Number(x.points)||0)).toLocaleString('pt-BR')}</span><b>${x.special?SPECIALS[x.special].icon+' ':''}${x.name}</b></div>`;
  let h=`<div class="h">Ranking #${myRank}/${rankTotal}</div>`;for(let i=0;i<Math.min(5,arr.length);i++)h+=row(arr[i],i);
  if(idx>=5)h+='<div class="sep"></div>'+row(player,idx);
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
