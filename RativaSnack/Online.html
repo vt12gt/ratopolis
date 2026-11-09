@@ -926,8 +926,8 @@ async function olPlay(selectedMode){const allowed=['quick','survival','challenge
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin})})}
-function olFinalizeLeave(){if(ol.leaveTimer){clearTimeout(ol.leaveTimer);ol.leaveTimer=0}ol.leavePending=false;ol.inRoom=false;ol.players=[];ol.bye=true;const ws=ol.ws;ol.ws=null;try{if(ws&&ws.readyState<2)ws.close(1000,'left_room')}catch(_){}mpConns.length=0;mpSlots.length=0}
-function olBeginLeave(onDone){if(ol.leavePending)return;const ws=ol.ws;if(!ws||ws.readyState!==1){olFinalizeLeave();if(onDone)onDone();return}ol.leavePending=true;ol.leaveDone=onDone||null;const command=ol.isHost?{t:'ctl',k:'end'}:{t:'leave'};if(!olSend(command)){olFinalizeLeave();if(onDone)onDone();return}ol.leaveTimer=setTimeout(()=>{const done=ol.leaveDone;olFinalizeLeave();if(done)done()},1500)}
+function olFinalizeLeave(){if(ol.leaveTimer){clearTimeout(ol.leaveTimer);ol.leaveTimer=0}ol.leavePending=false;ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
+function olBeginLeave(onDone){if(ol.leavePending)return;const ws=ol.ws;if(!ws||ws.readyState!==1){olFinalizeLeave();if(onDone)onDone();return}ol.leavePending=true;ol.leaveDone=onDone||null;const command=ol.isHost?{t:'ctl',k:'end'}:{t:'leave'};if(!olSend(command)){olFinalizeLeave();if(onDone)onDone();return}ol.leaveTimer=setTimeout(()=>{const done=ol.leaveDone;const stale=ol.ws;ol.ws=null;try{if(stale&&stale.readyState<2)stale.close(1000,'leave_timeout')}catch(_){}olFinalizeLeave();if(done)done()},1200)}
 function olLeaveRoom(){olBeginLeave()}
 function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}
  if(!ol.inRoom)return;ol.tries++;if(ol.tries>12){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.inRoom)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
@@ -997,23 +997,17 @@ function olSetUrl(){const e=mpEl('olU');if(!e){ol.url='';olSave();return olHome(
 async function olAuth(path,b){olMsgSet('Conectando…');if(navigator.onLine===false){olMsgSet('Sem internet.');return}try{const j=await olApi(path,b);if(j.s===200&&j.token&&j.id&&j.nick){olSetAuth(j);olHome()}else olMsgSet(OL_ERR[j.error]||'Não foi possível entrar ('+j.s+').')}catch(e){olMsgSet('Não consegui falar com o servidor.')}}
 function olDoLogin(){olAuth('/api/login',{identifier:olVal('olL'),password:mpEl('olP').value})}
 async function olDoLogout(){try{await olApi('/api/logout',{},ol.token)}catch(e){}ol.token=ol.id=ol.nick='';olSave();olHome()}
-async function olDoPlay(selectedMode){if(navigator.onLine===false){olMsgSet('Sem Internet. Conecte-se para jogar Online.');return}if(!ol.token||!ol.serverOnly){olHome();return}ol.view=true;olLoading('Conectando à conta RativaGames…');try{await new Promise(resolve=>setTimeout(resolve,120));const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id)throw new Error('sessao_invalida');const ident=olReadIdentity(me);if(ident.nick)ol.nick=ident.nick;await olSyncProgress();olApplyIdentity();olLoadText('Carregando seu perfil exclusivo do RativaSnack…');await new Promise(resolve=>setTimeout(resolve,100));olLoadText('Procurando jogadores e preparando uma sala…');await olPlay(selectedMode||mode);if(ol.players.length)olRoomView();}catch(e){ol.inRoom=false;ol.view=false;olLoadingError('Não foi possível validar a conta, carregar o perfil ou conectar à sala. Nenhum progresso local foi usado.')}}
+async function olDoPlay(selectedMode){if(navigator.onLine===false){olMsgSet('Sem Internet. Conecte-se para jogar Online.');return}if(!ol.token||!ol.serverOnly||!ol.profile||!ol.id){olHome();return}ol.view=true;olLoading('Procurando uma sala…');try{olApplyIdentity();await olPlay(selectedMode||mode);if(ol.players.length)olRoomView();}catch(e){ol.inRoom=false;ol.view=false;olLoadingError('Não foi possível conectar à sala. Sua sessão será validada novamente ao reconectar. Nenhum progresso local foi usado.')}}
 function olLoading(message){mpBox('<div class="ol-screen"><div class="ol-mark">🐭⚡</div><h2>PROCURANDO UMA SALA</h2><div class="ol-spinner"></div><p id="olLoadText">'+olEsc(message||'Conectando…')+'</p><div class="ol-steps"><span>🔐 Conta validada</span><span>☁️ Perfil carregado</span><span>🎮 Sala online</span></div><p><small>Estamos procurando jogadores reais para esta modalidade.</small></p></div>')}function olLoadText(message){const e=mpEl('olLoadText');if(e)e.textContent=message}function olLoadingError(message){mpBox('<div class="ol-screen"><div class="ol-mark">⚠️</div><h2>Não foi possível conectar</h2><p>'+olEsc(message)+'</p>'+mpB('Tentar novamente','olDoPlay()')+mpB('Voltar ao Portal','location.href=\'https://vt12gt.github.io/RativaGames/\'')+'</div>')}function olRoomView(extra){const modeName=(MODES[ol.mode||mode]||MODES.quick).name;mpBox(`<div class="ol-screen"><div class="ol-mark">🌐</div><h2>SALA ONLINE · ${olEsc(modeName)}</h2><p>${ol.players.map(p=>(p.id===ol.id?'⭐ ':'• ')+olEsc(p.nick||(p.id===ol.id?ol.nick:'Jogador'))+' · Nv. '+Math.max(1,Number(p.level)||1)+(p.id===ol.hostId?' 👑':'')+(p.online?'':' (reconectando)')).join('<br>')||'Aguardando jogadores…'}</p><p>${olEsc(extra||'Sala encontrada. Aguardando jogadores e início da partida…')}</p>${mpB('Sair da sala','olCancel()','background:#5b2f48;color:#fff')}</div>`)}
 function olExitToLobby(){
- // Saída manual independente do estado visual da pausa ou de mpOnline.
+ // A tela volta imediatamente ao menu local. A saída da sala é confirmada em segundo plano.
  if(olDeathInterval){clearInterval(olDeathInterval);olDeathInterval=0}
  olDeathActive=false;olDeathTimer=0;
  const summary=document.getElementById('olDeathSummary');if(summary)summary.remove();
- running=false;paused=false;ended=true;releaseDrag();document.body.classList.remove('playing');document.body.classList.add('online-access');
- ['over','paused','sheet'].forEach(id=>{const e=$(id);if(e)e.classList.add('hidden')});
- $('pause').classList.add('hidden');ol.view=false;
- // Envia o comando enquanto a conexão e o estado de anfitrião ainda estão disponíveis.
+ ol.view=false;
  try{olBeginLeave()}catch(e){try{olFinalizeLeave()}catch(_){}}
- mpOnline=false;mpPending=false;
- try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=mpPC=null;
- for(const c of mpConns){try{if(c.dc)c.dc.close();if(c.pc)c.pc.close()}catch(_){}}
- mpConns.length=0;mpSlots.length=0;mpRole=null;
- try{olHome()}catch(e){onlineServerOnly=true;mpBox('<div class="ol-screen"><h2>LOBBY ONLINE</h2><p>Você saiu da partida. Toque para abrir o lobby novamente.</p>'+mpB('VOLTAR AO LOBBY','olHome()')+'</div>')}
+ // toMenu() é o equivalente Online do retorno instantâneo usado pelo Offline.
+ toMenu();
 }
 function olCancel(){if(ol.token){olExitToLobby();return}toMenu()}
 let wbRun=false,wbRunId=0,wbA0=100;const WB_TIERS=[{p:25,c:100,x:0},{p:50,c:200,x:100},{p:75,c:300,x:150}];
