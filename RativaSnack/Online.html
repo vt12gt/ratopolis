@@ -1208,6 +1208,8 @@ async function olVerifyRatopolisSession(){
   const gate=mpEl('mp');if(gate)gate.style.display='none';
   ol.view=false;olVerifyAttempts=0;
   if(olVerifyTimer){clearTimeout(olVerifyTimer);olVerifyTimer=0}
+  // Após confirmar a conta, reconstruir o lobby autenticado. Ocultar apenas o bloqueio deixava o jogo sem menu ativo.
+  olHome();
   showToast('Bem-vindo ao RativaSnack, '+ol.nick+'!',3);return true;
  }catch(e){
   console.warn('RativaSnack: conta não validada; acesso Online bloqueado.',e);
