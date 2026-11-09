@@ -371,7 +371,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
-  <button class="b3d sq" data-sheet="mp"><span>📶</span>Multiplayer</button>
+  <button class="b3d sq" data-sheet="online"><span>📶</span>Conectar Multiplayer</button>
   <button class="b3d sq" data-sheet="custom"><span>🎨</span>Visual</button>
  </div>
 </div>
@@ -1428,7 +1428,7 @@ const bUp=e=>{if(bid!==null&&e&&e.pointerId!==bid)return;bid=null;boostHold=fals
 ['pointerup','pointercancel','lostpointercapture'].forEach(n=>bb.addEventListener(n,bUp));bb.addEventListener('pointercancel',()=>autoPause());bb.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
-$('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sheet]');if(b){if(b.dataset.sheet==='mp')mpOpen();else openSheet(b.dataset.sheet)}});
+$('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sheet]');if(b){if(b.dataset.sheet==='mp')mpOpen();else if(b.dataset.sheet==='online'){mpOpen();olHome()}else openSheet(b.dataset.sheet)}});
 $('sheetBody').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act]');if(b)onAct(b.dataset.act)});
 $('sheetBack').onclick=()=>{$('sheet').classList.add('hidden');$('menu').classList.remove('hidden');menuInfo()};
 $('play').onclick=()=>startGame(mode);applySkillsToCfg();applyControlPrefs();applyA11y();
