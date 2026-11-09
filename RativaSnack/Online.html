@@ -388,7 +388,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="overlay" id="menu"><div class="m2">
 <div class="m2top">
  <button class="b3d gear" data-sheet="season" aria-label="Temporada">📅</button>
-  <button class="b3d gear" data-sheet="mp" aria-label="Sala multiplayer">📶</button>
   <button class="b3d gear" data-sheet="settings" aria-label="Ajustes">⚙️</button>
  <button class="who" id="whoBtn" aria-label="Apelido"><span class="av">🐭</span><span class="wn"><small>RATO SNACK ✎</small><b id="nickMenu"></b></span></button>
  <div class="bestp"><span class="pod"><i>2</i><i>1</i><i>3</i></span><div><small>MELHOR PONTUAÇÃO</small><b id="bestN">0</b></div></div>
@@ -413,13 +412,10 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
   <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
-  <button class="b3d sq" data-sheet="online"><span>📶</span>Conectar Multiplayer</button>
-  <button class="b3d sq" data-sheet="custom"><span>🎨</span>Visual</button>
  </div>
 </div>
 <div class="m2bot">
  <button class="b3d gold freeb" data-sheet="games"><span>🎮</span>Jogos</button>
- <button class="editb" data-sheet="custom"><canvas id="pvm" width="150" height="56"></canvas><b>EDITAR RATO</b></button>
  <button class="jogar" id="play">Jogar <svg viewBox="0 0 24 24" width="1em" height="1em"><path d="M6 3l15 9-15 9z" fill="#fff"/></svg></button>
 </div>
 <div id="startBest" class="hidden"></div>
@@ -1574,10 +1570,10 @@ const bUp=e=>{if(bid!==null&&e&&e.pointerId!==bid)return;bid=null;boostHold=fals
 ['pointerup','pointercancel','lostpointercapture'].forEach(n=>bb.addEventListener(n,bUp));bb.addEventListener('pointercancel',()=>autoPause());bb.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
-$('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sheet]');if(b){if(b.dataset.sheet==='mp')mpOpen();else if(b.dataset.sheet==='online'){mpOpen();olHome()}else openSheet(b.dataset.sheet)}});
+$('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sheet]');if(b){if(b.dataset.sheet==='mp'||b.dataset.sheet==='online'){olHome();}else openSheet(b.dataset.sheet)}});
 $('sheetBody').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act]');if(b)onAct(b.dataset.act)});
 $('sheetBack').onclick=()=>{$('sheet').classList.add('hidden');$('menu').classList.remove('hidden');menuInfo()};
-$('play').onclick=()=>startGame(mode);emoteInit();applySkillsToCfg();applyControlPrefs();applyA11y();
+$('play').onclick=()=>olDoPlay();emoteInit();applySkillsToCfg();applyControlPrefs();applyA11y();
 function startGame(m){const mm=m||mode;if(mm==='mundial'){if(!wbOpen()){gAlert(wbMsg());return}wbRun=true;wbRunId=wbId();wbA0=wbHpNow();wbRunEnd=Date.now()+(WB_START[wbSlot()]+WB_LEN-wbMin())*60000-new Date().getSeconds()*1000;m='boss'}else wbRun=false;if(mm==='daily'&&!dcStart())return;startGame0(m);if(!prefs.tut[mode])openTut(mode);else{const e=evtOf();showToast('🌟 '+e.n+': '+e.d,3)}}
 function openTut(k){const T=TUT[k];if(!T)return;tutOpen=true;paused=true;$('tutI').textContent=T[0];$('tutT').textContent=T[1];$('tutL').innerHTML='<p>🕹️ Arraste o dedo para guiar • segure ⚡ para acelerar.</p>'+T[2].map(x=>`<p>• ${x}</p>`).join('');$('tut').classList.remove('hidden');syncBoostBtn()}
 function closeTut(){if(!tutOpen)return;tutOpen=false;paused=false;prefs.tut[mode]=1;savePrefs();$('tut').classList.add('hidden');releaseDrag();syncBoostBtn()}
