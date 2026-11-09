@@ -440,7 +440,7 @@ let saveFailed=false,bestDirty=false,onlineServerOnly=true;
 const numOk=(v,min,max)=>v!==undefined&&v!==null&&v!==''&&Number.isFinite(+v)&&+v>=min&&+v<=max;
 const parseObj=t=>{try{const o=JSON.parse(t);return o&&typeof o==='object'&&!Array.isArray(o)?o:null}catch(e){return null}};
 // Leitura resistente: JSON inválido é guardado em '.corrupt' (nunca apagado) e a cópia '.bak' é usada.
-function readObj(k){if(onlineServerOnly&&k!=='ratoSnackPrefs')return null;const raw=store.get(k,null);let o=raw===null?null:parseObj(raw);if(raw!==null&&!o)store.set(k+'.corrupt',raw);if(!o){const b=store.get(k+'.bak',null);o=b===null?null:parseObj(b);if(o)store.set(k,b)}return o} // usa a cópia e REPARA a chave principal
+function readObj(k){const raw=store.get(k,null);let o=raw===null?null:parseObj(raw);if(raw!==null&&!o)store.set(k+'.corrupt',raw);if(!o){const b=store.get(k+'.bak',null);o=b===null?null:parseObj(b);if(o)store.set(k,b)}return o} // usa a cópia e REPARA a chave principal
 // Escrita: guarda a versão anterior válida como '.bak' e confere a releitura.
 function writeKey(k,str,okFn){if(onlineServerOnly&&k!=='ratoSnackPrefs')return true;if(importing)return true;const prev=store.get(k,null);if(prev!==null&&okFn(prev))store.set(k+'.bak',prev);const ok=store.set(k,str)&&store.get(k,null)===str;saveFailed=!ok;return ok}
 function loadJSON(k,def){return Object.assign({},def,readObj(k)||{})}
@@ -449,7 +449,7 @@ const STATS_DEF={games:0,kills:0,food:0,time:0,bestSize:8,bestTime:0,bestChallen
 const stats=loadJSON('ratoSnackStats',STATS_DEF);
 for(const k in STATS_DEF)stats[k]=numOk(stats[k],0,1e9)?+stats[k]:STATS_DEF[k];
 for(const k of ['music','sfx','fullscreen','boostLeft','vib','stickLeft','arrows','bigtxt','cblind','autoq'])prefs[k]=prefs[k]===true;
-const readBest=k=>{if(onlineServerOnly)return 0;const v=store.get(k,null);return numOk(v,0,1e9)?+v:0};
+const readBest=k=>{const v=store.get(k,null);return numOk(v,0,1e9)?+v:0};
 let bestQuick=Math.max(readBest('ratoSnackBest'),readBest('ratoSnackBest.bak')); // chave original preservada
 if(!PLAYER_COLORS.includes(prefs.color))prefs.color=PLAYER_COLORS[0];
 if(!SKINS[prefs.skin])prefs.skin='liso';if(!FACES[prefs.face])prefs.face='normal';if(!ACCS[prefs.acc])prefs.acc='nenhum';if(!TAILS[prefs.tail])prefs.tail='normal';if(prefs.rat!=='nenhum'&&!RATS[prefs.rat])prefs.rat='nenhum';if(!['arrastar','joystick','toque'].includes(prefs.ctl))prefs.ctl='arrastar';for(const k of ['sens','csz','vol','dead'])if(!(prefs[k]>=0&&prefs[k]<=2))prefs[k]=k==='vol'?2:1;if(!QUAL[prefs.quality])prefs.quality='alta';prefs.nick=cleanNick(prefs.nick);if(!(prefs.diff>=0&&prefs.diff<=3))prefs.diff=1;if(!prefs.tut||typeof prefs.tut!=='object'||Array.isArray(prefs.tut))prefs.tut={};for(const k in prefs.tut)if(!TUT[k]||prefs.tut[k]!==1)delete prefs.tut[k];
@@ -457,9 +457,9 @@ if(!MODES[prefs.mode])prefs.mode='quick';
 if(!(prefs.turn>=0&&prefs.turn<TURNS.length))prefs.turn=1;
 const validObj=t=>!!parseObj(t);
 const savePrefs=()=>writeKey('ratoSnackPrefs',JSON.stringify(prefs),validObj);
-const saveStats=()=>writeKey('ratoSnackStats',JSON.stringify(stats),validObj);
+const saveStats=()=>{const ok=writeKey('ratoSnackStats',JSON.stringify(stats),validObj);if(ok)olQueueCloudSave();return ok};
 // Recorde da partida rápida: marcado como pendente e gravado em pausa, fim, ocultar, pagehide e a cada 5 s (evita gravar a cada ponto).
-function flushSave(){if(onlineServerOnly)return;if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
+function flushSave(){if(onlineServerOnly)return;if(ecoDirty)saveEco();mirrorIDB();if(bestDirty)bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9));olQueueCloudSave()}
 
 /* ===== CONFIGURAÇÃO ÚNICA de habilidades (11 níveis), loja e opções ===== */
 const SKILL_CFG={max:11,cost:{base:30,growth:1.35},list:{
@@ -484,11 +484,11 @@ function loadEco(){const o=readObj('ratoSnackEco')||{},e={cheese:numOk(o.cheese,
  if(!o.own){const eq={skin:prefs.skin,acc:prefs.acc,tail:prefs.tail};for(const c in eq)if(CAT[c][eq[c]])e.own[c][eq[c]]=1} // quem já usava um item mantém esse item
  return e}
 const eco=loadEco();
-const saveEco=()=>{ecoDirty=!writeKey('ratoSnackEco',JSON.stringify(eco),validObj)};
+const saveEco=()=>{ecoDirty=!writeKey('ratoSnackEco',JSON.stringify(eco),validObj);if(!ecoDirty)olQueueCloudSave()};
 function pushHist(d,src){eco.hist.push({t:Date.now(),d,s:src,b:eco.cheese});if(eco.hist.length>60)eco.hist.shift()}
 const GS={comida:1,poder:1,'eliminação':1,'rei da arena':1,'Rei Queijo':1,Tanque:1};let gRem=0;
-function earn(n,src){if(onlineServerOnly||(mode==='treino'||mpOnline||mpRole==='client')&&running&&!ended)return 0;const E=evtOf();if(src==='comida'&&E.id==='queijo')n*=2;if(src==='eliminação'&&E.id==='cacada')n*=2;if(src==='poder'&&E.id==='tesouro')n*=3;if(E.id==='cacadaouro'&&(src==='Rei Queijo'||src==='rei da arena'))n*=3;if(GS[src]&&running&&!ended){const v=n*DIFFS[prefs.diff].gain+gRem;n=Math.floor(v);gRem=v-n}else n=Math.floor(n);if(!(n>0))return 0;eco.cheese=Math.min(ECO_MAX,eco.cheese+n);eco.earned+=n;roundEarn[src]=(roundEarn[src]||0)+n;ecoDirty=true;return n}
-function spend(n,src,fn){if(onlineServerOnly){showToast('Compras Online aguardam a validação segura do servidor.',4);return false;}n=Math.floor(n);if(!(n>0)||eco.cheese<n)return false;eco.cheese-=n;eco.spent+=n;if(fn)fn();pushHist(-n,src||'compra');saveEco();return true} // compra + efeito gravados juntos (uma só escrita)
+function earn(n,src){if((mode==='treino'||mpOnline||mpRole==='client')&&running&&!ended)return 0;const E=evtOf();if(src==='comida'&&E.id==='queijo')n*=2;if(src==='eliminação'&&E.id==='cacada')n*=2;if(src==='poder'&&E.id==='tesouro')n*=3;if(E.id==='cacadaouro'&&(src==='Rei Queijo'||src==='rei da arena'))n*=3;if(GS[src]&&running&&!ended){const v=n*DIFFS[prefs.diff].gain+gRem;n=Math.floor(v);gRem=v-n}else n=Math.floor(n);if(!(n>0))return 0;eco.cheese=Math.min(ECO_MAX,eco.cheese+n);eco.earned+=n;roundEarn[src]=(roundEarn[src]||0)+n;ecoDirty=true;return n}
+function spend(n,src,fn){n=Math.floor(n);if(!(n>0)||eco.cheese<n)return false;eco.cheese-=n;eco.spent+=n;if(fn)fn();pushHist(-n,src||'compra');saveEco();return true} // compra + efeito gravados juntos (uma só escrita)
 function settleEarn(){let t=0;for(const k in roundEarn){pushHist(roundEarn[k],k);t+=roundEarn[k]}roundEarn={};if(t)saveEco();return t}
 function cheeseFood(f){if(f.type===0){if(++foodAcc>=5){foodAcc=0;earn(1,'comida')}}else if(f.type===1)earn(5,'comida');else if(f.type<7)earn(3,'poder')}
 /* ===== Versão do formato salvo + migração + espelho IndexedDB (somente local) ===== */
@@ -566,10 +566,10 @@ function ensureOwn(){let ch=false;const L=lvlInfo(prog.xp).l,DF={skin:'liso',acc
  for(const c in DF)if(!eco.own[c][prefs[c]]){prefs[c]=DF[c];ch=true}
  if(ch){ecoDirty=true;savePrefs()}}
 ensureOwn();
-const saveProg=()=>writeKey('ratoSnackProg',JSON.stringify(prog),validObj);
+const saveProg=()=>{const ok=writeKey('ratoSnackProg',JSON.stringify(prog),validObj);if(ok)olQueueCloudSave();return ok};
 const today=()=>Math.max(dayNum(),prog.lastDay); // relógio voltando nunca reabre recompensa
 function lvlInfo(xp){let lo=1,hi=LV_MAX;while(lo<hi){const m=(lo+hi+1)>>1;if(XP_TAB[m]<=xp)lo=m;else hi=m-1}return lo>=LV_MAX?{l:LV_MAX,cur:0,need:0,max:true}:{l:lo,cur:xp-XP_TAB[lo],need:xpNeed(lo)}}
-function addXp(n){if(onlineServerOnly)return 0;const L0=lvlInfo(prog.xp).l;XP.grant(n,'jogo');const L1=lvlInfo(prog.xp).l;if(prog.lvlRw===undefined)prog.lvlRw=L0;let g=0;while(prog.lvlRw<L1&&g++<50){prog.lvlRw++;const r=10+Math.min(prog.lvlRw,100)*2+(prog.lvlRw%10===0?100:0);earn(r,'nível');showToast('🆙 Nível '+prog.lvlRw+'! +'+r+' 🧀',3)}}
+function addXp(n){const L0=lvlInfo(prog.xp).l;XP.grant(n,'jogo');const L1=lvlInfo(prog.xp).l;if(prog.lvlRw===undefined)prog.lvlRw=L0;let g=0;while(prog.lvlRw<L1&&g++<50){prog.lvlRw++;const r=10+Math.min(prog.lvlRw,100)*2+(prog.lvlRw%10===0?100:0);earn(r,'nível');showToast('🆙 Nível '+prog.lvlRw+'! +'+r+' 🧀',3)}saveProg()}
 function bestTitle(){let b=null;for(const a of ACH)if(prog.ach[a.id]&&(!b||a.xp>b.xp))b=a;return b}
 function genMissions(t){let a=(t*2654435761)>>>0;const rnd=()=>{a=(a+0x6D2B79F5)>>>0;let x=a;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296};
  const pool=MPOOL.slice(),out=[];for(let k=0;k<3;k++){const d=pool.splice(Math.floor(rnd()*pool.length),1)[0],vi=Math.floor(rnd()*d.vals.length);out.push({id:d.id,v:d.vals[vi],xp:d.xp+vi*10,p:0,d:0})}return out}
@@ -919,7 +919,33 @@ const OL_ERR={campos_obrigatorios:'Informe seu usuário/e-mail e senha.',credenc
 function olLoad(){ol.url=RATO_SERVER_URL;try{localStorage.removeItem(OL_KEY)}catch(e){}if(!ol.token){ol.id='';ol.nick='';ol.level=1;ol.xp=0;try{const saved=sessionStorage.getItem(OL_KEY);if(saved){const data=JSON.parse(saved);if(data&&typeof data.token==='string'&&data.token.length<=4096){ol.token=data.token;ol.id=String(data.id||'');ol.nick=String(data.nick||'').slice(0,24);ol.ssoPending=true;ol.serverOnly=true;onlineServerOnly=true}}}catch(e){try{sessionStorage.removeItem(OL_KEY)}catch(_){}}if(!ol.token){try{const params=new URLSearchParams(location.hash.slice(1)),handedToken=params.get('ratopolis_token'),handedNick=params.get('ratopolis_nick');if(handedNick)ol.nick=String(handedNick).slice(0,24);if(handedToken&&handedToken.length<=4096){ol.token=handedToken;ol.ssoPending=true;ol.serverOnly=true;onlineServerOnly=true;history.replaceState(null,'',location.pathname+location.search)}}catch(e){}}}}
 function olSave(){try{if(ol.token)sessionStorage.setItem(OL_KEY,JSON.stringify({token:ol.token,id:ol.id||'',nick:ol.nick||''}));else sessionStorage.removeItem(OL_KEY)}catch(e){console.warn('RativaSnack: não foi possível manter a sessão nesta aba',e)}}
 const olHttp=u=>u.replace(/^ws/,'http').replace(/\/+$/,''),olWs=u=>u.replace(/^http/,'ws').replace(/\/+$/,'');
-async function olSyncProgress(){if(!ol.token)throw new Error('sessao_ausente');const remote=await olApi('/api/rato-snack/sync',null,ol.token);if(remote.s!==200||!remote.profile)throw new Error('perfil_online_indisponivel');const profile=remote.profile;ol.profile=profile;ol.xp=Math.max(0,Number(profile.xp)||0);ol.level=Math.max(1,Number(profile.level)||1);prog.xp=Math.min(XP.max,ol.xp);prog.lvlRw=ol.level;prog.xpLog=[];prog.xpSeq=0;prog.xpAck=0;eco.cheese=Math.max(0,Number(profile.coins)||0);bestQuick=Math.max(0,Number(profile.best_score)||0);stats.games=Math.max(0,Number(profile.games_played)||0);stats.wins=Math.max(0,Number(profile.wins)||0);for(const a of (remote.achievements||[])){const id=String(a.achievement_code||'');if(ACH.some(x=>x.id===id)){prog.ach[id]=1;delete prog.achR[id]}}for(const item of (remote.inventory||[])){const parts=String(item.item_code||'').split(':');if(parts.length!==2)continue;const cat=parts[0],id=parts[1];if(eco.own[cat]&&CAT[cat]&&CAT[cat][id])eco.own[cat][id]=1}return true}
+let olCloudTimer=0,olCloudBusy=false,olCloudPending=false,olCloudLastError=0;
+function olCloudSnapshot(){return{stats,prog,eco,bestQuick:Math.max(0,Number(bestQuick)||0)}}
+function olQueueCloudSave(){if(!ol.token||onlineServerOnly)return;olCloudPending=true;if(olCloudTimer)clearTimeout(olCloudTimer);olCloudTimer=setTimeout(()=>{olCloudTimer=0;olCloudSave()},1200)}
+async function olCloudSave(){if(!ol.token||onlineServerOnly||olCloudBusy||!olCloudPending)return;olCloudBusy=true;olCloudPending=false;try{const r=await olApi('/api/rato-snack/save',{save:olCloudSnapshot()},ol.token);if(r.s!==200||!r.saved)throw new Error(r.error||'save_failed');olCloudLastError=0}catch(e){olCloudPending=true;if(Date.now()-olCloudLastError>15000){olCloudLastError=Date.now();showToast('⚠️ Não foi possível salvar no servidor. Tentaremos novamente.',4)}}finally{olCloudBusy=false;if(olCloudPending&&ol.token&&!onlineServerOnly){if(olCloudTimer)clearTimeout(olCloudTimer);olCloudTimer=setTimeout(()=>{olCloudTimer=0;olCloudSave()},3000)}}}
+async function olSyncProgress(){
+ if(!ol.token)throw new Error('sessao_ausente');
+ const profileRes=await olApi('/api/rato-snack/profile',null,ol.token),remote=await olApi('/api/rato-snack/sync',null,ol.token),cloud=await olApi('/api/rato-snack/save',null,ol.token);
+ if(profileRes.s!==200||!profileRes.profile||remote.s!==200||!remote.profile||cloud.s!==200)throw new Error('perfil_online_indisponivel');
+ const profile=profileRes.profile;ol.profile=profile;
+ if(cloud.save&&typeof cloud.save==='object'){
+  const saved=cloud.save;
+  if(saved.stats&&typeof saved.stats==='object')for(const k of Object.keys(stats))if(saved.stats[k]!==undefined)stats[k]=saved.stats[k];
+  if(saved.prog&&typeof saved.prog==='object')for(const k of Object.keys(prog))if(saved.prog[k]!==undefined)prog[k]=saved.prog[k];
+  if(saved.eco&&typeof saved.eco==='object')for(const k of Object.keys(eco))if(saved.eco[k]!==undefined)eco[k]=saved.eco[k];
+  if(Number.isFinite(Number(saved.bestQuick)))bestQuick=Math.max(0,Math.min(1e9,Math.floor(Number(saved.bestQuick))));
+ }else{
+  prog.xp=Math.min(XP.max,Math.max(0,Number(profile.xp)||0));prog.lvlRw=Math.max(1,Number(profile.level)||1);
+  stats.games=Math.max(0,Number(profile.games_played)||0);stats.wins=Math.max(0,Number(profile.wins)||0);
+  bestQuick=Math.max(0,Number(profile.best_score)||0);
+ }
+ ol.xp=Math.max(0,Number(prog.xp)||0);ol.level=Math.max(1,lvlInfo(ol.xp).l);
+ for(const a of (remote.achievements||[])){const id=String(a.achievement_code||'');if(ACH.some(x=>x.id===id)){prog.ach[id]=1;delete prog.achR[id]}}
+ for(const item of (remote.inventory||[])){const parts=String(item.item_code||'').split(':');if(parts.length!==2)continue;const cat=parts[0],id=parts[1];if(eco.own[cat]&&CAT[cat]&&CAT[cat][id])eco.own[cat][id]=1}
+ onlineServerOnly=false;ol.serverOnly=false;
+ saveStats();saveProg();saveEco();flushSave();olQueueCloudSave();
+ return true
+}
 async function olApi(path,body,tok){const r=await fetch(olHttp(ol.url)+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(tok?{Authorization:'Bearer '+tok}:{})},body:body?JSON.stringify(body):undefined});let j={};try{j=await r.json()}catch(e){}return Object.assign({s:r.status},j)}
 function olSaveRecord(kind){if(!mpOnline||!ol.token||!ol.inRoom)return;const finalSize=Math.max(0,Math.floor(player?player.length:0));const payload={mode,size:finalSize,total_size:finalSize,score:Math.max(0,Math.floor(score)),duration_ms:Math.max(0,Math.floor(gameTime*1000)),result:kind==='win'?'win':'finish',details:{mode,kills,food:foodEaten,size:finalSize,total_size:finalSize,special_kills:specialKills}};olApi('/api/rato-snack/records',payload,ol.token).then(r=>{if(r.s===409)showToast('Ranking protegido: resultado aguardando validação do servidor.',4);else if(r.s!==201&&r.s!==200)showToast('Não foi possível registrar a pontuação no servidor.',4)}).catch(e=>showToast('Falha ao enviar pontuação ao servidor.',4))}
 function olSetAuth(j){ol.token=j.token;ol.id=j.id;ol.nick=j.nick;ol.serverOnly=true;onlineServerOnly=true;olSave()}
