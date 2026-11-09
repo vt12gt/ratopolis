@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="battleship.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Battleship — Free Online Naval Strategy Game</title>
+<meta name="description" content="Play Battleship free in your browser. Place your fleet, then hunt the enemy's five ships on a 10x10 grid against an AI in three difficulties. Random placement, rotate and undo. No install, works on mobile and desktop.">
+<meta name="keywords" content="battleship,battleships,sea battle,naval battle,board game,sink the fleet,vs computer,free online game,html5 game,browser game,mobile game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="Battleship — Free Online Naval Strategy Game">
+<meta property="og:description" content="Place your five ships and hunt the enemy fleet. Three difficulty levels, one-tap random placement.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0b1d2e 0%, #123a55 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 8px 6px 4px;
+    user-select: none; touch-action: manipulation;
+  }
+  .panel {
+    position: relative;
+    --cs: 30px;            /* 格子边长，由 JS 的 fit() 覆写 */
+    --g: 2px;              /* 格间距 */
+    --bp: 2px;             /* 棋盘内边距 */
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px; padding: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+  }
+  .side { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+  .boards { display: flex; gap: 8px; align-items: flex-start; justify-content: center; }
+  #boards.mode-side  { flex-direction: row; }
+  #boards.mode-stack { flex-direction: column; }
+  #boards.mode-single { flex-direction: column; }
+  #boards.mode-single.view-mine  #bwrap-enemy { display: none; }
+  #boards.mode-single.view-enemy #bwrap-mine  { display: none; }
+
+  .topbar { display: flex; align-items: center; gap: 6px; width: 100%; }
+  .stat {
+    flex: 1; background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 3px 6px; text-align: center; color: #fff; min-width: 0;
+  }
+  .stat small { display: block; font-size: 9px; font-weight: 700; letter-spacing: .8px; opacity: .55; }
+  .stat span { font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+  #mute-btn {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; padding: 0;
+    background: rgba(255,255,255,.07); border: none; color: #fff;
+    font-size: 17px; cursor: pointer; font-family: inherit;
+  }
+  .modes { display: flex; gap: 6px; width: 100%; }
+  .mode {
+    flex: 1 1 0; min-width: 0; min-height: 40px; border: none; border-radius: 10px;
+    background: rgba(255,255,255,.10); color: rgba(255,255,255,.75);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .5px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .mode:hover { background: rgba(255,255,255,.18); }
+  .mode.active { background: #2fb6e8; color: #04222f; }
+
+  .status {
+    min-height: 20px; width: 100%; font-size: 13px; font-weight: 800;
+    letter-spacing: .4px; color: #ffd76e; text-align: center;
+  }
+  #hint { width: 100%; font-size: 12px; font-weight: 700; color: #ffb4a0; text-align: center; line-height: 1.35; }
+  #hint:empty { display: none; }
+
+  .tabs { display: flex; gap: 6px; width: 100%; }
+  .tabs.hidden { display: none; }
+  .tab {
+    flex: 1; min-height: 40px; border: none; border-radius: 10px;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.7);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .5px; cursor: pointer;
+  }
+  .tab.active { background: rgba(255,255,255,.22); color: #fff; }
+
+  .bwrap { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .bhead { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,.62); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(10, var(--cs));
+    grid-template-rows: repeat(10, var(--cs));
+    gap: var(--g);
+    padding: var(--bp);
+    background: #0d3350;
+    border-radius: 9px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.45);
+  }
+  .bcell { position: relative; border-radius: 2px; background: rgba(255,255,255,.07); cursor: pointer; }
+  .bcell:hover { background: rgba(255,255,255,.18); }
+  #grid-mine .bcell { cursor: default; }
+  #grid-mine .bcell:hover { background: rgba(255,255,255,.07); }
+  #grid-mine .bcell.ship { background: #5b8fb0; }
+  #grid-mine .bcell.ghost { background: rgba(120, 220, 190, .55); }
+  #grid-mine .bcell.ghost-bad { background: rgba(230, 90, 70, .55); }
+  .bcell.mark-x::after {
+    content: ''; position: absolute; inset: 36%; border-radius: 50%;
+    background: rgba(255,255,255,.42);
+  }
+  .bcell.mark-h { background: #e0483a; }
+  .bcell.mark-h::after {
+    content: '✕'; position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: calc(var(--cs) * .72); line-height: 1;
+  }
+  .bcell.sunk { background: #8c1f16; box-shadow: inset 0 0 0 1px rgba(0,0,0,.45); }
+  .bcell.cursor { box-shadow: 0 0 0 2px #ffd76e inset; z-index: 2; }
+
+  .fleet { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+  .chip {
+    border: none; border-radius: 7px; padding: 3px 7px; min-height: 26px;
+    background: rgba(255,255,255,.10); color: rgba(255,255,255,.8);
+    font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: .5px;
+    cursor: default; display: inline-flex; align-items: center; gap: 3px;
+  }
+  #fleet-mine .chip.sel { background: #2fb6e8; color: #04222f; }
+  #fleet-mine .chip.done { opacity: .42; }
+  .chip.sunk { background: rgba(140,31,22,.75); color: #fff; text-decoration: line-through; }
+
+  .actions { display: flex; gap: 6px; width: 100%; flex-wrap: wrap; }
+  .actions button {
+    flex: 1 1 0; min-width: 0; min-height: 44px; border-radius: 12px; border: none;
+    cursor: pointer; font-size: 13px; font-weight: 800; letter-spacing: .5px;
+    font-family: inherit; transition: transform .12s ease; padding: 0 6px;
+  }
+  .actions button:active { transform: scale(.96); }
+  .actions button:disabled { opacity: .38; cursor: default; }
+  .btn-primary { background: #2fb6e8; color: #04222f; box-shadow: 0 4px 0 #1a7ea3; }
+  .btn-ghost { background: rgba(255,255,255,.14); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .hidden { display: none !important; }
+
+  .overlay {
+    position: absolute; inset: 0; border-radius: 18px; z-index: 6;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center; padding: 18px;
+    background: rgba(6, 18, 28, .87); backdrop-filter: blur(3px); color: #fff;
+  }
+  .over-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .over-sub { font-size: 13px; opacity: .8; line-height: 1.6; }
+  .icon-big { font-size: 40px; }
+  .final-line { font-size: 15px; font-weight: 700; }
+  .new-record {
+    background: #ffd76e; color: #5a3e00; font-size: 12px; font-weight: 800;
+    padding: 4px 14px; border-radius: 999px; animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+  .over-btns { display: flex; gap: 8px; margin-top: 6px; width: 100%; }
+  .over-btns button {
+    flex: 1; min-height: 44px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 800; font-family: inherit;
+  }
+  .start-btn { margin-top: 6px; padding: 12px 28px; }
+
+  .footer {
+    margin-top: 8px; color: rgba(255,255,255,.5); font-size: 12px;
+    text-align: center; line-height: 1.9; max-width: 460px;
+  }
+  .footer a {
+    color: rgba(255,255,255,.78); text-decoration: none; display: inline-block;
+    min-width: 44px; min-height: 44px; line-height: 44px;
+  }
+  .footer a:hover { color: #ffd76e; }
+
+  /* 矮视口（笔记本 / 手机横屏，视口高 ≤700px）：HUD 挪到棋盘右侧的竖栏，
+     把纵向全部让给两块 10×10 棋盘 —— 竖排时 10 行只剩 ~10px，根本点不准。 */
+  @media (orientation: landscape) and (max-height: 700px) {
+    body { padding: 2px 5px 2px; }
+    .panel { flex-direction: row; align-items: center; padding: 6px; gap: 8px; }
+    .boards { order: -1; }
+    .side { width: min(230px, 34vw); flex: 0 0 auto; gap: 5px; }
+    .footer { max-width: none; margin-top: 3px; line-height: 1.4; font-size: 11px; }
+    /* 横向有余量、纵向只剩几十像素时，把站点工具行与页脚文字并到同一行 */
+    .footer .wg-tools { display: inline-flex; vertical-align: middle; margin-right: 8px; }
+    .mode { font-size: 10px; min-height: 34px; }
+    .tab { min-height: 34px; font-size: 10px; }
+    .status { min-height: 16px; font-size: 12px; }
+    .bhead { font-size: 9px; }
+    .chip { min-height: 22px; font-size: 10px; padding: 2px 5px; }
+    .overlay { padding: 10px; gap: 5px; }
+    .over-title { font-size: 18px; }
+    .over-sub, .final-line { font-size: 12px; }
+    .icon-big { font-size: 26px; }
+    .actions button, .over-btns button { min-height: 44px; font-size: 12px; }
+  }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="panel" id="panel">
+  <div class="side">
+    <div class="topbar">
+      <div class="stat"><small data-i18n="battleship.hudMine">YOUR FLEET</small><span id="hud-mine">5</span></div>
+      <div class="stat"><small data-i18n="battleship.hudEnemy">ENEMY FLEET</small><span id="hud-enemy">5</span></div>
+      <button id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+    </div>
+
+    <div class="modes" id="modes"></div>
+    <div class="status" id="status"></div>
+    <div class="tabs hidden" id="tabs">
+      <button class="tab" id="tab-mine" data-view="mine" data-i18n="battleship.tabMine">MY FLEET</button>
+      <button class="tab active" id="tab-enemy" data-view="enemy" data-i18n="battleship.tabEnemy">ENEMY WATERS</button>
+    </div>
+    <div id="hint"></div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="btn-random" data-i18n="battleship.btnRandom">RANDOM</button>
+      <button class="btn-ghost" id="btn-rotate" data-i18n="battleship.btnRotate">ROTATE</button>
+      <button class="btn-ghost" id="btn-clear" data-i18n="battleship.btnClear">CLEAR</button>
+      <button class="btn-primary" id="btn-start-battle" data-i18n="battleship.btnStartBattle">START BATTLE</button>
+      <button class="btn-ghost hidden" id="btn-new" data-i18n="battleship.btnNewGame">NEW GAME</button>
+    </div>
+  </div>
+
+  <div class="boards mode-stack" id="boards">
+    <div class="bwrap" id="bwrap-mine">
+      <div class="bhead" data-i18n="battleship.boardMine">MY FLEET</div>
+      <div class="grid" id="grid-mine"></div>
+      <div class="fleet" id="fleet-mine"></div>
+    </div>
+    <div class="bwrap" id="bwrap-enemy">
+      <div class="bhead" data-i18n="battleship.boardEnemy">ENEMY WATERS</div>
+      <div class="grid" id="grid-enemy"></div>
+      <div class="fleet" id="fleet-enemy"></div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="over-sub" data-i18n="battleship.over">BATTLE OVER</div>
+    <div class="over-title" id="over-title"></div>
+    <div class="final-line" id="final-line"></div>
+    <div class="new-record hidden" id="new-record" data-i18n="common.newRecord">🏆 NEW RECORD!</div>
+    <div class="over-sub" id="over-best"></div>
+    <div class="over-btns">
+      <button class="btn-primary" id="btn-again" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share2" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="icon-big">🚢</div>
+    <div class="over-title" data-i18n="battleship.title">BATTLESHIP</div>
+    <div class="over-sub" data-i18n-html="battleship.tip">Place your five ships, then hunt the enemy fleet on a hidden 10×10 grid.<br>Tap <b>RANDOM</b> for an instant layout, or tap a square to drop the selected ship and <b>ROTATE</b> to turn it.<br>Your fleet stays visible; enemy ships only show once they sink.</div>
+    <div class="over-sub" id="start-best"></div>
+    <button class="btn-primary start-btn" id="btn-start" data-i18n="common.start">START</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var N = 10, CELLS = 100;
+  var MODES = ['easy', 'normal', 'hard'];
+  var SCORE_KEY = 'battleship_best_v1';
+  var SHIPS = [
+    { k: 'c', size: 5 }, { k: 'b', size: 4 }, { k: 'r', size: 3 }, { k: 's', size: 3 }, { k: 'd', size: 2 }
+  ];
+  var SHIP_KEY = {
+    c: 'battleship.shipCarrier', b: 'battleship.shipBattleship', r: 'battleship.shipCruiser',
+    s: 'battleship.shipSubmarine', d: 'battleship.shipDestroyer'
+  };
+
+  var panel = document.getElementById('panel');
+  var boardsEl = document.getElementById('boards');
+  var sideEl = document.querySelector('.side');
+  var footerEl = document.querySelector('.footer');
+  var hintEl = document.getElementById('hint');
+  var statusEl = document.getElementById('status');
+  var tabsEl = document.getElementById('tabs');
+  var startOverlay = document.getElementById('start-overlay');
+  var overOverlay = document.getElementById('over-overlay');
+
+  // ===== 音效 =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    place: function () { beep(360, 0.05, 'square', 0.05); },
+    miss:  function () { beep(220, 0.08, 'sine', 0.05); },
+    hit:   function () { beep(520, 0.06, 'square', 0.08); setTimeout(function () { beep(300, 0.09, 'sawtooth', 0.07); }, 55); },
+    sunk:  function () { [0, 90, 180].forEach(function (d, i) { setTimeout(function () { beep(200 - i * 40, 0.16, 'sawtooth', 0.09); }, d); }); },
+    win:   function () { [0, 120, 240, 380].forEach(function (d, i) { setTimeout(function () { beep(520 + i * 150, 0.16, 'triangle', 0.09); }, d); }); },
+    lose:  function () { beep(260, 0.2, 'sawtooth', 0.09); setTimeout(function () { beep(150, 0.3, 'sawtooth', 0.09); }, 170); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== 状态 =====
+  var phase = 'place';              // place | battle | over
+  var turn = 'me', over = false, winner = '';
+  var diff = 'normal';
+  var dir = 'h';
+  var selShip = 0;
+  var cursor = 0;
+  var view = 'mine';
+  var fleets = { mine: newFleet(), enemy: newFleet() };
+  var endKey = null;
+  var lastResult = null;
+  var stats = loadStats();
+
+  function loadStats() {
+    var out = {};
+    MODES.forEach(function (m) { out[m] = { w: 0, l: 0 }; });
+    try {
+      var raw = JSON.parse(localStorage.getItem(SCORE_KEY) || '{}') || {};
+      MODES.forEach(function (m) { if (raw[m]) out[m] = { w: raw[m].w || 0, l: raw[m].l || 0 }; });
+    } catch (e) {}
+    return out;
+  }
+  function saveStats() { try { localStorage.setItem(SCORE_KEY, JSON.stringify(stats)); } catch (e) {} }
+
+  function newFleet() {
+    return {
+      grid: new Array(CELLS).fill(''),
+      marks: new Array(CELLS).fill(''),
+      ships: SHIPS.map(function (s) {
+        return { k: s.k, size: s.size, cells: [], hits: 0, sunk: false };
+      })
+    };
+  }
+
+  // ===== 布阵规则 =====
+  function cellsFor(size, r, c, d) {
+    var out = [];
+    for (var i = 0; i < size; i++) {
+      var rr = r + (d === 'v' ? i : 0), cc = c + (d === 'h' ? i : 0);
+      if (rr >= N || cc >= N) return null;
+      out.push(rr * N + cc);
+    }
+    return out;
+  }
+  function canPlace(f, cells) {
+    for (var i = 0; i < cells.length; i++) if (f.grid[cells[i]]) return false;
+    return true;
+  }
+  function setShip(f, ship, r, c, d) {
+    var cells = cellsFor(ship.size, r, c, d);
+    if (!cells || !canPlace(f, cells)) return false;
+    for (var i = 0; i < ship.cells.length; i++) f.grid[ship.cells[i]] = '';
+    ship.cells = cells; ship.hits = 0; ship.sunk = false;
+    for (i = 0; i < cells.length; i++) f.grid[cells[i]] = ship.k;
+    return true;
+  }
+  function clearFleet(f) {
+    for (var i = 0; i < f.ships.length; i++) { f.ships[i].cells = []; f.ships[i].hits = 0; f.ships[i].sunk = false; f.ships[i].r = -1; }
+    f.grid = new Array(CELLS).fill('');
+    f.marks = new Array(CELLS).fill('');
+  }
+  function placedCount(f) {
+    var n = 0;
+    for (var i = 0; i < f.ships.length; i++) if (f.ships[i].cells.length === f.ships[i].size) n++;
+    return n;
+  }
+  function aliveCount(f) {
+    var n = 0;
+    for (var i = 0; i < f.ships.length; i++) if (!f.ships[i].sunk) n++;
+    return n;
+  }
+  function shipAt(f, i) {
+    for (var s = 0; s < f.ships.length; s++) if (f.ships[s].cells.indexOf(i) >= 0) return f.ships[s];
+    return null;
+  }
+  function autoPlaceFleet(f) {
+    clearFleet(f);
+    for (var i = 0; i < f.ships.length; i++) {
+      var ship = f.ships[i], done = false, t;
+      for (t = 0; t < 500 && !done; t++) {
+        var d = Math.random() < 0.5 ? 'h' : 'v';
+        done = setShip(f, ship, (Math.random() * N) | 0, (Math.random() * N) | 0, d);
+      }
+      for (var r = 0; r < N && !done; r++) {
+        for (var c = 0; c < N && !done; c++) {
+          done = setShip(f, ship, r, c, 'h') || setShip(f, ship, r, c, 'v');
+        }
+      }
+    }
+  }
+
+  // ===== 开火 =====
+  function fireBetween(shooter, i) {
+    var target = shooter === 'me' ? fleets.enemy : fleets.mine;
+    if (i < 0 || i >= CELLS || target.marks[i]) return null;
+    var k = target.grid[i];
+    target.marks[i] = k ? 'H' : 'x';
+    if (!k) return 'miss';
+    var ship = shipAt(target, i);
+    if (!ship) return 'hit';
+    ship.hits++;
+    if (ship.hits >= ship.size) { ship.sunk = true; return 'sunk'; }
+    return 'hit';
+  }
+  function allSunk(f) {
+    for (var i = 0; i < f.ships.length; i++) if (!f.ships[i].sunk) return false;
+    return true;
+  }
+
+  // ===== AI =====
+  /* Easy  : 纯随机
+     Normal: 命中后追打四邻
+     Hard  : 命中后按「这艘舰还剩几个格」优先沿同一条直线追打；无目标时按棋盘格奇偶跳着打 */
+  function pushOpen(arr, f, i) {
+    if (i >= 0 && i < CELLS && !f.marks[i]) arr.push(i);
+  }
+  function aiChoose() {
+    var f = fleets.mine;                             // AI 打的是我的棋盘
+    var open = [], i;
+    for (i = 0; i < CELLS; i++) if (!f.marks[i]) open.push(i);
+    if (!open.length) return -1;
+    if (diff === 'easy') return open[(Math.random() * open.length) | 0];
+    var target = null, s;
+    for (s = 0; s < f.ships.length; s++) {
+      if (f.ships[s].hits > 0 && !f.ships[s].sunk) { target = f.ships[s]; break; }
+    }
+    if (!target) {
+      if (diff === 'hard') {
+        var par = open.filter(function (q) { return (((q / N) | 0) + (q % N)) % 2 === 0; });
+        if (par.length) open = par;
+      }
+      return open[(Math.random() * open.length) | 0];
+    }
+    var hitCells = [], q;
+    for (q = 0; q < target.cells.length; q++) if (f.marks[target.cells[q]] === 'H') hitCells.push(target.cells[q]);
+    var cand = [];
+    if (hitCells.length >= 2) {
+      var r0 = (hitCells[0] / N) | 0, c0 = hitCells[0] % N;
+      var sameRow = true, sameCol = true;
+      for (q = 1; q < hitCells.length; q++) {
+        if (((hitCells[q] / N) | 0) !== r0) sameRow = false;
+        if ((hitCells[q] % N) !== c0) sameCol = false;
+      }
+      if (sameRow) {
+        var mnc = N, mxc = -1;
+        for (q = 0; q < hitCells.length; q++) { var cc = hitCells[q] % N; if (cc < mnc) mnc = cc; if (cc > mxc) mxc = cc; }
+        pushOpen(cand, f, r0 * N + mnc - 1);
+        pushOpen(cand, f, r0 * N + mxc + 1);
+      } else if (sameCol) {
+        var mnr = N, mxr = -1;
+        for (q = 0; q < hitCells.length; q++) { var rr = (hitCells[q] / N) | 0; if (rr < mnr) mnr = rr; if (rr > mxr) mxr = rr; }
+        pushOpen(cand, f, (mnr - 1) * N + c0);
+        pushOpen(cand, f, (mxr + 1) * N + c0);
+      }
+    }
+    if (!cand.length) {
+      var last = hitCells[hitCells.length - 1];
+      var lr = (last / N) | 0, lc = last % N;
+      pushOpen(cand, f, lr > 0 ? (lr - 1) * N + lc : -1);
+      pushOpen(cand, f, lr < N - 1 ? (lr + 1) * N + lc : -1);
+      pushOpen(cand, f, lc > 0 ? lr * N + lc - 1 : -1);
+      pushOpen(cand, f, lc < N - 1 ? lr * N + lc + 1 : -1);
+    }
+    if (cand.length) return cand[(Math.random() * cand.length) | 0];
+    return open[(Math.random() * open.length) | 0];
+  }
+
+  // ===== 渲染 =====
+  var cellEls = { mine: [], enemy: [] };
+  function buildGrids() {
+    ['mine', 'enemy'].forEach(function (w) {
+      var g = document.getElementById('grid-' + w), i;
+      for (i = 0; i < CELLS; i++) {
+        var b = document.createElement('div');
+        b.className = 'bcell';
+        b.dataset.i = String(i);
+        g.appendChild(b);
+        cellEls[w].push(b);
+      }
+    });
+  }
+  buildGrids();
+
+  function renderGrid(w) {
+    var f = fleets[w], els = cellEls[w], i;
+    for (i = 0; i < CELLS; i++) {
+      var cls = 'bcell', m = f.marks[i];
+      if (w === 'mine' && f.grid[i]) cls += ' ship';
+      if (m === 'x') cls += ' mark-x';
+      else if (m === 'H') cls += ' mark-h';
+      var sh = m === 'H' ? shipAt(f, i) : null;
+      if (sh && sh.sunk) cls += ' sunk';
+      if (w === 'enemy' && phase === 'battle' && !over && turn === 'me' && i === cursor) cls += ' cursor';
+      els[i].className = cls;
+    }
+  }
+  function renderGhost() {
+    var els = cellEls.mine, i;
+    for (i = 0; i < CELLS; i++) {
+      if (els[i].className.indexOf('ghost') >= 0) els[i].className = els[i].className.replace(/ ?ghost(-bad)?/g, '');
+    }
+    if (phase !== 'place') return;
+    var ship = fleets.mine.ships[selShip];
+    if (!ship || ship.cells.length === ship.size) return;
+    var r = (cursor / N) | 0, c = cursor % N;
+    c = Math.min(c, N - ship.size);
+    var cells = cellsFor(ship.size, r, c, dir);
+    var ok = cells && canPlace(fleets.mine, cells);
+    if (!cells) return;
+    for (i = 0; i < cells.length; i++) els[cells[i]].className += ok ? ' ghost' : ' ghost-bad';
+  }
+  function renderFleets() {
+    var box, i;
+    /* 舰船条是**只读**的状态显示（<span>，不是按钮）——手机上没有 40px 以下的小触点。
+       换舰 / 重新布阵一律在棋盘上完成：点自己已放好的船 = 把它收回来重放。 */
+    box = document.getElementById('fleet-mine');
+    box.innerHTML = '';
+    for (i = 0; i < fleets.mine.ships.length; i++) {
+      var sh = fleets.mine.ships[i];
+      var b = document.createElement('span');
+      var placing = phase === 'place' && sh.cells.length < sh.size &&
+        i === (fleets.mine.ships[selShip] && fleets.mine.ships[selShip].cells.length < fleets.mine.ships[selShip].size ? selShip : nextUnplaced());
+      b.className = 'chip' + (sh.cells.length === sh.size ? ' done' : '') +
+        (sh.sunk ? ' sunk' : '') + (placing ? ' sel' : '');
+      b.textContent = sh.size + '×';
+      b.title = t(SHIP_KEY[sh.k]) + ' (' + sh.size + ')';
+      b.setAttribute('aria-label', t(SHIP_KEY[sh.k]) + ' ' + sh.size);
+      box.appendChild(b);
+    }
+    box = document.getElementById('fleet-enemy');
+    box.innerHTML = '';
+    for (i = 0; i < fleets.enemy.ships.length; i++) {
+      var e = fleets.enemy.ships[i];
+      var eb = document.createElement('span');
+      eb.className = 'chip' + (e.sunk ? ' sunk' : '');
+      eb.textContent = e.size + '×';
+      eb.title = t(SHIP_KEY[e.k]) + ' (' + e.size + ')';
+      eb.setAttribute('aria-label', t(SHIP_KEY[e.k]) + ' ' + e.size);
+      box.appendChild(eb);
+    }
+  }
+  function renderModes() {
+    var modesEl = document.getElementById('modes');
+    modesEl.innerHTML = '';
+    MODES.forEach(function (m) {
+      var b = document.createElement('button');
+      b.className = 'mode' + (m === diff ? ' active' : '');
+      b.type = 'button';
+      b.dataset.mode = m;
+      b.textContent = m === 'easy' ? t('battleship.modeEasy')
+                    : (m === 'normal' ? t('battleship.modeNormal') : t('battleship.modeHard'));
+      b.addEventListener('click', function () {
+        if (diff === m) return;
+        diff = m;
+        newGame();
+        startOverlay.classList.add('hidden');
+      });
+      modesEl.appendChild(b);
+    });
+  }
+  function renderStatus() {
+    if (over) { statusEl.textContent = endKey ? t(endKey) : ''; return; }
+    if (phase === 'place') {
+      var idx = nextUnplaced();
+      var sh = fleets.mine.ships[idx];
+      statusEl.textContent = sh ? t('battleship.placeNow', { s: t(SHIP_KEY[sh.k]), n: sh.size })
+                                : t('battleship.readyMsg');
+      return;
+    }
+    statusEl.textContent = t('battleship.fireNow', { p: turn === 'me' ? t('battleship.you') : t('battleship.ai') });
+  }
+  function renderActions() {
+    document.getElementById('btn-random').classList.toggle('hidden', phase !== 'place');
+    document.getElementById('btn-rotate').classList.toggle('hidden', phase !== 'place');
+    document.getElementById('btn-clear').classList.toggle('hidden', phase !== 'place');
+    document.getElementById('btn-start-battle').classList.toggle('hidden', phase !== 'place');
+    document.getElementById('btn-new').classList.toggle('hidden', phase === 'place');
+    document.getElementById('btn-start-battle').disabled = placedCount(fleets.mine) < SHIPS.length;
+  }
+  function renderOver() {
+    if (!over || !lastResult) return;
+    document.getElementById('over-title').textContent =
+      lastResult.winner === 'me' ? t('battleship.overWin') : t('battleship.overLose');
+    document.getElementById('final-line').textContent =
+      t('battleship.finalLine', { a: lastResult.mineLeft, b: lastResult.enemyLeft });
+    document.getElementById('over-best').textContent = stats[diff].w > 0
+      ? t('common.bestScore', { n: stats[diff].w }) : t('battleship.first');
+    document.getElementById('new-record').classList.toggle('hidden', !lastResult.record);
+  }
+  function renderStartBest() {
+    document.getElementById('start-best').textContent = stats[diff].w > 0
+      ? t('common.bestScore', { n: stats[diff].w }) : t('battleship.first');
+  }
+  function renderTabs() {
+    var single = boardsEl.classList.contains('mode-single');
+    tabsEl.classList.toggle('hidden', !single);
+    document.getElementById('tab-mine').classList.toggle('active', view === 'mine');
+    document.getElementById('tab-enemy').classList.toggle('active', view === 'enemy');
+  }
+  function renderHud() {
+    document.getElementById('hud-mine').textContent = aliveCount(fleets.mine);
+    document.getElementById('hud-enemy').textContent = aliveCount(fleets.enemy);
+  }
+  function renderAll() {
+    renderGrid('mine'); renderGrid('enemy'); renderGhost();
+    renderFleets(); renderHud(); renderStatus(); renderActions(); renderTabs();
+    renderOver(); renderStartBest();
+  }
+  function nextUnplaced() {
+    for (var i = 0; i < fleets.mine.ships.length; i++) {
+      if (fleets.mine.ships[i].cells.length < fleets.mine.ships[i].size) return i;
+    }
+    return -1;
+  }
+  function selectShip(idx) {
+    selShip = idx;
+    renderAll();
+  }
+  function setHint(txt) { hintEl.textContent = txt || ''; }
+
+  // ===== 流程 =====
+  function newGame() {
+    fleets.mine = newFleet();
+    fleets.enemy = newFleet();
+    autoPlaceFleet(fleets.enemy);                 // 对手的舰队先随机布好（隐藏）
+    phase = 'place'; turn = 'me'; over = false; winner = '';
+    endKey = null; lastResult = null;
+    selShip = 0; dir = 'h'; cursor = 0; view = 'mine';
+    setHint('');
+    overOverlay.classList.add('hidden');
+    renderAll();
+    fit();
+  }
+  function startBattle() {
+    if (placedCount(fleets.mine) < SHIPS.length) { sfx.miss(); setHint(t('battleship.needAll')); return; }
+    phase = 'battle'; turn = 'me'; view = 'enemy';
+    setHint('');
+    document.getElementById('btn-start-battle').blur();
+    sfx.place();
+    renderAll();
+  }
+  function playerFire(i) {
+    if (phase !== 'battle' || over || turn !== 'me') return false;
+    if (fleets.enemy.marks[i]) { sfx.miss(); return false; }
+    var res = fireBetween('me', i);
+    if (!res) return false;
+    if (res === 'miss') { sfx.miss(); setHint(t('battleship.missMsg')); }
+    else if (res === 'sunk') { sfx.sunk(); setHint(t('battleship.sunkMsg', { s: t(SHIP_KEY[shipAt(fleets.enemy, i).k]) })); }
+    else { sfx.hit(); setHint(t('battleship.hitMsg')); }
+    renderGrid('enemy'); renderFleets(); renderHud();
+    if (allSunk(fleets.enemy)) { endGame('me'); return true; }
+    // AI 立刻反击（同步落地，视觉靠 CSS 动画错开）
+    turn = 'ai';
+    renderStatus();
+    var j = aiChoose();
+    var r2 = fireBetween('ai', j);
+    renderGrid('mine'); renderFleets(); renderHud();
+    if (allSunk(fleets.mine)) { endGame('ai'); return true; }
+    if (r2 === 'sunk') sfx.sunk();
+    turn = 'me';
+    renderStatus(); renderActions();
+    if (view === 'enemy' || boardsEl.classList.contains('mode-single')) renderGrid('enemy');
+    return true;
+  }
+  function endGame(w) {
+    over = true; phase = 'over'; winner = w;
+    var rec = false;
+    if (w === 'me') { stats[diff].w++; rec = true; endKey = 'battleship.overWin'; sfx.win(); }
+    else { stats[diff].l++; endKey = 'battleship.overLose'; sfx.lose(); }
+    saveStats();
+    lastResult = { winner: w, mineLeft: aliveCount(fleets.mine), enemyLeft: aliveCount(fleets.enemy), record: rec };
+    renderAll();
+    overOverlay.classList.remove('hidden');
+  }
+
+  // ===== 输入 =====
+  document.getElementById('grid-mine').addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== this && el.dataset.i === undefined) el = el.parentNode;
+    if (!el || el === this) return;
+    var i = parseInt(el.dataset.i, 10);
+    cursor = i;
+    if (phase !== 'place') return;
+    var owner = shipAt(fleets.mine, i);
+    if (owner) {                                  // 点自己已放好的船 → 收回来重放
+      for (var q = 0; q < owner.cells.length; q++) fleets.mine.grid[owner.cells[q]] = '';
+      owner.cells = []; owner.hits = 0; owner.sunk = false;
+      selShip = fleets.mine.ships.indexOf(owner);
+      sfx.place(); setHint('');
+      renderAll();
+      return;
+    }
+    var idx = (fleets.mine.ships[selShip] && fleets.mine.ships[selShip].cells.length < fleets.mine.ships[selShip].size)
+      ? selShip : nextUnplaced();
+    if (idx < 0) return;
+    var ship = fleets.mine.ships[idx];
+    var r = (i / N) | 0, c = Math.min(i % N, N - ship.size);
+    if (setShip(fleets.mine, ship, r, c, dir)) {
+      selShip = Math.max(0, nextUnplaced());
+      sfx.place();
+      setHint('');
+    } else {
+      sfx.miss();
+      setHint(t('battleship.badSpot'));
+    }
+    renderAll();
+  });
+  document.getElementById('grid-enemy').addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== this && el.dataset.i === undefined) el = el.parentNode;
+    if (!el || el === this) return;
+    var i = parseInt(el.dataset.i, 10);
+    cursor = i;
+    playerFire(i);
+  });
+  document.getElementById('btn-random').addEventListener('click', function () {
+    autoPlaceFleet(fleets.mine);
+    selShip = 0; setHint('');
+    sfx.place();
+    renderAll();
+  });
+  document.getElementById('btn-rotate').addEventListener('click', function () {
+    dir = dir === 'h' ? 'v' : 'h';
+    sfx.place();
+    renderGhost();
+  });
+  document.getElementById('btn-clear').addEventListener('click', function () {
+    clearFleet(fleets.mine);
+    selShip = 0; setHint('');
+    renderAll();
+  });
+  document.getElementById('btn-start-battle').addEventListener('click', startBattle);
+  document.getElementById('btn-new').addEventListener('click', function () { newGame(); startOverlay.classList.add('hidden'); });
+  document.getElementById('btn-again').addEventListener('click', function () { newGame(); startOverlay.classList.add('hidden'); });
+  document.getElementById('btn-start').addEventListener('click', function () {
+    startOverlay.classList.add('hidden'); renderAll();
+  });
+  tabsEl.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== tabsEl && !el.dataset.view) el = el.parentNode;
+    if (!el || el === tabsEl) return;
+    view = el.dataset.view;
+    renderTabs();
+  });
+
+  window.addEventListener('keydown', function (e) {
+    var k = String(e.key || '').toLowerCase();
+    var r = (cursor / N) | 0, c = cursor % N;
+    if (k === 'arrowleft' || k === 'a') { cursor = r * N + Math.max(0, c - 1); refreshCursor(); e.preventDefault(); return; }
+    if (k === 'arrowright' || k === 'd') { cursor = r * N + Math.min(N - 1, c + 1); refreshCursor(); e.preventDefault(); return; }
+    if (k === 'arrowup' || k === 'w') { cursor = Math.max(0, r - 1) * N + c; refreshCursor(); e.preventDefault(); return; }
+    if (k === 'arrowdown' || k === 's') { cursor = Math.min(N - 1, r + 1) * N + c; refreshCursor(); e.preventDefault(); return; }
+    if (k === 'enter' || k === ' ') {
+      if (phase === 'place') {
+        var idx = (fleets.mine.ships[selShip] && fleets.mine.ships[selShip].cells.length < fleets.mine.ships[selShip].size)
+          ? selShip : nextUnplaced();
+        if (idx >= 0) {
+          var ship = fleets.mine.ships[idx];
+          setShip(fleets.mine, ship, r, Math.min(c, N - ship.size), dir);
+          selShip = Math.max(0, nextUnplaced());
+        }
+        renderAll();
+      } else playerFire(cursor);
+      e.preventDefault(); return;
+    }
+    if (k === 'r') { dir = dir === 'h' ? 'v' : 'h'; renderGhost(); e.preventDefault(); return; }
+    if (k === 'n') { newGame(); startOverlay.classList.add('hidden'); return; }
+    if (k === 'tab') {
+      if (boardsEl.classList.contains('mode-single')) { view = view === 'mine' ? 'enemy' : 'mine'; renderTabs(); }
+      return;
+    }
+  });
+  function refreshCursor() {
+    if (phase === 'place') { renderGhost(); }
+    else { renderGrid('enemy'); }
+  }
+
+  // ===== 分享 =====
+  function shareText() {
+    var r = lastResult || { enemyLeft: aliveCount(fleets.enemy), mineLeft: aliveCount(fleets.mine) };
+    var n = (SHIPS.length - r.enemyLeft) + '/' + SHIPS.length;
+    return t('battleship.share', { n: n, url: location.href });
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.getElementById('btn-share2').addEventListener('click', function () {
+    var full = shareText(), btn = document.getElementById('btn-share2');
+    function done() {
+      btn.textContent = t('common.copied');
+      setTimeout(function () { btn.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+
+  // ===== 尺寸自适应（穷举候选 + 打分，SPECS 26） =====
+  /* 棋盘元素个数固定（两块 10×10），但「两块并排 / 上下堆叠 / 只显示一块（带 tab 切换）」
+     三种排法的可用格子边长差很多，必须逐个算出来再挑：
+       ① 并排  —— 手机横屏 / 宽桌面最好，两块同时可见
+       ② 堆叠  —— 竖屏高屏
+       ③ 单块  —— 前两种都放不下时的兜底（tab 切换保证两块都能看）
+     可用宽高一律从 window.innerWidth/Height 反推，绝不读 panel.clientWidth（循环依赖）。 */
+  var MIN_C = 16, MAX_C = 44, COMFY = 40;
+  var BG = 8;                                   // 两块棋盘之间的间距
+  var mqLandscape = window.matchMedia('(orientation: landscape) and (max-height: 700px)');
+  var lastMode = null;
+  // 一块棋盘里「除格子以外」的纵向装饰（标题 + 舰船条 + 内部间距），实测得到
+  function boardChrome() {
+    var b = document.getElementById('bwrap-mine'), g = document.getElementById('grid-mine');
+    if (!b || !g) return 50;
+    var d = b.offsetHeight - g.offsetHeight;
+    return d > 8 ? d : 50;
+  }
+  function fit(depth) {
+    var d = depth || 0;
+    var bcs = getComputedStyle(document.body);
+    var pcs = getComputedStyle(panel);
+    var bodyPadV = parseFloat(bcs.paddingTop) + parseFloat(bcs.paddingBottom);
+    var bodyPadH = parseFloat(bcs.paddingLeft) + parseFloat(bcs.paddingRight);
+    var panelPadV = parseFloat(pcs.paddingTop) + parseFloat(pcs.paddingBottom);
+    var panelPadH = parseFloat(pcs.paddingLeft) + parseFloat(pcs.paddingRight);
+    var fcs = footerEl ? getComputedStyle(footerEl) : null;
+    var footerH = footerEl ? footerEl.offsetHeight + parseFloat(fcs.marginTop || 0) : 90;
+    var land = mqLandscape.matches;
+    var BORDER = 2, G = land ? 1 : 2, BP = land ? 2 : 3, EXTRA = 6;
+    var availW, availH;
+    if (land) {
+      availW = window.innerWidth - bodyPadH - panelPadH - BORDER - sideEl.offsetWidth - BG - EXTRA;
+      availH = window.innerHeight - bodyPadV - panelPadV - BORDER - footerH - EXTRA;
+    } else {
+      availW = window.innerWidth - bodyPadH - panelPadH - BORDER - EXTRA;
+      availH = window.innerHeight - bodyPadV - panelPadV - BORDER - footerH - sideEl.offsetHeight - EXTRA;
+    }
+    var one = 9 * G + 2 * BP;                    // 单块棋盘的「格子以外」尺寸
+    var BC = boardChrome();                      // 每块棋盘上下的标题 / 舰船条
+    var csSide = Math.min((availW - BG - 2 * one) / 20, (availH - BC - one) / 10);
+    var csStack = Math.min((availW - one) / 10, (availH - BG - 2 * BC - 2 * one) / 20);
+    var csSingle = Math.min((availW - one) / 10, (availH - BC - one) / 10);
+    var mode, cs;
+    if (csSide >= 24) { mode = 'side'; cs = csSide; }
+    else if (csStack >= 28) { mode = 'stack'; cs = csStack; }
+    else { mode = 'single'; cs = csSingle; }
+    cs = Math.max(MIN_C, Math.min(MAX_C, Math.floor(cs)));
+    panel.style.setProperty('--cs', cs + 'px');
+    panel.style.setProperty('--g', G + 'px');
+    panel.style.setProperty('--bp', BP + 'px');
+    boardsEl.className = 'boards mode-' + mode + ' view-' + view;
+    renderTabs();
+    // 换排法会改 side 的高度（单板模式多一行 tab）→ 再算一次，最多重算 2 轮
+    if (lastMode !== mode && d < 2) { lastMode = mode; return fit(d + 1); }
+    lastMode = mode;
+  }
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { fit(); }, 80);
+  });
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', function () { setTimeout(fit, 300); });
+
+  // ===== 启动 =====
+  WG.onChange(function () { renderAll(); fit(); });
+  newGame();
+  fit();
+  setTimeout(fit, 120);
+})();
+</script>
+</body>
+</html>
