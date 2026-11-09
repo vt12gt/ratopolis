@@ -26,30 +26,65 @@
 </main>
 <script>
 const statusEl=document.getElementById('netStatus');
-function net(){const ok=navigator.onLine!==false;statusEl.textContent=ok?'🟢 Conexão disponível para o Online':'🔴 Sem internet — o modo Offline continua disponível';}
-addEventListener('online',net);addEventListener('offline',net);net();
 const AUTH_KEY='ratoSnackOnline';
-const portalParams=new URLSearchParams(location.hash.slice(1));
-let portalToken=portalParams.get('ratopolis_token')||'';
-let portalNick=portalParams.get('ratopolis_nick')||'';
-try{
- if(portalToken){
-  sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}));
-  history.replaceState(null,'',location.pathname+location.search);
- }else{
-  const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
-  if(saved&&typeof saved.token==='string'&&saved.token.length<=4096){
-   portalToken=saved.token;portalNick=String(saved.nick||'').slice(0,24);
+const API_URL='https://rato-snack-multiplayer.onrender.com';
+let portalToken='',portalNick='',onlineReady=false,checking=false;
+function status(message,ok=false){statusEl.textContent=message;statusEl.style.color=ok?'#8df0b5':'#cbbbdc'}
+function readSession(){
+ const params=new URLSearchParams(location.hash.slice(1));
+ const incoming=params.get('ratopolis_token')||'';
+ const nick=params.get('ratopolis_nick')||'';
+ try{
+  if(incoming){
+   portalToken=incoming;portalNick=nick.slice(0,24);
+   sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}));
+   history.replaceState(null,'',location.pathname+location.search);
+  }else{
+   const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
+   if(saved&&typeof saved.token==='string'&&saved.token.length>0&&saved.token.length<=4096){
+    portalToken=saved.token;portalNick=String(saved.nick||'').slice(0,24);
+   }
   }
- }
-}catch(e){console.warn('RativaSnack: não foi possível recuperar a sessão nesta aba',e)}
-document.getElementById('goOnline').addEventListener('click',e=>{
- e.preventDefault();if(navigator.onLine===false){statusEl.textContent='🔴 Sem internet — conecte-se para entrar no Online.';return}
- if(!portalToken){location.href='https://vt12gt.github.io/RativaGames/';return}
- try{sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:'',nick:portalNick}))}catch(e){}
+ }catch(e){console.warn('RativaSnack: não foi possível recuperar a sessão',e)}
+}
+async function validateConnection(){
+ if(checking)return false;
+ if(!portalToken){status('🔒 Conecte sua conta pelo portal RativaGames para jogar Online.');return false}
+ checking=true;onlineReady=false;status('🔄 Validando conexão com sua conta…');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);
+ try{
+  const response=await fetch(API_URL+'/api/me',{method:'GET',headers:{Authorization:'Bearer '+portalToken,'Content-Type':'application/json'},cache:'no-store',signal:controller.signal});
+  let data={};try{data=await response.json()}catch(e){}
+  if(response.status===401||response.status===403){
+   try{sessionStorage.removeItem(AUTH_KEY)}catch(e){}
+   portalToken='';portalNick='';status('🔒 Sua sessão precisa ser renovada. Voltando ao portal…');
+   setTimeout(()=>location.href='https://vt12gt.github.io/RativaGames/',650);
+   return false;
+  }
+  if(!response.ok||!data.id)throw new Error('validation_unavailable');
+  portalNick=String(data.nickname||data.display_name||data.nick||data.username||portalNick||'').slice(0,24);
+  try{sessionStorage.setItem(AUTH_KEY,JSON.stringify({token:portalToken,id:data.id,nick:portalNick}))}catch(e){}
+  onlineReady=true;status('🟢 Conta conectada e validada! Escolha Online ou Offline.',true);
+  return true;
+ }catch(e){
+  console.warn('RativaSnack: falha temporária ao validar a conexão',e);
+  status('🟠 Não foi possível confirmar a conexão agora. Toque em Online para tentar novamente.');
+  return false;
+ }finally{clearTimeout(timer);checking=false}
+}
+readSession();
+document.getElementById('goOnline').addEventListener('click',async e=>{
+ e.preventDefault();
+ if(navigator.onLine===false){status('🔴 Sem internet — conecte-se para entrar no Online.');return}
+ if(!onlineReady){const valid=await validateConnection();if(!valid)return}
  const next='Online.html#ratopolis_token='+encodeURIComponent(portalToken)+'&ratopolis_nick='+encodeURIComponent(portalNick);
  location.href=next;
 });
+document.getElementById('goOffline').addEventListener('click',()=>{});
+if(portalToken)validateConnection();
+else status('🔒 Online exige uma conta conectada pelo portal RativaGames. O Offline está liberado.');
+addEventListener('online',()=>{if(portalToken)validateConnection();else status('🔒 Conecte sua conta pelo portal RativaGames para jogar Online.')});
+addEventListener('offline',()=>status('🔴 Sem internet — o modo Offline continua disponível.'));
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body></html>
