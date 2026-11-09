@@ -4277,7 +4277,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(trigger){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();return;}
   if(e.target.closest('#guildBackTop')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();close();return;}
  },true);
- window.RativaGuilds={open,refresh:load};
+ setInterval(function(){if(!page.classList.contains("hidden")&&document.visibilityState==="visible")load();},15000);\n window.RativaGuilds={open,refresh:load};
 })();
 </script>
 </body></html>
