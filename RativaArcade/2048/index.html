@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" data-title-key="g2048.docTitle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>2048 — Free Online 2048 Puzzle Game</title>
+<meta name="description" content="Play 2048 free in your browser. Merge tiles to reach 2048, then keep going. Swipe or arrow keys, one-step undo, best score saved. No install.">
+<meta name="keywords" content="2048,2048 game,play 2048,online 2048,number puzzle,merge tiles,puzzle game,free online game">
+<meta name="author" content="mashukui">
+<meta property="og:title" content="2048 — Free Online 2048 Puzzle Game">
+<meta property="og:description" content="Swipe and merge the tiles. Reach 2048, then keep going.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #1a2a3a 0%, #2d4a5e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    justify-content: safe center;
+    min-height: 100vh; min-height: 100svh; padding: 14px; user-select: none; touch-action: none;
+  }
+  .wrap {
+    position: relative;
+    width: min(460px, 100%);
+    background: rgba(15, 30, 40, .55);
+    border-radius: 16px; padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .hidden { display: none !important; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .counter {
+    background: rgba(0,0,0,.35); border-radius: 10px; padding: 6px 14px;
+    color: #fff; font-size: 18px; font-weight: 800; letter-spacing: 1px;
+    font-variant-numeric: tabular-nums; min-width: 86px; text-align: center;
+  }
+  .counter small { display: block; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: 1px; font-weight: 700; }
+  .counter.accent { color: #ffd76e; }
+  .tools { display: flex; gap: 6px; }
+  .icon-btn {
+    border: none; border-radius: 10px; width: 42px; height: 42px;
+    font-size: 18px; cursor: pointer; background: rgba(255,255,255,.15); color: #fff;
+    padding: 0; transition: transform .1s ease, opacity .15s ease;
+  }
+  .icon-btn:active { transform: scale(.92); }
+  .icon-btn:disabled { opacity: .35; cursor: default; }
+  #board {
+    position: relative;
+    display: grid; gap: 10px;
+    background: rgba(0,0,0,.32); border-radius: 12px; padding: 10px;
+    /* 格子尺寸同时受可用宽/高约束，否则窄高窗口(手机横屏/小笔记本)里棋盘底部会被裁掉 */
+    --cs: min(92px, calc((100vw - 78px) / 4), calc((100vh - 260px) / 4));
+    --cs: min(92px, calc((100vw - 78px) / 4), calc((100svh - 260px) / 4));
+    grid-template-columns: repeat(4, var(--cs));
+    touch-action: none;
+  }
+  .tile {
+    width: var(--cs); height: var(--cs);
+    border-radius: 8px; background: rgba(255,255,255,.05);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; letter-spacing: -.5px;
+    font-size: calc(var(--cs) * 0.36);
+    transition: transform .12s ease, background .12s ease;
+  }
+  .tile.val { color: #2b2118; }
+  .tile.v2    { background: #eee4da; }
+  .tile.v4    { background: #ede0c8; }
+  .tile.v8    { background: #f2b179; }
+  .tile.v16   { background: #f59563; }
+  .tile.v32   { background: #f67c5f; }
+  .tile.v64   { background: #f65e3b; }
+  .tile.v128  { background: #edcf72; }
+  .tile.v256  { background: #edcc61; }
+  .tile.v512  { background: #edc850; }
+  .tile.v1024 { background: #edc53f; }
+  .tile.v2048 { background: #edc22e; box-shadow: 0 0 22px rgba(237,194,46,.75); }
+  .tile.vbig  { background: #3c3a32; color: #f9f6f2; }
+  .tile.pop { animation: pop .16s ease; }
+  @keyframes pop { 0% { transform: scale(.82) } 60% { transform: scale(1.08) } 100% { transform: scale(1) } }
+  .tile.spawn { animation: spawn .14s ease; }
+  @keyframes spawn { 0% { opacity: .3; transform: scale(.75) } 100% { opacity: 1; transform: scale(1) } }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 24px;
+    background: rgba(15, 30, 40, .8); backdrop-filter: blur(3px); color: #fff;
+    border-radius: 16px; z-index: 4;
+  }
+  .overlay .big { font-size: 52px; }
+  .overlay h3 { font-size: 26px; font-weight: 800; letter-spacing: 2px; }
+  .overlay p { font-size: 14px; color: rgba(255,255,255,.75); line-height: 1.6; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .btn-primary {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: #ff9f1c; color: #fff; box-shadow: 0 5px 0 #c47a0e;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-primary:active { transform: scale(.95); box-shadow: 0 2px 0 #c47a0e; }
+  .btn-ghost {
+    border: none; border-radius: 12px; padding: 12px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-family: inherit;
+    background: rgba(255,255,255,.15); color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.25);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-ghost:active { transform: scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .hint {
+    margin-top: 12px; text-align: center; color: rgba(255,255,255,.5); font-size: 12px; line-height: 1.7;
+  }
+  .hint b { color: #ffd76e; }
+  .footer {
+    margin-top: 16px; color: rgba(255,255,255,.55); font-size: 12px;
+    text-align: center; line-height: 1.8;
+  }
+  .footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .footer a:hover { color: #ffd76e; }
+</style>
+<script src="../i18n.js"></script>
+</head>
+<body data-wg-home>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="counter"><small data-i18n="g2048.hudScore">SCORE</small><span id="score">0</span></div>
+    <div class="counter accent"><small data-i18n="g2048.hudBest">BEST</small><span id="best">0</span></div>
+    <div class="tools">
+      <button class="icon-btn" id="undo-btn" data-i18n-title="g2048.undoTitle" title="Undo last move" disabled>↩</button>
+      <button class="icon-btn" id="mute-btn" data-i18n-title="common.toggleSound" title="Toggle sound">🔊</button>
+    </div>
+  </div>
+  <div id="board"></div>
+
+  <div class="hint" data-i18n-html="g2048.hint">
+    <b>Swipe</b> or use <b>arrow keys</b> / <b>WASD</b> to move tiles · <b>U</b> to undo
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <div class="big">🧮</div>
+    <h3>2048</h3>
+    <p data-i18n-html="g2048.intro">Merge matching tiles to reach <b>2048</b>.<br>Every move adds a new tile — plan ahead!</p>
+    <div class="btn-row"><button class="btn-primary" id="btn-start" data-i18n="common.start">START</button></div>
+  </div>
+
+  <div class="overlay hidden" id="win-overlay">
+    <div class="big">🏆</div>
+    <h3 data-i18n="g2048.winTitle">YOU MADE 2048!</h3>
+    <p><span data-i18n="g2048.scoreLabel">Score</span>: <b id="win-score">0</b></p>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-continue" data-i18n="g2048.keepGoing">KEEP GOING</button>
+      <button class="btn-ghost" id="btn-win-new" data-i18n="g2048.newGame">NEW GAME</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="over-overlay">
+    <div class="big" id="over-icon">🧩</div>
+    <h3 id="over-title">NO MOVES LEFT</h3>
+    <p><span data-i18n="g2048.scoreLabel">Score</span>: <b id="final-score">0</b><br><span id="over-best"></span></p>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-retry" data-i18n="common.playAgain">PLAY AGAIN</button>
+      <button class="btn-ghost" id="btn-share" data-i18n="common.shareScore">SHARE SCORE</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-i18n="common.madeBy">Made by</span> <a href="https://github.com/mashukui" target="_blank" rel="noopener">@mashukui</a> ·
+  <a href="../" data-i18n="common.moreGames">🎮 More games</a> ·
+  <a href="https://github.com/mashukui/web-games" target="_blank" rel="noopener">GitHub</a> ·
+  <a href="https://saveone.pro" target="_blank" rel="noopener">SaveOne</a> <span data-i18n="common.freeVideo">— free online video downloader</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var N = 4;
+  var BEST_KEY = '2048_best_v1';
+  var TARGET = 2048;
+
+  var grid, score, best, over, wonShown, history, keepGoing;
+  var boardEl = document.getElementById('board');
+  var cells = [];
+  var best0 = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+
+  // ===== Sound =====
+  var audioCtx = null, muted = false;
+  function beep(freq, dur, type, vol) {
+    if (muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  var sfx = {
+    move:  function () { beep(300, 0.04, 'sine', 0.05); },
+    merge: function (v) { beep(420 + Math.log2(v) * 62, 0.08, 'square', 0.07); },
+    win:   function () { [523, 659, 784, 1046, 1318].forEach(function (f, i) { setTimeout(function () { beep(f, 0.16, 'sine', 0.1); }, i * 110); }); },
+    over:  function () { beep(220, 0.3, 'sawtooth', 0.13); setTimeout(function(){ beep(150, 0.4, 'sawtooth', 0.12); }, 160); },
+    undo:  function () { beep(380, 0.06, 'triangle', 0.06); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+  });
+
+  // ===== Board helpers =====
+  function empty() {
+    var g = [];
+    for (var i = 0; i < N * N; i++) g.push(0);
+    return g;
+  }
+  function tileClass(v) {
+    if (v === 0) return '';
+    if (v > 2048) return 'tile val vbig';
+    return 'tile val v' + v;
+  }
+  function paint(spawnIdx, mergeIdx) {
+    for (var i = 0; i < N * N; i++) {
+      var el = cells[i], v = grid[i];
+      el.className = tileClass(v);
+      el.textContent = v === 0 ? '' : v;
+      if (spawnIdx && spawnIdx.indexOf(i) >= 0) el.classList.add('spawn');
+      if (mergeIdx && mergeIdx.indexOf(i) >= 0) el.classList.add('pop');
+    }
+    document.getElementById('score').textContent = score;
+    document.getElementById('best').textContent = best;
+  }
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    cells = [];
+    for (var i = 0; i < N * N; i++) {
+      var d = document.createElement('div');
+      d.className = 'tile';
+      boardEl.appendChild(d);
+      cells.push(d);
+    }
+  }
+
+  function addRandom() {
+    var spots = [];
+    for (var i = 0; i < grid.length; i++) if (grid[i] === 0) spots.push(i);
+    if (!spots.length) return null;
+    var idx = spots[Math.floor(Math.random() * spots.length)];
+    grid[idx] = Math.random() < 0.9 ? 2 : 4;
+    return idx;
+  }
+
+  // slide one row/col toward index 0 (left/top); reports merged slots for pop animation
+  function slideLine(line) {
+    var vals = [], used = [];
+    for (var i = 0; i < line.length; i++) {
+      if (line[i] !== 0) { vals.push(line[i]); used.push(false); }
+    }
+    var out = [], merged = [], gained = 0;
+    for (var j = 0; j < vals.length; j++) {
+      if (j + 1 < vals.length && vals[j] === vals[j + 1] && !used[j] && !used[j + 1]) {
+        out.push(vals[j] * 2); merged.push(true); gained += vals[j] * 2;
+        used[j + 1] = true; j++;
+      } else {
+        out.push(vals[j]); merged.push(false);
+      }
+    }
+    while (out.length < N) { out.push(0); merged.push(false); }
+    return { line: out, merged: merged, gained: gained, changed: out.join(',') !== line.join(',') };
+  }
+
+  function move(dir) { // 0=left 1=up 2=right 3=down
+    if (over) return;
+    var before = grid.slice();
+    var scoreBefore = score;
+    var gainedTotal = 0, changed = false, mergeIdx = [];
+
+    for (var l = 0; l < N; l++) {
+      // extract line in the direction of travel order
+      var idxs = [];
+      for (var k = 0; k < N; k++) {
+        var r, c;
+        if (dir === 0) { r = l; c = k; }
+        else if (dir === 2) { r = l; c = N - 1 - k; }
+        else if (dir === 1) { r = k; c = l; }
+        else { r = N - 1 - k; c = l; }
+        idxs.push(r * N + c);
+      }
+      var line = idxs.map(function (i) { return grid[i]; });
+      var r0 = slideLine(line);
+      if (r0.changed) changed = true;
+      gainedTotal += r0.gained;
+      for (var q = 0; q < N; q++) {
+        grid[idxs[q]] = r0.line[q];
+        if (r0.merged[q] && r0.line[q] !== 0) mergeIdx.push(idxs[q]);
+      }
+    }
+
+    if (!changed) return; // illegal move: no new tile, no history
+
+    history = { grid: before, score: scoreBefore };
+    if (history) document.getElementById('undo-btn').disabled = false;
+
+    score += gainedTotal;
+    if (score > best) { best = score; localStorage.setItem(BEST_KEY, String(best)); }
+
+    var spawnIdx = addRandom();
+    paint(spawnIdx === null ? [] : [spawnIdx], mergeIdx);
+    if (gainedTotal) sfx.merge(gainedTotal); else sfx.move();
+
+    // win check
+    if (!wonShown && grid.indexOf(TARGET) >= 0) {
+      wonShown = true;
+      sfx.win();
+      document.getElementById('win-score').textContent = score;
+      document.getElementById('win-overlay').classList.remove('hidden');
+      return;
+    }
+    if (!canMove()) gameOver();
+  }
+
+  function canMove() {
+    for (var i = 0; i < N * N; i++) {
+      if (grid[i] === 0) return true;
+      var r = Math.floor(i / N), c = i % N;
+      if (c + 1 < N && grid[i] === grid[i + 1]) return true;
+      if (r + 1 < N && grid[i] === grid[i + N]) return true;
+    }
+    return false;
+  }
+
+  function newGame() {
+    grid = empty(); score = 0; over = false; wonShown = false;
+    keepGoing = false; history = null;
+    best = best0;
+    document.getElementById('undo-btn').disabled = true;
+    addRandom(); addRandom();
+    paint();
+    document.getElementById('start-overlay').classList.add('hidden');
+    document.getElementById('win-overlay').classList.add('hidden');
+    document.getElementById('over-overlay').classList.add('hidden');
+  }
+
+  function gameOver() {
+    over = true;
+    sfx.over();
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: best });
+    document.getElementById('over-icon').textContent = score >= 2048 ? '👑' : score >= 1000 ? '🥇' : score >= 500 ? '🥈' : '🧩';
+    var isRecord = score >= best && score > 0;
+    document.getElementById('over-title').textContent = isRecord && score > 0 ? t('common.newRecord') : t('g2048.noMoves');
+    document.getElementById('over-overlay').classList.remove('hidden');
+  }
+
+  function undo() {
+    if (!history || over) return;
+    grid = history.grid.slice();
+    score = history.score;
+    history = null;
+    document.getElementById('undo-btn').disabled = true;
+    paint();
+    sfx.undo();
+  }
+
+  // ===== Input =====
+  var KEYMAP = {
+    ArrowLeft: 0, ArrowUp: 1, ArrowRight: 2, ArrowDown: 3,
+    a: 0, w: 1, d: 2, s: 3
+  };
+  window.addEventListener('keydown', function (e) {
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (KEYMAP[k] !== undefined) { e.preventDefault(); move(KEYMAP[k]); return; }
+    if (k === 'u') { e.preventDefault(); undo(); }
+  });
+
+  var touchX = null, touchY = null;
+  boardEl.addEventListener('touchstart', function (e) {
+    touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
+  }, { passive: true });
+  boardEl.addEventListener('touchend', function (e) {
+    if (touchX === null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    var dy = e.changedTouches[0].clientY - touchY;
+    touchX = touchY = null;
+    if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 2 : 0);
+    else move(dy > 0 ? 3 : 1);
+  }, { passive: true });
+
+  // mouse drag also works on desktop (nice for laptops)
+  var mX = null, mY = null;
+  boardEl.addEventListener('mousedown', function (e) { mX = e.clientX; mY = e.clientY; });
+  boardEl.addEventListener('mouseup', function (e) {
+    if (mX === null) return;
+    var dx = e.clientX - mX, dy = e.clientY - mY;
+    mX = mY = null;
+    if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 2 : 0);
+    else move(dy > 0 ? 3 : 1);
+  });
+
+  document.getElementById('undo-btn').addEventListener('click', undo);
+  document.getElementById('btn-start').addEventListener('click', newGame);
+  document.getElementById('btn-retry').addEventListener('click', newGame);
+  document.getElementById('btn-win-new').addEventListener('click', newGame);
+  document.getElementById('btn-continue').addEventListener('click', function () {
+    keepGoing = true;
+    document.getElementById('win-overlay').classList.add('hidden');
+  });
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var full = t('g2048.share', { n: score, url: location.href });
+    function done() {
+      var b = document.getElementById('btn-share');
+      b.textContent = t('common.copied');
+      setTimeout(function () { b.textContent = t('common.shareScore'); }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(full).then(done, function () { fallbackCopy(full, done); });
+    } else fallbackCopy(full, done);
+  });
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ===== i18n: keep JS-rendered game-over text in the current language =====
+  function refreshOverText() {
+    if (!over) return;
+    var isRecord = score >= best && score > 0;
+    document.getElementById('over-title').textContent = isRecord ? t('common.newRecord') : t('g2048.noMoves');
+    document.getElementById('over-best').textContent = t('common.bestLabel', { n: best });
+  }
+  WG.onChange(refreshOverText);
+
+  // ===== boot =====
+  buildBoard();
+  best = best0;
+  document.getElementById('best').textContent = best;
+  newGame();
+  document.getElementById('start-overlay').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
