@@ -2,9 +2,9 @@
   "name": "RativaSnack",
   "short_name": "RativaSnack",
   "description": "Jogo arcade de sobrevivência RativaSnack: coma queijos, cresça e domine a arena.",
-  "start_url": "./",
+  "start_url": "./Index.html",
   "scope": "./",
-  "id": "./",
+  "id": "./Index.html",
   "display": "fullscreen",
   "display_override": [
     "fullscreen",
