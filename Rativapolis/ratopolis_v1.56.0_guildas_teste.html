@@ -4939,4 +4939,72 @@ body:has(#chatPanel:not(.hidden)) #scene::after{display:none!important}
   #roomsOverlay .online-room-join label{display:none!important}
   #roomsOverlay .online-room-message{margin:2px 0 0!important;font-size:11px!important}
 }
+
+/* 1.56.0 — guilda compacta: painel inteiro visível sem rolagem */
+#guildPage.overlay:not(.hidden){
+  position:fixed!important;inset:0!important;padding:5px!important;
+  overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;
+}
+#guildPage .rank-guild-modal{
+  width:min(1080px,99vw)!important;height:calc(100dvh - 10px)!important;
+  max-height:calc(100dvh - 10px)!important;min-height:0!important;
+  padding:42px 10px 8px!important;overflow:hidden!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-rows:22px 25px 22px minmax(0,1fr) 22px 22px 22px 22px 22px 22px;
+  grid-auto-flow:row;gap:3px 8px!important;align-content:stretch!important;
+  position:relative!important;text-align:left!important;
+}
+#guildPage #guildBackTop{position:absolute!important;top:5px!important;left:8px!important;margin:0!important;width:34px!important;height:32px!important;min-height:32px!important;z-index:30!important}
+#guildPage .rank-guild-modal>div[style*="font-size:38px"]{display:none!important}
+#guildPage .rank-guild-modal>h1{grid-column:1/-1!important;grid-row:1!important;margin:0!important;font-size:clamp(16px,3.2vh,23px)!important;text-align:center!important;line-height:22px!important}
+#guildPage .rank-guild-modal>.sub{grid-column:1/-1!important;grid-row:2!important;margin:0!important;text-align:center!important;font-size:10px!important;line-height:20px!important}
+#guildPage .rank-guild-modal>.guild-panel:nth-of-type(1){grid-column:1!important;grid-row:3/5!important;min-height:0!important}
+#guildPage .rank-guild-modal>.guild-section-title:nth-of-type(1){grid-column:1!important;grid-row:5!important}
+#guildPage .rank-guild-modal>.guild-panel:nth-of-type(2){grid-column:1!important;grid-row:6!important;min-height:0!important}
+#guildPage .rank-guild-modal>#guildRecruitPanel{grid-column:2!important;grid-row:3/6!important;min-height:0!important}
+#guildPage .rank-guild-modal>.guild-section-title:nth-of-type(2){grid-column:2!important;grid-row:6!important}
+#guildPage .rank-guild-modal>#guildPerks{grid-column:2!important;grid-row:7/9!important;min-height:0!important;overflow:hidden!important}
+#guildPage .rank-guild-modal>.guild-detail-grid{grid-column:1!important;grid-row:7!important;margin:0!important;gap:4px!important;min-height:0!important}
+#guildPage .rank-guild-modal>.guild-section-title:nth-of-type(3){grid-column:1!important;grid-row:8!important}
+#guildPage .rank-guild-modal>#guildMemberList{grid-column:1!important;grid-row:9!important;min-height:0!important;overflow:hidden!important}
+#guildPage .rank-guild-modal>.guild-section-title:nth-of-type(4),
+#guildPage .rank-guild-modal>.guild-bullet-list,
+#guildPage .rank-guild-modal>.guild-section-title:nth-of-type(5),
+#guildPage .rank-guild-modal>#guildBulletin{display:none!important}
+#guildPage .rank-guild-modal>.guild-note{display:none!important}
+#guildPage #closeGuild{grid-column:1/-1!important;grid-row:10!important;display:block!important;
+  width:100%!important;min-height:30px!important;height:30px!important;margin:0!important;
+  padding:3px 8px!important;font-size:11px!important;box-shadow:none!important}
+#guildPage .guild-panel{padding:5px 7px!important;margin:0!important;border-radius:8px!important;overflow:hidden!important}
+#guildPage .guild-panel>p{font-size:9px!important;line-height:1.2!important;margin:3px 0!important}
+#guildPage .guild-panel label{display:block!important;font-size:9px!important;margin:2px 0!important}
+#guildPage .guild-panel input,#guildPage .guild-panel textarea{min-height:25px!important;height:25px!important;padding:3px 6px!important;margin:2px 0!important;font-size:10px!important}
+#guildPage .guild-panel textarea{height:34px!important;min-height:34px!important;resize:none!important}
+#guildPage .guild-actions{display:flex!important;gap:4px!important;margin:3px 0!important}
+#guildPage .guild-actions button{min-height:27px!important;padding:3px 6px!important;font-size:9px!important;flex:1!important}
+#guildPage .guild-section-title{font-size:10px!important;line-height:20px!important;margin:0!important;padding:0 3px!important}
+#guildPage .guild-progress-track{height:7px!important;margin:3px 0!important}
+#guildPage .guild-detail-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#guildPage .guild-detail{padding:4px 3px!important;min-width:0!important}
+#guildPage .guild-detail strong{font-size:8px!important}
+#guildPage .guild-detail span{font-size:12px!important}
+#guildPage #guildPerks{display:grid!important;grid-template-columns:1fr 1fr!important;gap:2px 5px!important;padding:4px 6px!important;font-size:8px!important;line-height:1.15!important}
+#guildPage #guildMemberList{font-size:9px!important;line-height:1.2!important;padding:5px!important}
+@media(max-height:390px){
+ #guildPage .rank-guild-modal{padding-top:36px!important;grid-template-rows:18px 18px 18px minmax(0,1fr) 18px 18px 18px 18px 18px 26px!important;gap:2px 5px!important}
+ #guildPage .rank-guild-modal>h1{font-size:15px!important;line-height:18px!important}
+ #guildPage .rank-guild-modal>.sub{font-size:8px!important;line-height:16px!important}
+ #guildPage .guild-section-title{font-size:9px!important;line-height:16px!important}
+ #guildPage .rank-guild-modal>#guildRecruitPanel{grid-row:3/6!important}
+ #guildPage .rank-guild-modal>#guildPerks{grid-row:7/9!important}
+ #guildPage #closeGuild{height:26px!important;min-height:26px!important}
+}
+@media(max-width:560px){
+ #guildPage.overlay:not(.hidden){padding:3px!important}
+ #guildPage .rank-guild-modal{width:99vw!important;padding-left:5px!important;padding-right:5px!important;gap:3px 5px!important}
+ #guildPage .guild-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #guildPage .guild-detail strong{font-size:7px!important}
+ #guildPage .guild-detail span{font-size:10px!important}
+ #guildPage #guildPerks{font-size:7px!important}
+}
 </style>
