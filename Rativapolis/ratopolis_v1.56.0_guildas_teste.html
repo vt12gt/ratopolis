@@ -1737,13 +1737,14 @@ function drawRemotePlayersOnCanvas(){
   const now=performance.now()/1000;
   const serverNpc=list.find(p=>p&&p.npc);
   const npcGround=Array.isArray(platforms)?(platforms.find(p=>p&&p.x<=220&&p.x+p.w>=220)||platforms[0]):null;
-  const npcBaseX=serverNpc&&Number.isFinite(Number(serverNpc.x))?Number(serverNpc.x):(npcGround?Math.max(20,npcGround.x+Math.min(90,npcGround.w*.22)):120);
+  const npcBaseX=npcGround?npcGround.x+12:20;
   const npcBaseY=npcGround?npcGround.y-(Number(serverNpc&&serverNpc.h)||30):H-84;
-  const npcCycle=(now%8)/8,npcDirection=npcCycle<.5?1:-1;
+  const npcSpan=Math.max(30,Math.min(220,(npcGround?npcGround.w:260)-48));
+  const npcCycle=(now%4)/4,npcDirection=npcCycle<.5?1:-1;
   const npcTravel=npcCycle<.5?npcCycle*2:(1-npcCycle)*2;
-  const npcX=npcBaseX+npcTravel*105,npcJump=Math.max(0,Math.sin(now*2.35+.4)),npcY=npcBaseY-npcJump*42;
+  const npcX=npcBaseX+npcTravel*npcSpan,npcY=npcBaseY;
   const host=serverNpc||{id:'rativapolis-host-npc',npc:true,nickname:'Anfitrião'};
-  const drawList=list.filter(p=>p&&!p.npc).concat([{...host,npc:true,x:npcX,y:npcY,w:Number(host.w)||28,h:Number(host.h)||30,vx:npcDirection*2.4,vy:npcJump>.08?-2.5:0,onGround:npcJump<.08,facing:npcDirection,phase:level}]);
+  const drawList=list.filter(p=>p&&!p.npc).concat([{...host,npc:true,x:npcX,y:npcY,w:Number(host.w)||28,h:Number(host.h)||30,vx:npcDirection*8,vy:0,onGround:true,facing:npcDirection,phase:level}]);
   for(const p of drawList){if(!p||String(p.id)===String(window.ratopolisPlayerId||window.playerId||''))continue;if(!p.npc&&Number.isFinite(Number(p.phase))&&Number(p.phase)!==Number(level))continue;const x=Number(p.x),y=Number(p.y);if(!Number.isFinite(x)||!Number.isFinite(y))continue;player={...localPlayer,x,y,w:Number(p.w)||localPlayer.w,h:Number(p.h)||localPlayer.h,vx:Number(p.vx)||0,vy:Number(p.vy)||0,onGround:p.onGround===true,facing:Number(p.facing)||1};playerNickname=String(p.nickname||(p.npc?'Anfitrião':'Jogador')).slice(0,18);try{drawMouse(x,y);}catch(err){console.warn('[RativaPolis] rato remoto:',err);}}
  }finally{player=localPlayer;playerNickname=localNickname;ctx.restore();}
 }
@@ -1753,9 +1754,9 @@ const running=playing&&player.onGround&&Math.abs(player.vx)>.01;
 const airborne=!player.onGround;
 const landingSquash=landingAnim>0?Math.sin((landingAnim/.18)*Math.PI)*.12:0;
 const airStretch=airborne?(player.vy<0?.07:-.055):0;
-const runRate=dashTimer>0?25:17;
-const stride=running?Math.sin(anim*runRate)*(dashTimer>0?5:3.8):0;
-const bounce=running?Math.abs(Math.sin(anim*runRate))*(dashTimer>0?1.8:1.2):0;
+const runRate=dashTimer>0?29:22;
+const stride=running?Math.sin(anim*runRate)*(dashTimer>0?6:5):0;
+const bounce=running?Math.abs(Math.sin(anim*runRate))*(dashTimer>0?2.4:1.8):0;
 const tilt=airborne?-0.13:running?Math.sin(anim*runRate)*(dashTimer>0?.065:.035):0;
 ctx.translate(x+player.w/2,y+player.h/2+bounce);if(!hidePlayerNames){ctx.save();ctx.scale(1,1);ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='bottom';const tag=(playerNickname||'Convidado').slice(0,18);const tw=ctx.measureText(tag).width;ctx.fillStyle='rgba(18,39,27,.78)';roundRect(-tw/2-6,-36,tw+12,16,6,'rgba(18,39,27,.78)','rgba(255,255,255,.2)');ctx.fillStyle='#fff8dc';ctx.fillText(tag,0,-23);ctx.restore();}if(player.facing<0)ctx.scale(-1,1);ctx.rotate(tilt);
 // Rastro visual de velocidade durante o impulso; não altera colisões nem movimento.
@@ -2033,7 +2034,7 @@ for(let i=0;i<3;i++){
 ctx.fillStyle='#4d9252';ctx.beginPath();ctx.ellipse(12,H+8,75,32,-.2,0,Math.PI*2);ctx.ellipse(W-8,H+8,88,34,.2,0,Math.PI*2);ctx.fill();}
 function update(dt){if(!playing)return;phaseElapsed+=dt;updateTimer();anim+=dt;if(raceHumanFinished){updatePracticeBots(dt);if(practiceBots.every(b=>b.finished)||phaseElapsed>=raceFinishDeadline){practiceBots.forEach(b=>{if(!b.finished){b.finished=true;b.finishTime=phaseElapsed;b.x=Math.min(b.x,goal.x-b.w-4);}});finalizeRaceResults();}return;}landingAnim=Math.max(0,landingAnim-dt);if(balloonLiftUntil>performance.now()){player.vy=-Math.min(210,H*.48);player.y=Math.max(8,player.y+player.vy*dt);if(player.y<=8){balloonLiftUntil=0;player.vy=0;}}else if(balloonLiftUntil){balloonLiftUntil=0;}particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=150*dt;p.life-=dt});particles=particles.filter(p=>p.life>0);rewardTexts.forEach(r=>{r.y-=30*dt;r.life-=dt});rewardTexts=rewardTexts.filter(r=>r.life>0);invulnerable=Math.max(0,invulnerable-dt);jumpBuffer=Math.max(0,jumpBuffer-dt);coyoteTime=Math.max(0,coyoteTime-dt);bridgeCooldown=Math.max(0,bridgeCooldown-dt);dashTimer=Math.max(0,dashTimer-dt);dashCooldown=Math.max(0,dashCooldown-dt);
 if(player.crouchTimer>0){player.crouchTimer=0;player.h=30;}
-stepShamanWorld(dt);movingPlatforms.forEach(p=>{p.prevY=p.y;p.y=p.baseY+Math.sin(anim*p.speed+p.phase)*p.amplitude;p.dy=p.y-p.prevY});obstacles.filter(o=>o.type==='beetle').forEach(o=>{o.x+=o.dir*o.patrolSpeed*dt;if(o.x<o.minX){o.x=o.minX;o.dir=1}else if(o.x>o.maxX){o.x=o.maxX;o.dir=-1}});let carriedByPlatform=null;if(player.supportId&&String(player.supportId).startsWith('moving-')){const support=movingPlatforms.find(p=>p.id===player.supportId);const stillOverPlatform=support&&player.x+player.w>support.x+1&&player.x<support.x+support.w-1;if(support&&stillOverPlatform&&player.vy>=0&&Math.abs((player.y+player.h)-support.prevY)<=18){player.y=support.y-player.h;player.vy=0;player.onGround=true;carriedByPlatform=support.id;}else{player.supportId=null;if(!stillOverPlatform)player.onGround=false;}}else if(player.supportId&&String(player.supportId).startsWith('solid:')){const foot=player.y+player.h;const supported=[...platforms,...planks,...obstacles.filter(o=>!['spikes','beetle','lowroof'].includes(o.type)).map(o=>({x:o.x,y:o.y+(o.type==='stump'?5:(o.type==='spring'?3:0)),w:o.w,h:o.h}))].some(p=>player.x+player.w>p.x+1&&player.x<p.x+p.w-1&&Math.abs(foot-p.y)<=10);if(!supported){player.supportId=null;player.onGround=false;}}planks.forEach(p=>p.life-=dt);planks=planks.filter(p=>p.life>0);const speed=dashTimer>0?510:245;const inputAxis=joystickPointer!==null?joystickAxis:((keys.right?1:0)-(keys.left?1:0));player.vx=Math.abs(inputAxis)<.01?0:Math.sign(inputAxis);const movementStrength=dashTimer>0?1:Math.abs(inputAxis);if(dashTimer>0)player.vx=dashDirection;if(player.vx)player.facing=Math.sign(player.vx);
+stepShamanWorld(dt);movingPlatforms.forEach(p=>{p.prevY=p.y;p.y=p.baseY+Math.sin(anim*p.speed+p.phase)*p.amplitude;p.dy=p.y-p.prevY});obstacles.filter(o=>o.type==='beetle').forEach(o=>{o.x+=o.dir*o.patrolSpeed*dt;if(o.x<o.minX){o.x=o.minX;o.dir=1}else if(o.x>o.maxX){o.x=o.maxX;o.dir=-1}});let carriedByPlatform=null;if(player.supportId&&String(player.supportId).startsWith('moving-')){const support=movingPlatforms.find(p=>p.id===player.supportId);const stillOverPlatform=support&&player.x+player.w>support.x+1&&player.x<support.x+support.w-1;if(support&&stillOverPlatform&&player.vy>=0&&Math.abs((player.y+player.h)-support.prevY)<=18){player.y=support.y-player.h;player.vy=0;player.onGround=true;carriedByPlatform=support.id;}else{player.supportId=null;if(!stillOverPlatform)player.onGround=false;}}else if(player.supportId&&String(player.supportId).startsWith('solid:')){const foot=player.y+player.h;const supported=[...platforms,...planks,...obstacles.filter(o=>!['spikes','beetle','lowroof'].includes(o.type)).map(o=>({x:o.x,y:o.y+(o.type==='stump'?5:(o.type==='spring'?3:0)),w:o.w,h:o.h}))].some(p=>player.x+player.w>p.x+1&&player.x<p.x+p.w-1&&Math.abs(foot-p.y)<=10);if(!supported){player.supportId=null;player.onGround=false;}}planks.forEach(p=>p.life-=dt);planks=planks.filter(p=>p.life>0);const speed=dashTimer>0?600:330;const inputAxis=joystickPointer!==null?joystickAxis:((keys.right?1:0)-(keys.left?1:0));player.vx=Math.abs(inputAxis)<.01?0:Math.sign(inputAxis);const movementStrength=dashTimer>0?1:Math.abs(inputAxis);if(dashTimer>0)player.vx=dashDirection;if(player.vx)player.facing=Math.sign(player.vx);
 // v1.23.0: inclinação parcial do joystick controla a força horizontal; teclado mantém velocidade total.
 // Colisão lateral varrida: o rato para na borda mesmo em deslocamentos rápidos.
 const previousX=player.x;let nextX=player.x+player.vx*speed*movementStrength*dt;
@@ -2116,9 +2117,9 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
    if(choiceStatus)choiceStatus.textContent='Se a sala ainda não tiver Shaman, você pode se candidatar durante esta contagem.';
   if(numberEl)numberEl.textContent=level+1;
   if(nameEl)nameEl.textContent=scenarioName(level)+' · escolhendo Shaman da sala…';
-  if(countEl)countEl.textContent='15';
+  if(countEl)countEl.textContent='5';
   overlay.classList.remove('hidden');playing=true;last=performance.now();
-  const deadline=Date.now()+15000;
+  const deadline=Date.now()+5000;
   let assignmentReady=false,finished=false,assignmentResult=null,assigning=false;
   const applyAssignment=result=>{
    if(!result||result.ok===false||result.roleConfirmed!==true)throw new Error('O servidor não confirmou a identidade do Shaman nesta sala.');
@@ -2150,7 +2151,7 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
     applyAssignment(result);assignmentReady=true;
    }catch(err){
     if(finished)return;
-    // Retry while the same 15-second countdown is visible; never silently pick a local Shaman.
+    // Retry during the single 5-second room-entry countdown; never silently pick a local Shaman.
     assignmentReady=false;
     if(Date.now()<deadline-800){
      if(nameEl)nameEl.textContent='Servidor escolhendo Shaman… tentando novamente';
@@ -2171,7 +2172,7 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
    if(countEl)countEl.textContent=String(left);
    if(left===0)finishSelection();
   },100);
-  // Solicita a escolha no início dos 15s, não depois de uma contagem intermediária.
+  // Solicita a escolha no início da única contagem de entrada de 5 segundos.
   requestAssignment();
   return;
  }
@@ -2208,7 +2209,7 @@ async function getVerifiedStaffRole(){
 function chooseNextRoom(current){const total=Math.min(12,scenarioNames.length);return (Math.max(0,Number(current)||0)+1)%Math.max(1,total);}
 async function goNextPhase(){clearPhaseTimers();
  {const R=window.RatopolisOnlineRooms;if(R&&R.isActive&&R.isActive()&&level===11&&!testMode){document.getElementById('finish').classList.add('hidden');try{if(window.__rpFinishPromise)await window.__rpFinishPromise.catch(()=>{});}catch(_e){}try{await R.leave();}catch(_e){}window.__ratopolisBackToMenu();const n=document.getElementById('rmGChatLog');if(n){const d=document.createElement('div');d.className='rm-gmsg sys';d.textContent='Você concluiu as 12 partidas e saiu da sala automaticamente.';n.appendChild(d);n.scrollTop=n.scrollHeight;}return;}}
-document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;last=performance.now();physicsAccumulator=0;showPhaseCountdown(10,false);}
+document.getElementById('finish').classList.add('hidden');level=Number.isInteger(queuedNextLevel)?queuedNextLevel:chooseNextRoom(level);queuedNextLevel=null;testMode=false;document.getElementById('testPhase').value=String(level+1);registerMatchParticipation();await requestLandscape();makeLevel();const staffRole=await getVerifiedStaffRole();verifiedStaffRole=staffRole;last=performance.now();physicsAccumulator=0;showPhaseCountdown(0,true,true);}
 function start(){document.getElementById('start').classList.add('hidden');document.getElementById('finish').classList.add('hidden');registerMatchParticipation();makeLevel();showPhaseCountdown();last=performance.now()}
 async function requestLandscape(){
   try{
@@ -2365,7 +2366,7 @@ async function switchToTestRoom(roomIndex,skipCountdown=false){
  level=Math.max(0,Math.min(scenarioNames.length-1,Number(roomIndex)||0));testMode=false;queuedNextLevel=null;document.getElementById('testPhase').value=String(level+1);makeLevel();registerMatchParticipation();playing=true;last=performance.now();physicsAccumulator=0;clearTouchMovement();
  /* Todos os jogadores, inclusive a equipe, veem a mesma janela de seleção do Shaman. */
  const staffRole=await Promise.race([getVerifiedStaffRole(),new Promise(resolve=>setTimeout(()=>resolve(''),1800))]);verifiedStaffRole=staffRole;
- addChatLine('Sistema: sala '+(level+1)+' preparada. Escolha do Shaman em 10 segundos.','system');showPhaseCountdown(10,false);
+ addChatLine('Sistema: sala '+(level+1)+' preparada. A corrida começa em 5 segundos.','system');showPhaseCountdown(5,false);
 }
 
  function renderCommunityParticipants(){
