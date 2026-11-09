@@ -1225,7 +1225,7 @@ async function olVerifyRatopolisSession(){
   onlineServerOnly=true;
   if(e.authInvalid){
    ol.token='';ol.id='';ol.nick='';ol.profile=null;ol.serverOnly=false;olCloudReady=false;olSave();
-   mpBox('<b>🔒 Sessão do Portal expirada</b><p>Entre novamente no Portal RativaGames para continuar.</p>'+mpB('Ir para o Portal','location.href=\\'https://vt12gt.github.io/RativaGames/\\''));
+   mpBox('<b>🔒 Sessão do Portal expirada</b><p>Entre novamente no Portal RativaGames para continuar.</p>'+mpB('Ir para o Portal','location.href=\'https://vt12gt.github.io/RativaGames/\''));
   }else{
    ol.ssoPending=true;olSave();
    mpBox('<div class="ol-screen"><div class="ol-mark">🐭🧀</div><h2>Reconectando à sua conta</h2><div class="ol-spinner"></div><p id="olMsg">A sessão foi preservada. Tentando novamente…</p><div class="ol-steps"><span>🔐 Conta</span><span>☁️ Perfil Online</span><span>🌐 Servidor</span></div></div>');
