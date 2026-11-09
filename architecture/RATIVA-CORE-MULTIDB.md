@@ -148,3 +148,19 @@ Bindings confirmados no Worker:
 - Nenhuma configuração de produção foi alterada.
 
 Próxima etapa: smoke tests autenticados e integração do cliente de teste com os endpoints de perfil/progresso/ranking; em seguida, implementar recompensas e os demais domínios com idempotência e auditoria.
+
+
+## Compatibilidade de leitura com rotas legadas (desenvolvimento)
+
+Em 2026-11-09, o Worker `rativapolis-api-dev` recebeu aliases de leitura para reduzir a mudança simultânea no cliente:
+- `GET /api/profile` → perfil do jogador no Polis, com nickname/role/email/status vindos do Portal e progressão do banco Polis.
+- `GET /api/progression/me` → mesmo contrato legado `{ ok, progresso }`, consultando o perfil local Polis.
+- `GET /api/rankings` → ranking geral ordenado por XP e depois nível.
+- `GET /api/rankings/level` → ranking por nível e XP.
+- Os caminhos novos `/api/rativapolis/*` continuam disponíveis.
+
+As respostas mantêm as chaves legadas `jogador`, `progresso`, `jogadores`, `pagina`, `limite`, `total` e `total_paginas`. Os IDs retornados pelo serviço novo são IDs públicos RP do jogo, não UUIDs centrais do Portal.
+
+O deploy atualizado de desenvolvimento foi aceito em 2026-11-09 e os bindings foram conferidos novamente: `PORTAL_DB` → `ratopolis-dev-v31`; `POLIS_DB` → `rativapolis-dev-isolated`.
+
+Limites: o teste HTTP de runtime continua bloqueado pelo ambiente de execução (requisições ao domínio workers.dev são negadas antes de chegar ao Worker). A rota privada `/api/profile/personal` que trata nome completo/data de nascimento/WhatsApp não foi copiada para o serviço de jogo; continua sendo dado privado do Portal. O cliente do jogo ainda não foi alterado nem conectado. Antes de integrar, localizar o frontend correto e conferir todos os endpoints chamados por ele, especialmente rotas POST de recompensas, loja, inventário, cenários e autenticação. Nenhuma configuração de produção foi alterada.
