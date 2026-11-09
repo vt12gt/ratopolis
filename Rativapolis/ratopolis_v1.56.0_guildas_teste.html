@@ -4375,7 +4375,7 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   if(trigger){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();return;}
   if(e.target.closest('#guildBackTop')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();close();return;}
  },true);
- let guildRefreshBusy=false;async function refreshGuildWhenVisible(){if(page.classList.contains("hidden")||document.visibilityState!=="visible"||guildRefreshBusy||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;guildRefreshBusy=true;try{await load();}finally{guildRefreshBusy=false;}}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshGuildWhenVisible();});window.addEventListener("focus",refreshGuildWhenVisible);setInterval(refreshGuildWhenVisible,15000);
+ let guildRefreshBusy=false;async function refreshGuildWhenVisible(){if(page.classList.contains("hidden")||document.visibilityState!=="visible"||guildRefreshBusy||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;guildRefreshBusy=true;try{await load();}finally{guildRefreshBusy=false;}}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshGuildWhenVisible();});window.addEventListener("focus",refreshGuildWhenVisible);setInterval(refreshGuildWhenVisible,8000);
  window.RativaGuilds={open,refresh:load};
 })();
 </script>
