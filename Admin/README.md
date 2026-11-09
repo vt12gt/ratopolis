@@ -4,26 +4,25 @@ Esta pasta reúne os painéis administrativos dos produtos da RativaGames.
 
 ## Estrutura
 
-- `PortalAdmin/`: administração geral do portal público, comunidade, contas, ranking e rádio.
-- `PortalAdmin/Radio/`: administração da rádio e relatório de estatísticas do portal.
-- `RativaPolis/`: painel administrativo específico do jogo RativaPolis.
-- `RativaSnack/`: reservado para o painel administrativo específico do RativaSnack, caso seja criado.
+- `PortalAdmin/`: entrada do Admin Geral e ferramentas compartilhadas do portal, comunidade, contas, ranking e rádio.
+- `PortalAdmin/Radio/`: administração da rádio e relatório de estatísticas.
+- `RativaPolis/`: painel administrativo do jogo RativaPolis.
+- `RativaSnack/`: reservado para um painel específico do RativaSnack, caso seja criado.
 
-## Admin Geral — decisão de projeto
+## Decisões do Admin Geral
 
-O Admin Geral será a central de administração da plataforma RativaGames.
+- **Acesso:** dono e administradores expressamente autorizados.
+- **Permissões:** individuais e granulares; o acesso total permanece reservado ao dono.
+- **Auditoria:** histórico administrativo completo, com registro no servidor e proteção contra alterações indevidas.
+- **Separação:** recursos compartilhados ficam no Admin Geral; controles de jogo permanecem no painel de cada produto.
 
-- **Acesso:** somente o dono e administradores expressamente autorizados pelo dono.
-- **Permissões:** acesso dos administradores será individual e granular, conforme as responsabilidades atribuídas. O acesso total fica reservado ao dono.
-- **Separação:** o painel geral administra recursos compartilhados do portal; os painéis de RativaPolis e RativaSnack mantêm controles específicos de cada jogo.
-- **Auditoria:** manter histórico administrativo completo, registrando todas as ações realizadas nos painéis e sistemas administrativos.
-- **Integridade:** os registros de auditoria devem ser armazenados no servidor, protegidos contra alteração ou exclusão por usuários administrativos comuns e consultáveis por quem tiver permissão.
+## Estado da migração
 
-Consulte [ADMIN_GERAL.md](./PortalAdmin/ADMIN_GERAL.md) para os requisitos de acesso, permissões e auditoria.
+A primeira etapa criou uma entrada própria para o Admin Geral e documentou a separação do painel legado. O painel RativaPolis permanece preservado. A extração funcional dos módulos compartilhados ainda exige migração e testes por módulo, pois o arquivo atual mistura funções reais, funções demonstrativas locais e integrações com Workers.
 
-## Observações
+Consulte:
+- [Entrada do Admin Geral](./PortalAdmin/index.html)
+- [Plano de separação dos painéis](./PortalAdmin/SEPARACAO_PAINES.md)
+- [Painel RativaPolis](./RativaPolis/README.md)
 
-- O portal público único permanece na raiz do repositório: `/index.html`.
-- Os jogos continuam em suas pastas próprias; os painéis administrativos ficam separados.
-- Na revisão desta estrutura não foi localizado um painel administrativo próprio do RativaSnack.
-- Os nomes internos de APIs e Workers foram preservados para evitar quebrar integrações existentes.
+O portal público único permanece na raiz do repositório: `/index.html`. Os nomes internos de APIs e Workers não devem ser alterados sem migração coordenada.
