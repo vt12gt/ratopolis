@@ -1308,9 +1308,12 @@ async function loadGlobalRanking(mode=globalRankingMode){
  if(levelBtn)levelBtn.setAttribute('aria-pressed',mode==='nivel'?'true':'false');
  try{
   const endpoint=mode==='nivel'?'/api/rankings/level':'/api/rankings';
-  const response=await fetch(PROGRESSION_API+endpoint+'?page=1&limit=20',{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'}});
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok||data.ok!==true||!Array.isArray(data.jogadores))throw new Error('ranking indisponível');
+  const requestUrl=PROGRESSION_API+endpoint+'?page=1&limit=20&v=2';
+  const response=await fetch(requestUrl,{method:'GET',mode:'cors',cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
+  const raw=await response.text();
+  let data={};try{data=raw?JSON.parse(raw):{};}catch(_parseError){throw new Error('Resposta inválida do servidor (HTTP '+response.status+').');}
+  if(!response.ok)throw new Error('Servidor respondeu HTTP '+response.status+(data.error?': '+data.error:''));
+  if(data.ok!==true||!Array.isArray(data.jogadores))throw new Error(data.error||data.erro||'O servidor não retornou a lista de jogadores.');
   const players=data.jogadores.slice(0,20);
   if(!players.length){status.textContent='Ainda não há jogadores no ranking global.';return;}
   for(const player of players){
@@ -1326,7 +1329,8 @@ async function loadGlobalRanking(mode=globalRankingMode){
   const total=Math.max(0,Math.floor(Number(data.total)||players.length));
   status.textContent='Ranking online · '+total+' jogador(es) · página 1';
  }catch(_error){
-  status.textContent='Não foi possível carregar o ranking. Verifique a conexão e tente novamente.';
+  const reason=String(_error&&_error.message||_error||'falha desconhecida');
+  status.textContent='Falha ao conectar ao ranking online: '+reason+'. Toque em Atualizar para tentar novamente.';
  }finally{globalRankingLoading=false;}
 }
 document.getElementById('globalRankXP')?.addEventListener('click',()=>void loadGlobalRanking('geral'));
@@ -2285,8 +2289,28 @@ document.getElementById('soundBtn').addEventListener('click',()=>{soundEnabled=!
 document.getElementById('musicBtn').addEventListener('click',()=>{musicEnabled=!musicEnabled;try{localStorage.setItem('ratopolis_music_v1959',musicEnabled?'on':'off')}catch(_e){}updateMusicButton();if(musicEnabled){startMusic()}else stopMusic();});updateMusicButton();
 function openTitlesChallenges(fromMenu=false){const panel=document.getElementById('achievements');panel.dataset.fromMenu=fromMenu?'1':'0';document.getElementById('closeAchievements').textContent=fromMenu?'← VOLTAR AO MENU':'← VOLTAR AO JOGO';renderAchievements();panel.classList.remove('hidden');if(fromMenu)document.getElementById('start').classList.add('hidden');}
 document.getElementById('achievementBtn').addEventListener('click',()=>openTitlesChallenges(false));
-document.getElementById('closeRanking').addEventListener('click',()=>{document.getElementById('rankingPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
-document.querySelector('#rankingPage .ranking-back-top').addEventListener('click',()=>{document.getElementById('rankingPage').classList.add('hidden');document.getElementById('start').classList.remove('hidden');});
+/* Retorno do ranking: função global para clique, toque e acessibilidade. */
+window.__rativaCloseRanking=function(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ const page=document.getElementById('rankingPage'),menu=document.getElementById('start');
+ if(page){page.classList.add('hidden');page.setAttribute('aria-hidden','true');}
+ if(menu){menu.classList.remove('hidden');menu.removeAttribute('aria-hidden');}
+};
+document.getElementById('closeRanking').onclick=window.__rativaCloseRanking;
+document.querySelector('#rankingPage .ranking-back-top').onclick=window.__rativaCloseRanking;
+(function(){
+ const page=document.getElementById('rankingPage');if(!page)return;
+ page.querySelectorAll('.ranking-back-top,#closeRanking').forEach(function(button){
+  button.setAttribute('onclick','window.__rativaCloseRanking(event)');
+  button.style.cssText+=';touch-action:manipulation!important;pointer-events:auto!important;position:relative;z-index:2147483000;cursor:pointer';
+  button.addEventListener('touchend',window.__rativaCloseRanking,{capture:true,passive:false});
+  button.addEventListener('pointerup',window.__rativaCloseRanking,{capture:true});
+ });
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest&&event.target.closest('#rankingPage .ranking-back-top,#rankingPage #closeRanking');
+  if(button)window.__rativaCloseRanking(event);
+ },true);
+})();
 /* v1.56.0 teste-core — retorno resiliente ao menu em toque/click no Android */
 (function(){
  const page=document.getElementById('rankingPage');
