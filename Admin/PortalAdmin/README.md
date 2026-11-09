@@ -17,3 +17,5 @@ O mapa de responsabilidades está em [SEPARACAO_PAINES.md](./SEPARACAO_PAINES.md
 **Importante:** a central de entrada não substitui autenticação nem autorização no servidor. Gestão global de contas, equipe, permissões e auditoria só será considerada migrada quando os módulos e endpoints correspondentes estiverem funcionando e testados aqui.
 
 O portal público único continua sendo o `index.html` da raiz do repositório.
+
+- `Auditoria/index.html`: consulta somente leitura do histórico do banco; rota protegida por SpAdmin/ADM.
