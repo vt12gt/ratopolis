@@ -74,6 +74,11 @@ function loadAvatars(){if(!canReview())return;try{ask('get_avatar_queue')}catch(
 function loadReports(){if(!canReview())return;try{ask('get_avatar_reports')}catch(e){status(e.message,'bad')}}
 async function init(){state.token=localStorage.getItem(TOKEN_KEY)||'';if(!state.token){status('Nenhuma sessão encontrada. Entre no portal com uma conta autorizada e abra este módulo novamente.','bad');return}
 try{const me=await api('/api/admin/me');state.role=String(me.role||me.papel||'').toLowerCase();$('role').textContent=state.role.toUpperCase()||'—';if(!['spadm','adm','gm','mod','locutor'].includes(state.role))throw new Error('Seu cargo não possui acesso ao módulo de comunidade.');if(!canModerate()&&state.role!=='locutor'&&state.role!=='mod')throw new Error('Acesso não autorizado.');
+if(!canModerate())document.querySelector('[data-tab="members"]').classList.add('hidden');
+if(!['spadm','adm','gm','locutor'].includes(state.role))document.querySelector('[data-tab="bans"]').classList.add('hidden');
+if(!canReview())document.querySelector('[data-tab="avatars"]').classList.add('hidden');
+if(!canReview())document.querySelector('[data-tab="reports"]').classList.add('hidden');
+if(!canAnnounce())document.querySelector('[data-tab="notice"]').classList.add('hidden');
 const response=await fetch(COMMUNITY+'/api/ticket',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.token},body:JSON.stringify({nickname:me.nickname||me.user?.nickname||'Equipe RativaGames'})});const ticketData=await response.json().catch(()=>({}));if(!response.ok||!ticketData.ok)throw new Error(ticketData.error||'Não foi possível criar a conexão segura.');state.ticket=ticketData.ticket;await connect();if(canReview()){loadAvatars();loadReports()}if(['spadm','adm','gm','locutor'].includes(state.role))loadBans();$('notice').classList.toggle('hidden',!canAnnounce());}catch(e){status('Não foi possível abrir a comunidade: '+e.message,'bad');$('connection').textContent='Erro'}}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 $('refreshMembers').addEventListener('click',()=>{if(state.socket?.readyState===WebSocket.OPEN)status('Lista de membros atualizada em tempo real.','good')});
