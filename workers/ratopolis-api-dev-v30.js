@@ -1,4 +1,4 @@
-const VERSION = "v39.7-admin-privacy-minimization";
+const VERSION = "v39.8-admin-users-minimization";
 const ENVIRONMENT = "development";
 const SESSION_DAYS = 7;
 const PBKDF2_ITERATIONS = 100000;
@@ -1052,7 +1052,7 @@ export default {
         const actor = await authenticate(request, env);
         if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
         if (ROLE_RANK[actor.role] < ROLE_RANK.mod) return reply({ ok: false, erro: "Permissao insuficiente." }, 403);
-        const result = await env.DB.prepare("SELECT u.id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role, u.status, u.created_at, p.level, p.xp, p.vip_level, p.coins FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id LEFT JOIN ratopolis_profiles p ON p.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
+        const result = await env.DB.prepare("SELECT u.id, u.nickname, CASE WHEN u.role <> 'player' THEN u.role WHEN rs.role IS NOT NULL THEN rs.role ELSE u.role END AS role FROM ratopolis_users u LEFT JOIN ratopolis_radio_staff rs ON rs.user_id = u.id ORDER BY u.nickname COLLATE NOCASE ASC, u.id ASC").all();
         return reply({ ok: true, jogadores: result.results });
       }
 
