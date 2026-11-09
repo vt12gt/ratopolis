@@ -1,4 +1,4 @@
-const VERSION = "v39.5-global-role-precedence";
+const VERSION = "v39.6-admin-donations-panel";
 const ENVIRONMENT = "development";
 const SESSION_DAYS = 7;
 const PBKDF2_ITERATIONS = 100000;
@@ -331,6 +331,95 @@ export default {
         return reply({ ok: true, mensagem: "Login realizado com sucesso.", jogador: { id: user.id, nickname: user.nickname, email: user.email, role: user.role, status: user.status, level: profile?.level ?? 1, xp: profile?.xp ?? 0, vip_level: profile?.vip_level ?? 0, coins: profile?.coins ?? 0 }, token, expires_at: expiresAt });
       }
 
+
+
+      // Painel financeiro RativaGames: somente leitura, restrito a SpAdmin e ADM.
+      if (path === "/api/admin/donations/overview" && method === "GET") {
+        etapaAtual = "consulta administrativa do painel de doacoes";
+        const actor = await authenticate(request, env);
+        if (!actor) return reply({ ok: false, erro: "Autenticacao necessaria." }, 401);
+        if (actor.role !== "spadm" && actor.role !== "adm") return reply({ ok: false, erro: "Somente SpAdmin e ADM podem consultar o painel de doacoes." }, 403);
+        const pageInput = Number.parseInt(url.searchParams.get("page") || "1", 10);
+        const limitInput = Number.parseInt(url.searchParams.get("limit") || "25", 10);
+        const page = Number.isFinite(pageInput) ? Math.max(1, Math.min(pageInput, 100000)) : 1;
+        const limit = Number.isFinite(limitInput) ? Math.max(1, Math.min(limitInput, 100)) : 25;
+        const offset = (page - 1) * limit;
+        const search = (url.searchParams.get("q") || "").trim().slice(0, 80);
+        const summary = await env.DB.prepare("SELECT COALESCE(SUM(CASE WHEN status='approved' AND currency='BRL' THEN amount_cents ELSE 0 END),0) AS approved_cents, COUNT(CASE WHEN status='approved' AND currency='BRL' THEN 1 END) AS approved_count, COUNT(CASE WHEN status='pending' THEN 1 END) AS pending_count, COUNT(CASE WHEN status='rejected' THEN 1 END) AS rejected_count, COUNT(*) AS payment_count FROM donation_payments").first();
+        const donorWhere = search ? " AND u.nickname LIKE ?" : "";
+        const donorArgs = search ? ["%" + search + "%"] : [];
+        const donors = await env.DB.prepare("SELECT p.account_user_id AS user_id, COALESCE(u.nickname,'Conta indisponivel') AS nickname, SUM(p.amount_cents) AS total_cents, COUNT(*) AS approved_count, MIN(p.approved_at) AS first_approved_at, MAX(p.approved_at) AS last_approved_at FROM donation_payments p LEFT JOIN ratopolis_users u ON u.id=p.account_user_id WHERE p.status='approved' AND p.currency='BRL' AND p.account_user_id IS NOT NULL" + donorWhere + " GROUP BY p.account_user_id, u.nickname ORDER BY total_cents DESC, first_approved_at ASC, nickname COLLATE NOCASE ASC LIMIT 100").bind(...donorArgs).all();
+        const paymentWhere = search ? " WHERE COALESCE(u.nickname,'') LIKE ?" : "";
+        const paymentArgs = search ? ["%" + search + "%"] : [];
+        const totalPayments = await env.DB.prepare("SELECT COUNT(*) AS total FROM donation_payments p LEFT JOIN ratopolis_users u ON u.id=p.account_user_id" + paymentWhere).bind(...paymentArgs).first();
+        const payments = await env.DB.prepare("SELECT p.id, COALESCE(u.nickname,'Conta indisponivel') AS nickname, p.amount_cents, p.currency, p.payment_method, p.status, p.created_at, p.approved_at, p.updated_at FROM donation_payments p LEFT JOIN ratopolis_users u ON u.id=p.account_user_id" + paymentWhere + " ORDER BY p.created_at DESC LIMIT ? OFFSET ?").bind(...paymentArgs, limit, offset).all();
+        const donationEvents = await env.DB.prepare("SELECT event_type, payment_id, amount_cents, details_json, created_at FROM donation_audit_events ORDER BY created_at DESC LIMIT 100").all();
+        const titleEvents = await env.DB.prepare("SELECT a.action, a.details, a.created_at, COALESCE(u.nickname,'') AS target_nickname FROM ratopolis_audit_logs a LEFT JOIN ratopolis_users u ON u.id=a.target_user_id WHERE a.action='portal_top_donor_changed' ORDER BY a.created_at DESC LIMIT 100").all();
+        const total = Number(totalPayments?.total || 0);
+        return reply({
+          ok: true, somente_leitura: true,
+          resumo: {
+            approved_cents: Number(summary?.approved_cents || 0),
+            approved_count: Number(summary?.approved_count || 0),
+            pending_count: Number(summary?.pending_count || 0),
+            rejected_count: Number(summary?.rejected_count || 0),
+            payment_count: Number(summary?.payment_count || 0)
+          },
+          ranking: donors.results.map((d, i) => ({
+            position: i + 1, nickname: d.nickname, total_cents: Number(d.total_cents || 0),
+            approved_count: Number(d.approved_count || 0), first_approved_at: d.first_approved_at, last_approved_at: d.last_approved_at
+          })),
+          payments: {
+            page, limit, total, total_pages: Math.ceil(total / limit),
+            records: payments.results.map(p => ({
+              id: p.id, nickname: p.nickname, amount_cents: Number(p.amount_cents || 0),
+              currency: p.currency, method: p.payment_method, status: p.status,
+              created_at: p.created_at, approved_at: p.approved_at, updated_at: p.updated_at
+            }))
+          },
+          donation_events: donationEvents.results.map(e => ({
+            event_type: e.event_type, payment_id: e.payment_id,
+            amount_cents: e.amount_cents == null ? null : Number(e.amount_cents),
+            details: safeJson(e.details_json, {}), created_at: e.created_at
+          })),
+          title_events: titleEvents.results.map(e => ({
+            action: e.action, details: safeJson(e.details, {}), target_nickname: e.target_nickname, created_at: e.created_at
+          }))
+        });
+      }
+
+      // RativaGames donations: isolated D1 database; Ratopolis store DB/routes remain untouched.
+      if (path === "/api/donations/public-summary" && method === "GET") {
+        etapaAtual = "resumo publico de doacoes RativaGames";
+        if (!env.DB) return reply({ok:false,erro:"Banco de doacoes nao configurado."},503);
+        const total=await env.DB.prepare("SELECT COALESCE(SUM(amount_cents),0) AS cents, COUNT(*) AS count FROM donation_payments WHERE status='approved'").first();
+        const weeks=await env.DB.prepare("SELECT strftime('%Y-W%W',approved_at) AS week,COALESCE(SUM(amount_cents),0) AS cents,COUNT(*) AS count FROM donation_payments WHERE status='approved' AND approved_at>=datetime('now','-21 days') GROUP BY week ORDER BY week ASC").all();
+        const cents=Number(total?.cents||0); return reply({ok:true,currency:"BRL",total_cents:cents,total_brl:cents/100,approved_count:Number(total?.count||0),weekly:weeks.results.map(w=>({week:w.week,total_cents:Number(w.cents),total_brl:Number(w.cents)/100,count:Number(w.count)})),updated_at:new Date().toISOString(),source:"mercadopago_approved_only"});
+      }
+      if (path === "/api/donations/checkout" && method === "POST") {
+        etapaAtual="checkout doacao RativaGames"; if(!env.DB||!env.MP_ACCESS_TOKEN)return reply({ok:false,erro:"Pagamento de doacoes nao configurado."},503);
+        const donor=await authenticate(request,env); if(!donor)return reply({ok:false,erro:"Entre na sua conta RativaGames para doar."},401);
+        let body;try{body=await request.json();}catch{return reply({ok:false,erro:"Pedido invalido."},400);}
+        const amount=Number(body?.amount), cents=Math.round(amount*100), methodChoice=body?.method==="card"?"card":body?.method==="pix"?"pix":"";
+        if(!Number.isFinite(amount)||cents<100||cents>1000000||Math.abs(amount*100-cents)>0.000001||!methodChoice)return reply({ok:false,erro:"Informe valor entre R$ 1,00 e R$ 10.000,00 e escolha Pix ou cartao."},400);
+        const id=crypto.randomUUID(), idem=crypto.randomUUID(), now=new Date().toISOString();
+        await env.DB.prepare("INSERT INTO donation_payments (id,external_reference,account_user_id,amount_cents,currency,payment_method,status,created_at,updated_at) VALUES (?,?,?,?,'BRL',?,'pending',?,?)").bind(id,id,donor.id,cents,methodChoice,now,now).run();
+        const prefBody={items:[{id:"rativagames-donation",title:"Doacao para RativaGames",description:"Apoio voluntario ao projeto RativaGames",quantity:1,currency_id:"BRL",unit_price:cents/100}],external_reference:id,notification_url:new URL("/api/donations/webhook/mercadopago",url.origin).toString(),back_urls:{success:"https://vt12gt.github.io/RativaGames/",pending:"https://vt12gt.github.io/RativaGames/",failure:"https://vt12gt.github.io/RativaGames/"},auto_return:"approved",statement_descriptor:"RATIVAGAMES"};
+        const pr=await fetch("https://api.mercadopago.com/checkout/preferences",{method:"POST",headers:{Authorization:"Bearer "+env.MP_ACCESS_TOKEN,"Content-Type":"application/json","X-Idempotency-Key":idem},body:JSON.stringify(prefBody)});const pref=await pr.json().catch(()=>({}));
+        if(!pr.ok||!pref.id||!pref.init_point){await env.DB.prepare("UPDATE donation_payments SET status='rejected',updated_at=? WHERE id=? AND status='pending'").bind(new Date().toISOString(),id).run();return reply({ok:false,erro:"Mercado Pago nao conseguiu criar o checkout."},502);}
+        await env.DB.batch([env.DB.prepare("UPDATE donation_payments SET preference_id=?,updated_at=? WHERE id=?").bind(String(pref.id),new Date().toISOString(),id),env.DB.prepare("INSERT INTO donation_audit_events (id,event_type,payment_id,amount_cents,details_json,created_at) VALUES (?,'checkout_created',?,?,?,?)").bind(crypto.randomUUID(),id,cents,JSON.stringify({user_id:donor.id,method:methodChoice,preference_id:String(pref.id)}),new Date().toISOString())]);
+        return reply({ok:true,donation_id:id,checkout_url:pref.sandbox_init_point||pref.init_point,amount_cents:cents,currency:"BRL"},201);
+      }
+      if (path === "/api/donations/webhook/mercadopago" && method === "POST") {
+        etapaAtual="webhook doacoes Mercado Pago";if(!env.DB||!env.MP_ACCESS_TOKEN)return reply({ok:false,erro:"Webhook de doacoes nao configurado."},503);
+        let notice={};try{notice=await request.json();}catch{}const paymentId=String(notice?.data?.id||url.searchParams.get("data.id")||url.searchParams.get("id")||"").trim();if(!/^[0-9]{1,30}$/.test(paymentId))return reply({ok:true,ignored:true,reason:"payment_id_missing"});
+        const vr=await fetch("https://api.mercadopago.com/v1/payments/"+encodeURIComponent(paymentId),{headers:{Authorization:"Bearer "+env.MP_ACCESS_TOKEN,Accept:"application/json"}});const payment=await vr.json().catch(()=>({}));if(!vr.ok)return reply({ok:false,erro:"Falha ao validar pagamento diretamente no Mercado Pago."},502);
+        const external=String(payment.external_reference||"");const rec=await env.DB.prepare("SELECT id,amount_cents,currency,status,provider_payment_id FROM donation_payments WHERE external_reference=? LIMIT 1").bind(external).first();if(!rec)return reply({ok:true,ignored:true,reason:"donation_not_found"});
+        if(Math.round(Number(payment.transaction_amount)*100)!==Number(rec.amount_cents)||payment.currency_id!=="BRL")return reply({ok:false,erro:"Valor ou moeda nao correspondem ao registro da doacao."},409);if(rec.provider_payment_id&&String(rec.provider_payment_id)!==String(payment.id))return reply({ok:false,erro:"Doacao vinculada a outro pagamento."},409);
+        const map={approved:"approved",rejected:"rejected",cancelled:"cancelled",refunded:"refunded",charged_back:"charged_back"}, next=map[payment.status]||"pending",now=new Date().toISOString(),actual=(payment.payment_type_id==="bank_transfer"||payment.payment_method_id==="pix")?"pix":"card";
+        await env.DB.batch([env.DB.prepare("UPDATE donation_payments SET status=?,provider_payment_id=?,provider_status=?,raw_provider_status=?,payment_method=?,approved_at=CASE WHEN ?='approved' THEN COALESCE(approved_at,?) ELSE approved_at END,updated_at=? WHERE id=? AND (provider_payment_id IS NULL OR provider_payment_id=?)").bind(next,String(payment.id),String(payment.status||""),String(payment.status||""),actual,next,now,now,rec.id,String(payment.id)),env.DB.prepare("INSERT INTO donation_webhook_events (id,provider_event_id,payment_id,event_type,signature_valid,received_at,processed_at,result) VALUES (?,?,?,?,0,?,?,?)").bind(crypto.randomUUID(),String(notice?.id||paymentId),rec.id,"payment_"+next,now,now,"verified_by_mercadopago_api"),env.DB.prepare("INSERT INTO donation_audit_events (id,event_type,payment_id,amount_cents,details_json,created_at) VALUES (?,?,?,?,?,?)").bind(crypto.randomUUID(),"payment_status_"+next,rec.id,rec.amount_cents,JSON.stringify({provider_payment_id:String(payment.id),provider_status:payment.status}),now)]);
+        return reply({ok:true,processed:true,status:next});
+      }
 
       // Ratopolis paid VIP store. The paid subscription is separate from profile.vip_level.
       if (path === "/api/store/webhook/mercadopago" && method === "POST") {
