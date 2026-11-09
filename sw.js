@@ -1,5 +1,5 @@
 /* Rativa Games — cache único do portal e dos jogos. */
-const CACHE_NAME='rativa-games-shell-v5';
+const CACHE_NAME='rativa-games-shell-v6';
 const APP_ASSETS=[
   './',
   './index.html',
@@ -43,7 +43,22 @@ self.addEventListener('fetch',event=>{
     const cache=await caches.open(CACHE_NAME);
     const cached=await cache.match(request);
 
-    // Páginas do jogo abrem pelo cache primeiro; a rede atualiza a cópia para a próxima visita.
+    // RativaSnack usa rede primeiro para Online/Offline não ficarem presos em HTML antigo.
+    // Se estiver sem internet, abre a última cópia guardada no aparelho.
+    const snackPage=url.pathname.includes('/RativaSnack/') && (request.mode==='navigate' || url.pathname.toLowerCase().endsWith('.html'));
+    if(snackPage){
+      try{
+        const fresh=await fetch(request,{cache:'no-store'});
+        if(fresh.ok)await cache.put(request,fresh.clone());
+        return fresh;
+      }catch(error){
+        if(cached)return cached;
+        const fallback=await cache.match('./RativaSnack/Index.html');
+        return fallback||Response.error();
+      }
+    }
+
+    // Demais páginas mantêm a estratégia cache-first.
     if(cached){
       if(request.mode==='navigate'){
         fetch(request).then(response=>{
