@@ -49,10 +49,13 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 ## Estado desta entrega (desenvolvimento)
 
 - As três D1s estão isoladas e os dados legados foram copiados sem alterar a origem.
-- Core possui health check e busca administrativa somente leitura.
-- A autenticação administrativa já valida a sessão do Portal. A rota `GET /api/core/me` será a interface de identidade central para os clientes dos jogos; retorna nickname oficial e IDs RS/RP vinculados.
-- As migrações aditivas `0003_portal_identity_link.sql` adicionam `portal_user_id` sem apagar tabelas/colunas existentes.
-- Nenhum Worker de produção teve binding alterado nesta etapa.
+- Core possui health check, busca administrativa somente leitura e rota `GET /api/core/me` para identidade central.
+- Worker `rato-snack-api-dev` foi adaptado e implantado em desenvolvimento com `DB` apontando para a D1 isolada Snack e `PORTAL_DB` para a identidade central. Mantém o agendamento semanal existente.
+- A autenticação do Snack valida o bearer no Portal, localiza/cria o perfil do jogo por `portal_user_id` e sincroniza nickname central; ranking consulta `game_users` local.
+- Migrações `0003_portal_identity_link.sql` aplicadas nas duas D1s de desenvolvimento.
+- Vínculos conferidos: 2/2 perfis Snack e 19/19 perfis Polis; nenhuma correspondência ausente, duplicada ou nickname divergente.
+- Core `rativa-core-dev` implantado com os três bindings de desenvolvimento.
+- Nenhum Worker de produção teve binding alterado nesta etapa. O Worker principal `ratopolis-api-dev-v30` ainda concentra autenticação/Portal e lógica de Polis; a separação do backend Polis é a próxima etapa.
 
 ## Dados migrados em desenvolvimento
 
@@ -62,13 +65,12 @@ Não há JOIN nem transação SQL entre D1s. Cada serviço consulta/escreve seu 
 
 ## Próximas etapas obrigatórias antes de produção
 
-1. Aplicar as migrações aditivas nas duas D1s de desenvolvimento.
-2. Construir e revisar o mapeamento explícito de cada perfil legado para `portal_user_id`; conferir 2/2 Snack e 19/19 Polis sem ambiguidade.
-3. Implementar sincronização idempotente do nickname central para os dois perfis e invalidar caches quando houver alteração.
-4. Adaptar os Workers Snack/Polis para exigir bearer central e resolver perfil por `portal_user_id`; remover qualquer caminho de cadastro/login local.
-5. Garantir que ranking, inventário, moedas, recordes e progresso permaneçam no banco do jogo.
-6. Testar login único, expiração/revogação, banimento, nickname alterado, perfil ausente, IDs públicos, rankings e integridade dos dados.
-7. Só então preparar cutover com backup, métricas, rollback e mudança controlada de bindings. Não publicar produção antes da homologação integrada.
+1. Separar o Worker principal `ratopolis-api-dev-v30`: manter cadastro/login e dados de identidade no Portal; mover perfil, progresso, moedas, VIP, inventário, cenários e recompensas de Polis para `POLIS_DB` por meio de um serviço de jogo autenticado pela sessão central.
+2. Adaptar as rotas Polis para resolver `portal_user_id` em `game_users` e usar o UUID local do perfil em todas as tabelas do jogo, sem alterar IDs de auditoria/identidade do Portal indevidamente.
+3. Implementar sincronização idempotente do nickname central no perfil Polis e propagar alterações aos snapshots/rankings conforme a regra de cada ranking.
+4. Concluir testes integrados no Snack e no Polis: login único, expiração/revogação, banimento, nickname alterado, perfil ausente, IDs públicos, rankings, inventário, moedas e progresso.
+5. Revisar logs, CORS, rate limits, integridade referencial e idempotência; executar `PRAGMA foreign_key_check` em cada D1.
+6. Só então preparar cutover com backup, métricas, rollback e mudança controlada de bindings. Não publicar produção antes da homologação integrada.
 
 ## Endpoints Core
 
