@@ -655,6 +655,8 @@ const SYNC=(()=>{
  function push(){pending=true;if(navigator.onLine!==false){clearTimeout(timer);timer=setTimeout(run,1800)}}
  function flush(){if(!pending)pending=true;clearTimeout(timer);if(navigator.onLine!==false)timer=setTimeout(run,250)}
  addEventListener('online',()=>{if(pending)flush();else push()});
+ // Ao abrir o modo Offline, tenta reconciliar também o progresso que já existia neste aparelho.
+ setTimeout(()=>{pending=true;flush()},1600);
  return{enabled:true,endpoint,queue:[],push,flush};
 })();
 
