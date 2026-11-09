@@ -1206,7 +1206,7 @@ try{const vipSaved=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}');vipXP=Math.m
 const PROGRESSION_API='https://rativapolis-api-dev.juniorgmj69.workers.dev';
 const PROGRESSION_PENDING_KEY='ratopolis_progression_pending_v1';
 const LOCAL_ONLY_COINS_KEY='ratopolis_local_only_coins_v1';
-let progressionRevision=0,progressionRequestInFlight=false,applyingServerProgress=false,phaseRewardCoinChange=false;
+let progressionRevision=0,progressionRequestInFlight=false,applyingServerProgress=false,phaseRewardCoinChange=false,activeServerPhaseTicket=null;
 let lastSavedCoins=coins,localOnlyCoinsDelta=null,progressionStatusTimer=null;
 try{const localDelta=localStorage.getItem(LOCAL_ONLY_COINS_KEY);if(localDelta!==null&&Number.isFinite(Number(localDelta)))localOnlyCoinsDelta=Math.trunc(Number(localDelta));}catch(_e){}
 function showProgressionStatus(message,kind='info'){
@@ -1216,7 +1216,17 @@ function showProgressionStatus(message,kind='info'){
  el.textContent=message;el.dataset.kind=kind;el.style.display='block';if(progressionStatusTimer)clearTimeout(progressionStatusTimer);progressionStatusTimer=setTimeout(()=>{if(el&&el.isConnected)el.style.display='none';progressionStatusTimer=null;},kind==='error'?9000:4500);
 }
 function progressionToken(){try{return window.__ratopolisGetTabSessionToken()||'';}catch(_e){return '';}}
-function readPendingProgressionRewards(){try{const value=JSON.parse(localStorage.getItem(PROGRESSION_PENDING_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&typeof x.event_id==='string'&&Number.isInteger(x.phase)&&Number.isInteger(x.cheeses)&&Number.isInteger(x.acorns)&&Number.isInteger(x.lives)):[];}catch(_e){return [];}}
+async function startServerPhaseSession(phase){
+ activeServerPhaseTicket=null;
+ const token=progressionToken();if(!token||testMode)return false;
+ try{
+  const response=await fetch(PROGRESSION_API+'/api/progression/phase/start',{method:'POST',mode:'cors',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({phase})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data.ok!==true||typeof data.ticket_id!=='string')return false;
+  activeServerPhaseTicket=data.ticket_id;return true;
+ }catch(_e){return false;}
+}
+function readPendingProgressionRewards(){try{const value=JSON.parse(localStorage.getItem(PROGRESSION_PENDING_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&typeof x.event_id==='string'&&typeof x.ticket_id==='string'&&Number.isInteger(x.phase)&&Number.isInteger(x.cheeses)&&Number.isInteger(x.acorns)&&Number.isInteger(x.lives)):[];}catch(_e){return [];}}
 function writePendingProgressionRewards(items){try{localStorage.setItem(PROGRESSION_PENDING_KEY,JSON.stringify(items));}catch(_e){showProgressionStatus('Não consegui guardar a fila de sincronização neste aparelho. Libere espaço no armazenamento do navegador.','error');}}
 function vipXPForLevel(target){let xp=0;const level=Math.max(1,Math.min(15,Math.floor(Number(target)||1)));for(let n=1;n<level;n++)xp+=100+n*50;return xp;}
 function applyServerProgression(data,expectedRevision){
@@ -1251,7 +1261,7 @@ async function flushPendingProgressionRewards(){
   const pending=readPendingProgressionRewards();
   for(const item of pending){
    const revisionAtRequest=progressionRevision;let response,data={};
-   try{response=await fetch(PROGRESSION_API+'/api/progression/reward',{method:'POST',mode:'cors',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({event_id:item.event_id,phase:item.phase,cheeses:item.cheeses,acorns:item.acorns,lives:item.lives})});data=await response.json().catch(()=>({}));}
+   try{response=await fetch(PROGRESSION_API+'/api/progression/reward',{method:'POST',mode:'cors',cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({event_id:item.event_id,ticket_id:item.ticket_id,phase:item.phase,cheeses:item.cheeses,acorns:item.acorns,lives:item.lives})});data=await response.json().catch(()=>({}));}
    catch(_e){allDone=false;showProgressionStatus('Sem conexão com a nuvem. A recompensa ficou pendente; o progresso local continua salvo neste aparelho.','error');break;}
    if(response.status===401){allDone=false;showProgressionStatus('Sua sessão expirou. Entre novamente no portal para sincronizar a recompensa pendente.','error');break;}
    if(response.status===429){allDone=false;showProgressionStatus('Limite diário de recompensas da nuvem atingido. A recompensa ficará pendente para nova tentativa.','error');break;}
@@ -1280,9 +1290,11 @@ async function syncProgressionStartup(){
  const flushed=await flushPendingProgressionRewards();if(flushed)await fetchServerProgression();
 }
 function recordProgressionReward(result){
- if(!result||!progressionToken()){showProgressionStatus('Recompensa salva apenas neste aparelho. Entre na conta para usar a sincronização da nuvem.','info');return;}
+ if(!result||!progressionToken()){showProgressionStatus('Recompensa salva apenas neste aparelho. Entre na conta para usar a sincronização da nuvem.','info');activeServerPhaseTicket=null;return;}
+ if(!activeServerPhaseTicket){showProgressionStatus('A nuvem não confirmou o início desta fase; a recompensa ficará apenas neste aparelho.','error');return;}
  const eventId=(window.crypto&&typeof crypto.randomUUID==='function')?crypto.randomUUID():('rp-'+Date.now()+'-'+Math.random().toString(36).slice(2,12));
- const item={event_id:eventId,phase:Math.max(1,Math.min(12,Math.floor(result.phase)||1)),cheeses:Math.max(0,Math.min(4,Math.floor(result.cheeses)||0)),acorns:Math.max(0,Math.min(12,Math.floor(result.acorns)||0)),lives:Math.max(0,Math.min(3,Math.floor(result.lives)||0)),created_at:Date.now()};
+ const item={event_id:eventId,ticket_id:activeServerPhaseTicket,phase:Math.max(1,Math.min(12,Math.floor(result.phase)||1)),cheeses:Math.max(0,Math.min(4,Math.floor(result.cheeses)||0)),acorns:Math.max(0,Math.min(12,Math.floor(result.acorns)||0)),lives:Math.max(0,Math.min(3,Math.floor(result.lives)||0)),created_at:Date.now()};
+ activeServerPhaseTicket=null;
  const pending=readPendingProgressionRewards();pending.push(item);writePendingProgressionRewards(pending);void flushPendingProgressionRewards();
 }
 window.addEventListener('online',()=>{void syncProgressionStartup();});window.addEventListener('focus',()=>{void syncProgressionStartup();});
@@ -2219,7 +2231,9 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
  if(panel)panel.classList.add('hidden');
  document.getElementById('phaseStartName').textContent=scenarioName(level);document.getElementById('phaseStartNumber').textContent=level+1;
  if(!serverAssigned)selectShamanForRound();else{const name=document.getElementById('phaseStartName');if(name)name.textContent=activeMatchRole==='shaman'?scenarioName(level)+' · Você é o Shaman! Use 1–7 para criar objetos':scenarioName(level)+' · Shaman: '+activeShamanName;}
- const begin=()=>{phaseCountdownActive=false;const chooseBtn=document.getElementById('countdownChooseShamanBtn');if(chooseBtn){chooseBtn.style.display='none';chooseBtn.classList.add('hidden');}updateTimer();if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}if(phaseStartTimer){clearTimeout(phaseStartTimer);phaseStartTimer=null;}overlay.classList.add('hidden');if(panel)panel.classList.add('hidden');
+ const begin=async()=>{phaseCountdownActive=false;const chooseBtn=document.getElementById('countdownChooseShamanBtn');if(chooseBtn){chooseBtn.style.display='none';chooseBtn.classList.add('hidden');}updateTimer();if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}if(phaseStartTimer){clearTimeout(phaseStartTimer);phaseStartTimer=null;}overlay.classList.add('hidden');if(panel)panel.classList.add('hidden');
+ /* Em contas autenticadas, o servidor abre uma sessão de fase antes de liberar a corrida. */
+ playing=false;activeServerPhaseTicket=null;await startServerPhaseSession(level+1);
  /* Ao zerar, reposiciona o jogador no começo antes de liberar a corrida. */
  if(Array.isArray(platforms)&&platforms.length&&player){const spawn=platforms[0];player.x=spawn.x+28;player.y=spawn.y-player.h;player.vx=0;player.vy=0;player.onGround=true;player.supportId='solid:0';player.crouchTimer=0;player.facing=1;airJumpsRemaining=2;dashTimer=0;dashCooldown=0;}
  playing=true;clearTouchMovement();updateShamanTools();last=performance.now();message.textContent=activeMatchRole==='shaman'?'🔮 Você é o Shaman! Ajude a equipe com os itens escolhidos.':'🔮 Shaman da sala: '+activeShamanName+'. Pegue 2 queijos para liberar a bolota; você pode coletar até 4 por fase. 🧀🌰';};
