@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded',function(){
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Jogue RativaPolis online: uma corrida multiplayer de ratinhos com queijo, mapas, Shaman e desafios. Entre na comunidade e dispute partidas no navegador.">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="https://vt12gt.github.io/ratopolis/ratopolis_v1.56.0.html">
+<link rel="canonical" href="https://vt12gt.github.io/RativaGames/Rativapolis/ratopolis_v1.56.0_teste_core.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RativaPolis">
 <meta property="og:title" content="RativaPolis Online — Jogo Multiplayer de Ratinhos">
 <meta property="og:description" content="Corra com ratinhos, colete queijo, jogue com outros participantes e descubra os desafios do RativaPolis.">
-<meta property="og:url" content="https://vt12gt.github.io/ratopolis/ratopolis_v1.56.0.html">
+<meta property="og:url" content="https://vt12gt.github.io/RativaGames/Rativapolis/ratopolis_v1.56.0_teste_core.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RativaPolis Online — Jogo Multiplayer de Ratinhos">
 <meta name="twitter:description" content="Jogo de corrida multiplayer de ratinhos com mapas, queijo e Shaman.">
@@ -1026,7 +1026,7 @@ body:has(#roomsOverlay:not(.hidden)) #joystick{visibility:hidden!important;point
   "@context": "https://schema.org",
   "@type": "VideoGame",
   "name": "RativaPolis",
-  "url": "https://vt12gt.github.io/ratopolis/ratopolis_v1.56.0.html",
+  "url": "https://vt12gt.github.io/RativaGames/Rativapolis/ratopolis_v1.56.0_teste_core.html",
   "description": "Jogo online multiplayer de corrida e plataforma com ratinhos, mapas, queijo e Shaman.",
   "inLanguage": "pt-BR",
   "gamePlatform": "Web browser",
@@ -4000,15 +4000,16 @@ body:has(#chatPanel:not(.hidden)) #scene::after{background:transparent!important
   });
   const oldTitles=document.getElementById('rmAchievements');
   if(oldTitles)oldTitles.querySelector('.rm-lbl').textContent='CONQUISTAS';
+  ['menuPlay','rmGuild','rmFriends','rmTitles','rmAchievements','rmShop','rmSettings'].forEach(function(id){const b=document.getElementById(id);if(b)nav.appendChild(b);});
   // O menu antigo deixa de exibir ranking/Meu Lar/Mini Game; os recursos legados permanecem no código.
   const panel=document.getElementById('chatPanel');
   const chatHead=document.getElementById('chatHead'),chatLog=document.getElementById('chatLog'),chatForm=document.getElementById('chatForm');
   const world=document.getElementById('rmGlobalChat');
   if(panel&&chatHead&&chatLog&&chatForm&&world&&!document.getElementById('rpChatTabs')){
    const tabs=document.createElement('div');tabs.id='rpChatTabs';tabs.setAttribute('role','tablist');tabs.innerHTML=
-    '<button type="button" role="tab" data-chat-tab="room" aria-selected="true">SALA</button>'+
-    '<button type="button" role="tab" data-chat-tab="world" aria-selected="false">MUNDO</button>'+
-    '<button type="button" role="tab" data-chat-tab="toca" aria-selected="false">TOCA</button>';
+    '<button type="button" role="tab" data-chat-tab="room" aria-selected="true">CHAT DA SALA</button>'+
+    '<button type="button" role="tab" data-chat-tab="world" aria-selected="false">CHAT DO MUNDO</button>'+
+    '<button type="button" role="tab" data-chat-tab="toca" aria-selected="false">CHAT DA TOCA</button>';
    const room=document.createElement('div');room.id='rpChatRoomTab';
    room.append(chatHead,chatLog,chatForm);
    const worldTab=document.createElement('div');worldTab.id='rpChatWorldTab';worldTab.hidden=true;worldTab.appendChild(world);
