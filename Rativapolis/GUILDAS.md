@@ -39,7 +39,10 @@ Todas as rotas privadas exigem o token de sessão do portal.
 - Níveis 1–50; 1.000 XP acumulados por nível.
 - Limite inicial de 30 membros; +5 vagas a cada 5 níveis, até 80.
 - Doações descontam o queijo pessoal e creditam o banco na mesma operação D1.
-- Doações usam chave de idempotência; XP de doação tem limite diário de 250 por membro.
+- Doações usam chave de idempotência; descontam queijo pessoal e creditam o banco coletivo em uma operação segura.
+- Cada 100 queijos doados concede +1 CP individual, limitado a 100 CP por membro/dia; a guilda recebe 1 XP por 100 queijos, limitado a 250 XP/dia por membro.
+- Cada fase concluída e validada pelo servidor concede +2 CP ao membro da guilda; o limite atual de 10 recompensas de fase por dia limita esse ganho a 20 CP/dia.
+- CP (pontos de contribuição) é uma pontuação individual de participação, não é queijo, não pode ser sacado e não substitui o XP da guilda.
 - Missões diárias: 5 fases, 10 queijos coletados e 25 bolotas entregues.
 - Missão semanal: arrecadar 1.000 queijos.
 - Missões recebem progresso de eventos de fases validadas pelo servidor.
@@ -52,6 +55,8 @@ Todas as rotas privadas exigem o token de sessão do portal.
 - O progresso multiplayer é compartilhado pelo servidor; o painel consulta o servidor a cada 8 segundos enquanto está aberto e atualiza imediatamente ao retornar à aba/janela. Ainda não há push instantâneo por WebSocket para mudanças de guilda.
 - As compras da loja já debitam e registram itens, mas os cosméticos ainda precisam ser conectados ao renderizador/perfil visual do jogo.
 - Eventos de monstros, Bosses e presença online ainda não geram progresso de missão; nesta versão, fases, queijo, bolotas e doações são os eventos ligados ao servidor.
+- O Worker da API de desenvolvimento usa a versão `rativapolis-api-dev-v6-guild-cp`.
+- A interface mantém os dados em memória ao reabrir o painel, atualiza em segundo plano e consulta a API em intervalo de 15 segundos enquanto a guilda está aberta.
 - O painel e a API foram salvos/deployados em desenvolvimento. Os testes com três contas/dispositivos e as operações financeiras simultâneas ainda precisam ser executados com contas reais de teste.
 
 ## Migração
