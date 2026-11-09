@@ -28,7 +28,13 @@
 const statusEl=document.getElementById('netStatus');
 function net(){const ok=navigator.onLine!==false;statusEl.textContent=ok?'🟢 Conexão disponível para o Online':'🔴 Sem internet — o modo Offline continua disponível';}
 addEventListener('online',net);addEventListener('offline',net);net();
-document.getElementById('goOnline').addEventListener('click',e=>{if(navigator.onLine===false){e.preventDefault();alert('Sem Internet, conecte-se para jogar online.')}});
+document.getElementById('goOnline').addEventListener('click',e=>{
+ if(navigator.onLine===false){e.preventDefault();alert('Sem Internet, conecte-se para jogar online.');return}
+ e.preventDefault();
+ let target='Online.html';
+ try{const token=localStorage.getItem('ratopolis_session_token')||'';if(token)target+='#ratopolis_token='+encodeURIComponent(token)}catch(_){}
+ location.href=target;
+});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body></html>
