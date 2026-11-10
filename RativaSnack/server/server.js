@@ -13,7 +13,7 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:8158',
   'http://localhost:8787'
 ]);
-const MAX_PLAYERS = 4;
+const MAX_PLAYERS = 10;
 const COUNTDOWN_MS = 5000;
 const RECONNECT_GRACE_MS = 30000;
 
@@ -126,7 +126,8 @@ function roomPlayers(room) {
     id: p.id,
     nick: p.nick,
     level: p.level || 1,
-    online: !!(p.ws && p.ws.readyState === WebSocket.OPEN)
+    online: !!(p.ws && p.ws.readyState === WebSocket.OPEN),
+    slot: p.slot
   }));
 }
 function send(ws, message) {
@@ -137,7 +138,7 @@ function broadcast(room, message, exceptId) {
 }
 function roster(room) {
   const players = roomPlayers(room);
-  for (const p of room.players.values()) send(p.ws, { t: 'roster', mode: room.mode, players });
+  for (const p of room.players.values()) send(p.ws, { t: 'roster', mode: room.mode, hostType: room.hostType, hostLabel: 'Bot Pro', players });
 }
 function clearCountdown(room) {
   if (room.countdown) clearTimeout(room.countdown);
@@ -158,6 +159,7 @@ function createRoom(mode) {
     id: crypto.randomUUID(),
     players: new Map(),
     hostId: null,
+    hostType: 'bot-pro',
     started: false,
     countdown: null,
     createdAt: Date.now()
@@ -184,7 +186,13 @@ function startCountdown(room) {
 function addPlayer(room, user, ws) {
   const old = room.players.get(user.id);
   if (old && old.reconnectTimer) clearTimeout(old.reconnectTimer);
-  const player = old || { id: user.id, nick: user.nick, level: user.level || 1, ws: null, reconnectTimer: null, slot: room.players.size };
+  const firstHuman = !room.hostId;
+  const usedSlots = new Set([...room.players.values()].filter(p => p.id !== user.id).map(p => p.slot));
+  let nextSlot = 1;
+  while (nextSlot < MAX_PLAYERS && usedSlots.has(nextSlot)) nextSlot++;
+  const slot = old ? old.slot : (firstHuman ? 0 : nextSlot);
+  if (slot >= MAX_PLAYERS) { send(ws, { t: 'full' }); return; }
+  const player = old || { id: user.id, nick: user.nick, level: user.level || 1, ws: null, reconnectTimer: null, slot };
   player.nick = user.nick;
   player.level = user.level || 1;
   player.ws = ws;
@@ -193,12 +201,12 @@ function addPlayer(room, user, ws) {
   roomByUser.set(user.id, room.id);
   if (!room.hostId) room.hostId = user.id;
   const isHost = room.hostId === user.id;
-  send(ws, { t: 'joined', host: room.hostId, isHost, mode: room.mode, players: roomPlayers(room) });
+  send(ws, { t: 'joined', host: room.hostId, isHost, hostType: room.hostType, hostLabel: 'Bot Pro', mode: room.mode, players: roomPlayers(room) });
   if (isHost) {
     // Host does not need a peer_join event for itself.
   } else {
     const host = room.players.get(room.hostId);
-    if (host && host.ws) send(host.ws, { t: old ? 'peer_back' : 'peer_join', id: user.id, nick: user.nick, slot: player.slot + 1 });
+    if (host && host.ws) send(host.ws, { t: old ? 'peer_back' : 'peer_join', id: user.id, nick: user.nick, slot: player.slot });
   }
   if (room.started) {
     send(ws, { t: 'start', mode: room.mode });
