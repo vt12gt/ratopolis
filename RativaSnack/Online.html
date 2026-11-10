@@ -1616,6 +1616,54 @@ addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key&&e.key.toLowerCase()=
 document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidden){flushSave();if(running&&!paused&&player.alive)togglePause();try{if(ac)ac.suspend()}catch(e){}}else{try{if(ac&&prefs.music||ac&&prefs.sfx)ac.resume()}catch(e){}}syncMusic()});
 addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
 
+
+/* ===== BOT PRO QA: simulador local de sala cheia (somente ?botprotest=1) ===== */
+if(new URLSearchParams(location.search).get('botprotest')==='1'){
+ const qa={active:false,joins:0,tick:0};
+ const box=document.createElement('div');box.id='botProQA';
+ box.style.cssText='position:fixed;z-index:100000;left:8px;right:8px;bottom:8px;max-width:520px;margin:auto;background:#171126ee;border:1px solid #ffd84a;border-radius:12px;padding:9px;color:#fff;font:12px system-ui;box-shadow:0 5px 24px #0009;pointer-events:auto';
+ box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>🤖 BOT PRO • TESTE LOCAL</b><span id="bpqCount">Aguardando</span></div><div id="bpqInfo" style="margin:5px 0;color:#d9c9ef">Simula uma sala com até 10 participantes neste celular.</div><div style="display:flex;gap:5px;flex-wrap:wrap"><button id="bpqStart">Iniciar sala</button><button id="bpqJoin">Simular entrada</button><button id="bpqLeave">Simular saída</button><button id="bpqStop">Encerrar teste</button></div><small style="display:block;margin-top:5px;color:#bbaacf">Teste local de bots e troca IA/jogador; não representa conexão real entre aparelhos.</small>';
+ box.querySelectorAll('button').forEach(b=>b.style.cssText='flex:1;min-width:92px;border:0;border-radius:8px;padding:9px 6px;background:#ffd84a;color:#25183a;font-weight:900');
+ document.body.appendChild(box);
+ const qEl=id=>box.querySelector('#'+id);
+ function qaRefresh(){
+  const humans=qa.joins+1, ai=Math.max(0,bots.filter(b=>b&&b.alive&&!b.remote).length);
+  qEl('bpqCount').textContent=(qa.active?'● ATIVO':'○ PARADO')+' • '+humans+'/10 jogadores';
+  qEl('bpqInfo').textContent='Jogador local: 1 • jogadores simulados: '+qa.joins+' • bots IA ativos: '+ai+' • vagas: '+Math.max(0,10-humans-ai);
+ }
+ function qaStart(){
+  qa.active=true;qa.joins=0;mpOnline=true;ol.nick=prefs.nick||'Jogador de teste';ol.hostLabel='Bot Pro';prefs.tut.quick=1;startGame('quick');qaRefresh();
+ }
+ function qaJoin(){
+  if(!qa.active||!running){showToast('Inicie a sala de teste primeiro.',2);return}
+  if(qa.joins>=9){showToast('Sala cheia: limite de 10 participantes.',2);return}
+  const b=bots.find(x=>x&&x.alive&&!x.remote);
+  if(!b){showToast('Não há bot livre para substituir.',2);return}
+  qa.joins++;b.remote={open:true,ang:b.angle,boost:false};b.name='Jogador simulado '+qa.joins;b.qaSim=true;b.shield=1.5;showToast('👤 Jogador simulado entrou. Um bot cedeu a vaga.',2);qaRefresh();
+ }
+ function qaLeave(){
+  if(!qa.active||qa.joins<1){showToast('Não há jogador simulado para sair.',2);return}
+  const b=bots.find(x=>x&&x.qaSim&&x.remote);
+  if(!b)return;
+  b.remote=null;b.qaSim=false;b.name=BOTS[bots.indexOf(b)]?.[0]||'Bot Pro';b.ai=0;qa.joins--;showToast('🤖 Bot Pro retomou a vaga do jogador.',2);qaRefresh();
+ }
+ function qaStop(){
+  for(const b of bots)if(b&&b.qaSim){b.remote=null;b.qaSim=false}
+  qa.joins=0;qa.active=false;mpOnline=false;if(running&&!ended)toMenu();qaRefresh();
+ }
+ qEl('bpqStart').onclick=qaStart;qEl('bpqJoin').onclick=qaJoin;qEl('bpqLeave').onclick=qaLeave;qEl('bpqStop').onclick=qaStop;
+ setInterval(()=>{
+  if(!qa.active)return;
+  for(const b of bots)if(b&&b.qaSim&&b.remote&&b.alive){
+   const f=foods.length?foods.reduce((best,x)=>Math.hypot(x.x-b.x,x.y-b.y)<Math.hypot(best.x-b.x,best.y-b.y)?x:best,foods[0]):null;
+   if(f)b.remote.ang=Math.atan2(f.y-b.y,f.x-b.x);
+   else b.remote.ang=(b.remote.ang||b.angle)+.025;
+  }
+  qaRefresh();
+ },350);
+ qaRefresh();
+}
+
 init();menuInfo();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
