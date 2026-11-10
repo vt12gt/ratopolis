@@ -1280,7 +1280,7 @@ function endGame(kind){document.body.classList.remove('playing');if(bossDown&&ki
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
  if(mode==='survival')score=Math.max(score,0);
  const m=mode==='quick'?score:mode==='survival'?gameTime:score,prev=roundPrevBest,isRec=m>prev&&m>0;
- stats.games++;stats.kills+=kills;stats.food+=foodEaten;stats.time+=gameTime;stats.bestSize=Math.max(stats.bestSize,player.length);stats.bestKills=Math.max(stats.bestKills,kills);
+ if(gameTime>=60)stats.games++;stats.kills+=kills;stats.food+=foodEaten;stats.time+=gameTime;stats.bestSize=Math.max(stats.bestSize,player.length);stats.bestKills=Math.max(stats.bestKills,kills);
  if(mode==='survival'&&isRec)stats.bestTime=gameTime;if(mode==='challenge'&&isRec)stats.bestChallenge=score;if(mode==='quick'&&isRec){bestQuick=score;bestDirty=true}if((mode==='team'||mode==='boss'||mode==='infinite'||mode==='daily')&&isRec)prog.mrec[mode]=score;
  saveStats();flushSave();countRound(kind);
  let title='Fim de jogo!',text='';
