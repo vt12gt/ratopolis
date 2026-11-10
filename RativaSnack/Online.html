@@ -434,7 +434,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="shop"><span>🛒</span>Loja</button>
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
-  <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking Global</button>
+  <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
  </div>
 </div>
 <div class="m2bot">
@@ -444,7 +444,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div id="startBest" class="hidden"></div>
 </div></div>
 
-<div class="overlay hidden" id="sheet"><div class="panel wide"><button class="primary" id="sheetBack">VOLTAR</button><div id="sheetBody"></div></div></div>
+<div class="overlay hidden" id="sheet"><div class="panel wide"><div id="sheetBody"></div><div class="row"><button class="primary" id="sheetBack">VOLTAR</button></div></div></div>
 
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
@@ -1309,26 +1309,27 @@ function doBuyCosm(c,id){const it=CAT[c]&&CAT[c][id];if(!it)return '';if(owns(c,
 function chipsHtml(t,T,cur,key){const CK={corpo:'skin',acc:'acc',cauda:'tail'},c=CK[t];return '<div class="chips">'+Object.keys(T[t][1]).map(o=>{const own=!c||owns(c,o);return own?`<button class="${o===cur[t]?'on':''}" data-act="${key[t]}:${o}">${T[t][1][o]}</button>`:`<button class="lock" data-act="shopgo:${c}:${o}">🔒 ${T[t][1][o]}</button>`}).join('')+'</div>'}
 let sheetName='',remoteRankPeriod='best',remoteRankPage=1,remoteRankPlayers=[],remoteRankUpdatedAt='';
 function drawRemoteRankingPage(){
- const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10,pages=Math.max(1,Math.ceil(remoteRankPlayers.length/pageSize));
+ const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta'),pager=document.getElementById('remoteRankPager'),pageSize=10,pages=5;
  if(!list)return;
  remoteRankPage=Math.max(1,Math.min(pages,remoteRankPage));
  const start=(remoteRankPage-1)*pageSize,players=remoteRankPlayers.slice(start,start+pageSize);
- list.replaceChildren();list.className='online-rank-list';list.removeAttribute('style');
+ list.replaceChildren();list.className='online-rank-list rank-two-column';
+ list.style.display='grid';list.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';list.style.gridTemplateRows='repeat(5,minmax(28px,auto))';list.style.gridAutoFlow='column';list.style.maxHeight='none';list.style.minHeight='0';list.style.overflow='visible';list.style.width='100%';
  if(!remoteRankPlayers.length){const empty=document.createElement('div');empty.className='rank-empty';empty.textContent='Ainda não há jogadores nesta classificação.';list.append(empty);}
  // Dez jogadores por página: posições 1–5 na coluna esquerda e 6–10 na direita.
  players.forEach((p,i)=>{
   const row=document.createElement('div');row.className='online-rank-row';
-  const pos=document.createElement('i');pos.className='rank-pos';pos.textContent=(start+i+1)+'.';
-  const nick=document.createElement('b');nick.className='rank-nick';nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||'Jogador';
-  const detail=document.createElement('small');detail.className='rank-games';detail.textContent=Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
-  const score=document.createElement('span');score.className='rank-score';score.textContent=Math.max(0,Number(p.score??p.best_score??p.total_score??p.points)||0).toLocaleString('pt-BR')+' pts';
-  row.append(pos,nick,detail,score);list.append(row);
+  const pos=document.createElement('i');pos.textContent=(start+i+1)+'.';
+  const nick=document.createElement('b');nick.textContent=p.nickname||p.display_name||p.nick||p.username||p.name||'Jogador';
+  const score=document.createElement('span');score.textContent=Math.max(0,Number(p.score??p.best_score??p.total_score??p.points)||0).toLocaleString('pt-BR')+' pts';
+  const detail=document.createElement('small');detail.textContent=Math.max(0,Number(p.games_played??p.games_count)||0)+' partidas';
+  row.append(pos,nick,score,detail);list.append(row);
  });
  if(pager){
   pager.replaceChildren();
-  const prev=document.createElement('button');prev.className='tgs';prev.textContent='‹ Anterior';prev.disabled=remoteRankPage===1;prev.dataset.act='rankpage:prev';const label=document.createElement('b');label.textContent='Página '+remoteRankPage+' de '+pages;const next=document.createElement('button');next.className='tgs';next.textContent='Próxima ›';next.disabled=remoteRankPage===pages;next.dataset.act='rankpage:next';pager.append(prev,label,next);
+  for(let n=1;n<=5;n++){const b=document.createElement('button');b.className='tgs'+(remoteRankPage===n?' on':'');b.textContent=String(n);b.dataset.act='rankpage:page:'+n;b.setAttribute('aria-label','Página '+n);pager.append(b);}
  }
- if(meta){const base=(remoteRankPeriod==='monthly'?'Classificação mensal':remoteRankPeriod==='total'?'Classificação permanente':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • '+pages+' páginas de até 10';const stamp=remoteRankPeriod==='monthly'&&remoteRankUpdatedAt?' • atualizada '+new Date(remoteRankUpdatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' (Brasília) • a cada 2 dias':'';meta.textContent=base+stamp;}
+ if(meta){const base=(remoteRankPeriod==='monthly'?'Classificação mensal':remoteRankPeriod==='total'?'Classificação permanente':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • 5 páginas de 10';const stamp=remoteRankPeriod==='monthly'&&remoteRankUpdatedAt?' • atualizada '+new Date(remoteRankUpdatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' (Brasília) • a cada 2 dias':'';meta.textContent=base+stamp;}
 }
 async function loadRemoteRanking(period){
  remoteRankPeriod=['monthly','total'].includes(period)?period:'best';remoteRankPage=1;
@@ -1363,7 +1364,7 @@ function renderSheet(name){sheetName=name;let h='';
  const st=prog.achR[a0.id]?'🎁 Pronta! Toque em Coletar':prog.ach[a0.id]?'✓ Conquistada':a0.d+(a0.p?' ('+Math.min(a0.t,Math.floor(a0.p()))+'/'+a0.t+')':''),got=ACH.filter(a=>prog.ach[a.id]).length;
  h=`<div class="achw"><div class="achnav"><button data-act="acat:-5" aria-label="Voltar 5 abas">⏪</button><button data-act="acat:-1" aria-label="Aba anterior">◀</button><b>${cn} • ${list.filter(x=>prog.ach[x.id]).length}/${list.length}${catRdy(cn)?' 🔴':''}</b><button data-act="acat:1" aria-label="Próxima aba">▶</button><button data-act="acat:5" aria-label="Avançar 5 abas">⏩</button></div><div class="achg2">${list.map(a=>`<button class="ab${prog.ach[a.id]?' got':''}${prog.achR[a.id]?' rdy':''}${a.id===a0.id?' sel':''}" data-act="asel:${a.id}">${a.i}<i class="tn">${a.no||''}</i></button>`).join('')}</div><div class="achd"><b>${a0.i} ${a0.n}</b><span>${st}</span>${prog.achR[a0.id]?`<button class="tgs on" data-act="acol:${a0.id}">Coletar +${a0.xp} XP +${a0.ch||Math.round(a0.xp/2)} 🧀</button>`:`<span>+${a0.xp} XP</span>`}<small>${got}/${ACH.length} coletadas</small></div></div>`}
  else if(name==='ranking'){
-  h=`<div class="fit rkfull"><div class="online-rank local-rank"><div class="seg rank-period"><button class="${remoteRankPeriod==='best'?'on':''}" data-act="rperiod:best">🏆 Melhor pontuação</button><button class="${remoteRankPeriod==='monthly'?'on':''}" data-act="rperiod:monthly">📅 Mensal</button><button class="${remoteRankPeriod==='total'?'on':''}" data-act="rperiod:total">♾️ Total</button></div><small id="remoteRankMeta" class="rank-meta">Carregando classificação…</small><div id="remoteRankList" class="online-rank-list">Carregando jogadores…</div><div id="remoteRankPager" class="rank-pager"></div></div></div>`} else if(name==='donations'){
+  h=`<div class="fit rkfull"><div class="online-rank"><div class="lbl">🏆 Classificação oficial RativaSnack</div><div class="seg rank-period"><button class="${remoteRankPeriod==='best'?'on':''}" data-act="rperiod:best">🏆 Melhor pontuação</button><button class="${remoteRankPeriod==='monthly'?'on':''}" data-act="rperiod:monthly">📅 Mensal</button><button class="${remoteRankPeriod==='total'?'on':''}" data-act="rperiod:total">♾️ Total</button></div><small id="remoteRankMeta" class="rank-meta">Carregando classificação…</small><div id="remoteRankList" class="online-rank-list">Carregando jogadores…</div><div id="remoteRankPager" class="rank-pager"></div></div></div><p class="note">Aqui aparece somente a classificação dos jogadores. Suas conquistas e recordes pessoais ficam em Estatísticas.</p>`} else if(name==='donations'){
   h=`<div class="fit donation-sheet"><div class="mgrid donation-scroll">
    <div class="donation-total"><small>💜 TOTAL CONFIRMADO DE DOAÇÕES</small><strong id="snackDonationTotal">Carregando…</strong><span id="snackDonationUpdated">Somente pagamentos aprovados</span></div>
    <div class="donation-methods"><article><b>⚡ PIX</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonatePix">Doar com Pix</button></article><article><b>💳 CARTÃO</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonateCard">Doar com cartão</button></article></div>
@@ -1621,26 +1622,4 @@ init();menuInfo();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
 })();
-</script><style>/* Ajuste responsivo do ranking Online: ocupar a tela e manter cada dado na ordem correta */
-#sheet{padding:5px!important;align-items:stretch!important;justify-content:stretch!important}
-#sheet .panel.wide{width:100%!important;max-width:none!important;height:calc(100dvh - 10px)!important;max-height:calc(100dvh - 10px)!important;min-height:0!important;margin:0!important;padding:42px 10px 8px!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;gap:0!important}
-#sheetBack{position:absolute!important;top:6px!important;right:8px!important;width:auto!important;min-width:0!important;height:29px!important;min-height:29px!important;padding:3px 10px!important;font-size:10px!important;line-height:1!important;border-radius:8px!important}
-#sheet #sheetBody{width:100%!important;height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:0!important}
-#sheet .rkfull{width:100%!important;height:100%!important;min-height:0!important;flex:1!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:0!important;margin:0!important}
-#sheet .online-rank.local-rank{width:100%!important;max-width:none!important;min-height:0!important;flex:1!important;display:flex!important;flex-direction:column!important;gap:5px!important;padding:6px!important;overflow:hidden!important}
-#sheet .rank-period{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;width:100%!important;margin:0!important}
-#sheet .rank-period button{min-width:0!important;min-height:34px!important;padding:5px 3px!important;font-size:clamp(10px,1.6vw,13px)!important;white-space:nowrap!important}
-#sheet .rank-meta{flex:none!important;margin:0!important;font-size:10px!important;line-height:1.2!important}
-#sheet .online-rank-list{width:100%!important;max-height:none!important;min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;display:flex!important;flex-direction:column!important;gap:3px!important;padding:0!important}
-#sheet .online-rank-row{width:100%!important;min-height:32px!important;display:grid!important;grid-template-columns:22px minmax(0,1fr) max-content max-content!important;grid-template-rows:1fr!important;align-items:center!important;gap:clamp(4px,1.2vw,12px)!important;padding:4px 7px!important;font-size:clamp(11px,1.8vw,14px)!important;white-space:nowrap!important}
-#sheet .online-rank-row .rank-pos{grid-column:1!important;grid-row:1!important;text-align:left!important;font-size:10px!important}
-#sheet .online-rank-row .rank-nick{grid-column:2!important;grid-row:1!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;text-align:left!important}
-#sheet .online-rank-row .rank-games{grid-column:3!important;grid-row:1!important;min-width:0!important;white-space:nowrap!important;text-align:right!important;font-size:clamp(9px,1.5vw,11px)!important;color:#c8b8df!important}
-#sheet .online-rank-row .rank-score{grid-column:4!important;grid-row:1!important;white-space:nowrap!important;text-align:right!important;font-size:clamp(10px,1.7vw,12px)!important}
-#sheet .rank-pager{flex:none!important;min-height:34px!important;gap:8px!important;padding:3px 0 0!important}
-#sheet .rank-pager button{min-height:27px!important;padding:4px 9px!important;font-size:10px!important}
-#sheet .rank-pager b{font-size:10px!important}
-@media(max-height:430px){#sheet .panel.wide{padding-top:37px!important}#sheet .rank-period button{min-height:30px!important;padding:3px 2px!important}#sheet .online-rank-row{min-height:27px!important;padding:3px 6px!important}#sheet .rank-pager{min-height:29px!important}#sheet .rank-pager button{min-height:24px!important}}
-
-</style>
-</body></html>
+</script></body></html>
