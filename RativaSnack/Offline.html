@@ -1595,7 +1595,7 @@ function entryShow(){mpClose();$('game').classList.remove('ready');$('entryGate'
 $('play').onclick=()=>startGame(mode);emoteInit();applySkillsToCfg();applyControlPrefs();applyA11y();
 function startGame(m){const mm=m||mode;if(mm==='mundial'){if(!wbOpen()){gAlert(wbMsg());return}wbRun=true;wbRunId=wbId();wbA0=wbHpNow();wbRunEnd=Date.now()+(WB_START[wbSlot()]+WB_LEN-wbMin())*60000-new Date().getSeconds()*1000;m='boss'}else wbRun=false;if(mm==='daily'&&!dcStart())return;startGame0(m);if(!prefs.tut[mode])openTut(mode);else{const e=evtOf();showToast('🌟 '+e.n+': '+e.d,3)}}
 function openTut(k){const T=TUT[k];if(!T)return;tutOpen=true;paused=true;$('tutI').textContent=T[0];$('tutT').textContent=T[1];$('tutL').innerHTML='<p>🕹️ Arraste o dedo para guiar • segure ⚡ para acelerar.</p>'+T[2].map(x=>`<p>• ${x}</p>`).join('');$('tut').classList.remove('hidden');syncBoostBtn()}
-function closeTut(){if(!tutOpen)return;tutOpen=false;paused=false;prefs.tut[mode]=1;savePrefs();$('tut').classList.add('hidden');releaseDrag();syncBoostBtn()}
+function closeTut(){if(!tutOpen)return;tutOpen=false;paused=false;startFrameLoop();prefs.tut[mode]=1;savePrefs();$('tut').classList.add('hidden');releaseDrag();syncBoostBtn()}
 $('tutOk').onclick=closeTut;
 function showNick(first){$('nickIn').value=prefs.nick||'';$('nick').classList.remove('hidden');$('nick').dataset.first=first?'1':'';setTimeout(()=>{try{$('nickIn').focus()}catch(e){}},50)}
 function saveNick(){const v=cleanNick($('nickIn').value);if(v.length<2){$('nickIn').classList.add('bad');return}prefs.nick=v;savePrefs();$('nick').classList.add('hidden');$('nickIn').classList.remove('bad');menuInfo();if(player)player.name=v}
