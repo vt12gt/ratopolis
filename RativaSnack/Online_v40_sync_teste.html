@@ -1588,7 +1588,7 @@ function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);if(pl
 function frame(now){const act=running&&!paused;try{if(now-last<(act?10:66)){requestAnimationFrame(frame);return}const dt=Math.min(.04,(now-last)/1000||0);last=now;if(gameReady&&gameRunning)update(dt);draw(now/1000);autoQ(dt,act)}catch(err){console.error('RativaSnack game loop error',err);if(mpOnline)showToast('O jogo encontrou uma falha temporária. Tentando continuar…',3)}finally{requestAnimationFrame(frame)}}
 
 /* ============ Entrada ============ */
-function setPointer(e){const r=canvas.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top;pointer.active=true}
+function setPointer(e){const r=canvas.getBoundingClientRect();const sx=W/(r.width||W),sy=H/(r.height||H);pointer.x=Math.max(0,Math.min(W,(e.clientX-r.left)*sx));pointer.y=Math.max(0,Math.min(H,(e.clientY-r.top)*sy));pointer.active=true}
 function releaseDrag(){boostHold=false;bid=null;pointer.down=false;pointer.active=false;pointer.hasDirection=false;pointer.id=null}
 // O rato anda sempre; a direção vem do vetor âncora→dedo (âncora flutuante). Ao soltar, mantém o último rumo (targetAngle).
 canvas.addEventListener('pointerdown',e=>{if(!running||paused||!player.alive||performance.now()<inputLock)return;e.preventDefault();pointer.down=true;pointer.id=e.pointerId;pointer.hasDirection=false;pointer.dirX=0;pointer.dirY=0;setPointer(e);if(!ctlDown()){pointer.down=false;pointer.id=null;return}try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
