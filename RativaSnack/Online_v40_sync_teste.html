@@ -1337,19 +1337,33 @@ function drawRemoteRankingPage(){
  }
  if(meta){const base=(remoteRankPeriod==='monthly'?'Classificação mensal':remoteRankPeriod==='total'?'Classificação permanente':'Melhor pontuação individual')+' • '+remoteRankPlayers.length+' jogadores • '+pages+' páginas de até 10';const stamp=remoteRankPeriod==='monthly'&&remoteRankUpdatedAt?' • atualizada '+new Date(remoteRankUpdatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' (Brasília) • a cada 2 dias':'';meta.textContent=base+stamp;}
 }
+let remoteRankRequest=0;
+const RANK_CACHE_PREFIX='rativasnack_rank_cache_v1_';
+function readRankCache(period){try{const raw=localStorage.getItem(RANK_CACHE_PREFIX+period);if(!raw)return null;const x=JSON.parse(raw);return x&&Array.isArray(x.players)?x:null}catch(_){return null}}
+function writeRankCache(period,players,updatedAt){try{localStorage.setItem(RANK_CACHE_PREFIX+period,JSON.stringify({players,updatedAt:updatedAt||'',savedAt:Date.now()}))}catch(_){}}
 async function loadRemoteRanking(period){
  remoteRankPeriod=['monthly','total'].includes(period)?period:'best';remoteRankPage=1;
+ const requestId=++remoteRankRequest,kind=remoteRankPeriod;
  const list=document.getElementById('remoteRankList'),meta=document.getElementById('remoteRankMeta');if(!list)return;
- list.textContent='Carregando classificação…';if(meta)meta.textContent='Consultando o servidor oficial…';
- document.querySelectorAll('.rank-period button').forEach(b=>b.classList.toggle('on',b.dataset.act==='rperiod:'+remoteRankPeriod));
+ const cached=readRankCache(kind);
+ if(cached){remoteRankPlayers=cached.players.slice(0,50);remoteRankUpdatedAt=cached.updatedAt||'';drawRemoteRankingPage();if(meta)meta.textContent='Ranking salvo neste aparelho • atualizando em segundo plano…'}
+ else{list.textContent='Carregando classificação…';if(meta)meta.textContent='Consultando o ranking…'}
+ document.querySelectorAll('.rank-period button').forEach(b=>b.classList.toggle('on',b.dataset.act==='rperiod:'+kind));
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
-  const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+remoteRankPeriod+'&limit=50';
-  const response=await fetch(url,{method:'GET',cache:'no-store'}),data=await response.json();
+  const url='https://rato-snack-api-dev.juniorgmj69.workers.dev/api/rato-snack/leaderboard?period='+kind+'&limit=50';
+  const response=await fetch(url,{method:'GET',cache:'no-store',signal:controller.signal}),data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'ranking_indisponivel');
-  remoteRankPlayers=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);remoteRankPlayers.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||(Number(b.games_played??b.games_count??0)-Number(a.games_played??a.games_count??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
-  remoteRankUpdatedAt=remoteRankPeriod==='monthly'&&data.updated_at?data.updated_at:'';
-  drawRemoteRankingPage();
- }catch(e){if(meta)meta.textContent='Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Verifique a conexão e tente novamente.</div><button class="tgs on" data-act="rperiod:'+remoteRankPeriod+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
+  const players=(Array.isArray(data.players)?data.players:Array.isArray(data.jogadores)?data.jogadores:Array.isArray(data.ranking)?data.ranking:[]).slice(0,50);
+  players.sort((a,b)=>(Number(b.score??b.best_score??b.points??0)-Number(a.score??a.best_score??a.points??0))||(Number(b.games_played??b.games_count??0)-Number(a.games_played??a.games_count??0))||String(a.nickname||a.display_name||a.nick||'').localeCompare(String(b.nickname||b.display_name||b.nick||''),'pt-BR'));
+  if(requestId!==remoteRankRequest||kind!==remoteRankPeriod)return;
+  remoteRankPlayers=players;remoteRankUpdatedAt=kind==='monthly'&&data.updated_at?data.updated_at:'';
+  writeRankCache(kind,players,remoteRankUpdatedAt);drawRemoteRankingPage();
+ }catch(e){
+  if(requestId!==remoteRankRequest||kind!==remoteRankPeriod)return;
+  if(cached){if(meta)meta.textContent='Exibindo último ranking salvo • servidor demorou a responder. Tente atualizar depois.'}
+  else{if(meta)meta.textContent=e.name==='AbortError'?'O servidor do ranking demorou mais de 10 segundos.':'Não foi possível consultar o ranking agora.';list.innerHTML='<div class="rank-empty">Ranking temporariamente indisponível. Tente novamente.</div><button class="tgs on" data-act="rperiod:'+kind+'">Tentar novamente</button>';const pager=document.getElementById('remoteRankPager');if(pager)pager.innerHTML=''}
+ }finally{clearTimeout(timer)}
 }
 function renderSheet(name){sheetName=name;let h='';
  const sg=(act,arr,cur)=>`<div class="seg s">${arr.map((t,i)=>`<button class="${i===cur?'on':''}" data-act="${act}:${i}">${t}</button>`).join('')}</div>`;
