@@ -640,7 +640,7 @@ function applyA11y(){document.body.classList.toggle('bigtxt',!!prefs.bigtxt);doc
 function applyControlPrefs(){CFG.stickDead=[4,8,14][prefs.dead];CFG.stickMax=54*SENSM[prefs.sens]*CSZ[prefs.csz];const z=Math.round(64*CSZ[prefs.csz]);bb.style.width=bb.style.height=z+'px';bb.classList.toggle('left',prefs.boostLeft)}
 function stickCenter(){const r=CFG.stickMax,m=18;return{x:prefs.stickLeft?r+m+50:W-r-m-50,y:H-r-m-14}}
 function ctlDown(){if(prefs.ctl==='joystick'){if(prefs.stickLeft?pointer.x>W*.58:pointer.x<W*.42)return false;const c=stickCenter();pointer.ax=c.x;pointer.ay=c.y}else{pointer.ax=pointer.x;pointer.ay=pointer.y}ctlUpdate();return true}
-function ctlUpdate(){if(prefs.ctl==='toque'){const dx=pointer.x-(player.x-cam.x),dy=pointer.y-(player.y-cam.y);if(Math.hypot(dx,dy)>26){pointer.dirX=dx;pointer.dirY=dy;pointer.hasDirection=true}}
+function ctlUpdate(){if(prefs.ctl==='toque'){const dx=pointer.x-(player.x-cam.x),dy=pointer.y-(player.y-cam.y);if(Math.hypot(dx,dy)>26){const a=.68;pointer.dirX+=(dx-pointer.dirX)*a;pointer.dirY+=(dy-pointer.dirY)*a;pointer.hasDirection=true}}
  else if(prefs.ctl==='joystick'){const dx=pointer.x-pointer.ax,dy=pointer.y-pointer.ay;if(Math.hypot(dx,dy)>=CFG.stickDead){pointer.dirX=dx;pointer.dirY=dy;pointer.hasDirection=true}}
  else stickUpdate(pointer,pointer.x,pointer.y,CFG.stickMax,CFG.stickDead)}
 /* ===== Progressão: XP/nível, missões diárias, recompensa diária, conquistas =====
@@ -723,7 +723,7 @@ const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v))
 function diff(a,b){return Math.atan2(Math.sin(b-a),Math.cos(b-a))}
 function stepAngle(a,target,maxStep){const d=diff(a,target);return a+Math.max(-maxStep,Math.min(maxStep,d))}
 // Joystick flutuante: a âncora acompanha o dedo a no máximo maxR; abaixo de 'dead' a direção não muda.
-function stickUpdate(c,x,y,maxR,dead){let dx=x-c.ax,dy=y-c.ay,d=Math.hypot(dx,dy);if(d>maxR){const k=(d-maxR)/d;c.ax+=dx*k;c.ay+=dy*k;dx=x-c.ax;dy=y-c.ay;d=maxR}if(d>=dead){c.dirX=dx;c.dirY=dy;c.hasDirection=true}return c}
+function stickUpdate(c,x,y,maxR,dead){let dx=x-c.ax,dy=y-c.ay,d=Math.hypot(dx,dy);if(d>maxR){const k=(d-maxR)/d;c.ax+=dx*k;c.ay+=dy*k;dx=x-c.ax;dy=y-c.ay;d=maxR}if(d>=dead){const a=.62;c.dirX+=(dx-c.dirX)*a;c.dirY+=(dy-c.dirY)*a;c.hasDirection=true}return c}
 function camTarget(p,view,world,m){return world+2*m<=view?(world-view)/2:Math.max(-m,Math.min(world-view+m,p-view/2))}
 // Corpo em cadeia com espaçamento fixo: o comprimento NÃO depende da taxa de quadros.
 // Corpo por trilha: a cabeça grava pontos a cada DS px de caminho; o segmento i fica exatamente a i*seg px de caminho da cabeça.
@@ -801,7 +801,7 @@ function respawnBot(i){let x=0,y=0,t=0;const far=(px,py)=>{for(const s of snakes
  const ang=Math.atan2(worldH/2-y,worldW/2-x)+rand(-.6,.6);const b=mkSnake(x,y,ang,COLORS[(Math.random()*COLORS.length)|0],BOTS[i][0],true,Math.floor(rand(7,15)),BOTS[i][1]);bots[i]=b;snakes[i+1]=b;mpRebind(i);if(evtOf().id==='gigante')b.length+=22}
 
 // Quantidade de adversários ativos acompanha a ameaça (8 a 11); os demais ficam em reserva.
-function botTarget(T){if(mpOnline)return 0;if(mode==='boss'||mode==='treino')return 4;return Math.max(8,Math.min(BOTS.length-1,Math.round(8+3.2*T)+DIFFS[prefs.diff].count))}
+function botTarget(T){if(mpOnline)return 9;if(mode==='boss'||mode==='treino')return 4;return Math.max(8,Math.min(BOTS.length-1,Math.round(8+3.2*T)+DIFFS[prefs.diff].count))}
 function spawnSpecial(i,type){respawnBot(i);const o=bots[i],sp=SPECIALS[type];const b=mkSnake(o.x,o.y,o.angle,sp.color,sp.name,true,sp.len,sp.arch);b.speedBase=sp.speed;b.radius=sp.radius;b.special=type;b.shield=2;if(type===3)b.armor=1;bots[i]=b;snakes[i+1]=b;showToast(`${sp.icon} ${sp.name} apareceu! ${sp.msg}`,3)}
 const ARENAS=[{n:'Aberta',o:[]},
  {n:'Pilares',o:[[.2,.22,.045,.07,0],[.735,.22,.045,.07,0],[.2,.71,.045,.07,0],[.735,.71,.045,.07,0],[.47,.1,.06,.05,0],[.47,.85,.06,.05,0]]},
@@ -944,7 +944,7 @@ const vics=[],byk=[];
 const dd=(x1,y1,x2,y2)=>{const a=x1-x2,b=y1-y2;return a*a+b*b};
 function sd(px,py,ax,ay,bx,by){const abx=bx-ax,aby=by-ay,t=Math.max(0,Math.min(1,((px-ax)*abx+(py-ay)*aby)/(abx*abx+aby*aby||1)));return dd(px,py,ax+abx*t,ay+aby*t)}
 /* ===== Multiplayer local: sala por Wi-Fi/hotspot (WebRTC, sem internet). O anfitrião roda a partida; os convidados mandam direção e recebem o estado. ===== */
-let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpDeadMsg=false,mpAway=false;const mpSlots=[],mpConns=[];
+let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpTargetAng=0,mpDeadMsg=false,mpAway=false;const mpSlots=[],mpConns=[];
 const mpEnc=o=>btoa(JSON.stringify(o)),mpDec=t=>JSON.parse(atob(String(t).replace(/\s/g,'')));
 const mpIce=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(r,3000)});
 const mpEl=id=>document.getElementById(id);
@@ -996,7 +996,7 @@ function mpApply(m){if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==AREN
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
  gameTime=mpN(m.t);score=me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
 function mpClientTick(dt){if(!player)return;{const k=Math.min(1,dt*16);for(const sn of snakes){if(sn.tx!==undefined){const dx=(sn.tx-sn.x)*k,dy=(sn.ty-sn.y)*k;sn.x+=dx;sn.y+=dy;for(const q of sn.segments){q.x+=dx;q.y+=dy}}}}const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
- if(!mpAway&&pointer.down&&pointer.hasDirection)mpAng=Math.atan2(pointer.dirY,pointer.dirX);
+ if(!mpAway&&pointer.down&&pointer.hasDirection)mpTargetAng=Math.atan2(pointer.dirY,pointer.dirX);mpAng+=diff(mpAng,mpTargetAng)*Math.min(1,dt*12);
  mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:!mpAway&&boostHold?1:0,away:!!mpAway}))}
  mpAcc2+=dt;if(mpAcc2>.3){mpAcc2=0;updateHud(true)}}
 const LT=[{n:'Partidas',b:3,p:1.55,v:()=>stats.games,t:n=>`Jogue ${n} partidas`},{n:'Queijos',b:60,p:1.9,v:()=>stats.food,t:n=>`Coma ${n} queijos no total`},{n:'Eliminações',b:4,p:1.75,v:()=>stats.kills,t:n=>`Elimine ${n} ratos no total`},{n:'Tempo',b:5,p:1.7,v:()=>Math.floor(stats.time/60),t:n=>`Jogue ${n} minutos no total`},{n:'Pontuação',b:300,p:1.6,v:()=>bestQuick,t:n=>`Faça ${n} pontos na partida rápida`},{n:'Sobrevivência',b:20,p:1.3,v:()=>Math.floor(stats.bestTime),t:n=>`Sobreviva ${n} segundos`},{n:'Tamanho',b:10,p:1,v:()=>stats.bestSize,t:n=>`Chegue ao tamanho ${n}`},{n:'Diários',b:1,p:1,v:()=>prog.dcPlays,t:n=>`Faça ${n} desafios diários`},{n:'Nível',b:2,p:1.4,v:()=>lvlInfo(prog.xp).l,t:n=>`Chegue ao nível ${n}`},{n:'Rodada',b:1,p:.95,v:()=>stats.bestKills,t:n=>`Elimine ${n} ratos em uma partida`}];
@@ -1031,7 +1031,7 @@ function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,ca
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
 const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
-let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,mode:'quick',players:[],tries:0,bye:false,view:false};
+let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,hostType:'bot-pro',hostLabel:'Bot Pro',mode:'quick',players:[],tries:0,bye:false,view:false};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
 function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL;olSave()}
@@ -1055,13 +1055,13 @@ function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(
 function olHostStart(){mpSlots.length=0;for(const c of mpConns)if(c.open)mpSlots[Math.max(0,c.slot-1)]=c;mpRole='host';mpPending=true;mpOnline=true;mpClose();startGame(ol.mode||mode)}
 function olMsg(m){
  switch(m.t){
-  case 'joined':ol.hostId=m.host;ol.isHost=m.isHost;ol.mode=m.mode||ol.mode||mode;ol.players=m.players;if(ol.view)olRoomView();break;
+  case 'joined':ol.hostId=m.host;ol.isHost=m.isHost;ol.hostType=m.hostType||'bot-pro';ol.hostLabel=m.hostLabel||'Bot Pro';ol.mode=m.mode||ol.mode||mode;ol.players=m.players;if(ol.view)olRoomView();break;
   case 'roster':ol.players=m.players;if(ol.view)olRoomView();break;
   case 'countdown':if(ol.view)olRoomView('A partida começa em '+Math.round(m.ms/1000)+' s…');break;
   case 'start':ol.view=false;ol.mode=m.mode||ol.mode||mode;if(ol.isHost){if(mpRole!=='host')olHostStart()}else if(mpRole!=='client'){mpOnline=true;mpDC=olGuestDC();mpClientMsg({data:'{"start":1}'});olHello()}break;
   case 'peer_join':{if(!ol.isHost)break;let c=mpConns.find(x=>x.uid===m.id);if(!c){c={pc:null,dc:olDC(m.id),open:true,nick:m.nick,ang:0,boost:0,uid:m.id,slot:m.slot};mpConns.push(c)}c.open=true;c.nick=m.nick;c.slot=m.slot;if(mpRole==='host'&&running)olSlotBind(c);break}
   case 'peer_offline':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=false;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].alive=false}break}
-  case 'peer_back':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=true;const i=mpSlots.indexOf(c);if(i>=0&&bots[i])bots[i].respawnAt=0;else if(mpRole==='host'&&running)olSlotBind(c)}break}
+  case 'peer_back':{const c=mpConns.find(x=>x.uid===m.id);if(c){c.open=true;const i=mpSlots.indexOf(c);if(mpRole==='host'&&running)olSlotBind(c);else if(i>=0&&bots[i])bots[i].respawnAt=0}break}
   case 'peer_leave':{const k=mpConns.findIndex(x=>x.uid===m.id);if(k>=0){const c=mpConns[k],i=mpSlots.indexOf(c);if(i>=0){if(bots[i])bots[i].alive=false;mpSlots[i]=null}mpConns.splice(k,1)}break}
   case 'in':{const c=mpConns.find(x=>x.uid===m.from);if(c)mpHostMsg(c,m.d);break}
   case 'st':if(mpRole==='client')mpClientMsg({data:m.d});break;
@@ -1076,7 +1076,7 @@ function olHome(){olLoad();ol.view=false;if(!ol.token)mpBox(`<b>🌐 Multiplayer
 function olGoPortal(){location.href='https://vt12gt.github.io/RativaGames/'}
 async function olRefresh(){olLoad();if(!ol.token){olHome();olMsgSet('Entre no portal RativaGames primeiro.');return}olMsgSet('Validando sua conta…');try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick){olClearExpired();olHome();olMsgSet(OL_ERR.sessao_invalida);return}ol.id=String(me.id);ol.nick=String(me.nick);olHome();olMsgSet('Sessão válida: '+ol.nick)}catch(e){olMsgSet('Servidor indisponível. Tente novamente.')}}
 async function olDoPlay(){olLoad();ol.mode=mode;if(!ol.token){olHome();olMsgSet('Entre no portal RativaGames para continuar.');return}olMsgSet('Verificando sua sessão RativaGames…');if(navigator.onLine===false){olMsgSet('Sem internet. O modo offline continua disponível.');return}try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick){olClearExpired();olHome();olMsgSet(OL_ERR.sessao_invalida);return}ol.id=String(me.id);ol.nick=String(me.nick);olMsgSet('Conta confirmada. Procurando partida…');await olPlay();ol.view=true;olRoomView()}catch(e){olMsgSet('Falha ao validar a conta ou conectar ao servidor. Tente novamente.')}}
-function olRoomView(extra){mpBox(`<b>🌐 Sala online</b><p>${ol.players.map(p=>(p.id===ol.id?'⭐ ':'• ')+olEsc(p.nick)+(p.id===ol.hostId?' 👑':'')+(p.online?'':' (reconectando)')).join('<br>')||'Entrando…'}</p><p>${olEsc(extra||'Partida automática: jogadores do mesmo modo entram na mesma sala; novos jogadores podem chegar durante a partida.')}</p>${mpB('Sair da sala','olCancel()','background:#5b2f48;color:#fff')}`)}
+function olRoomView(extra){mpBox(`<b>🌐 Sala online</b><p>🤖 ${olEsc(ol.hostLabel||'Bot Pro')} • anfitrião automático</p><p>${ol.players.map(p=>(p.id===ol.id?'⭐ ':'• ')+olEsc(p.nick)+(p.online?'':' (reconectando)')).join('<br>')||'Entrando…'}</p><p>${olEsc(extra||'Até 10 participantes. Bot Pro preenche as vagas livres e cede espaço quando jogadores entram.')}</p>${mpB('Sair da sala','olCancel()','background:#5b2f48;color:#fff')}`)}
 function olCancel(){olLeaveRoom();ol.view=false;olHome()}
 window.addEventListener('storage',e=>{if(e.key==='ratopolis_session_token'&&(!e.newValue||e.newValue!==ol.token)){ol.token='';ol.id='';ol.nick='';if(ol.inRoom)olLeaveRoom();if(mpOnline){mpLeave();toMenu()}if(mpEl('mp')&&mpEl('mp').style.display!=='none')olHome();showToast('Sessão RativaGames encerrada.',4)}});
 let wbRun=false,wbRunId=0,wbA0=100;
@@ -1586,7 +1586,7 @@ function frame(now){const act=running&&!paused;if(now-last<(act?10:66)){requestA
 function setPointer(e){const r=canvas.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top;pointer.active=true}
 function releaseDrag(){boostHold=false;bid=null;pointer.down=false;pointer.active=false;pointer.hasDirection=false;pointer.id=null}
 // O rato anda sempre; a direção vem do vetor âncora→dedo (âncora flutuante). Ao soltar, mantém o último rumo (targetAngle).
-canvas.addEventListener('pointerdown',e=>{if(!running||paused||!player.alive||performance.now()<inputLock)return;e.preventDefault();pointer.down=true;pointer.id=e.pointerId;pointer.hasDirection=false;setPointer(e);if(!ctlDown()){pointer.down=false;pointer.id=null;return}try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
+canvas.addEventListener('pointerdown',e=>{if(!running||paused||!player.alive||performance.now()<inputLock)return;e.preventDefault();pointer.down=true;pointer.id=e.pointerId;pointer.hasDirection=false;pointer.dirX=0;pointer.dirY=0;setPointer(e);if(!ctlDown()){pointer.down=false;pointer.id=null;return}try{canvas.setPointerCapture(e.pointerId)}catch(_){}});
 canvas.addEventListener('pointermove',e=>{if(!pointer.down||e.pointerId!==pointer.id)return;e.preventDefault();setPointer(e);ctlUpdate()});
 function endDrag(e){if(e&&pointer.id!==null&&e.pointerId!==pointer.id)return;pointer.down=false;pointer.active=false;pointer.id=null}
 canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
