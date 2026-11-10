@@ -168,16 +168,8 @@ function createRoom(mode) {
   return room;
 }
 function firstAvailableRoom(mode) {
-  for (const room of [...rooms.values()]) {
-    if (room.mode !== mode || room.players.size >= MAX_PLAYERS) continue;
-    const host = room.hostId && room.players.get(room.hostId);
-    // Nunca colocar um novo jogador como cliente numa sala cujo anfitrião caiu.
-    // Sem anfitrião ativo não existe simulação para transmitir: isso causava tela preta.
-    if (!host || !host.ws || host.ws.readyState !== WebSocket.OPEN) {
-      destroyRoom(room, true);
-      continue;
-    }
-    return room;
+  for (const room of rooms.values()) {
+    if (room.mode === mode && room.players.size < MAX_PLAYERS) return room;
   }
   return createRoom(mode);
 }
