@@ -1214,7 +1214,7 @@ function doRevive(){clearTimeout(reviveTimer);if($('revive').classList.contains(
  const np=mkSnake(x,y,Math.atan2(worldH/2-y,worldW/2-x),prefs.color,'Você',false,Math.max(10,Math.floor(old.length*.6)),null);applyCosmetics(np);np.shield=3;np.kills=old.kills;
  player=np;rebuildSnakes();revived++;dyingT=0;lastKiller=null;causeText='';
  cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;
- pointer.dirX=Math.cos(np.angle);pointer.dirY=Math.sin(np.angle);inputLock=performance.now()+400;paused=false;($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';syncBoostBtn();syncMusic();showToast('💪 De volta! Escudo por 3 s',2.5);saveEco()}
+ pointer.dirX=Math.cos(np.angle);pointer.dirY=Math.sin(np.angle);inputLock=performance.now()+400;paused=false;startFrameLoop();($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';syncBoostBtn();syncMusic();showToast('💪 De volta! Escudo por 3 s',2.5);saveEco()}
 /* ===== Setas de aviso fora da tela ===== */
 function edgeArrow(x,y,col,icon,a){const sx=x-cam.x,sy=y-cam.y;if(sx>=0&&sx<=W&&sy>=0&&sy<=H)return;const cx=W/2,cy=H/2,dx=sx-cx,dy=sy-cy,kx=dx>0?(W-34-cx)/dx:(34-cx)/dx,ky=dy>0?(H-34-cy)/dy:(98-cy)/dy,k=Math.min(Math.abs(kx),Math.abs(ky)),px=cx+dx*k,py=cy+dy*k,an=Math.atan2(dy,dx);
  ctx.save();ctx.globalAlpha=a;ctx.translate(px,py);ctx.rotate(an);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(15,0);ctx.lineTo(-7,-10);ctx.lineTo(-7,10);ctx.closePath();ctx.fill();ctx.restore();
