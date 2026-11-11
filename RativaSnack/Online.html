@@ -1170,7 +1170,7 @@ const OL_ROOM_MS=600000;
 function olEnsureBox(){const o=mpEl('mp');if(!o||o.style.display==='none'){mpOpen();mpBox('<b>🌐 Multiplayer Online</b><p id="olMsg"></p>'+olBack)}}
 function olSurvivalOnline(){return mpOnline&&mpRole==='host'&&mode==='survival'}
 function olSurvivalAlive(){let n=player&&player.alive?1:0;for(let i=0;i<mpSlots.length;i++){const c=mpSlots[i],b=bots[i];if(c&&c.open&&b&&b.alive)n++}return n}
-function olSurvivalCheck(){if(!olSurvivalOnline()||!ol.survivalEntrants||ol.survivalEntrants<2)return;const n=olSurvivalAlive();if(n<=1)olEndGame(n===1?'win':'time')}
+function olSurvivalCheck(){if(!olSurvivalOnline()||gameTime<300||!ol.survivalEntrants||ol.survivalEntrants<2)return;const n=olSurvivalAlive();if(n<=1)olEndGame(n===1?'win':'time')}
 function olSurvivalEliminate(s){if(!olSurvivalOnline()||gameTime<300||!s||!s.remote)return false;s.eliminated=true;const c=s.remote;try{if(c.open&&c.dc&&c.dc.readyState==='open')c.dc.send(JSON.stringify({elim:1,r:'Você foi eliminado da Sobrevivência. Não há renascimento após os 5 minutos.'}))}catch(e){}c.open=false;const i=mpSlots.indexOf(c);if(i>=0)mpSlots[i]=null;olSurvivalCheck();return true}
 function olRoomTick(){if(!mpOnline||ended)return;if(wbRun||mode==='mundial'||mode==='survival'){ol.left=-1;return}const left=Math.max(0,Math.ceil((OL_ROOM_MS-(Date.now()-(ol.roomStart||Date.now())))/1000));ol.left=left;if(left<=0)olEndGame('time')}
 function olNextBoss(){bossDown=false;const i=bots.length-1;spawnSpecial(i,4);boss=bots[i];boss.boss=true;boss.hp=100;boss.stun=0;boss.phase='chase';boss.pt=3;boss.speedBase=90;bossVariant(boss);boss.hp=100;boss.chaseMul=(boss.chaseMul||1)*(1+.06*Math.min(bossN,10));showToast('👹 Outro chefe apareceu! (#'+(bossN+1)+')',3.5)}
