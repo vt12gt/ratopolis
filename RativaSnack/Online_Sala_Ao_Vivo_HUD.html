@@ -500,7 +500,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #rativaStaffHudBtn,#rativaVoiceToggle{display:flex;align-items:center;justify-content:center;touch-action:manipulation;cursor:pointer;flex-shrink:0}
 #rativaStaffHudBtn{order:2}#rativaVoiceToggle{order:3}
 #pause.online-exit.hidden{display:none!important}
-#quit{display:none!important}
+body.rativa-online #quit{display:none!important}
 @media(max-width:560px){.hud .stats{gap:3px}.hud .stats #rativaStaffHudBtn,.hud .stats #rativaVoiceToggle{width:29px!important;height:29px!important;flex-basis:29px!important;font-size:14px!important;margin:0!important}.hud .stats .pill{padding:3px 4px}.hud .stats .pill small{font-size:7px}}
 @media(orientation:landscape) and (max-height:420px){#rativaLiveEventHud{top:calc(env(safe-area-inset-top) + 76px)!important}}
 </style></head>
@@ -1422,7 +1422,7 @@ function indicators(t){if(!prefs.arrows||!running||paused||!player||!player.aliv
  let best=null,bd=1e9;for(const f of foods)if(f.type>=2){const d=Math.hypot(f.x-player.x,f.y-player.y);if(d<bd&&d<1100){bd=d;best=f}}
  if(best)edgeArrow(best.x,best.y,'#ffd34e',FOODICON[best.type]||'⭐',.85);
  const pulse=.55+.35*Math.sin(t*9);for(const b of bots){if(!b.alive)continue;if(mode==='team'&&tm(b)===tm(player))continue;if(!(b.length>=player.length*1.15||b.special||b.boss))continue;if(Math.hypot(b.x-player.x,b.y-player.y)<520)edgeArrow(b.x,b.y,'#ff5d73','⚠️',pulse)}}
-function ensureOnlineExit(){const p=$('pause');if(!p||!mpOnline||!running||ended){olSyncStaffHudButton();return}p.classList.remove('hidden');p.classList.add('online-exit');p.textContent='SAIR';p.setAttribute('aria-label','Sair da partida');p.style.display='block';olSyncStaffHudButton()}
+function ensureOnlineExit(){const p=$('pause'),active=!!(mpOnline&&running&&!ended);document.body.classList.toggle('rativa-online',active);if(!p||!active){olSyncStaffHudButton();return}p.classList.remove('hidden');p.classList.add('online-exit');p.textContent='SAIR';p.setAttribute('aria-label','Sair da partida');p.style.display='block';olSyncStaffHudButton()}
 function showDeathPanel(until){deathUiActive=true;deathUiUntil=until||Date.now()+3000;const p=$('deathPanel');if(p)p.classList.remove('hidden');deathUiTick()}
 function hideDeathPanel(){deathUiActive=false;deathUiUntil=0;const p=$('deathPanel');if(p)p.classList.add('hidden')}
 function deathUiTick(){if(!deathUiActive)return;const el=$('deathCountdown');if(!el)return;const left=Math.max(0,Math.ceil((deathUiUntil-Date.now())/1000));el.textContent=left>0?('Renascendo em '+left+' segundo'+(left===1?'':'s')+'…'):'Preparando seu retorno…'}
