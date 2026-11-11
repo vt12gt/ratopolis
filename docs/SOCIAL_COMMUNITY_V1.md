@@ -32,6 +32,7 @@
 - [x] Denúncias persistidas, com prevenção de duplicidade e auditoria.
 - [x] Painel administrativo com fila de denúncias do feed.
 - [x] Worker de preview implantado na Cloudflare, versão 38, sem alterar a branch `main`.
+- [x] Portal de preview implantado na Cloudflare, versão 6, servindo o `index.html` e os assets da branch de testes.
 - [ ] Portal de preview validado no navegador com a nova interface.
 - [ ] Testes reais em dois dispositivos/contas e reconexão.
 - [ ] Testes de regressão de chat, voz, rádio, jogos e administração.
