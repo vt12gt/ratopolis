@@ -897,7 +897,7 @@ function rgsRadioSeek(audio,state){
  if(audio.readyState>=1)apply();else audio.addEventListener('loadedmetadata',apply,{once:true});
 }
 async function rgsRadioRefresh(){
- if(rgsRadioBusy)return;rgsRadioBusy=true;
+ if(rgsRadioLiveActive||rgsRadioBusy)return;rgsRadioBusy=true;
  try{
   const state=await rgsRadioFetchState(),audio=$('rativaRadioAudio');
   if(!state.active||state.paused){if(!audio.paused)audio.pause();rgsRadioUi(false,state.active?'PAUSADA':'FORA DO AR');return}
@@ -936,7 +936,7 @@ async function rgsRadioRefreshLive(){
   const local=pc.localDescription;if(!local?.sdp?.startsWith('v=0')||!local.sdp.includes('m=audio ')||!local.sdp.includes('a=candidate:'))throw new Error('Resposta de áudio incompleta.');
   const doneRes=await fetch(RGS_RADIO_API+'/api/live/subscribe/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sub.sessionId,sessionDescription:local})}),done=await doneRes.json();
   if(!doneRes.ok||!done.ok)throw new Error(done.message||done.error||'Falha ao concluir locução');
-  rgsRadioLiveActive=true;if(!rgsRadioStarted){const music=$('rativaRadioAudio');if(!music.paused)music.pause()}
+  rgsRadioLiveActive=true;const music=$('rativaRadioAudio');if(!music.paused)music.pause();
   if(rgsRadioStarted){try{await $('rativaRadioLiveAudio').play()}catch(e){}}
  }catch(e){console.warn('Rádio ao vivo:',e.message);if(rgsRadioLivePc&&!rgsRadioLiveActive)rgsRadioCloseLive()}
  finally{rgsRadioLiveBusy=false}
