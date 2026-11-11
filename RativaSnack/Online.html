@@ -627,12 +627,12 @@ function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;best
 
 /* ===== CONFIGURAÇÃO ÚNICA de habilidades (11 níveis), loja e opções ===== */
 const SKILL_CFG={max:11,cost:{base:30,growth:2.2},list:{
- boost:{n:'Velocidade',i:'⚡',dur:[7,.9],mul:[1.3,.012]},
- magnet:{n:'Ímã de comida',i:'🧲',dur:[8,1],rad:[170,8]},
- shield:{n:'Escudo',i:'🛡️',dur:[5,.5]},
- mult:{n:'Pontos ×2',i:'✖️',dur:[10,1.2]},
- grow:{n:'Crescimento dobrado',i:'🌱',dur:[10,1.2]},
- dash:{n:'Impulso manual',i:'🚀',dur:[1.6,.14],rech:[5,-.25]}}};
+ boost:{n:'Velocidade',i:'⚡',dur:[7,7.9,8.8,9.7,10.6,11.5,13.4,14.3,15.2,16.1,17.5],mul:[1.30,1.31,1.32,1.34,1.35,1.36,1.40,1.43,1.46,1.49,1.55]},
+ magnet:{n:'Ímã de comida',i:'🧲',dur:[8,9,10,11,12,13,15,16,17,18.5,20],rad:[170,178,186,194,202,210,226,234,242,250,280]},
+ shield:{n:'Escudo',i:'🛡️',dur:[5,5.5,6,6.5,7,7.5,8.5,9.5,10.5,11.5,13]},
+ mult:{n:'Pontos ×2',i:'✖️',dur:[10,11.2,12.4,13.6,14.8,16,18.2,19.4,20.6,21.8,23]},
+ grow:{n:'Crescimento dobrado',i:'🌱',dur:[10,11.2,12.4,13.6,14.8,16,18.2,19.4,20.6,21.8,23]},
+ dash:{n:'Impulso manual',i:'🚀',dur:[1.6,1.74,1.88,2.02,2.16,2.30,2.58,2.88,2.99,3,4],rech:[5,4.75,4.50,4.25,4,3.75,3.50,3.25,2.80,2.45,2.00]}}};
 const SKILL_LIST=SKILL_CFG.list,STOCK_MAX=3;
 const START_ITEMS={shield:{n:'Escudo inicial',i:'🛡️',price:70,d:'Começa a partida com escudo',fn:s=>{const d=skillVal(s,'shield','dur');s.shieldP=d;s.shield=Math.max(s.shield,d)}},
  magnet:{n:'Ímã inicial',i:'🧲',price:70,d:'Começa com ímã de comida',fn:s=>{s.magnetT=skillVal(s,'magnet','dur')}},
@@ -672,14 +672,14 @@ restoreIDB();
    o servidor ignora ids repetidos (idempotente) e mantém o progresso mais recente. */
 const SYNC={enabled:false,endpoint:null,queue:[],push(){return false},flush(){return false}};
 
-function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[0]+a[1]*(L-1)}
+function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[Math.max(0,Math.min(a.length-1,L-1))]}
 const skillCost=L=>{let cost=SKILL_CFG.cost.base;for(let i=0;i<L;i++)cost=Math.round(cost*SKILL_CFG.cost.growth);return cost};
 function applySkillsToCfg(){CFG.boostMax=skillVal(null,'dash','dur');CFG.boostRecharge=skillVal(null,'dash','rech')/(evtOf().id==='veloz'?2:1)}
 function buzz(ms){if(prefs.vib&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 function itemChargesLeft(){return Object.values(eco.inv).reduce((a,v)=>a+(Number(v)||0),0)}
 function applyStartItems(){const used=[];for(const k in START_ITEMS)if(eco.inv[k]>0){eco.inv[k]--;START_ITEMS[k].fn(player);used.push(START_ITEMS[k].i)}if(used.length){if(itemChargesLeft()===0)eco.itemPriceStep=0;saveEco();showToast('Itens usados: '+used.join(' '),3)}}
 function toastFor(t,s){if(t===7)return '👑 Rei Queijo: +100 🧀 e crescimento ×2!';if(t===8)return '🦏 Tanque: +75 🧀 e ímã 4× mais forte!';const m={2:['⚡ Velocidade','boost'],3:['🌱 Crescimento dobrado','grow'],4:['🧲 Ímã de comida','magnet'],5:['🛡️ Escudo','shield'],6:['×2 Pontos em dobro','mult']}[t];return m[0]+' por '+(+skillVal(s,m[1],'dur').toFixed(1))+' s!'}
-function skTxt(k,L){const c=SKILL_LIST[k],v=f=>c[f][0]+c[f][1]*(L-1);let t=v('dur').toFixed(1)+' s';if(c.mul)t+=' • +'+Math.round((v('mul')-1)*100)+'% vel.';if(c.rad)t+=' • raio '+Math.round(v('rad'));if(c.rech)t+=' • recarga '+v('rech').toFixed(1)+' s';return t}
+function skTxt(k,L){const c=SKILL_LIST[k],v=f=>c[f][Math.max(0,Math.min(c[f].length-1,L-1))];let t=v('dur').toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+' s';if(c.mul)t+=' • +'+Math.round((v('mul')-1)*100)+'% vel.';if(c.rad)t+=' • raio '+Math.round(v('rad'));if(c.rech)t+=' • recarga '+v('rech').toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+' s';return t}
 let pendingBuy='',shopMsg='',buyLock=0,leader=null,goalIdx=0,revived=0,reviveTimer=null,shopCat='skin',shopSel=null;
 function doUpgrade(k){const c=SKILL_LIST[k],L=eco.lv[k];if(L>=SKILL_CFG.max)return '🏆 '+c.n+' já está no nível máximo!';if(Date.now()<buyLock)return '⏳ Aguarde...';const cost=skillCost(L);if(eco.cheese<cost)return '🧀 Saldo insuficiente (faltam '+(cost-eco.cheese)+').';buyLock=Date.now()+600;if(!spend(cost,'Habilidade: '+c.n,()=>{eco.lv[k]=L+1}))return '🧀 Saldo insuficiente.';applySkillsToCfg();return L+1>=SKILL_CFG.max?'🏆 '+c.n+' chegou ao nível máximo ('+SKILL_CFG.max+')!':'✅ '+c.n+' evoluiu para o nível '+(L+1)+'!'}
 function itemCurrentPrice(){return [70,450,1000][eco.itemPriceStep]||1000}
