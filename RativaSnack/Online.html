@@ -473,18 +473,30 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #sheetBody.scroll{display:block!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding-bottom:8px}#sheetBody.scroll>.tabs.top{position:sticky;top:0;z-index:4}#sheetBody .event-page{display:flex;flex-direction:column;gap:8px;min-height:100%;padding:2px 2px 8px}#sheetBody .event-hero{flex:none;min-height:0;align-items:center;gap:clamp(8px,2vw,18px);padding:clamp(10px,2vh,18px);border:2px solid #ffd84a;background:radial-gradient(circle at 15% 20%,#7442bd,#2f145f 72%);box-shadow:0 5px 0 #1b0838}#sheetBody .event-hero .ei{flex:none;font-size:clamp(42px,10vh,76px);line-height:1}#sheetBody .event-hero .et{min-width:0;gap:6px}#sheetBody .event-kicker{font-size:10px;letter-spacing:1.2px;font-weight:900;color:#ffe08a}#sheetBody .event-hero .et>b{font-size:clamp(18px,3.5vh,27px);line-height:1.08;overflow-wrap:anywhere}#sheetBody .event-hero .et>span{font-size:clamp(11px,1.8vh,14px);line-height:1.25}#sheetBody .event-hero .bar{height:11px;width:100%;flex:none}#sheetBody .event-goal{font-size:clamp(12px,2vh,16px);color:#fff;line-height:1.2}#sheetBody .event-hero .et>em{font-size:clamp(11px,1.7vh,13px)}#sheetBody .event-hero .et>small:last-child{font-size:10px;color:#e5d8ff}
 @media(max-height:380px){#sheetBody .event-hero{padding:7px 10px;gap:8px}#sheetBody .event-hero .ei{font-size:38px}#sheetBody .event-hero .et{gap:3px}}
 
-/* Rádio Rativa Games integrada ao menu e à partida */
-.radio-menu-btn{height:8.6vh;min-height:38px;max-height:58px;min-width:76px;padding:0 1.1vw;border:2px solid #ffe58a;border-radius:1.5vh;background:linear-gradient(135deg,#ffe36a,#f49b16);color:#4a236e;box-shadow:0 .45vh 0 #9d570d,0 .7vh 1vh #32105a55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-family:inherit;font-style:italic;font-weight:1000;line-height:1}
-.radio-menu-btn span{font-size:2.8vh;font-style:normal}.radio-menu-btn b{font-size:1.8vh}.radio-menu-btn small{font-size:1.2vh;font-style:normal;letter-spacing:.08em}
-#radioGameBtn{display:none;position:fixed;z-index:30;left:calc(env(safe-area-inset-left) + 12px);bottom:calc(env(safe-area-inset-bottom) + 76px);min-width:76px;height:42px;padding:0 12px;border:2px solid #ffe58a;border-radius:13px;background:linear-gradient(135deg,#ffe36a,#f49b16);color:#482067;box-shadow:0 4px 0 #9d570d,0 7px 15px #0006;font-weight:1000;font-size:13px;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation}
-#radioGameBtn.playing{background:linear-gradient(135deg,#a6ffb7,#27b96a);border-color:#d9ffe1;color:#123d2a;box-shadow:0 4px 0 #17633c,0 7px 15px #0006}
-body.rativa-playing #radioGameBtn{display:flex}
-@media(max-height:420px){.radio-menu-btn{min-height:32px;height:7vh}.radio-menu-btn span{font-size:2.4vh}.radio-menu-btn b{font-size:1.6vh}}
+/* Rádio Rativa Games: botões integrados ao menu e HUD */
+.radio-menu-btn{position:relative;isolation:isolate;flex:none;width:clamp(62px,8vw,88px);height:clamp(48px,8.8vh,62px);padding:4px;border:2px solid #ffeaa0;border-radius:13px;background:linear-gradient(155deg,#7139b8 0%,#3b176c 58%,#24103f 100%);color:#fff;box-shadow:0 4px 0 #1b0a36,0 0 0 2px #ffffff16,inset 0 1px 0 #ffffff55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:inherit;font-weight:1000;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .15s,filter .15s,box-shadow .15s;overflow:hidden}
+.radio-menu-btn:before{content:"";position:absolute;inset:-50% 45% -50% -35%;z-index:-1;background:linear-gradient(110deg,transparent,#ffffff38,transparent);transform:translateX(-130%);animation:radioShine 3.2s ease-in-out infinite}
+.radio-menu-btn:active{transform:translateY(3px) scale(.97);box-shadow:0 1px 0 #1b0a36,inset 0 1px 0 #ffffff55}
+.radio-menu-btn span{font-size:clamp(17px,3vh,23px);font-style:normal;filter:drop-shadow(0 2px 2px #16082b)}
+.radio-menu-btn b{font-size:clamp(9px,1.5vh,12px);letter-spacing:.12em}
+.radio-menu-btn small{font-size:clamp(7px,1vh,9px);font-style:normal;letter-spacing:.08em;color:#ffe58a}
+.radio-menu-btn.radio-on{border-color:#b8ffd0;background:linear-gradient(155deg,#28b76a,#12613e);box-shadow:0 4px 0 #084328,0 0 16px #57ff9b55}
+@keyframes radioShine{0%,55%{transform:translateX(-130%)}80%,100%{transform:translateX(180%)}}
+#radioGameBtn{display:none;flex:none;min-width:58px;height:32px;padding:0 8px;border:1.5px solid #ffe58a;border-radius:9px;background:linear-gradient(135deg,#6230a0,#32145f);color:#fff;box-shadow:0 3px 0 #190a32,0 0 8px #0005;font-family:inherit;font-weight:1000;font-size:10px;align-items:center;justify-content:center;gap:4px;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+#radioGameBtn span{font-size:9px;letter-spacing:.04em}
+#radioGameBtn.playing{background:linear-gradient(135deg,#3bd47b,#147044);border-color:#c5ffda;color:#092d1b;box-shadow:0 3px 0 #084328,0 0 10px #57ff9b66}
+body.rativa-playing #radioGameBtn{display:inline-flex}
+#emoteB{left:calc(env(safe-area-inset-left) + 12px);right:auto;top:calc(env(safe-area-inset-top) + 112px);z-index:55;width:48px;height:44px;padding:0;box-shadow:0 3px 10px #0008;touch-action:manipulation}
+#emoteW{left:calc(env(safe-area-inset-left) + 68px);right:auto;top:calc(env(safe-area-inset-top) + 108px);z-index:56;max-width:min(210px,55vw);box-shadow:0 6px 18px #0009}
+#emoteW button{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
+#lb{z-index:12;pointer-events:none}
+@media(max-width:560px){#radioGameBtn{min-width:48px;padding:0 5px;font-size:9px}#radioGameBtn span{font-size:8px}}
+@media(max-height:420px){.radio-menu-btn{height:7vh;min-height:34px}.radio-menu-btn span{font-size:2.2vh}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
-<div class="pill"><small>Pontuação</small><strong id="score">0</strong></div><div class="pill"><small>Tamanho</small><strong id="size">8</strong></div><div class="pill"><small>Abates</small><strong id="kills">0</strong></div><div class="pill"><small id="timeLbl">Tempo</small><strong id="timeval">0:00</strong></div><div class="pill"><small>Recorde</small><strong id="best">0</strong></div></div></div>
-<div id="goal" class="hidden"><span id="goalT"></span><div class="gbar"><i id="goalB"></i></div></div><div class="tip" id="tip">Arraste o dedo na arena para guiar • segure ⚡ para acelerar 🧀</div><div class="toast hidden" id="toast"></div><div class="bonus hidden" id="bonus"></div><button id="pause" class="hidden">Ⅱ</button><button id="emoteB" class="hidden" aria-label="Emotes">😀</button><div id="emoteW" class="hidden"></div><div id="mini">Coma queijos • Evite ratos e paredes</div></div>
+<div class="pill"><small>Pontuação</small><strong id="score">0</strong></div><div class="pill"><small>Tamanho</small><strong id="size">8</strong></div><div class="pill"><small>Abates</small><strong id="kills">0</strong></div><div class="pill"><small id="timeLbl">Tempo</small><strong id="timeval">0:00</strong></div><div class="pill"><small>Recorde</small><strong id="best">0</strong></div><button id="radioGameBtn" type="button" aria-label="Ligar ou desligar rádio">📻 <span>RÁDIO</span></button></div></div>
+<div id="goal" class="hidden"><span id="goalT"></span><div class="gbar"><i id="goalB"></i></div></div><div class="tip" id="tip">Arraste o dedo na arena para guiar • segure ⚡ para acelerar 🧀</div><div class="toast hidden" id="toast"></div><div class="bonus hidden" id="bonus"></div><button id="pause" class="hidden">Ⅱ</button><button id="emoteB" class="hidden" aria-label="Abrir emojis">😀</button><div id="emoteW" class="hidden"></div><div id="mini">Coma queijos • Evite ratos e paredes</div></div>
 
 <div class="overlay" id="menu"><div class="m2">
 <div class="m2top">
@@ -523,7 +535,6 @@ body.rativa-playing #radioGameBtn{display:flex}
 <div id="startBest" class="hidden"></div>
 </div></div>
 
-<button id="radioGameBtn" type="button" aria-label="Rádio Rativa Games">📻 <span>RÁDIO</span></button>
 <div class="overlay hidden" id="sheet"><div class="panel wide"><div id="sheetBody"></div><div class="row"><button class="primary" id="sheetBack">VOLTAR</button></div></div></div>
 
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
@@ -942,25 +953,35 @@ async function rgsRadioRefreshLive(){
  finally{rgsRadioLiveBusy=false}
 }
 
-async function rgsRadioToggle(){
+function rgsRadioPrepare(){
+ const audio=$('rativaRadioAudio');
+ if(!audio||audio.dataset.radioReady==='1')return;
+ rgsRadioFetchState().then(async state=>{
+  if(!state.active||state.paused)throw new Error(state.active?'A programação está pausada.':'A rádio está fora do ar.');
+  const track=await rgsRadioGetTrack(state.key);
+  if((audio.dataset.radioKey||'')!==state.key){audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load()}
+  audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';
+  const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='PRONTA';
+ }).catch(e=>{console.warn('Preparação da rádio:',e.message);const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='TENTAR'});
+}
+function rgsRadioToggle(){
  const audio=$('rativaRadioAudio'),liveAudio=$('rativaRadioLiveAudio');
- await rgsRadioRefreshLive();
- if(rgsRadioLiveActive){
-  if(rgsRadioStarted&&!liveAudio.paused){rgsRadioStarted=false;liveAudio.pause();rgsRadioUi(false,'PAUSADA');return}
-  try{rgsRadioStarted=true;await liveAudio.play();rgsRadioUi(true,'🎙️ LOCUÇÃO AO VIVO');if(!rgsRadioSyncTimer)rgsRadioSyncTimer=setInterval(()=>{rgsRadioRefreshLive();rgsRadioRefresh()},8000)}
-  catch(e){rgsRadioStarted=false;showToast('A locução está conectada. Toque novamente para ouvir.',3)}
+ if(rgsRadioStarted){
+  rgsRadioStarted=false;audio.pause();liveAudio.pause();rgsRadioUi(false,'PAUSADA');return;
+ }
+ // O play() acontece diretamente no toque do jogador, sem esperar uma chamada de rede.
+ if(audio.dataset.radioReady==='1'&&audio.src){
+  rgsRadioStarted=true;
+  const playPromise=audio.play();
+  if(playPromise&&playPromise.then)playPromise.then(()=>{
+   rgsRadioUi(true,'🔴 '+(audio.dataset.radioName||'AO VIVO'));
+   if(!rgsRadioSyncTimer)rgsRadioSyncTimer=setInterval(()=>{rgsRadioRefresh();rgsRadioRefreshLive()},8000);
+   rgsRadioRefreshLive();
+  }).catch(e=>{rgsRadioStarted=false;rgsRadioUi(false,'TOQUE PARA OUVIR');showToast('O navegador bloqueou o áudio. Toque em RÁDIO novamente.',4)});
   return;
  }
- if(rgsRadioStarted&&!audio.paused){rgsRadioStarted=false;audio.pause();rgsRadioUi(false,'PAUSADA');return}
- try{
-  const state=await rgsRadioFetchState();
-  if(!state.active)throw new Error('A Rádio Rativa Games está fora do ar no momento.');
-  if(state.paused)throw new Error('A programação está pausada no estúdio.');
-  const track=await rgsRadioGetTrack(state.key);
-  if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load();rgsRadioSeek(audio,state)}
-  audio.volume=.75;rgsRadioStarted=true;await audio.play();rgsRadioUi(true,'🔴 '+(track.name||'AO VIVO'));
-  if(!rgsRadioSyncTimer)rgsRadioSyncTimer=setInterval(rgsRadioRefresh,8000);
- }catch(e){rgsRadioStarted=false;rgsRadioUi(false,'OUVIR');showToast(e.message||'Não foi possível iniciar a rádio.',4)}
+ showToast('Conectando à Rádio Rativa Games… toque novamente quando aparecer PRONTA.',3);
+ rgsRadioPrepare();
 }
 function rgsRadioInit(){
  const a=$('rativaRadioAudio'),live=$('rativaRadioLiveAudio');if(!a||!live)return;a.volume=.75;live.volume=.75;
@@ -971,7 +992,7 @@ function rgsRadioInit(){
  live.addEventListener('play',()=>rgsRadioUi(true,'🎙️ LOCUÇÃO AO VIVO'));
  live.addEventListener('pause',()=>{if(rgsRadioLiveActive)rgsRadioUi(false,'PAUSADA')});
  a.addEventListener('error',()=>{rgsRadioStarted=false;rgsRadioUi(false,'ERRO DE ÁUDIO');showToast('Não foi possível carregar a transmissão da rádio.',3)});
- rgsRadioUi(false,'OUVIR');
+ rgsRadioUi(false,'CONECTANDO');rgsRadioPrepare();
 }
 
 /* ============ Mundo ============ */
