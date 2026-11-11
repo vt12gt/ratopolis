@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#101827"><title>Rativa Hero — Torre dos Desafios</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#172337;--gold:#ffd166;--red:#ff5c67;--blue:#55c7ff;--green:#7ce6a2}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:manipulation}body{display:grid;place-items:center;background:radial-gradient(ellipse at 50% 20%,#263a58,#0b1220 70%);color:#fff}
+#game{width:min(100vw,177.78vh);height:min(100vh,56.25vw);min-height:280px;position:relative;overflow:hidden;background:linear-gradient(#15243a 0%,#243e58 58%,#172638 100%);border:1px solid #52647b;box-shadow:0 0 50px #0009}
+header{height:12%;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5%;background:#0b1422d9;border-bottom:1px solid #ffffff20;gap:8px}
+.brand{font-weight:1000;letter-spacing:1px;color:var(--gold);font-size:clamp(13px,2.2vw,23px)}.stats{display:flex;gap:clamp(5px,1vw,14px);font-size:clamp(10px,1.5vw,16px);font-weight:800}.pill{background:#ffffff12;border:1px solid #ffffff20;padding:5px 9px;border-radius:20px;white-space:nowrap}
+#scene{height:62%;position:relative;display:flex;align-items:center;justify-content:space-around;padding:1% 4%;gap:2%;background:linear-gradient(90deg,#ffffff08 1px,transparent 1px),linear-gradient(#ffffff08 1px,transparent 1px);background-size:8% 18%}
+.tower{position:absolute;inset:0;opacity:.35;pointer-events:none;background:linear-gradient(90deg,transparent 12%,#91a6bd22 12.3%,transparent 12.8%,transparent 87%,#91a6bd22 87.3%,transparent 88%);border-bottom:8px solid #64758b}
+.fighter{width:25%;height:90%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
+.power{font-weight:1000;font-size:clamp(20px,4vw,42px);text-shadow:0 3px 5px #000;line-height:1.1}.heroPower{color:var(--blue)}.enemyPower{color:var(--red)}
+.person{width:100%;height:75%;max-width:210px;filter:drop-shadow(0 7px 5px #0008)}
+.vs{font-size:clamp(18px,3vw,34px);font-weight:1000;color:var(--gold);text-shadow:0 3px 6px #000}
+#message{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);background:#08111ddd;border:1px solid #ffffff30;border-radius:30px;padding:7px 16px;font-weight:800;font-size:clamp(10px,1.5vw,15px);white-space:nowrap;z-index:3}
+#choices{height:26%;display:flex;align-items:stretch;justify-content:center;gap:1.5%;padding:1% 3% 2%;background:#0b1422e8;border-top:1px solid #ffffff20}
+.choice{flex:1;max-width:31%;border:2px solid #ffffff2b;border-radius:14px;background:linear-gradient(145deg,#253750,#142235);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;min-width:0;cursor:pointer;font-weight:900;box-shadow:0 4px 0 #0005}
+.choice:active{transform:translateY(3px);box-shadow:none}.choice .ico{font-size:clamp(20px,4vw,38px)}.choice strong{font-size:clamp(11px,1.8vw,18px)}.choice small{font-size:clamp(9px,1.3vw,13px);opacity:.8}.enemyChoice{border-color:#ff5c6777}.buffChoice{border-color:#55c7ff77}.healChoice{border-color:#7ce6a277}
+#overlay{position:absolute;inset:0;background:#07101beF;z-index:10;display:flex;align-items:center;justify-content:center;text-align:center;padding:5%}
+.modal{max-width:560px;width:90%;background:linear-gradient(145deg,#263c58,#111d2e);border:1px solid #ffffff35;border-radius:22px;padding:clamp(14px,3vw,28px);box-shadow:0 15px 50px #0009}
+h1{margin:0 0 6px;color:var(--gold);font-size:clamp(24px,5vw,48px)}.modal p{font-size:clamp(12px,1.8vw,17px);line-height:1.4;color:#d5e2f2}
+button.main{border:0;border-radius:30px;padding:12px 28px;background:linear-gradient(90deg,#ffca57,#ff8c42);font-weight:1000;color:#172235;font-size:clamp(14px,2vw,19px);cursor:pointer}
+#toast{position:absolute;top:14%;left:50%;transform:translateX(-50%);background:#07101beF;border:1px solid #ffffff40;border-radius:12px;padding:8px 15px;z-index:5;font-weight:900;display:none;white-space:nowrap}
+@media(orientation:portrait){#game{width:100vw;height:100vh;min-height:0}#rotate{display:flex!important}}
+#rotate{display:none;position:absolute;inset:0;z-index:20;background:#08111b;align-items:center;justify-content:center;text-align:center;padding:30px;font-weight:900;font-size:20px}
+</style></head>
+<body><div id="game">
+<header><div class="brand">⚔ RATIVA HERO</div><div class="stats"><span class="pill">🏰 Andar <b id="floor">1</b></span><span class="pill">🪙 <b id="coins">0</b></span><span class="pill">❤️ <b id="hp">100</b></span></div></header>
+<section id="scene"><div class="tower"></div>
+<div class="fighter"><div class="power heroPower" id="heroPower">⚡ 10</div><svg class="person" viewBox="0 0 160 220" aria-label="Herói Rativa"><circle cx="80" cy="35" r="23" fill="#f1c7a0" stroke="#182536" stroke-width="7"/><path d="M58 30 Q60 0 95 13 L106 32 Q84 20 58 30" fill="#49b9e9"/><path d="M62 63 L98 63 L111 135 L49 135 Z" fill="#1686bd" stroke="#10283b" stroke-width="7"/><path d="M60 75 L25 117 L37 126 L72 98 M99 75 L133 107 L123 119 L91 99" fill="none" stroke="#f1c7a0" stroke-width="13" stroke-linecap="round"/><path d="M65 132 L58 192 M94 132 L105 192" stroke="#d7e4ef" stroke-width="16" stroke-linecap="round"/><path d="M42 198 L66 198 M92 198 L118 198" stroke="#f3b84e" stroke-width="13" stroke-linecap="round"/><path d="M115 92 L144 35" stroke="#dce9f7" stroke-width="7" stroke-linecap="round"/><path d="M135 30 L151 16" stroke="#55c7ff" stroke-width="9" stroke-linecap="round"/></svg><b>HERÓI</b></div>
+<div class="vs">VS</div>
+<div class="fighter"><div class="power enemyPower" id="enemyPower">💀 8</div><svg class="person" viewBox="0 0 160 220" aria-label="Inimigo"><circle cx="80" cy="35" r="23" fill="#f3a18c" stroke="#521d2b" stroke-width="7"/><path d="M60 27 L73 34 M86 34 L101 27" stroke="#5a1525" stroke-width="6"/><path d="M62 63 L98 63 L111 135 L49 135 Z" fill="#d94455" stroke="#521d2b" stroke-width="7"/><path d="M60 75 L25 117 L37 126 L72 98 M99 75 L133 107 L123 119 L91 99" fill="none" stroke="#f3a18c" stroke-width="13" stroke-linecap="round"/><path d="M65 132 L58 192 M94 132 L105 192" stroke="#8e3345" stroke-width="16" stroke-linecap="round"/><path d="M42 198 L66 198 M92 198 L118 198" stroke="#4a2634" stroke-width="13" stroke-linecap="round"/><path d="M20 48 L8 20 L37 32 M122 45 L145 17 L147 51" fill="#d94455" stroke="#521d2b" stroke-width="5"/></svg><b id="enemyName">GUARDIÃO</b></div><div id="message">Escolha seu próximo movimento!</div></section>
+<div id="toast"></div><section id="choices"></section>
+<div id="overlay"><div class="modal"><h1>RATIVA HERO</h1><p>Suba a Torre dos Desafios! Escolha inimigos que consegue vencer, conquiste equipamentos e fique cada vez mais forte. Cada decisão muda sua jornada.</p><p><b>Jogo independente • Offline • Salvamento automático</b></p><button class="main" id="start">COMEÇAR A AVENTURA</button><p style="font-size:11px">Seu progresso fica salvo neste aparelho.</p></div></div>
+<div id="rotate">📱↻<br><br>Vire o celular na horizontal para jogar melhor!</div>
+</div>
+<script>
+(()=>{const $=id=>document.getElementById(id);let s={floor:1,power:10,hp:100,maxHp:100,coins:0,weapon:0,shield:0};let enemy=8,kind='enemy',busy=false;
+const save=()=>localStorage.setItem('rativaHeroSave',JSON.stringify(s));
+const load=()=>{try{let x=JSON.parse(localStorage.getItem('rativaHeroSave'));if(x&&x.floor)s={...s,...x}}catch(e){}};
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1500)}
+function render(){ $('floor').textContent=s.floor;$('coins').textContent=s.coins;$('hp').textContent=s.hp;$('heroPower').textContent='⚡ '+s.power;$('enemyPower').textContent=(s.floor%10===0?'👑 ':'💀 ')+enemy;$('enemyName').textContent=s.floor%10===0?'CHEFÃO':'GUARDIÃO';}
+function makeEnemy(){enemy=Math.max(5,Math.floor(7+s.floor*2.15+Math.random()*s.floor*1.3));if(s.floor%10===0)enemy=Math.floor(enemy*2.2);render();}
+function choices(){let a=[];let e1=Math.max(3,Math.floor(enemy*.72)),e2=Math.floor(enemy*1.15+3);a.push({type:'enemy',ico:'💀',name:'Desafiar',desc:'Inimigo • poder '+e1,val:e1});a.push({type:'buff',ico:'⚔️',name:'Arma rara',desc:'+ '+Math.ceil(s.floor*2+5)+' de poder',val:Math.ceil(s.floor*2+5)});a.push({type:'heal',ico:'🛡️',name:'Poção vital',desc:'Recupera '+Math.min(35,s.maxHp-s.hp)+' de vida',val:Math.min(35,s.maxHp-s.hp)});$('choices').innerHTML='';a.forEach((c,i)=>{let b=document.createElement('button');b.className='choice '+(c.type==='enemy'?'enemyChoice':c.type==='buff'?'buffChoice':'healChoice');b.innerHTML='<span class="ico">'+c.ico+'</span><strong>'+c.name+'</strong><small>'+c.desc+'</small>';b.onclick=()=>pick(c);$('choices').appendChild(b)});}
+function next(){s.floor++;makeEnemy();render();choices();$('message').textContent='Andar '+s.floor+': escolha sua estratégia!';save();}
+function pick(c){if(busy)return;busy=true;if(c.type==='buff'){s.power+=c.val;s.coins+=3;toast('Arma aprimorada! +'+c.val+' poder');}
+else if(c.type==='heal'){let n=Math.min(35,s.maxHp-s.hp);s.hp+=n;s.coins+=2;toast(n?'Vida recuperada!':'Vida já está cheia!');}
+else{enemy=c.val;render();if(s.power+ s.weapon < enemy){s.hp-=Math.max(8,Math.ceil((enemy-s.power)*1.4)-s.shield);toast('O inimigo venceu esta rodada!');}else{s.coins+=Math.ceil(enemy/2)+5;s.power+=Math.max(1,Math.floor(enemy*.12));toast('Vitória! +' +(Math.ceil(enemy/2)+5)+' moedas');}
+if(s.floor%10===0&&s.power>=enemy){s.coins+=50;s.maxHp+=10;s.hp=Math.min(s.maxHp,s.hp+25);toast('CHEFÃO derrotado! Bônus lendário!');}
+if(s.hp<=0){s.hp=0;save();render();gameOver();busy=false;return;}}
+save();render();setTimeout(()=>{busy=false;next()},650);}
+function gameOver(){$('overlay').style.display='flex';$('overlay').innerHTML='<div class="modal"><h1>FIM DA JORNADA</h1><p>Você chegou ao andar <b>'+s.floor+'</b> e acumulou <b>'+s.coins+'</b> moedas.</p><p>Seu recorde fica salvo neste aparelho.</p><button class="main" id="restart">TENTAR NOVAMENTE</button><p><button id="reset" style="background:none;border:0;color:#b8c7d9;text-decoration:underline">Apagar progresso e recomeçar</button></p></div>';$('restart').onclick=()=>{s.hp=s.maxHp; s.power=Math.max(10,Math.floor(s.power*.7));s.floor=1;makeEnemy();$('overlay').style.display='none';render();choices();save();};$('reset').onclick=()=>{localStorage.removeItem('rativaHeroSave');s={floor:1,power:10,hp:100,maxHp:100,coins:0,weapon:0,shield:0};makeEnemy();$('overlay').style.display='none';render();choices();};}
+load();makeEnemy();render();choices();$('start').onclick=()=>{$('overlay').style.display='none';render();choices();save();};
+})();
+</script></body></html>
