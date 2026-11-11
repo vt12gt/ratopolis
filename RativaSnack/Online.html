@@ -1318,7 +1318,7 @@ function deathUiTick(){if(!deathUiActive)return;const el=$('deathCountdown');if(
 function showToast(t,d){const el=$('toast');el.textContent=t;el.classList.remove('hidden');toastT=d||2.2}
 function updateHud(force){
  const set=(id,v)=>{const el=$(id);if(el._v!==v){el._v=v;el.textContent=v}};
- set('score',mode==='survival'&&mpOnline?fmtTime(ol.survivalAliveTime||0):score);set('size',player?player.length:0);set('kills',kills);
+ set('score',score);set('size',player?player.length:0);set('kills',kills);
  const M=MODES[mode];if(mpOnline&&ol.left>=0){set('timeLbl','Sala');set('timeval',fmtTime(Math.max(0,ol.left)))}else if(M.limit&&!mpOnline){set('timeLbl','Restante');set('timeval',fmtTime(Math.max(0,M.limit-gameTime)))}else{set('timeLbl','Tempo');set('timeval',fmtTime(gameTime))}
  set('best',mode==='quick'?bestQuick:mode==='survival'?fmtTime(stats.bestTime):stats.bestChallenge);goalTick();goalHud();
  let b='';if(player){if(player.boostT>0)b+='⚡ '+Math.ceil(player.boostT)+'s  ';if(player.growT>0)b+='🌱 ×2 '+Math.ceil(player.growT)+'s  ';if(player.magnetT>0)b+='🧲 '+Math.ceil(player.magnetT)+'s  ';if(player.shieldP>0)b+='🛡️ '+Math.ceil(player.shieldP)+'s  ';if(player.multT>0)b+='×2 pts '+Math.ceil(player.multT)+'s'}
