@@ -635,7 +635,7 @@ const SKILL_CFG={max:11,cost:{base:30,growth:1.35},list:{
 const SKILL_LIST=SKILL_CFG.list,STOCK_MAX=3;
 const START_ITEMS={shield:{n:'Escudo inicial',i:'🛡️',price:70,d:'Começa a partida com escudo',fn:s=>{const d=skillVal(s,'shield','dur');s.shieldP=d;s.shield=Math.max(s.shield,d)}},
  magnet:{n:'Ímã inicial',i:'🧲',price:70,d:'Começa com ímã de comida',fn:s=>{s.magnetT=skillVal(s,'magnet','dur')}},
- boost:{n:'Velocidade inicial',i:'⚡',price:50,d:'Começa com velocidade extra',fn:s=>{s.boostT=skillVal(s,'boost','dur')}},
+ boost:{n:'Velocidade inicial',i:'⚡',price:70,d:'Começa com velocidade extra',fn:s=>{s.boostT=skillVal(s,'boost','dur')}},
  mult:{n:'Pontos ×2 inicial',i:'✖️',price:70,d:'Começa com pontos em dobro',fn:s=>{s.multT=skillVal(s,'mult','dur')}}};
 const MICON={quick:'⚡',survival:'⏳',challenge:'🎯',team:'🔵',boss:'👹',infinite:'🌊',daily:'📅',treino:'🧪',mundial:'👑'};
 /* ===== Economia de queijos (moeda) ===== */
