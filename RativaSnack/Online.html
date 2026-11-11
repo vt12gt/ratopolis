@@ -420,6 +420,16 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 @keyframes rativaPhoneTurn{0%,15%{transform:rotate(0deg)}65%,85%{transform:rotate(90deg)}100%{transform:rotate(90deg)}}
 @media(orientation:portrait){#game{visibility:visible!important}#rotate{display:flex!important}}
 @media(orientation:landscape){#rotate{display:none!important}}
+
+/* v121 — painel de morte, renascimento e saída sempre acessível */
+#deathPanel{position:fixed;inset:0;z-index:2147482000;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(12,7,25,.52);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);font-family:system-ui,sans-serif}
+#deathPanel.hidden{display:none!important}
+#deathPanel .death-card{width:min(390px,92vw);padding:22px 20px;border:1px solid #c6a2ff;border-radius:22px;text-align:center;color:#fff;background:linear-gradient(145deg,rgba(66,38,125,.97),rgba(29,17,62,.98));box-shadow:0 18px 55px #080316aa,inset 0 1px 0 #ffffff30}
+#deathPanel .death-icon{font-size:42px;margin-bottom:5px}
+#deathPanel h2{font-size:clamp(21px,4vw,27px);margin:4px 0 8px;color:#ffe08a;font-weight:950}
+#deathPanel p{font-size:15px;color:#e9defb;margin:8px 0 18px;font-weight:700}
+#deathPanel button{width:100%;min-height:46px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffdf71,#e99b2d);color:#351b0a;font-size:14px;font-weight:950;padding:10px 14px}
+#deathPanel button:active{transform:scale(.99)}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -468,6 +478,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
 
 <div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><div class="btns"><button class="b3d gold" id="resume">CONTINUAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">SAIR AO MENU</button></div></div></div></div>
+<div id="deathPanel" class="hidden" role="status" aria-live="polite"><div class="death-card"><div class="death-icon">💥</div><h2>Você foi eliminado!</h2><p id="deathCountdown">Voltando em 3 segundos…</p><button id="deathExit" type="button">SAIR DA PARTIDA</button></div></div>
 <div class="overlay hidden" id="revive"><div class="panel dlg"><div class="logo">✨</div><h1>Continuar?</h1><p class="subtitle" id="reviveTxt"></p><div class="rvbar"><i id="rvB"></i></div><div class="btns"><button class="b3d gold" id="reviveYes">CONTINUAR</button><button class="b3d purple" id="reviveNo">TERMINAR</button></div></div></div>
 <div class="overlay hidden" id="tut"><div class="panel dlg"><div class="logo" id="tutI">🎮</div><h1 id="tutT"></h1><div class="tutl" id="tutL"></div><div class="btns"><button class="b3d gold" id="tutOk">ENTENDI! JOGAR</button></div></div></div>
 <div class="overlay hidden" id="nick"><div class="panel dlg"><div class="logo">🐭</div><h1>Seu apelido</h1><p class="subtitle small">Como você quer aparecer na arena e no ranking? (2 a 12 caracteres)</p><input id="nickIn" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Digite seu apelido"><div class="btns"><button class="b3d gold" id="nickOk">CONFIRMAR</button></div></div></div>
@@ -732,7 +743,7 @@ const barRow=(cls,t,r,pct)=>`<div class="mrow${cls}"><div class="mt"><b>${t}</b>
 /* ============ Estado ============ */
 const B={x0:0,y0:0,x1:3600,y1:2400,k:0};let OBS=[],ARENA=null,shrW=0;
 let W=innerWidth,H=innerHeight,dpr=1,worldW=3600,worldH=2400,player=null,bots=[],snakes=[],foods=[],particles=[];
-let running=false,paused=false,ended=false,last=0,hudT=0,mode=prefs.mode,gameTime=0,score=0,kills=0,foodEaten=0,threat=0,dyingT=0,playerRespawnAt=0,lastKiller=null,causeText='',specialT=10,toastT=0,inputLock=0,boostHold=false,bid=null,boostPct=-1,boss=null,teamScore=[0,0],wave=1,waveKills=0,ev=null,evT=60,bossWinT=0,bossDown=false,bossN=0,wbRunEnd=0,roundCounted=false,powersTaken=0,matchStreak=0,streakN=0,lastKillT=-99,lastGain=null,custTab='cor',specialKills=0,revengeDone=false,pendingRevenge=null,lastRevenge=null,lbT=0,lbHtml='',myRank=1,rankTotal=1,lb=$('lb'),specialRivalT=60,bb=$('boost'),mm=$('mm'),mmc=$('mm').getContext('2d'),mmN=0,roundPrevBest=0,nearT=0,nearBots=0;
+let deathUiActive=false,deathUiUntil=0;let running=false,paused=false,ended=false,last=0,hudT=0,mode=prefs.mode,gameTime=0,score=0,kills=0,foodEaten=0,threat=0,dyingT=0,playerRespawnAt=0,lastKiller=null,causeText='',specialT=10,toastT=0,inputLock=0,boostHold=false,bid=null,boostPct=-1,boss=null,teamScore=[0,0],wave=1,waveKills=0,ev=null,evT=60,bossWinT=0,bossDown=false,bossN=0,wbRunEnd=0,roundCounted=false,powersTaken=0,matchStreak=0,streakN=0,lastKillT=-99,lastGain=null,custTab='cor',specialKills=0,revengeDone=false,pendingRevenge=null,lastRevenge=null,lbT=0,lbHtml='',myRank=1,rankTotal=1,lb=$('lb'),specialRivalT=60,bb=$('boost'),mm=$('mm'),mmc=$('mm').getContext('2d'),mmN=0,roundPrevBest=0,nearT=0,nearBots=0;
 const cam={x:0,y:0};
 const pointer={x:0,y:0,active:false,down:false,id:null,ax:0,ay:0,dirX:1,dirY:0,hasDirection:false};
 const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -956,9 +967,9 @@ function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.ar
   if(by===player&&player.alive){specialKills++;if(s.special>0&&s.special<4)prog.spk[s.special]++;applyFood(player,{type:sp.power});addScore(sp.pts);showToast(`${sp.icon} ${s.name} eliminado! +${sp.pts}`,3)}}
  if(s===player){lastKiller=by||null;causeText=reason==='wall'?'Você bateu na parede.':by?(by===s?'Seu rato foi pego!':`Você colidiu com o corpo de ${by.name}.`):'Seu rato foi pego!';
   if(reason==='head'&&by)causeText=`Choque de frente com ${by.name}, que era maior.`;
-  dyingT=0;playerRespawnAt=Date.now()+3000;releaseDrag();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));sfx('death');syncMusic()}
+  dyingT=0;playerRespawnAt=Date.now()+3000;showDeathPanel(playerRespawnAt);releaseDrag();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));sfx('death');syncMusic()}
  else s.respawnAt=gameTime+1.2}
-function respawnPlayerNow(){if(!player||player.alive)return;let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<18&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<320)));const np=mkSnake(x,y,rand(0,6.28),prefs.color,(ol.nick||prefs.nick||'Você'),false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();playerRespawnAt=0;dyingT=0;lastKiller=null;causeText='';cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('🐭 Você renasceu! Boa partida!',2)}
+function respawnPlayerNow(){if(!player||player.alive)return;let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<18&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<320)));const np=mkSnake(x,y,rand(0,6.28),prefs.color,(ol.nick||prefs.nick||'Você'),false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();playerRespawnAt=0;dyingT=0;hideDeathPanel();lastKiller=null;causeText='';cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('🐭 Você renasceu! Boa partida!',2)}
 const vics=[],byk=[];
 const dd=(x1,y1,x2,y2)=>{const a=x1-x2,b=y1-y2;return a*a+b*b};
 function sd(px,py,ax,ay,bx,by){const abx=bx-ax,aby=by-ay,t=Math.max(0,Math.min(1,((px-ax)*abx+(py-ay)*aby)/(abx*abx+aby*aby||1)));return dd(px,py,ax+abx*t,ay+aby*t)}
@@ -1013,7 +1024,7 @@ function mpMk(o){const g=Array.isArray(o.g)?o.g:[],sg=[];for(let i=0;i+1<g.lengt
 function mpApply(m){if(typeof m.md==='string'&&MODES[m.md]&&m.md!==mode)mode=m.md;if(Array.isArray(m.ts))teamScore=[mpN(m.ts[0]),mpN(m.ts[1])];wave=mpN(m.wv)||1;waveKills=mpN(m.wk);bossDown=!!m.bd;ol.left=typeof m.rt==='number'?m.rt:-1;if(typeof m.bk==='number'&&m.bk!==B.k)setB(m.bk);if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==ARENA){ARENA=ARENAS[m.ar];OBS=ARENA.o.map(a=>({x:a[0]*worldW,y:a[1]*worldH,w:a[2]*worldW,h:a[3]*worldH,k:a[4]}))}
  if(!m.me)return;const me=mpMk(m.me);me.isBot=false;const os=(Array.isArray(m.o)?m.o:[]).slice(0,16).map(mpMk);const prevMap=new Map(snakes.map(x=>[x.name,x]));for(const ns of [me,...os]){const ps=prevMap.get(ns.name);if(ps&&ps.alive&&ns.alive){const dx=ns.x-ps.x,dy=ns.y-ps.y;if(dx*dx+dy*dy<160000){ns.tx=ns.x;ns.ty=ns.y;for(const q of ns.segments){q.x-=dx;q.y-=dy}ns.x=ps.x;ns.y=ps.y}}}player=me;bots=os;snakes=[me,...os];boss=null;for(const x of snakes)if(x.boss){boss=x;break}
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
- gameTime=mpN(m.t);score=me.length*5;if(!me.alive&&!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}if(me.alive)mpDeadMsg=false}
+ gameTime=mpN(m.t);score=me.length*5;if(!me.alive){if(!deathUiActive)showDeathPanel(Date.now()+3000);if(!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}}if(me.alive){mpDeadMsg=false;hideDeathPanel()}}
 function mpClientTick(dt){if(!player)return;{const k=Math.min(1,dt*16);for(const sn of snakes){if(sn.tx!==undefined){const dx=(sn.tx-sn.x)*k,dy=(sn.ty-sn.y)*k;sn.x+=dx;sn.y+=dy;for(const q of sn.segments){q.x+=dx;q.y+=dy}}}}const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
  if(!mpAway&&pointer.down&&pointer.hasDirection)mpTargetAng=Math.atan2(pointer.dirY,pointer.dirX);mpAng+=diff(mpAng,mpTargetAng)*Math.min(1,dt*12);
  mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:!mpAway&&boostHold?1:0,away:!!mpAway}))}
@@ -1089,7 +1100,7 @@ function olMsg(m){
   case 'end':if(mpRole==='client'){mpClientMsg({data:'{"end":1}'})}else if(ol.view){ol.view=false;olHome();olMsgSet('A sala foi encerrada.')}break;
   case 'kicked':break}}
 function onlineHostRespawn(){let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<12&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<400)));
- const np=mkSnake(x,y,rand(0,6.28),prefs.color,ol.nick||'Você',false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();dyingT=0;lastKiller=null;causeText='';score=0;kills=0;foodEaten=0;cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('💀 Você caiu! Reaparecendo…',2)}
+ const np=mkSnake(x,y,rand(0,6.28),prefs.color,ol.nick||'Você',false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();dyingT=0;hideDeathPanel();lastKiller=null;causeText='';score=0;kills=0;foodEaten=0;cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('💀 Você caiu! Reaparecendo…',2)}
 /* ---- v41: modos no online, relógio de 10 min por sala ---- */
 const OL_ROOM_MS=600000;
 function olEnsureBox(){const o=mpEl('mp');if(!o||o.style.display==='none'){mpOpen();mpBox('<b>🌐 Multiplayer Online</b><p id="olMsg"></p>'+olBack)}}
@@ -1230,6 +1241,9 @@ function indicators(t){if(!prefs.arrows||!running||paused||!player||!player.aliv
  let best=null,bd=1e9;for(const f of foods)if(f.type>=2){const d=Math.hypot(f.x-player.x,f.y-player.y);if(d<bd&&d<1100){bd=d;best=f}}
  if(best)edgeArrow(best.x,best.y,'#ffd34e',FOODICON[best.type]||'⭐',.85);
  const pulse=.55+.35*Math.sin(t*9);for(const b of bots){if(!b.alive)continue;if(mode==='team'&&tm(b)===tm(player))continue;if(!(b.length>=player.length*1.15||b.special||b.boss))continue;if(Math.hypot(b.x-player.x,b.y-player.y)<520)edgeArrow(b.x,b.y,'#ff5d73','⚠️',pulse)}}
+function showDeathPanel(until){deathUiActive=true;deathUiUntil=until||Date.now()+3000;const p=$('deathPanel');if(p)p.classList.remove('hidden');deathUiTick()}
+function hideDeathPanel(){deathUiActive=false;deathUiUntil=0;const p=$('deathPanel');if(p)p.classList.add('hidden')}
+function deathUiTick(){if(!deathUiActive)return;const el=$('deathCountdown');if(!el)return;const left=Math.max(0,Math.ceil((deathUiUntil-Date.now())/1000));el.textContent=left>0?('Renascendo em '+left+' segundo'+(left===1?'':'s')+'…'):'Preparando seu retorno…'}
 function showToast(t,d){const el=$('toast');el.textContent=t;el.classList.remove('hidden');toastT=d||2.2}
 function updateHud(force){
  const set=(id,v)=>{const el=$(id);if(el._v!==v){el._v=v;el.textContent=v}};
@@ -1248,6 +1262,7 @@ function refreshLb(){const arr=[];for(const x of snakes)if(x.alive)arr.push(x);a
  if(h!==lbHtml){lbHtml=h;lb.innerHTML=h}}
 function syncBoostBtn(){bb.classList.toggle('hidden',!(running&&!paused&&!ended&&player&&player.alive));mm.classList.toggle('hidden',!(running&&!ended&&player));lb.classList.toggle('hidden',!(running&&!ended&&player))}
 function update(dt){
+ deathUiTick();
  if(!running||paused)return;
  if(mpRole==='client'){mpClientTick(dt);return}if(mpRole==='host'){mpHostTick(dt);olRoomTick()}if(!player.alive&&playerRespawnAt&&Date.now()>=playerRespawnAt)respawnPlayerNow();secretTick();wbTick();emoTick(dt);
  if(player.alive)gameTime+=dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
@@ -1319,7 +1334,7 @@ function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);cons
 function mpExitOverlay(){if(!mpOnline||!running||ended||!player||!player.alive){togglePause();return}mpAway=true;releaseDrag();player.boostActive=false;player.shield=999;fillPause();$('paused').classList.remove('hidden');$('resume').textContent='VOLTAR À PARTIDA';$('restart').classList.add('hidden');$('quit').textContent='VOLTAR AO MENU';$('pause').textContent='VOLTAR'}
 function mpReturnToGame(){if(!mpOnline){togglePause();return}paused=false;$('paused').classList.add('hidden');$('restart').classList.remove('hidden');$('resume').textContent='CONTINUAR';$('quit').textContent='SAIR AO MENU';$('pause').textContent='SAIR';releaseDrag();mpAway=true;showToast('Você voltará à partida em 5 segundos. Seu rato ficará protegido.',4);setTimeout(()=>{if(mpOnline&&running&&!ended){mpAway=false;if(player)player.shield=0;showToast('Você voltou à partida!',2)}},5000)}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;paused=!paused;if(paused){releaseDrag();player.boostActive=false;fillPause()}$('paused').classList.toggle('hidden',!paused);$('pause').textContent=paused?'▶':'Ⅱ';if(paused)flushSave();syncBoostBtn();syncMusic()}
-function toMenu(){mpAway=false;if(mpRole)mpLeave();if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
+function toMenu(){hideDeathPanel();mpAway=false;if(ol&&ol.inRoom)olLeaveRoom();if(mpRole)mpLeave();mpOnline=false;if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound()}running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo()}
 
 /* ============ Menu, personalização, recordes, ajustes ============ */
 function menuInfo(){ensureOwn();dotsUpdate();$('modeName').textContent=MICON[mode]+' '+MODES[mode].name;$('modeDesc').textContent=MODES[mode].desc+(mode==='daily'?(prog.dcDay===today()?' Hoje: '+prog.dcBest+' pts. Volte amanhã para um novo desafio.':' Disponível hoje: uma tentativa por dia!'):'');$('startBest').textContent='Recorde: '+fmtBest()+' • 🧀 '+eco.cheese;$('bestN').textContent=(mode==='quick'?bestQuick:fmtBest().replace(' pts',''));$('coinN').textContent=eco.cheese;updateHud(true);drawPreview('pvm');menuProg()}
@@ -1651,7 +1666,7 @@ function saveNick(){const v=cleanNick($('nickIn').value);if(v.length<2){$('nickI
 $('nickOk').onclick=saveNick;$('nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')saveNick()});$('whoBtn').onclick=()=>showNick(false);
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;if(sheetName==='settings')renderSheet('settings')});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updReady=true;showToast('⬆️ Nova versão disponível! Feche e abra o jogo para atualizar.',5)}})})}).catch(()=>{}));
-if(!prefs.nick)setTimeout(()=>showNick(true),250);$('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;olDoPlay()};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=()=>mpOnline?mpExitOverlay():togglePause();$('resume').onclick=()=>mpOnline?mpReturnToGame():togglePause();$('restart').onclick=()=>olDoPlay();$('quit').onclick=toMenu;
+if(!prefs.nick)setTimeout(()=>showNick(true),250);$('deathExit').onclick=()=>toMenu();$('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;olDoPlay()};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=()=>mpOnline?mpExitOverlay():togglePause();$('resume').onclick=()=>mpOnline?mpReturnToGame():togglePause();$('restart').onclick=()=>olDoPlay();$('quit').onclick=toMenu;
 addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key&&e.key.toLowerCase()==='p'))togglePause()});
 document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidden){flushSave();if(running&&!paused&&player.alive)togglePause();try{if(ac)ac.suspend()}catch(e){}}else{try{if(ac&&prefs.music||ac&&prefs.sfx)ac.resume()}catch(e){}}syncMusic()});
 addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
