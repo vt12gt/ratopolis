@@ -36,11 +36,12 @@
 <h1>Moderação da comunidade</h1><p class="muted">Membros conectados, banimentos, denúncias de avatar, aprovações e comunicados. As operações são validadas novamente pelo Worker.</p>
 <div id="status" class="status">Verificando sessão administrativa…</div>
 <div class="split"><div class="stat"><span>Seu cargo</span><b id="role">—</b></div><div class="stat"><span>Conectados agora</span><b id="onlineCount">—</b></div><div class="stat"><span>Conexão</span><b id="connection">—</b></div></div>
-<nav class="tabs"><button class="active" data-tab="members">Membros online</button><button data-tab="bans">Banimentos</button><button data-tab="avatars">Avatares</button><button data-tab="reports">Denúncias</button><button data-tab="notice">Comunicado</button></nav>
+<nav class="tabs"><button class="active" data-tab="members">Membros online</button><button data-tab="bans">Banimentos</button><button data-tab="avatars">Avatares</button><button data-tab="reports">Denúncias de avatar</button><button data-tab="feedReports">Denúncias do feed</button><button data-tab="notice">Comunicado</button></nav>
 <section id="members" class="panel"><div class="row"><h2>Membros conectados</h2><button class="secondary" id="refreshMembers">Atualizar</button></div><p class="muted">A lista mostra quem está conectado neste momento. Para moderar alguém, use os controles do respectivo membro.</p><div id="memberList" class="grid"><div class="empty">Aguardando conexão…</div></div></section>
 <section id="bans" class="panel hidden"><div class="row"><h2>Banimentos ativos</h2><button class="secondary" id="loadBans">Atualizar lista</button></div><div id="banList"><div class="empty">Clique em atualizar para consultar.</div></div></section>
 <section id="avatars" class="panel hidden"><div class="row"><h2>Fotos aguardando aprovação</h2><button class="secondary" id="loadAvatars">Atualizar fila</button></div><p class="muted">Aprovação e recusa disponíveis somente para SpAdmin e ADM.</p><div id="avatarList"><div class="empty">Clique em atualizar para consultar.</div></div></section>
 <section id="reports" class="panel hidden"><div class="row"><h2>Denúncias de avatar</h2><button class="secondary" id="loadReports">Atualizar denúncias</button></div><div id="reportList"><div class="empty">Clique em atualizar para consultar.</div></div></section>
+<section id="feedReports" class="panel hidden"><div class="row"><h2>Denúncias de publicações</h2><button class="secondary" id="loadFeedReports">Atualizar denúncias</button></div><p class="muted">Denúncias enviadas pelos membros. Você pode arquivar ou remover a publicação denunciada.</p><div id="feedReportList"><div class="empty">Clique em atualizar para consultar.</div></div></section>
 <section id="notice" class="panel hidden"><h2>Publicar comunicado</h2><p class="muted">O aviso será enviado em tempo real para a comunidade. Limite de 220 caracteres.</p><div class="field"><label for="noticeText">Mensagem</label><textarea id="noticeText" maxlength="220" placeholder="Escreva um comunicado oficial…"></textarea></div><div class="row"><span class="muted" id="charCount">0/220</span><button id="sendNotice">Publicar comunicado</button></div></section>
 <p class="note">Segurança: esta tela não concede permissões. SpAdmin/ADM revisam avatares e denúncias; SpAdmin/ADM/GM moderam membros; equipe autorizada publica comunicados. O histórico é gravado no banco central e não pode ser editado por esta interface.</p>
 </main>
@@ -51,9 +52,10 @@ const API='https://ratopolis-api-dev-v30.juniorgmj69.workers.dev';
 const COMMUNITY='https://ratopolis-community-chat-preview.juniorgmj69.workers.dev';
 const TOKEN_KEY='ratopolis_session_token';
 const $=id=>document.getElementById(id);
-const state={token:'',role:'',socket:null,users:[],bans:[],avatars:[],reports:[],ready:false};
+const state={token:'',role:'',socket:null,users:[],bans:[],avatars:[],reports:[],feedReports:[],ready:false};
 const canModerate=()=>['spadm','adm','gm'].includes(state.role);
 const canReview=()=>['spadm','adm'].includes(state.role);
+const canReviewFeed=()=>['spadm','adm','gm','mod'].includes(state.role);
 const canRemoveAvatar=()=>['spadm','adm','gm','mod'].includes(state.role);
 const canAnnounce=()=>['spadm','adm','gm','locutor'].includes(state.role);
 function status(message,type=''){const el=$('status');el.textContent=message;el.className='status'+(type?' '+type:'')}
@@ -61,7 +63,7 @@ function escapeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;',
 async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{Accept:'application/json',Authorization:'Bearer '+state.token,...(options.headers||{})},cache:'no-store'});const data=await response.json().catch(()=>({}));if(!response.ok||data.ok===false)throw new Error(data.erro||data.error||('Falha HTTP '+response.status));return data}
 function send(data){if(!state.socket||state.socket.readyState!==WebSocket.OPEN)throw new Error('A conexão da comunidade não está ativa.');state.socket.send(JSON.stringify(data))}
 function ask(type){send({type})}
-function showTab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));['members','bans','avatars','reports','notice'].forEach(id=>$(id).classList.toggle('hidden',id!==name));}
+function showTab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));['members','bans','avatars','reports','feedReports','notice'].forEach(id=>$(id).classList.toggle('hidden',id!==name));}
 function empty(target,msg){$(target).innerHTML='<div class="empty">'+escapeText(msg)+'</div>'}
 function renderMembers(){ $('onlineCount').textContent=state.users.length;const root=$('memberList');root.replaceChildren();if(!state.users.length){empty('memberList','Nenhum membro conectado no momento.');return}
 for(const user of state.users){const card=document.createElement('article');card.className='item';const title=document.createElement('div');title.className='row';const name=document.createElement('strong');name.textContent=user.nickname||'Jogador';const badge=document.createElement('span');badge.className='pill';badge.textContent=user.role||'player';title.append(name,badge);card.append(title);const id=document.createElement('p');id.className='muted';id.textContent='ID: '+(user.playerId||'—');card.append(id);
@@ -80,6 +82,9 @@ if(data.type==='presence'){state.users=Array.isArray(data.users)?data.users:[];r
 if(data.type==='ban_list'){state.bans=Array.isArray(data.users)?data.users:[];renderBans();return}
 if(data.type==='avatar_queue'){state.avatars=Array.isArray(data.items)?data.items:[];renderAvatars();return}
 if(data.type==='avatar_reports'){state.reports=Array.isArray(data.items)?data.items:[];renderReports();return}
+if(data.type==='feed_reports'){state.feedReports=Array.isArray(data.items)?data.items:[];renderFeedReports();return}
+if(data.type==='feed_report_reviewed'){status(data.message||'Revisão de denúncia concluída.',data.ok===false?'bad':'good');loadFeedReports();return}
+if(data.type==='feed_report_notice'){loadFeedReports();return}
 if(data.type==='moderation_result'){status('Ação de moderação concluída: '+data.action+'.','good');loadBans();return}
 if(data.type==='avatar_result'||data.type==='avatar_report_reviewed'){status(data.message||'Operação concluída.',data.ok===false?'bad':'good');loadAvatars();loadReports();return}
 if(data.type==='custom_badge'||data.type==='moderation_changed'){return}
@@ -92,6 +97,9 @@ async function removeAvatar(target,nickname){if(!confirm('Remover o avatar de '+
 async function setBadge(target,nickname){const badge=prompt('Símbolo para '+(nickname||'membro')+' (até 8 caracteres):');if(!badge)return;try{send({type:'set_badge',target,badge});status('Símbolo enviado ao servidor.','good')}catch(e){status(e.message,'bad')}}
 async function reviewAvatar(target,decision){const label=decision==='approve'?'aprovar':'recusar';if(!confirm('Confirma '+label+' esta foto?'))return;try{send({type:'review_avatar',target,decision});status('Revisão enviada ao servidor…')}catch(e){status(e.message,'bad')}}
 async function reviewReport(id,decision){if(!confirm(decision==='remove'?'Remover o avatar denunciado?':'Arquivar esta denúncia?'))return;try{send({type:'review_avatar_report',id,decision});status('Revisão enviada ao servidor…')}catch(e){status(e.message,'bad')}}
+function renderFeedReports(){const root=$('feedReportList');root.replaceChildren();if(!state.feedReports.length){empty('feedReportList','Nenhuma denúncia pendente no momento.');return}for(const item of state.feedReports){const card=document.createElement('article');card.className='item';const title=document.createElement('strong');title.textContent=item.authorNickname||'Publicação denunciada';const body=document.createElement('p');body.className='muted';const reason=({spam:'Spam',harassment:'Assédio ou ofensa',inappropriate:'Conteúdo impróprio',other:'Outro'})[item.reason]||item.reason;body.textContent='Denunciante: '+(item.reporterNickname||'Membro')+' · Motivo: '+reason+' · '+new Date(item.createdAt).toLocaleString('pt-BR');const post=document.createElement('p');post.className='muted';post.textContent='ID da publicação: '+item.postId;card.append(title,body,post);const actions=document.createElement('div');actions.className='actions';[['dismiss','Arquivar'],['remove_post','Remover publicação']].forEach(([decision,label])=>{const b=document.createElement('button');b.textContent=label;b.className=decision==='remove_post'?'danger':'secondary';b.addEventListener('click',()=>reviewFeedReport(item.id,decision));actions.append(b)});card.append(actions);root.append(card)}}
+async function reviewFeedReport(id,decision){const label=decision==='remove_post'?'remover a publicação denunciada':'arquivar a denúncia';if(!confirm('Confirma '+label+'?'))return;try{send({type:'review_feed_report',id,decision});status('Revisão enviada ao servidor…')}catch(e){status(e.message,'bad')}}
+function loadFeedReports(){if(!canReviewFeed())return;try{ask('get_feed_reports')}catch(e){status(e.message,'bad')}}
 function loadBans(){try{ask('get_bans')}catch(e){status(e.message,'bad')}}
 function loadAvatars(){if(!canReview())return;try{ask('get_avatar_queue')}catch(e){status(e.message,'bad')}}
 function loadReports(){if(!canReview())return;try{ask('get_avatar_reports')}catch(e){status(e.message,'bad')}}
@@ -101,11 +109,12 @@ if(!canModerate()&&state.role!=='mod')document.querySelector('[data-tab="members
 if(!['spadm','adm','gm','locutor'].includes(state.role))document.querySelector('[data-tab="bans"]').classList.add('hidden');
 if(!canReview())document.querySelector('[data-tab="avatars"]').classList.add('hidden');
 if(!canReview())document.querySelector('[data-tab="reports"]').classList.add('hidden');
+if(!canReviewFeed())document.querySelector('[data-tab="feedReports"]').classList.add('hidden');
 if(!canAnnounce())document.querySelector('[data-tab="notice"]').classList.add('hidden');
-const response=await fetch(COMMUNITY+'/api/ticket',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.token},body:JSON.stringify({nickname:me.nickname||me.user?.nickname||'Equipe RativaGames'})});const ticketData=await response.json().catch(()=>({}));if(!response.ok||!ticketData.ok)throw new Error(ticketData.error||'Não foi possível criar a conexão segura.');state.ticket=ticketData.ticket;await connect();if(canReview()){loadAvatars();loadReports()}if(['spadm','adm','gm','locutor'].includes(state.role))loadBans();$('notice').classList.toggle('hidden',!canAnnounce());}catch(e){status('Não foi possível abrir a comunidade: '+e.message,'bad');$('connection').textContent='Erro'}}
+const response=await fetch(COMMUNITY+'/api/ticket',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.token},body:JSON.stringify({nickname:me.nickname||me.user?.nickname||'Equipe RativaGames'})});const ticketData=await response.json().catch(()=>({}));if(!response.ok||!ticketData.ok)throw new Error(ticketData.error||'Não foi possível criar a conexão segura.');state.ticket=ticketData.ticket;await connect();if(canReview()){loadAvatars();loadReports()}if(canReviewFeed())loadFeedReports();if(['spadm','adm','gm','locutor'].includes(state.role))loadBans();$('notice').classList.toggle('hidden',!canAnnounce());}catch(e){status('Não foi possível abrir a comunidade: '+e.message,'bad');$('connection').textContent='Erro'}}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
 $('refreshMembers').addEventListener('click',()=>{if(state.socket?.readyState===WebSocket.OPEN)status('Lista de membros atualizada em tempo real.','good')});
-$('loadBans').addEventListener('click',loadBans);$('loadAvatars').addEventListener('click',loadAvatars);$('loadReports').addEventListener('click',loadReports);
+$('loadBans').addEventListener('click',loadBans);$('loadAvatars').addEventListener('click',loadAvatars);$('loadReports').addEventListener('click',loadReports);$('loadFeedReports').addEventListener('click',loadFeedReports);
 $('noticeText').addEventListener('input',()=>{$('charCount').textContent=$('noticeText').value.length+'/220'});
 $('sendNotice').addEventListener('click',()=>{const text=$('noticeText').value.trim();if(!text){status('Escreva o comunicado antes de publicar.','bad');return}if(!confirm('Publicar este comunicado para todos os membros conectados?'))return;try{send({type:'announcement',text});$('noticeText').value='';$('charCount').textContent='0/220';status('Comunicado enviado à comunidade.','good')}catch(e){status(e.message,'bad')}});
 init();
