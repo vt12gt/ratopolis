@@ -16,7 +16,9 @@ Esta decisão **não** significa que o Worker de desenvolvimento foi renomeado o
 - O portal também define serviços separados para Core, RativaPolis, Admin, RatoSnack, comunidade/chat, rádio e salas. Não substituir esses endereços em bloco.
 - O Worker `ratopolis-community-chat-preview` define `AUTH_API` e `ADMIN_API` para a mesma API `ratopolis-api-dev-v30`.
 - O Worker da comunidade possui o binding de serviço `AUTH_SERVICE` apontado para `ratopolis-api-dev-v30`; as rotas de autenticação podem usar esse binding.
-- A API atual possui D1 associado. A infraestrutura da comunidade também usa esse banco e um Durable Object com estado persistido.
+- A API atual possui D1 associado. A infraestrutura da comunidade também usa esse mesmo banco e um Durable Object com estado persistido. O ID do D1 compartilhado é `f9555968-014d-499a-addd-e8bfbe4fb471`.
+- Os bindings secretos da API incluem `COMPETITION_SECRET`, `MP_ACCESS_TOKEN`, `PROGRESSION_SECRET`, `REWARD_SECRET` e `ROOM_SESSION_REVOKE_SECRET`. Foram identificados apenas os nomes; os valores não foram lidos nem alterados.
+- O binding de serviço do Worker de comunidade está configurado como `AUTH_SERVICE` → `ratopolis-api-dev-v30` (ambiente `production`). O rótulo do ambiente não muda o nome nem a natureza de desenvolvimento do Worker de destino.
 - A versão implantada do Worker de comunidade continua identificada como **PREVIEW** na anotação de implantação. A existência do código na branch `main` não prova, por si só, que o portal publicado já esteja executando a versão nova.
 
 ## Regras de preservação
@@ -34,10 +36,11 @@ A migração para uma API de produção independente deverá seguir esta ordem:
 1. Inventariar rotas de autenticação, sessão, recuperação de conta, permissões e auditoria usadas pelo portal e pelos jogos.
 2. Inventariar bindings, D1, migrations, secrets e integrações dependentes da API atual, sem expor valores secretos.
 3. Criar o Worker de produção separado, com configuração e secrets próprios.
-4. Definir como os dados existentes serão mantidos ou migrados, com backup e estratégia de retorno.
-5. Testar login, leitura de perfil, renovação/expiração de sessão, autorização administrativa, auditoria e integração com a comunidade em ambiente de teste.
-6. Fazer a troca dos endpoints de forma controlada, serviço por serviço, mantendo a API antiga disponível durante a janela de validação.
-7. Só desativar a API antiga após confirmação de que nenhum portal, jogo, Worker ou cliente ainda depende dela.
+4. Inventariar e provisionar de forma segura os segredos necessários na nova API, sem copiar valores por canais inseguros.
+5. Definir como os dados existentes serão mantidos ou migrados, com backup e estratégia de retorno.
+6. Testar login, leitura de perfil, renovação/expiração de sessão, autorização administrativa, auditoria e integração com a comunidade em ambiente de teste.
+7. Fazer a troca dos endpoints de forma controlada, serviço por serviço, mantendo a API antiga disponível durante a janela de validação.
+8. Só desativar a API antiga após confirmação de que nenhum portal, jogo, Worker ou cliente ainda depende dela.
 
 ## Limite desta etapa
 
