@@ -21,6 +21,23 @@ Esta decisão **não** significa que o Worker de desenvolvimento foi renomeado o
 - O binding de serviço do Worker de comunidade está configurado como `AUTH_SERVICE` → `ratopolis-api-dev-v30` (ambiente `production`). O rótulo do ambiente não muda o nome nem a natureza de desenvolvimento do Worker de destino.
 - A versão implantada do Worker de comunidade continua identificada como **PREVIEW** na anotação de implantação. A existência do código na branch `main` não prova, por si só, que o portal publicado já esteja executando a versão nova.
 
+## Escopo funcional identificado no código versionado
+
+O arquivo `workers/ratopolis-api-dev-v30.js` no branch `main` contém rotas para:
+
+- **Identidade e sessão:** cadastro, login, perfil autenticado e logout.
+- **Conta e jogo:** jogadores, rankings, progressão, recompensas, calendário diário, inventário, loja, gifts e eventos.
+- **Pagamentos:** checkout e webhooks do Mercado Pago para doações e loja.
+- **Administração:** perfil/permissões administrativas, usuários, auditoria, logs de acesso e gestão de catálogos/eventos.
+- **Editor de cenários:** salvar, enviar, testar, revisar e publicar cenários.
+- **Integrações internas:** recompensas de competição, concessão de recompensas e auditoria/controle de transmissão da rádio.
+
+O login também chama o Worker de salas `ratopolis-room-server-v1` para revogar a sessão substituída, usando `ROOM_SESSION_REVOKE_SECRET`. A migração, portanto, não é apenas trocar o endpoint do formulário de login: ela precisa preservar os contratos usados pelos jogos, painel administrativo, pagamentos, rádio e salas.
+
+**Ponto de atenção:** o código versionado referencia `ADMIN_BOOTSTRAP_SECRET`, mas esse nome não apareceu entre os bindings secretos configurados na API durante a auditoria. A rota de bootstrap verifica esse segredo e, sem ele, recusa a operação. Não foi criado nem alterado segredo algum; confirmar se essa rota deve permanecer desativada ou se precisa de configuração própria antes da migração.
+
+A inspeção do arquivo no GitHub não comprova, por si só, que ele seja byte a byte igual ao código atualmente implantado no Worker. Essa correspondência deve ser conferida antes de uma migração.
+
 ## Regras de preservação
 
 1. Não apagar, recriar ou renomear `ratopolis-api-dev-v30` durante esta etapa.
