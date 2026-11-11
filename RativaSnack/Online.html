@@ -1135,7 +1135,7 @@ async function olConnect(){if(ol.ws&&ol.ws.readyState===1)return;const issued=aw
  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}if(m.t==='hello'&&!done){done=true;res()}olMsg(m)};ws.onerror=()=>{if(!done){done=true;rej(new Error('conexao'))}};ws.onclose=ev=>{if(ol.ws===ws)ol.ws=null;if(!done){done=true;rej(new Error('fechada'))}olClosed(ev.code)}})}
 function olSend(o){if(ol.ws&&ol.ws.readyState===1){ol.ws.send(JSON.stringify(o));return true}return false}
 const olRoomKey=k=>k==='mundial'?'BOSS_MUNDIAL':k==='boss'?'BOSS':String(k||'quick').toUpperCase();
-function olRejectRoom(message){const wasInRoom=ol.inRoom;ol.view=false;if(wasInRoom)olSend({t:'leave'});ol.inRoom=false;ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null;mpClose();toMenu();gAlert(message||'Não foi possível entrar nesta sala.');}
+function olRejectRoom(message){const wasInRoom=ol.inRoom;ol.view=false;if(!wasInRoom){ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null}mpClose();toMenu();gAlert(message||'Não foi possível entrar nesta sala.');}
 async function olPlay(requestedMode=mode){await olConnect();if(requestedMode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());return false}ol.bye=false;ol.mode=requestedMode;const sent=olSend({t:'play',mode:ol.mode});if(!sent){ol.inRoom=false;throw new Error('falha_ao_enviar_modo')}ol.inRoom=true;return true}
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
