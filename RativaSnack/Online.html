@@ -404,6 +404,22 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 @media(max-height:430px){.donation-sheet .donation-total{padding:6px}.donation-sheet .donation-info h3{font-size:12px}.donation-sheet .donation-methods small{font-size:9px}}
 /* Painel online */
 #mp .ol-card{width:min(620px,94vw);padding:24px 26px;border:2px solid #a77bff;border-radius:24px;background:linear-gradient(145deg,#382078,#25134f 72%);box-shadow:0 18px 55px #080316aa;text-align:center;color:#fff;font-size:15px}#mp .ol-card h2{font-size:clamp(21px,4vw,29px);font-weight:950;margin:4px 0 10px;color:#ffe08a}#mp .ol-card p{color:#e8defb;line-height:1.4;margin:8px auto 16px;max-width:460px}#mp .ol-mark{font-size:42px;margin-bottom:4px}#mp .ol-status{font-weight:700;font-size:14px}#mp .ol-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 12px}#mp .ol-step{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:7px 5px;border:1px solid #ffffff20;border-radius:12px;background:#170d36;color:#c7b9e5;font-size:11px;font-weight:800}#mp .ol-step i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#514071;font-style:normal}#mp .ol-step.done{border-color:#65d99a;color:#a8ffd0}#mp .ol-step.done i{background:#24875b;color:#fff}#mp .ol-step.active{border-color:#ffd84a;color:#ffe08a;background:#4a3470}#mp .ol-track{height:8px;border-radius:99px;background:#ffffff20;overflow:hidden;margin:10px 0 16px}#mp .ol-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8c68ff,#ffd84a);transition:width .35s}#mp .ol-spinner{width:26px;height:26px;margin:12px auto 0;border:3px solid #ffffff30;border-top-color:#ffd84a;border-radius:50%;animation:olspin .8s linear infinite}@keyframes olspin{to{transform:rotate(360deg)}}@media(max-width:560px){#mp .ol-card{padding:18px 14px}#mp .ol-step{font-size:9px;flex-direction:column;gap:3px;padding:6px 2px}}
+
+/* v120 — painel online glass e aviso vertical funcional */
+#mp{background:rgba(12,7,27,.48)!important;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#mp .ol-card{width:min(760px,94vw);padding:clamp(18px,3.2vw,30px);border:1px solid #c5a4ff;border-radius:24px;background:linear-gradient(145deg,rgba(57,34,112,.92),rgba(31,17,68,.94));box-shadow:0 18px 55px #08031688, inset 0 1px 0 #ffffff30;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#mp .ol-card h2{letter-spacing:-.4px;text-shadow:0 2px 12px #16072b88}
+#mp .ol-card .ol-status{font-size:clamp(13px,1.8vw,16px)}
+#mp .ol-steps{gap:10px;margin:20px 0 14px}
+#mp .ol-step{min-height:54px;border-radius:14px;font-size:clamp(10px,1.35vw,13px);background:rgba(18,10,43,.72)}
+#mp .ol-track{height:9px;margin:12px 0 14px}
+#mp .ol-spinner{width:30px;height:30px}
+#rotate{position:fixed!important;z-index:2147483647!important;background:radial-gradient(ellipse at 50% 30%,#6037a0 0%,#24133f 55%,#10091e 100%)!important;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#rotate div:before{content:'📱';display:block;font-size:66px;margin-bottom:18px;transform-origin:50% 50%;animation:rativaPhoneTurn 1.8s ease-in-out infinite}
+#rotate small{max-width:310px;margin:12px auto 0;font-size:14px;line-height:1.5}
+@keyframes rativaPhoneTurn{0%,15%{transform:rotate(0deg)}65%,85%{transform:rotate(90deg)}100%{transform:rotate(90deg)}}
+@media(orientation:portrait){#game{visibility:visible!important}#rotate{display:flex!important}}
+@media(orientation:landscape){#rotate{display:none!important}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -951,9 +967,9 @@ let mpRole=null,mpPending=false,mpDC=null,mpPC=null,mpAcc=0,mpAcc2=0,mpAng=0,mpT
 const mpEnc=o=>btoa(JSON.stringify(o)),mpDec=t=>JSON.parse(atob(String(t).replace(/\s/g,'')));
 const mpIce=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(r,3000)});
 const mpEl=id=>document.getElementById(id);
-function mpOpen(){let o=mpEl('mp');if(!o){o=document.createElement('div');o.id='mp';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#150f2aee;color:#fff;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto';document.body.appendChild(o);o.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mp]');if(!b)return;const fn=({mpHost,mpGuest,mpAccept,mpHostAdd,mpStart,mpAnswer,mpClose,mpHome,olHome,olGoPortal,olDoPlay,olRefresh,olCancel})[b.dataset.mp.replace('()','')];if(fn)fn()})}o.style.display='flex';mpHome()}
+function mpOpen(){let o=mpEl('mp');if(!o){o=document.createElement('div');o.id='mp';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(12,7,27,.48);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);color:#fff;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto';document.body.appendChild(o);o.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mp]');if(!b)return;const fn=({mpHost,mpGuest,mpAccept,mpHostAdd,mpStart,mpAnswer,mpClose,mpHome,olHome,olGoPortal,olDoPlay,olRefresh,olCancel})[b.dataset.mp.replace('()','')];if(fn)fn()})}o.style.display='flex';mpHome()}
 function mpClose(){const o=mpEl('mp');if(o)o.style.display='none'}
-const mpBox=h=>{mpEl('mp').innerHTML=`<div style="max-width:520px;width:100%;background:#2f1d6e;border:2px solid #7f5fd0;border-radius:14px;padding:14px;font-size:13px;line-height:1.35">${h}</div>`};
+const mpBox=h=>{mpEl('mp').innerHTML=`<div style="max-width:860px;width:100%;background:transparent;border:0;border-radius:24px;padding:8px;box-shadow:none;font-size:13px;line-height:1.35">${h}</div>`};
 const mpB=(l,f,x)=>`<button data-mp="${f}" style="padding:10px 12px;margin:4px 4px 0 0;border:0;border-radius:10px;background:#ffd84a;color:#3a2100;font-weight:800;font-size:13px;${x||''}">${l}</button>`,mpX=mpB('Fechar','mpClose()','background:#5b2f48;color:#fff');
 const mpTA=(id,ro)=>`<textarea id="${id}" ${ro?'readonly':''} rows="3" style="width:100%;margin-top:6px;border-radius:8px;border:1px solid #7f5fd0;background:#1b1140;color:#fff;font-size:11px;padding:6px;box-sizing:border-box" onfocus="this.select()"></textarea>`;
 function mpHome(){mpBox(`<b style="font-size:16px">📶 Sala multiplayer local</b><p>Sem internet: ligue o ponto de acesso (hotspot) de um celular e conecte os outros nele. Até 4 jogadores.</p>${mpB('Criar sala','mpHost()')}${mpB('Entrar numa sala','mpGuest()')}${mpB('🌐 Multiplayer Online','olHome()')}${mpX}`)}
