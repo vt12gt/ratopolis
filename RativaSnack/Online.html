@@ -482,15 +482,15 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 .radio-menu-btn small{font-size:clamp(7px,1vh,9px);font-style:normal;letter-spacing:.08em;color:#ffe58a}
 .radio-menu-btn.radio-on{border-color:#b8ffd0;background:linear-gradient(155deg,#28b76a,#12613e);box-shadow:0 4px 0 #084328,0 0 16px #57ff9b55}
 @keyframes radioShine{0%,55%{transform:translateX(-130%)}80%,100%{transform:translateX(180%)}}
-#radioGameBtn{display:none;flex:none;min-width:58px;height:32px;padding:0 8px;border:1.5px solid #ffe58a;border-radius:9px;background:linear-gradient(135deg,#6230a0,#32145f);color:#fff;box-shadow:0 3px 0 #190a32,0 0 8px #0005;font-family:inherit;font-weight:1000;font-size:10px;align-items:center;justify-content:center;gap:4px;pointer-events:auto;touch-action:manipulation;cursor:pointer}
-#radioGameBtn span{font-size:9px;letter-spacing:.04em}
-#radioGameBtn.playing{background:linear-gradient(135deg,#3bd47b,#147044);border-color:#c5ffda;color:#092d1b;box-shadow:0 3px 0 #084328,0 0 10px #57ff9b66}
+#radioGameBtn{display:none;flex:none;width:27px;min-width:27px;height:25px;min-height:25px;padding:0;border:1px solid #ffe58a;border-radius:7px;background:linear-gradient(135deg,#6230a0,#32145f);color:#fff;box-shadow:0 2px 0 #190a32,0 0 5px #0005;font-family:inherit;font-weight:1000;font-size:13px;line-height:1;align-items:center;justify-content:center;gap:0;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+#radioGameBtn span{display:none}
+#radioGameBtn.playing{background:linear-gradient(135deg,#3bd47b,#147044);border-color:#c5ffda;color:#092d1b;box-shadow:0 2px 0 #084328,0 0 7px #57ff9b66}
 body.rativa-playing #radioGameBtn{display:inline-flex}
 #emoteB{left:calc(env(safe-area-inset-left) + 12px);right:auto;top:calc(env(safe-area-inset-top) + 112px);z-index:55;width:48px;height:44px;padding:0;box-shadow:0 3px 10px #0008;touch-action:manipulation}
 #emoteW{left:calc(env(safe-area-inset-left) + 68px);right:auto;top:calc(env(safe-area-inset-top) + 108px);z-index:56;max-width:min(210px,55vw);box-shadow:0 6px 18px #0009}
 #emoteW button{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
 #lb{z-index:12;pointer-events:none}
-@media(max-width:560px){#radioGameBtn{min-width:48px;padding:0 5px;font-size:9px}#radioGameBtn span{font-size:8px}}
+
 @media(max-height:420px){.radio-menu-btn{height:7vh;min-height:34px}.radio-menu-btn span{font-size:2.2vh}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
@@ -902,25 +902,49 @@ async function rgsRadioGetTrack(key){
  if(!rgsRadioTracks.length){const res=await fetch(RGS_RADIO_API+'/api/tracks',{cache:'no-store'}),data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error||'Biblioteca da rádio indisponível.');rgsRadioTracks=Array.isArray(data.tracks)?data.tracks.filter(x=>x&&x.key):[]}
  const track=rgsRadioTracks.find(x=>x.key===key);if(!track)throw new Error('A faixa atual ainda não está disponível na biblioteca.');return track;
 }
-function rgsRadioSeek(audio,state){
- const expected=Math.max(0,(Date.now()-Number(state.startedAt||Date.now()))/1000);
- const apply=()=>{if(audio.dataset.radioKey!==state.key||rgsRadioState?.key!==state.key||state.paused)return;const d=Number(audio.duration);audio.currentTime=Number.isFinite(d)&&d>0?Math.min(expected,Math.max(0,d-.25)):expected};
+function rgsRadioExpected(state){
+ const base=state?.paused?Number(state.pausedPositionMs||0):Date.now()-Number(state?.startedAt||Date.now());
+ return Math.max(0,base/1000);
+}
+function rgsRadioSeek(audio,state,force=false){
+ if(!audio||!state?.key)return;
+ const expected=rgsRadioExpected(state);
+ const apply=()=>{
+  if(audio.dataset.radioKey!==state.key||rgsRadioState?.key!==state.key||state.paused)return;
+  const duration=Number(audio.duration);
+  const target=Number.isFinite(duration)&&duration>0?Math.min(expected,Math.max(0,duration-.25)):expected;
+  if(!Number.isFinite(target))return;
+  try{if(force||Math.abs((Number(audio.currentTime)||0)-target)>12)audio.currentTime=target}catch(e){}
+ };
  if(audio.readyState>=1)apply();else audio.addEventListener('loadedmetadata',apply,{once:true});
 }
 async function rgsRadioRefresh(){
- if(rgsRadioLiveActive||rgsRadioBusy)return;rgsRadioBusy=true;
+ if(rgsRadioLiveBusy||rgsRadioBusy)return;rgsRadioBusy=true;
  try{
   const state=await rgsRadioFetchState(),audio=$('rativaRadioAudio');
-  if(!state.active||state.paused){if(!audio.paused)audio.pause();rgsRadioUi(false,state.active?'PAUSADA':'FORA DO AR');return}
+  if(rgsRadioLiveActive){if(!audio.paused)audio.pause();return}
+  if(!state.active){
+   if(!audio.paused)audio.pause();
+   if(audio.getAttribute('src')){audio.removeAttribute('src');audio.dataset.radioKey='';audio.dataset.radioReady='';audio.load()}
+   rgsRadioUi(false,'AGUARDANDO RÁDIO');return;
+  }
   const track=await rgsRadioGetTrack(state.key);
-  if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load();rgsRadioSeek(audio,state);if(rgsRadioStarted)await audio.play()}
-  $('radioMenuStatus').textContent='🔴 '+(track.name||'AO VIVO');
+  if((audio.dataset.radioKey||'')!==state.key){
+   audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';audio.load();
+   rgsRadioSeek(audio,state,true);
+  }else{
+   audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';
+   if(state.paused){if(!audio.paused)audio.pause()}
+   else rgsRadioSeek(audio,state,audio.paused&&rgsRadioStarted);
+  }
+  audio.loop=state.repeatMode==='track'||state.loop===true;
+  if(state.paused){if(!audio.paused)audio.pause();rgsRadioUi(false,'⏸ PROGRAMAÇÃO PAUSADA');return}
   if(rgsRadioStarted&&!document.hidden&&audio.paused)await audio.play();
+  $('radioMenuStatus').textContent='🔴 '+(track.name||'AO VIVO');
   rgsRadioUi(rgsRadioStarted&&!audio.paused,'🔴 '+(track.name||'AO VIVO'));
- }catch(e){console.warn('Rádio Rativa Games:',e.message);if(!rgsRadioStarted)rgsRadioUi(false,'INDISPONÍVEL')}
+ }catch(e){console.warn('Sincronização da Rádio Rativa Games:',e.message);if(!rgsRadioStarted)rgsRadioUi(false,'TENTAR CONECTAR')}
  finally{rgsRadioBusy=false}
 }
-
 function rgsRadioCloseLive(){
  if(rgsRadioLivePc){rgsRadioLivePc.ontrack=null;rgsRadioLivePc.close();rgsRadioLivePc=null}
  rgsRadioLiveSession='';rgsRadioLiveActive=false;const a=$('rativaRadioLiveAudio');if(a){a.pause();a.srcObject=null}
@@ -955,14 +979,17 @@ async function rgsRadioRefreshLive(){
 
 function rgsRadioPrepare(){
  const audio=$('rativaRadioAudio');
- if(!audio||audio.dataset.radioReady==='1')return;
+ if(!audio||rgsRadioBusy)return;
+ rgsRadioBusy=true;
  rgsRadioFetchState().then(async state=>{
-  if(!state.active||state.paused)throw new Error(state.active?'A programação está pausada.':'A rádio está fora do ar.');
+  if(!state.active)throw new Error('A rádio está aguardando a programação.');
   const track=await rgsRadioGetTrack(state.key);
-  if((audio.dataset.radioKey||'')!==state.key){audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load()}
+  if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load()}
   audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';
-  const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='PRONTA';
- }).catch(e=>{console.warn('Preparação da rádio:',e.message);const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='TENTAR'});
+  rgsRadioSeek(audio,state,true);
+  const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent=state.paused?'PAUSADA':'PRONTA';
+ }).catch(e=>{console.warn('Preparação da rádio:',e.message);const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='TENTAR'})
+ .finally(()=>{rgsRadioBusy=false});
 }
 function rgsRadioToggle(){
  const audio=$('rativaRadioAudio'),liveAudio=$('rativaRadioLiveAudio');
