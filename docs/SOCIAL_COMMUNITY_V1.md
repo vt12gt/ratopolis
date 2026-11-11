@@ -54,3 +54,22 @@ Todas as rotas abaixo devem autenticar a sessão existente e aplicar autorizaç�
 - Ações recusadas pelo servidor mostram erro claro e não alteram a interface como se tivessem sido concluídas.
 - RativaPolis, RativaSnack, rádio, doações, ranking e administração continuam funcionando sem regressão.
 - Nenhum recurso de fórum é adicionado.
+
+
+## Estado da implementação — 10/11/2026
+
+- [x] Branch isolada `feature/social-community`; portal oficial preservado.
+- [x] Worker do chat localizado em `workers/ratopolis-community-chat-preview.js` no próprio repositório.
+- [x] Acesso ao Worker da comunidade restrito a sessões autenticadas da conta RativaGames.
+- [x] Feed exige autenticação no servidor, além da validação já existente no cliente.
+- [x] Reações persistidas no armazenamento do Durable Object, com alternância por membro.
+- [x] Comentários persistidos, limitados a 250 caracteres e com limite de frequência.
+- [x] Exclusão de publicação pelo autor; moderação autorizada pode remover qualquer publicação.
+- [x] Denúncias persistidas, com prevenção de duplicidade e registro de auditoria.
+- [x] Interface do feed conectada às ações de reação, comentários, exclusão e denúncia.
+- [ ] Criar tela/fluxo administrativo para consultar e resolver denúncias.
+- [ ] Testar dois dispositivos com contas diferentes e validar persistência após reconexão.
+- [ ] Implantar o Worker em ambiente de teste e validar o domínio/versão realmente em execução.
+- [ ] Implementar amigos/seguidores, grupos, mensagens privadas sociais e notificações de atividade.
+
+**Importante:** os commits desta etapa estão somente na branch de teste. Nenhum deploy foi executado e o site oficial continua intacto.
