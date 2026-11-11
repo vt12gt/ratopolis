@@ -448,6 +448,26 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #mp .ol-track i{background:linear-gradient(90deg,#a46cff 0%,#e9bd55 55%,#fff0a3 100%);box-shadow:0 0 12px #f3c85b77}
 #mp .ol-spinner{border-color:#fff3;border-top-color:#fff0a3;border-right-color:#d9a844;filter:drop-shadow(0 0 5px #e6b94c88)}
 @media(max-width:560px){#mp .ol-card{padding:22px 14px;border-radius:22px}#mp .ol-card:before{inset:6px;border-radius:16px}}
+
+/* v149: habilidades completas e responsivas na tela horizontal */
+#sheetBody>.sk{flex:1 1 0;min-height:0;width:100%;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:stretch;gap:6px;overflow:hidden}
+#sheetBody>.sk>.card{min-width:0;min-height:0;overflow:hidden;padding:clamp(3px,0.8vh,7px) clamp(4px,0.8vw,9px);gap:clamp(1px,0.45vh,4px);justify-content:space-evenly}
+#sheetBody>.sk>.card .big{font-size:clamp(18px,4.2vh,27px);line-height:1}
+#sheetBody>.sk>.card>b{font-size:clamp(10px,1.8vh,14px);line-height:1.1;overflow-wrap:anywhere}
+#sheetBody>.sk>.card .pips{gap:2px;flex-wrap:nowrap;justify-content:center}
+#sheetBody>.sk>.card .pips i{width:clamp(5px,1.5vw,12px);height:clamp(4px,0.9vh,7px);flex:0 1 12px}
+#sheetBody>.sk>.card small{font-size:clamp(8px,1.35vh,10.5px);line-height:1.12;text-align:center}
+#sheetBody>.sk>.card .nx{display:block!important}
+#sheetBody>.sk>.card .buy{flex:none;width:100%;min-height:clamp(25px,5.5vh,34px);padding:3px 2px;font-size:clamp(9px,1.5vh,12px);line-height:1.1;white-space:normal}
+@media(max-height:380px){
+ #sheet .panel.wide{padding:5px 9px}
+ #sheetBody>.sk{gap:4px}
+ #sheetBody>.sk>.card{padding:2px 4px;gap:1px}
+ #sheetBody>.sk>.card .big{font-size:19px}
+ #sheetBody>.sk>.card small{font-size:8px}
+ #sheetBody>.sk>.card .buy{min-height:24px;font-size:9px;padding:2px}
+}
+
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
