@@ -940,8 +940,8 @@ async function rgsRadioRefresh(){
   audio.loop=state.repeatMode==='track'||state.loop===true;
   if(state.paused){if(!audio.paused)audio.pause();rgsRadioUi(false,'⏸ PROGRAMAÇÃO PAUSADA');return}
   if(rgsRadioStarted&&!document.hidden&&audio.paused)await audio.play();
-  $('radioMenuStatus').textContent='🔴 '+(track.name||'AO VIVO');
-  rgsRadioUi(rgsRadioStarted&&!audio.paused,'🔴 '+(track.name||'AO VIVO'));
+  $('radioMenuStatus').textContent='🔴 '+(trackName||'AO VIVO');
+  rgsRadioUi(rgsRadioStarted&&!audio.paused,'🔴 '+(trackName||'AO VIVO'));
  }catch(e){console.warn('Sincronização da Rádio Rativa Games:',e.message);if(!rgsRadioStarted)rgsRadioUi(false,'TENTAR CONECTAR')}
  finally{rgsRadioBusy=false}
 }
