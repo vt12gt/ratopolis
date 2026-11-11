@@ -641,6 +641,7 @@ let radioLibraryLoaded = false;
 let radioOnAirState = null;
 let radioSyncTimer = null;
 let radioUserStarted = false;
+let radioAutoPending = false; // tenta liberar a rádio no primeiro toque geral quando o navegador bloqueia autoplay
 let radioLivePc=null,radioLiveSessionId='',radioLiveActive=false,radioLivePoller=null,radioLiveBusy=false;
 let communitySocket = null;
 let communityReconnect = null;
@@ -904,13 +905,17 @@ async function sendRadioHeartbeat(){
 }
 function configureRadio(){
  const audio=$('radioAudio');audio.volume=Number($('radioVolume').value);
- const liveAudio=$('radioLiveAudio');liveAudio.volume=Number($('radioVolume').value);liveAudio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
+ const liveAudio=$('radioLiveAudio');liveAudio.volume=Number($('radioVolume').value);liveAudio.addEventListener('play',()=>{radioAutoPending=false;$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').closest('.radio-dock').classList.add('radio-playing')});
  liveAudio.addEventListener('pause',()=>{if(radioLiveActive){$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Retomar do ponto atual ao vivo';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')}});
- audio.addEventListener('play',()=>{$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
+ audio.addEventListener('play',()=>{radioAutoPending=false;$('radioPlay').textContent='Ⅱ';$('radioPlay').classList.remove('needs-gesture');$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');$('radioTrack').textContent=$('radioTrack').textContent.replace(/^▶\s*/,'');sendRadioHeartbeat()});
  audio.addEventListener('pause',()=>{const live=radioUserStarted&&radioOnAirState?.active&&!radioOnAirState?.paused;if(live){$('radioPlay').textContent='Ⅱ';$('radioPlay').title='Pausar só neste aparelho';$('radioPlay').closest('.radio-dock').classList.add('radio-playing');return}$('radioPlay').textContent='▶ Ouvir';$('radioPlay').title='Ativar rádio';$('radioPlay').closest('.radio-dock').classList.remove('radio-playing')});
  audio.addEventListener('ended',async()=>{const state=radioOnAirState;if(!radioUserStarted||!state?.active||!state.playlistMode||state.loop)return;try{await fetch(RADIO_API_URL+'/api/playlist/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:state.key,startedAt:state.startedAt})});await refreshRadioOnAir();if(radioUserStarted&&audio.paused&&radioOnAirState?.active){await audio.play();$('radioPlay').textContent='Ⅱ'}}catch(e){console.warn('Avanço automático da rádio:',e.message)}});
- loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active&&!radioOnAirState.paused){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;$('radioPlay').textContent='▶ Ativar';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioTrack').textContent='Toque em Ativar para ouvir ao vivo';}}});
+ loadRadioLibrary().then(async()=>{await refreshRadioOnAir();if(radioOnAirState?.active&&!radioOnAirState.paused){radioUserStarted=true;try{await audio.play()}catch(e){radioUserStarted=false;radioAutoPending=true;$('radioPlay').textContent='▶ Ativar áudio';$('radioPlay').classList.add('needs-gesture');$('radioPlay').disabled=false;$('radioPlay').title='O navegador bloqueou o som automático. Toque em qualquer lugar da página para ativar.';$('radioTrack').textContent='Toque em qualquer lugar para ativar a rádio';}}});
  if(!radioSyncTimer)radioSyncTimer=setInterval(refreshRadioOnAir,8000);if(!radioListenerTimer)radioListenerTimer=setInterval(sendRadioHeartbeat,20000);
+ // Muitos navegadores móveis bloqueiam autoplay com som. O primeiro toque em qualquer área do portal libera a rádio, sem exigir o botão Play.
+ const resumeOnFirstGesture=event=>{if(!radioAutoPending)return;if(event.target?.closest?.('.radio-dock,.radio-window'))return;radioAutoPending=false;toggleRadio().then(()=>{if($('radioAudio').paused&&$('radioLiveAudio').paused)radioAutoPending=true}).catch(()=>{radioAutoPending=true})};
+ document.addEventListener('pointerdown',resumeOnFirstGesture,{capture:true,passive:true});
+ document.addEventListener('keydown',resumeOnFirstGesture,{capture:true});
  refreshRadioLive();if(!radioLivePoller)radioLivePoller=setInterval(refreshRadioLive,5000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRadioOnAir()});
 }
