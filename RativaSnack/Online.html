@@ -501,7 +501,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="m2top">
  <button class="b3d gear" data-sheet="season" aria-label="Temporada">📅</button>
   <button class="b3d gear" data-sheet="settings" aria-label="Ajustes">⚙️</button>
- <button class="radio-menu-btn" id="radioMenuBtn" type="button"><span>📻</span><b>RÁDIO</b><small id="radioMenuStatus">OUVIR</small></button>
  <button class="who" id="whoBtn" aria-label="Apelido"><span class="av">🐭</span><span class="wn"><small>RATO SNACK ✎</small><b id="nickMenu"></b></span></button>
  <div class="bestp"><span class="pod"><i>2</i><i>1</i><i>3</i></span><div><small>MELHOR PONTUAÇÃO</small><b id="bestN">0</b></div></div>
  <button class="b3d gold evtchip" data-sheet="events"><span id="evtI">🌟</span><b id="evtT"></b><i id="evtDot" class="dot hidden"></i></button><span class="grow"></span>
@@ -539,7 +538,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
 <div class="dr"><div class="grid" id="overStats"></div><div class="btns"><button class="b3d gold" id="again">JOGAR DE NOVO</button><button class="b3d purple hidden" id="revenge">🎯 REVANCHE</button><button class="b3d purple" id="toMenu">MENU</button></div></div></div></div>
 
-<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><button id="radioGameBtn" type="button" aria-label="Ligar ou desligar rádio">📻 <span>RÁDIO</span></button><div class="btns"><button class="b3d gold" id="resume">VOLTAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">VOLTAR AO MENU</button></div></div></div></div>
+<div class="overlay hidden" id="paused"><div class="panel dlg"><div class="logo">⏸️</div><h1>Pausado</h1><div class="grid" id="pauseStats"></div><button id="radioGameBtn" type="button" aria-label="Reproduzir rádio" title="Reproduzir rádio">▶ <span>PLAY</span></button><div class="btns"><button class="b3d gold" id="resume">VOLTAR</button><div class="row2"><button class="b3d purple" id="restart">REINICIAR</button><button class="b3d purple" id="quit">VOLTAR AO MENU</button></div></div></div></div>
 <div id="deathPanel" class="hidden" role="status" aria-live="polite"><div class="death-card"><div class="death-icon">💥</div><h2>Você foi eliminado!</h2><p id="deathCountdown">Voltando em 3 segundos…</p><button id="deathExit" type="button">SAIR DA PARTIDA</button></div></div>
 <div class="overlay hidden" id="revive"><div class="panel dlg"><div class="logo">✨</div><h1>Continuar?</h1><p class="subtitle" id="reviveTxt"></p><div class="rvbar"><i id="rvB"></i></div><div class="btns"><button class="b3d gold" id="reviveYes">CONTINUAR</button><button class="b3d purple" id="reviveNo">TERMINAR</button></div></div></div>
 <div class="overlay hidden" id="tut"><div class="panel dlg"><div class="logo" id="tutI">🎮</div><h1 id="tutT"></h1><div class="tutl" id="tutL"></div><div class="btns"><button class="b3d gold" id="tutOk">ENTENDI! JOGAR</button></div></div></div>
@@ -888,9 +887,13 @@ function syncMusic(){const menuOpen=!$('menu').classList.contains('hidden');cons
 const RGS_RADIO_API='https://ratopolis-radio-stream.juniorgmj69.workers.dev';
 let rgsRadioState=null,rgsRadioTracks=[],rgsRadioStarted=false,rgsRadioSyncTimer=0,rgsRadioBusy=false,rgsRadioLivePc=null,rgsRadioLiveSession='',rgsRadioLiveActive=false,rgsRadioLiveBusy=false;
 function rgsRadioUi(playing,label){
- const on=!!playing,m=$('radioMenuBtn'),g=$('radioGameBtn'),st=$('radioMenuStatus');
- if(m){m.querySelector('span').textContent=on?'🔊':'📻';if(st)st.textContent=label||(on?'TOCANDO':'OUVIR')}
- if(g){g.classList.toggle('playing',on);g.innerHTML=(on?'🔊':'📻')+' <span>'+(on?'TOCANDO':'RÁDIO')+'</span>'}
+ const on=!!playing,g=$('radioGameBtn');
+ if(g){
+  g.classList.toggle('playing',on);
+  g.innerHTML=on?'⏸ <span>PAUSAR</span>':'▶ <span>PLAY</span>';
+  g.setAttribute('aria-label',on?'Pausar rádio':'Reproduzir rádio');
+  g.title=label|| (on?'Pausar rádio neste aparelho':'Reproduzir rádio');
+ }
 }
 async function rgsRadioFetchState(){
  const res=await fetch(RGS_RADIO_API+'/api/on-air',{cache:'no-store'}),data=await res.json();
@@ -989,8 +992,8 @@ function rgsRadioPrepare(){
   if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load()}
   audio.dataset.radioReady='1';audio.dataset.radioName=trackName;
   rgsRadioSeek(audio,state,true);
-  const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent=state.paused?'PAUSADA':'PRONTA';
- }).catch(e=>{console.warn('Preparação da rádio:',e.message);const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='TENTAR'})
+  
+ }).catch(e=>{console.warn('Preparação da rádio:',e.message);rgsRadioUi(false,'Não foi possível preparar o áudio')})
  .finally(()=>{rgsRadioBusy=false});
 }
 function rgsRadioToggle(){
@@ -1014,7 +1017,6 @@ function rgsRadioToggle(){
 }
 function rgsRadioInit(){
  const a=$('rativaRadioAudio'),live=$('rativaRadioLiveAudio');if(!a||!live)return;a.volume=.75;live.volume=.75;
- $('radioMenuBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
  $('radioGameBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
  a.addEventListener('play',()=>rgsRadioUi(true,'🔴 TOCANDO'));
  a.addEventListener('pause',()=>{if(!rgsRadioLiveActive)rgsRadioUi(false,'PAUSADA')});
