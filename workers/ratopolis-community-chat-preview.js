@@ -202,7 +202,7 @@ if(d.type==="feed_react"||d.type==="feed_comment"||d.type==="feed_comments"||d.t
   if(reports.some(x=>x.postId===postId&&x.reporterPlayerId===p.playerId)){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"duplicate_report",message:"Você já denunciou esta publicação."});return}
   const report={id:crypto.randomUUID(),postId,reporterPlayerId:p.playerId,reporterNickname:p.nickname,authorPlayerId:post.playerId,authorNickname:post.nickname,reason,createdAt:now,status:"pending"};
   reports.push(report);await this.ctx.storage.put(key,reports.slice(-500));await this.audit(p,"community_feed_post_reported",{post_id:postId,reason});
-  for(const sock of sockets())try{const a=sock.deserializeAttachment();if(["spadmin","admin","moderador"].includes(a?.role))send(sock,{type:"feed_report_notice",report:{id:report.id,postId,reason,createdAt:now}})}catch{}
+  for(const sock of sockets())try{const a=sock.deserializeAttachment();if(["spadmin","admin","moderador","gm"].includes(a?.role))send(sock,{type:"feed_report_notice",report:{id:report.id,postId,reason,createdAt:now}})}catch{}
   send(s,{type:"feed_social_result",ok:true,action:d.type,postId,message:"Denúncia enviada à equipe de moderação."});return;
  }
 }
