@@ -103,7 +103,7 @@ export default {async scheduled(event,env,ctx){if(!env.DB)return;const now=new D
    if(hasName&&(fullName.length<3||fullName.length>120))return out({ok:false,error:'invalid_full_name'},400,cors);
    const pix=hasPix?String(b.pix_key??'').trim():await decryptPix(String(old?.pix_key||''),env);
    if(hasPix&&(pix.length>160||(pix.length>0&&(pix.length<3||pix.includes('\n')||pix.includes('\r')))))return out({ok:false,error:'invalid_pix_key'},400,cors);
-   const stamp=now(),stored=await encryptPix(pix,env);
+   const stamp=new Date().toISOString(),stored=await encryptPix(pix,env);
    await env.DB.prepare('INSERT INTO rato_snack_pix_profiles(user_id,full_name,pix_key,updated_at) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET full_name=excluded.full_name,pix_key=excluded.pix_key,updated_at=excluded.updated_at').bind(id,fullName,stored,stamp).run();
    return out({ok:true,saved:true,profile:{id:a.id,public_id:a.public_id,nickname:a.nickname,full_name:fullName,pix_key:pix,updated_at:stamp}},200,cors)
   }
