@@ -8,6 +8,7 @@ A implementação do feed social está na branch isolada `feature/social-communi
 - Worker: `workers/ratopolis-community-chat-preview.js`.
 - Painel de moderação: `Admin/PortalAdmin/Comunidade/index.html`.
 - Worker de preview: `ratopolis-community-chat-preview.juniorgmj69.workers.dev`.
+- Portal de preview: `ratopolis-portal-community-preview.juniorgmj69.workers.dev`.
 - API de autenticação usada pelo Worker: `ratopolis-api-dev-v30`.
 
 ## Implementado no código
@@ -28,6 +29,8 @@ A implementação do feed social está na branch isolada `feature/social-communi
 - Versão Cloudflare de preview implantada: **38**.
 - Deployment ativo: `eda68e4f-d539-4cf7-a6d6-f8c9dcdec9ee`.
 - Tráfego do Worker de preview direcionado 100% para a versão 38.
+- Portal de preview atualizado e implantado na versão 6; deployment `02a131a6-0acb-406c-ba27-65d24e165234`.
+- O portal de preview carrega o `index.html` da branch e encaminha arquivos estáticos/PWA para os arquivos da mesma branch.
 - Binding existente do Durable Object preservado: `CommunityRoom`, namespace `4695a38376e34a7e9621918e8506820b`, armazenamento SQLite.
 - Bindings preservados: autenticação `AUTH_SERVICE`, Durable Object `COMMUNITY_ROOM`, D1 `DB` e R2 `RADIO_AUDIO`.
 - Nenhuma migração ou exclusão de dados do Durable Object foi solicitada.
@@ -35,7 +38,7 @@ A implementação do feed social está na branch isolada `feature/social-communi
 
 ## O que ainda não foi validado
 
-- Abertura e navegação do portal de preview com a nova interface.
+- Abertura e navegação do portal de preview com a nova interface (implantação confirmada; teste visual no navegador ainda pendente).
 - Teste de login real e emissão de ticket pelo domínio implantado.
 - Teste em dois dispositivos/duas contas.
 - Persistência de reações e comentários após desconectar, reconectar e recarregar.
