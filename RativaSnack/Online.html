@@ -626,7 +626,7 @@ const saveStats=()=>writeKey('ratoSnackStats',JSON.stringify(stats),validObj);
 function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
 
 /* ===== CONFIGURAÇÃO ÚNICA de habilidades (11 níveis), loja e opções ===== */
-const SKILL_CFG={max:11,cost:{base:30,growth:1.35},list:{
+const SKILL_CFG={max:11,cost:{base:30,growth:2.2},list:{
  boost:{n:'Velocidade',i:'⚡',dur:[7,.9],mul:[1.3,.012]},
  magnet:{n:'Ímã de comida',i:'🧲',dur:[8,1],rad:[170,8]},
  shield:{n:'Escudo',i:'🛡️',dur:[5,.5]},
@@ -673,7 +673,7 @@ restoreIDB();
 const SYNC={enabled:false,endpoint:null,queue:[],push(){return false},flush(){return false}};
 
 function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[0]+a[1]*(L-1)}
-const skillCost=L=>Math.round(SKILL_CFG.cost.base*Math.pow(SKILL_CFG.cost.growth,L-1));
+const skillCost=L=>Math.round(SKILL_CFG.cost.base*Math.pow(SKILL_CFG.cost.growth,L));
 function applySkillsToCfg(){CFG.boostMax=skillVal(null,'dash','dur');CFG.boostRecharge=skillVal(null,'dash','rech')/(evtOf().id==='veloz'?2:1)}
 function buzz(ms){if(prefs.vib&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 function itemChargesLeft(){return Object.values(eco.inv).reduce((a,v)=>a+(Number(v)||0),0)}
