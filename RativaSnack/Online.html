@@ -927,12 +927,13 @@ async function rgsRadioRefresh(){
    if(audio.getAttribute('src')){audio.removeAttribute('src');audio.dataset.radioKey='';audio.dataset.radioReady='';audio.load()}
    rgsRadioUi(false,'AGUARDANDO RÁDIO');return;
   }
-  const track=await rgsRadioGetTrack(state.key);
+  let trackName=state.trackName||state.title||'RÁDIO Rativa Games';
+  try{const track=await rgsRadioGetTrack(state.key);trackName=track.name||track.title||trackName}catch(e){console.warn('Metadados da rádio indisponíveis; mantendo áudio:',e.message)}
   if((audio.dataset.radioKey||'')!==state.key){
-   audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';audio.load();
+   audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.dataset.radioReady='1';audio.dataset.radioName=trackName;audio.load();
    rgsRadioSeek(audio,state,true);
   }else{
-   audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';
+   audio.dataset.radioReady='1';audio.dataset.radioName=trackName;
    if(state.paused){if(!audio.paused)audio.pause()}
    else rgsRadioSeek(audio,state,audio.paused&&rgsRadioStarted);
   }
@@ -981,10 +982,12 @@ function rgsRadioPrepare(){
  if(!audio||rgsRadioBusy)return;
  rgsRadioBusy=true;
  rgsRadioFetchState().then(async state=>{
-  if(!state.active)throw new Error('A rádio está aguardando a programação.');
-  const track=await rgsRadioGetTrack(state.key);
+  if(!state.active||!state.key)throw new Error('A rádio está aguardando a programação.');
+  // A lista de faixas é apenas informativa: não pode impedir o carregamento do áudio.
+  let trackName=state.trackName||state.title||'RÁDIO Rativa Games';
+  try{const track=await rgsRadioGetTrack(state.key);trackName=track.name||track.title||trackName}catch(e){console.warn('Metadados da rádio indisponíveis; seguindo com a transmissão:',e.message)}
   if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load()}
-  audio.dataset.radioReady='1';audio.dataset.radioName=track.name||'AO VIVO';
+  audio.dataset.radioReady='1';audio.dataset.radioName=trackName;
   rgsRadioSeek(audio,state,true);
   const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent=state.paused?'PAUSADA':'PRONTA';
  }).catch(e=>{console.warn('Preparação da rádio:',e.message);const m=$('radioMenuStatus');if(m&&!rgsRadioStarted)m.textContent='TENTAR'})
