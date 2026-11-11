@@ -430,6 +430,24 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #deathPanel p{font-size:15px;color:#e9defb;margin:8px 0 18px;font-weight:700}
 #deathPanel button{width:100%;min-height:46px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffdf71,#e99b2d);color:#351b0a;font-size:14px;font-weight:950;padding:10px 14px}
 #deathPanel button:active{transform:scale(.99)}
+
+/* v122 — botão SAIR persistente no online e acabamento dourado premium */
+#pause.online-exit{z-index:2147482500!important;display:flex!important;align-items:center;justify-content:center;min-width:94px;height:46px;border:1px solid #ffe7a0;background:linear-gradient(180deg,#fff0a8 0%,#f8c64e 28%,#d98a22 72%,#a94d18 100%);color:#3a1b08;box-shadow:inset 0 2px 0 #fff9,inset 0 -2px 0 #7d3a14aa,0 0 0 2px #6f3b19,0 0 0 4px #f6d77a55,0 7px 18px #0009;font-weight:1000;letter-spacing:1.2px;text-shadow:0 1px #fff8}
+#pause.online-exit.hidden{display:flex!important}
+#pause.online-exit:after{content:' ✦';font-size:10px;margin-left:4px;color:#fff6c8}
+#mp .ol-card{position:relative;isolation:isolate;overflow:hidden;width:min(760px,94vw);padding:clamp(22px,3.6vw,34px);border:1px solid #f6d77a;border-radius:26px;background:linear-gradient(145deg,rgba(67,40,113,.96),rgba(32,18,66,.96) 62%,rgba(50,29,83,.96));box-shadow:0 22px 65px #05020dbb,inset 0 0 0 1px #fff2,inset 0 1px 0 #fff7,0 0 0 3px #d8ad4b22;color:#fff}
+#mp .ol-card:before{content:'';position:absolute;inset:8px;border:1px solid #e9c66c66;border-radius:19px;pointer-events:none;z-index:-1}
+#mp .ol-card:after{content:'✦  ✧  ✦';position:absolute;top:12px;right:22px;color:#f4d27b88;font-size:13px;letter-spacing:7px;pointer-events:none}
+#mp .ol-mark{filter:drop-shadow(0 3px 8px #f4c95b55);text-shadow:0 2px 14px #0008}
+#mp .ol-card h2{color:#ffe39a;text-shadow:0 2px 0 #754516,0 4px 16px #0009;letter-spacing:.2px}
+#mp .ol-card p{color:#f1e6ff}
+#mp .ol-step{border:1px solid #d7b45a66;background:linear-gradient(180deg,#291846dd,#170e2bdd);box-shadow:inset 0 1px #fff2}
+#mp .ol-step.done{border-color:#69d6a0}
+#mp .ol-step.active{border-color:#ffdf79;background:linear-gradient(145deg,#6c4b2c,#49306d);box-shadow:0 0 18px #e7b84b33,inset 0 1px #fff5}
+#mp .ol-track{background:#100a24;border:1px solid #d9b65b55;padding:1px;height:11px}
+#mp .ol-track i{background:linear-gradient(90deg,#a46cff 0%,#e9bd55 55%,#fff0a3 100%);box-shadow:0 0 12px #f3c85b77}
+#mp .ol-spinner{border-color:#fff3;border-top-color:#fff0a3;border-right-color:#d9a844;filter:drop-shadow(0 0 5px #e6b94c88)}
+@media(max-width:560px){#mp .ol-card{padding:22px 14px;border-radius:22px}#mp .ol-card:before{inset:6px;border-radius:16px}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -967,7 +985,7 @@ function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.ar
   if(by===player&&player.alive){specialKills++;if(s.special>0&&s.special<4)prog.spk[s.special]++;applyFood(player,{type:sp.power});addScore(sp.pts);showToast(`${sp.icon} ${s.name} eliminado! +${sp.pts}`,3)}}
  if(s===player){lastKiller=by||null;causeText=reason==='wall'?'Você bateu na parede.':by?(by===s?'Seu rato foi pego!':`Você colidiu com o corpo de ${by.name}.`):'Seu rato foi pego!';
   if(reason==='head'&&by)causeText=`Choque de frente com ${by.name}, que era maior.`;
-  dyingT=0;playerRespawnAt=Date.now()+3000;showDeathPanel(playerRespawnAt);releaseDrag();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));sfx('death');syncMusic()}
+  dyingT=0;playerRespawnAt=Date.now()+3000;showDeathPanel(playerRespawnAt);releaseDrag();if(mpOnline){ensureOnlineExit()}else{$('pause').classList.add('hidden');$('emoteB').classList.add('hidden')}sfx('death');syncMusic()}
  else s.respawnAt=gameTime+1.2}
 function respawnPlayerNow(){if(!player||player.alive)return;let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<18&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<320)));const np=mkSnake(x,y,rand(0,6.28),prefs.color,(ol.nick||prefs.nick||'Você'),false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();playerRespawnAt=0;dyingT=0;hideDeathPanel();lastKiller=null;causeText='';cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('🐭 Você renasceu! Boa partida!',2)}
 const vics=[],byk=[];
@@ -1024,7 +1042,7 @@ function mpMk(o){const g=Array.isArray(o.g)?o.g:[],sg=[];for(let i=0;i+1<g.lengt
 function mpApply(m){if(typeof m.md==='string'&&MODES[m.md]&&m.md!==mode)mode=m.md;if(Array.isArray(m.ts))teamScore=[mpN(m.ts[0]),mpN(m.ts[1])];wave=mpN(m.wv)||1;waveKills=mpN(m.wk);bossDown=!!m.bd;ol.left=typeof m.rt==='number'?m.rt:-1;if(typeof m.bk==='number'&&m.bk!==B.k)setB(m.bk);if(typeof m.ar==='number'&&ARENAS[m.ar]&&ARENAS[m.ar]!==ARENA){ARENA=ARENAS[m.ar];OBS=ARENA.o.map(a=>({x:a[0]*worldW,y:a[1]*worldH,w:a[2]*worldW,h:a[3]*worldH,k:a[4]}))}
  if(!m.me)return;const me=mpMk(m.me);me.isBot=false;const os=(Array.isArray(m.o)?m.o:[]).slice(0,16).map(mpMk);const prevMap=new Map(snakes.map(x=>[x.name,x]));for(const ns of [me,...os]){const ps=prevMap.get(ns.name);if(ps&&ps.alive&&ns.alive){const dx=ns.x-ps.x,dy=ns.y-ps.y;if(dx*dx+dy*dy<160000){ns.tx=ns.x;ns.ty=ns.y;for(const q of ns.segments){q.x-=dx;q.y-=dy}ns.x=ps.x;ns.y=ps.y}}}player=me;bots=os;snakes=[me,...os];boss=null;for(const x of snakes)if(x.boss){boss=x;break}
  foods=(Array.isArray(m.f)?m.f:[]).slice(0,200).map(a=>({x:mpN(a[0]),y:mpN(a[1]),type:mpN(a[2]),r:mpN(a[3])||5,color:mpC(a[4]),phase:(mpN(a[0])+mpN(a[1]))%6.28,drop:false,dead:false}));
- gameTime=mpN(m.t);score=me.length*5;if(!me.alive){if(!deathUiActive)showDeathPanel(Date.now()+3000);if(!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}}if(me.alive){mpDeadMsg=false;hideDeathPanel()}}
+ gameTime=mpN(m.t);score=me.length*5;if(!me.alive){if(!deathUiActive)showDeathPanel(Date.now()+3000);if(mpOnline)ensureOnlineExit();if(!mpDeadMsg){mpDeadMsg=true;showToast('💀 Você caiu! Reaparecendo...',2.5)}}if(me.alive){mpDeadMsg=false;hideDeathPanel();if(mpOnline)ensureOnlineExit()}}
 function mpClientTick(dt){if(!player)return;{const k=Math.min(1,dt*16);for(const sn of snakes){if(sn.tx!==undefined){const dx=(sn.tx-sn.x)*k,dy=(sn.ty-sn.y)*k;sn.x+=dx;sn.y+=dy;for(const q of sn.segments){q.x+=dx;q.y+=dy}}}}const tx=CFG.solidWalls?camTarget(player.x,W,worldW,CFG.camMargin):player.x-W/2,ty=CFG.solidWalls?camTarget(player.y,H,worldH,CFG.camMargin):player.y-H/2,k=Math.min(1,dt*14);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
  if(!mpAway&&pointer.down&&pointer.hasDirection)mpTargetAng=Math.atan2(pointer.dirY,pointer.dirX);mpAng+=diff(mpAng,mpTargetAng)*Math.min(1,dt*12);
  mpAcc+=dt;if(mpAcc>=.05&&mpDC&&mpDC.readyState==='open'){mpAcc=0;mpDC.send(JSON.stringify({a:+mpAng.toFixed(2),b:!mpAway&&boostHold?1:0,away:!!mpAway}))}
@@ -1241,6 +1259,7 @@ function indicators(t){if(!prefs.arrows||!running||paused||!player||!player.aliv
  let best=null,bd=1e9;for(const f of foods)if(f.type>=2){const d=Math.hypot(f.x-player.x,f.y-player.y);if(d<bd&&d<1100){bd=d;best=f}}
  if(best)edgeArrow(best.x,best.y,'#ffd34e',FOODICON[best.type]||'⭐',.85);
  const pulse=.55+.35*Math.sin(t*9);for(const b of bots){if(!b.alive)continue;if(mode==='team'&&tm(b)===tm(player))continue;if(!(b.length>=player.length*1.15||b.special||b.boss))continue;if(Math.hypot(b.x-player.x,b.y-player.y)<520)edgeArrow(b.x,b.y,'#ff5d73','⚠️',pulse)}}
+function ensureOnlineExit(){const p=$('pause');if(!p||!mpOnline||!running||ended)return;p.classList.remove('hidden');p.classList.add('online-exit');p.textContent='SAIR';p.setAttribute('aria-label','Sair da partida');p.style.display='block'}
 function showDeathPanel(until){deathUiActive=true;deathUiUntil=until||Date.now()+3000;const p=$('deathPanel');if(p)p.classList.remove('hidden');deathUiTick()}
 function hideDeathPanel(){deathUiActive=false;deathUiUntil=0;const p=$('deathPanel');if(p)p.classList.add('hidden')}
 function deathUiTick(){if(!deathUiActive)return;const el=$('deathCountdown');if(!el)return;const left=Math.max(0,Math.ceil((deathUiUntil-Date.now())/1000));el.textContent=left>0?('Renascendo em '+left+' segundo'+(left===1?'':'s')+'…'):'Preparando seu retorno…'}
@@ -1327,7 +1346,7 @@ function startGame0(m){
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
- running=true;paused=false;ended=false;mpAway=false;$('pause').textContent=mpOnline?'SAIR':'Ⅱ';$('resume').textContent='CONTINUAR';$('quit').textContent=mpOnline?'VOLTAR AO MENU':'SAIR AO MENU';$('restart').classList.toggle('hidden',!!mpOnline);releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
+ running=true;paused=false;ended=false;mpAway=false;$('pause').classList.toggle('online-exit',!!mpOnline);$('pause').textContent=mpOnline?'SAIR':'Ⅱ';if(mpOnline)ensureOnlineExit();$('resume').textContent='CONTINUAR';$('quit').textContent=mpOnline?'VOLTAR AO MENU':'SAIR AO MENU';$('restart').classList.toggle('hidden',!!mpOnline);releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);const arr=snakes.filter(x=>x.alive).sort((a,b)=>(b===player?score:(b.matchScore||0))-(a===player?score:(a.matchScore||0)));const top=arr.slice(0,5).map((x,i)=>`<div style="display:flex;gap:7px;justify-content:space-between"><small>${i+1}. ${x===player?'⭐ ':''}${x.name}</small><b>${x===player?score:(x.matchScore||0)} pts</b></div>`).join('');$('pauseStats').innerHTML=[['Pontos',score],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')+`<div style="grid-column:1/-1;text-align:left;margin-top:8px"><b>🏆 TOP 5 DA PARTIDA</b>${top}</div>`}
