@@ -154,9 +154,9 @@ if(d.type==="feed_react"||d.type==="feed_comment"||d.type==="feed_comments"||d.t
   if(at>=0)members.splice(at,1);else members.push(p.playerId);
   if(members.length)reactions[emoji]=members;else delete reactions[emoji];
   await this.ctx.storage.put(key,reactions);
-  const summary=Object.fromEntries(Object.entries(reactions).map(([e,ids])=>[e,{count:ids.length,reacted:ids.includes(p.playerId)}]));
+  const summary=Object.fromEntries(Object.entries(reactions).map(([e,ids])=>[e,{count:ids.length}])),ownSummary=Object.fromEntries(Object.entries(reactions).map(([e,ids])=>[e,{count:ids.length,reacted:ids.includes(p.playerId)}]));
   this.broadcast({type:"feed_reaction_update",postId,reactions:summary});
-  send(s,{type:"feed_social_result",ok:true,action:d.type,postId,reactions:summary});return;
+  send(s,{type:"feed_social_result",ok:true,action:d.type,postId,reactions:ownSummary});return;
  }
  if(d.type==="feed_comment"){
   const text=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);if(!text){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"empty_comment",message:"Escreva um comentário antes de enviar."});return}
