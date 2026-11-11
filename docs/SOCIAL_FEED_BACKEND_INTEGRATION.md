@@ -62,4 +62,4 @@ O Worker agora recusa a emissão de ticket sem token de conta válido; a identid
 
 A tela `index.html` passou a exibir controles de reação, comentários, denúncia e exclusão, com renderização via `textContent` para o conteúdo de usuários. Denúncias são guardadas no Durable Object, impedem denúncia duplicada pelo mesmo membro e geram auditoria/notificação para equipe online.
 
-**Pendente antes de considerar pronto:** painel de revisão de denúncias, testes automatizados/manuais em dois dispositivos, revisão de sintaxe/integração e deploy de teste. O código não foi implantado no Worker ativo.
+**Pendente antes de considerar pronto:** testes automatizados/manuais em dois dispositivos, revisão de sintaxe/integração e deploy de teste. O código não foi implantado no Worker ativo.
