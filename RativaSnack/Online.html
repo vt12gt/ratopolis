@@ -472,6 +472,14 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 /* v150: páginas de missões e destaque do evento */
 #sheetBody.scroll{display:block!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding-bottom:8px}#sheetBody.scroll>.tabs.top{position:sticky;top:0;z-index:4}#sheetBody .event-page{display:flex;flex-direction:column;gap:8px;min-height:100%;padding:2px 2px 8px}#sheetBody .event-hero{flex:none;min-height:0;align-items:center;gap:clamp(8px,2vw,18px);padding:clamp(10px,2vh,18px);border:2px solid #ffd84a;background:radial-gradient(circle at 15% 20%,#7442bd,#2f145f 72%);box-shadow:0 5px 0 #1b0838}#sheetBody .event-hero .ei{flex:none;font-size:clamp(42px,10vh,76px);line-height:1}#sheetBody .event-hero .et{min-width:0;gap:6px}#sheetBody .event-kicker{font-size:10px;letter-spacing:1.2px;font-weight:900;color:#ffe08a}#sheetBody .event-hero .et>b{font-size:clamp(18px,3.5vh,27px);line-height:1.08;overflow-wrap:anywhere}#sheetBody .event-hero .et>span{font-size:clamp(11px,1.8vh,14px);line-height:1.25}#sheetBody .event-hero .bar{height:11px;width:100%;flex:none}#sheetBody .event-goal{font-size:clamp(12px,2vh,16px);color:#fff;line-height:1.2}#sheetBody .event-hero .et>em{font-size:clamp(11px,1.7vh,13px)}#sheetBody .event-hero .et>small:last-child{font-size:10px;color:#e5d8ff}
 @media(max-height:380px){#sheetBody .event-hero{padding:7px 10px;gap:8px}#sheetBody .event-hero .ei{font-size:38px}#sheetBody .event-hero .et{gap:3px}}
+
+/* Rádio Rativa Games integrada ao menu e à partida */
+.radio-menu-btn{height:8.6vh;min-height:38px;max-height:58px;min-width:76px;padding:0 1.1vw;border:2px solid #ffe58a;border-radius:1.5vh;background:linear-gradient(135deg,#ffe36a,#f49b16);color:#4a236e;box-shadow:0 .45vh 0 #9d570d,0 .7vh 1vh #32105a55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-family:inherit;font-style:italic;font-weight:1000;line-height:1}
+.radio-menu-btn span{font-size:2.8vh;font-style:normal}.radio-menu-btn b{font-size:1.8vh}.radio-menu-btn small{font-size:1.2vh;font-style:normal;letter-spacing:.08em}
+#radioGameBtn{display:none;position:fixed;z-index:30;left:calc(env(safe-area-inset-left) + 12px);bottom:calc(env(safe-area-inset-bottom) + 76px);min-width:76px;height:42px;padding:0 12px;border:2px solid #ffe58a;border-radius:13px;background:linear-gradient(135deg,#ffe36a,#f49b16);color:#482067;box-shadow:0 4px 0 #9d570d,0 7px 15px #0006;font-weight:1000;font-size:13px;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation}
+#radioGameBtn.playing{background:linear-gradient(135deg,#a6ffb7,#27b96a);border-color:#d9ffe1;color:#123d2a;box-shadow:0 4px 0 #17633c,0 7px 15px #0006}
+body.rativa-playing #radioGameBtn{display:flex}
+@media(max-height:420px){.radio-menu-btn{min-height:32px;height:7vh}.radio-menu-btn span{font-size:2.4vh}.radio-menu-btn b{font-size:1.6vh}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -482,6 +490,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div class="m2top">
  <button class="b3d gear" data-sheet="season" aria-label="Temporada">📅</button>
   <button class="b3d gear" data-sheet="settings" aria-label="Ajustes">⚙️</button>
+ <button class="radio-menu-btn" id="radioMenuBtn" type="button"><span>📻</span><b>RÁDIO</b><small id="radioMenuStatus">OUVIR</small></button>
  <button class="who" id="whoBtn" aria-label="Apelido"><span class="av">🐭</span><span class="wn"><small>RATO SNACK ✎</small><b id="nickMenu"></b></span></button>
  <div class="bestp"><span class="pod"><i>2</i><i>1</i><i>3</i></span><div><small>MELHOR PONTUAÇÃO</small><b id="bestN">0</b></div></div>
  <button class="b3d gold evtchip" data-sheet="events"><span id="evtI">🌟</span><b id="evtT"></b><i id="evtDot" class="dot hidden"></i></button><span class="grow"></span>
@@ -514,6 +523,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 <div id="startBest" class="hidden"></div>
 </div></div>
 
+<button id="radioGameBtn" type="button" aria-label="Rádio Rativa Games">📻 <span>RÁDIO</span></button>
 <div class="overlay hidden" id="sheet"><div class="panel wide"><div id="sheetBody"></div><div class="row"><button class="primary" id="sheetBack">VOLTAR</button></div></div></div>
 
 <div class="overlay hidden" id="over"><div class="panel dlg dlg2"><div class="dl"><div class="logo" id="overLogo">💀</div><h1 id="overTitle">Fim de jogo!</h1><p class="subtitle" id="endText">Seu rato foi pego!</p><div class="killer hidden" id="killer"></div><div class="banner hidden" id="recordBanner">🏆 NOVO RECORDE!</div><div class="rewards hidden" id="rewards"></div></div>
@@ -632,7 +642,7 @@ function readObj(k){const raw=store.get(k,null);let o=raw===null?null:parseObj(r
 // Escrita: guarda a versão anterior válida como '.bak' e confere a releitura.
 function writeKey(k,str,okFn){if(importing)return true;const prev=store.get(k,null);if(prev!==null&&okFn(prev))store.set(k+'.bak',prev);const ok=store.set(k,str)&&store.get(k,null)===str;saveFailed=!ok;return ok}
 function loadJSON(k,def){return Object.assign({},def,readObj(k)||{})}
-const prefs=loadJSON('ratoSnackPrefs',{color:PLAYER_COLORS[0],skin:'liso',music:false,sfx:true,fullscreen:true,turn:1,mode:'quick',boostLeft:false,face:'normal',acc:'nenhum',tail:'normal',ctl:'arrastar',sens:1,csz:1,vol:2,vib:true,stickLeft:true,quality:'alta',dead:1,arrows:true,autoq:true,rat:'nenhum',hat:'nenhum',cloth:'nenhum'});
+const prefs=loadJSON('ratoSnackPrefs',{color:PLAYER_COLORS[0],skin:'liso',music:true,sfx:true,fullscreen:true,turn:1,mode:'quick',boostLeft:false,face:'normal',acc:'nenhum',tail:'normal',ctl:'arrastar',sens:1,csz:1,vol:2,vib:true,stickLeft:true,quality:'alta',dead:1,arrows:true,autoq:true,rat:'nenhum',hat:'nenhum',cloth:'nenhum'});
 const STATS_DEF={games:0,kills:0,food:0,time:0,bestSize:8,bestTime:0,bestChallenge:0,bestKills:0};
 const stats=loadJSON('ratoSnackStats',STATS_DEF);
 for(const k in STATS_DEF)stats[k]=numOk(stats[k],0,1e9)?+stats[k]:STATS_DEF[k];
@@ -843,20 +853,82 @@ addEventListener('resize',resize);resize();
 /* ============ Áudio (WebAudio, só após toque do usuário) ============ */
 let ac=null,sfxG=null,musG=null,musTimer=0,nextT=0,mStep=0,lastEatSfx=0;
 function ensureAudio(){try{if(ac){if(ac.state==='suspended')ac.resume();return}const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ac=new AC();sfxG=ac.createGain();musG=ac.createGain();sfxG.connect(ac.destination);musG.connect(ac.destination);applyVolumes()}catch(e){ac=null}}
-function applyVolumes(){if(!ac)return;sfxG.gain.value=prefs.sfx?.9:0;musG.gain.value=prefs.music?.35:0}
+function applyVolumes(){if(!ac)return;sfxG.gain.value=prefs.sfx?.95:0;musG.gain.value=prefs.music?.58:0}
 function tone(f,dur,type,vol,slide,delay,dest){if(!ac)return;try{const t=ac.currentTime+(delay||0),o=ac.createOscillator(),g=ac.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f*slide),t+dur);g.gain.setValueAtTime((vol||.2)*VOLM[prefs.vol],t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(dest||sfxG);o.start(t);o.stop(t+dur+.03)}catch(e){}}
 function sfx(n){if(!ac||!prefs.sfx)return;switch(n){
- case'eat':{const t=performance.now();if(t-lastEatSfx<70)return;lastEatSfx=t;tone(520+Math.random()*120,.07,'triangle',.12,1.5);break}
- case'bonus':tone(520,.1,'square',.12,1.6);tone(780,.14,'square',.12,1.5,.09);break;
- case'kill':tone(300,.12,'sawtooth',.16,2);tone(600,.2,'square',.12,1.6,.1);break;
- case'death':tone(380,.5,'sawtooth',.2,.25);break;
- case'record':[523,659,784,1046].forEach((f,i)=>tone(f,.16,'triangle',.18,1,i*.1));break;
- case'win':[392,523,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.18,1,i*.09));break;
- case'start':tone(330,.1,'triangle',.15,1.4);tone(494,.14,'triangle',.15,1.4,.1);break;
- case'tick':tone(660,.05,'square',.08,1);break}}
+ case'eat':{const t=performance.now();if(t-lastEatSfx<65)return;lastEatSfx=t;tone(560+Math.random()*180,.09,'triangle',.2,1.7);tone(880,.045,'sine',.08,.8,.025);break}
+ case'bonus':tone(520,.13,'square',.2,1.6);tone(780,.16,'triangle',.18,1.5,.09);tone(1040,.12,'sine',.12,1.1,.18);break;
+ case'kill':tone(260,.15,'sawtooth',.2,2.1);tone(520,.18,'square',.18,1.6,.1);tone(780,.13,'triangle',.12,1.3,.2);break;
+ case'death':tone(420,.42,'sawtooth',.25,.28);tone(180,.55,'triangle',.2,.5,.12);break;
+ case'record':[523,659,784,1046,1318].forEach((f,i)=>tone(f,.19,'triangle',.2,1,i*.09));break;
+ case'win':[392,523,659,784,1046,1318].forEach((f,i)=>tone(f,.2,'triangle',.2,1,i*.08));break;
+ case'start':tone(330,.13,'triangle',.2,1.4);tone(494,.16,'triangle',.18,1.4,.1);tone(659,.2,'sine',.14,1.2,.2);break;
+ case'boost':tone(190,.2,'sawtooth',.17,2.8);tone(520,.17,'triangle',.16,1.8,.06);break;
+ case'wall':tone(150,.24,'square',.18,.45);tone(90,.28,'sawtooth',.14,.55,.08);break;
+ case'radio':tone(660,.08,'sine',.12,1.2);tone(880,.1,'sine',.1,1.1,.07);break;
+ case'tick':tone(660,.05,'square',.1,1);break}}
 const PENT=[0,3,5,7,10,12],BASS=[0,0,-5,-5,-3,-3,-5,-5];
-function musicTick(){if(!ac)return;while(nextT<ac.currentTime+.3){const t=nextT,b=.3,st=mStep++;try{tone(110*Math.pow(2,BASS[st%8]/12),b*.9,'triangle',.22,1,t-ac.currentTime,musG);if(st%2===0)tone(330*Math.pow(2,PENT[(st*5+(st>>3))%6]/12),b*.8,'sine',.1,1,t-ac.currentTime,musG)}catch(e){}nextT+=b}}
-function syncMusic(){const want=!!(ac&&prefs.music&&running&&!paused&&!document.hidden&&dyingT<=0);if(want&&!musTimer){nextT=ac.currentTime+.05;musTimer=setInterval(musicTick,120)}else if(!want&&musTimer){clearInterval(musTimer);musTimer=0}}
+const ARCADE_MELODY=[12,15,19,22,19,15,17,15,12,15,19,24,22,19,17,15];
+function musicTick(){if(!ac)return;while(nextT<ac.currentTime+.3){const t=nextT,b=.24,st=mStep++;try{tone(82.4*Math.pow(2,BASS[st%8]/12),b*1.05,'triangle',.22,1,t-ac.currentTime,musG);if(st%2===0)tone(220*Math.pow(2,PENT[(st*3+(st>>2))%6]/12),b*.9,'sine',.10,1,t-ac.currentTime,musG);tone(440*Math.pow(2,ARCADE_MELODY[st%16]/12),b*.38,'triangle',.10,.92,t-ac.currentTime+.025,musG);if(st%4===0){tone(150,.09,'sine',.12,.35,t-ac.currentTime,musG);tone(880,.07,'square',.035,1.1,t-ac.currentTime+.12,musG)}}catch(e){}nextT+=b}}
+function syncMusic(){const menuOpen=!$('menu').classList.contains('hidden');const want=!!(ac&&prefs.music&&(running&&!paused||menuOpen)&&!document.hidden&&dyingT<=0);if(want&&!musTimer){nextT=ac.currentTime+.05;musTimer=setInterval(musicTick,120)}else if(!want&&musTimer){clearInterval(musTimer);musTimer=0}}
+
+/* ===== Rádio Rativa Games: mesma transmissão do portal ===== */
+const RGS_RADIO_API='https://ratopolis-radio-stream.juniorgmj69.workers.dev';
+let rgsRadioState=null,rgsRadioTracks=[],rgsRadioStarted=false,rgsRadioSyncTimer=0,rgsRadioBusy=false;
+function rgsRadioUi(playing,label){
+ const on=!!playing,m=$('radioMenuBtn'),g=$('radioGameBtn'),st=$('radioMenuStatus');
+ if(m){m.querySelector('span').textContent=on?'🔊':'📻';if(st)st.textContent=label||(on?'TOCANDO':'OUVIR')}
+ if(g){g.classList.toggle('playing',on);g.innerHTML=(on?'🔊':'📻')+' <span>'+(on?'TOCANDO':'RÁDIO')+'</span>'}
+}
+async function rgsRadioFetchState(){
+ const res=await fetch(RGS_RADIO_API+'/api/on-air',{cache:'no-store'}),data=await res.json();
+ if(!res.ok||!data.ok)throw new Error(data.error||'Não foi possível consultar a rádio.');
+ rgsRadioState=data.state||{active:false};return rgsRadioState;
+}
+async function rgsRadioGetTrack(key){
+ if(!rgsRadioTracks.length){const res=await fetch(RGS_RADIO_API+'/api/tracks',{cache:'no-store'}),data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error||'Biblioteca da rádio indisponível.');rgsRadioTracks=Array.isArray(data.tracks)?data.tracks.filter(x=>x&&x.key):[]}
+ const track=rgsRadioTracks.find(x=>x.key===key);if(!track)throw new Error('A faixa atual ainda não está disponível na biblioteca.');return track;
+}
+function rgsRadioSeek(audio,state){
+ const expected=Math.max(0,(Date.now()-Number(state.startedAt||Date.now()))/1000);
+ const apply=()=>{if(audio.dataset.radioKey!==state.key||rgsRadioState?.key!==state.key||state.paused)return;const d=Number(audio.duration);audio.currentTime=Number.isFinite(d)&&d>0?Math.min(expected,Math.max(0,d-.25)):expected};
+ if(audio.readyState>=1)apply();else audio.addEventListener('loadedmetadata',apply,{once:true});
+}
+async function rgsRadioRefresh(){
+ if(rgsRadioBusy)return;rgsRadioBusy=true;
+ try{
+  const state=await rgsRadioFetchState(),audio=$('rativaRadioAudio');
+  if(!state.active||state.paused){if(!audio.paused)audio.pause();rgsRadioUi(false,state.active?'PAUSADA':'FORA DO AR');return}
+  const track=await rgsRadioGetTrack(state.key);
+  if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load();rgsRadioSeek(audio,state);if(rgsRadioStarted)await audio.play()}
+  $('radioMenuStatus').textContent='🔴 '+(track.name||'AO VIVO');
+  if(rgsRadioStarted&&!document.hidden&&audio.paused)await audio.play();
+  rgsRadioUi(rgsRadioStarted&&!audio.paused,'🔴 '+(track.name||'AO VIVO'));
+ }catch(e){console.warn('Rádio Rativa Games:',e.message);if(!rgsRadioStarted)rgsRadioUi(false,'INDISPONÍVEL')}
+ finally{rgsRadioBusy=false}
+}
+async function rgsRadioToggle(){
+ const audio=$('rativaRadioAudio');
+ if(rgsRadioStarted&&!audio.paused){rgsRadioStarted=false;audio.pause();rgsRadioUi(false,'PAUSADA');return}
+ try{
+  const state=await rgsRadioFetchState();
+  if(!state.active)throw new Error('A Rádio Rativa Games está fora do ar no momento.');
+  if(state.paused)throw new Error('A programação está pausada no estúdio.');
+  const track=await rgsRadioGetTrack(state.key);
+  if((audio.dataset.radioKey||'')!==state.key){audio.pause();audio.src=RGS_RADIO_API+'/audio/'+encodeURIComponent(state.key);audio.dataset.radioKey=state.key;audio.load();rgsRadioSeek(audio,state)}
+  audio.volume=.75;rgsRadioStarted=true;await audio.play();rgsRadioUi(true,'🔴 '+(track.name||'AO VIVO'));
+  if(!rgsRadioSyncTimer)rgsRadioSyncTimer=setInterval(rgsRadioRefresh,8000);
+ }catch(e){rgsRadioStarted=false;rgsRadioUi(false,'OUVIR');showToast(e.message||'Não foi possível iniciar a rádio.',4)}
+}
+function rgsRadioInit(){
+ const a=$('rativaRadioAudio');if(!a)return;a.volume=.75;
+ $('radioMenuBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
+ $('radioGameBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
+ a.addEventListener('play',()=>rgsRadioUi(true,'🔴 TOCANDO'));
+ a.addEventListener('pause',()=>rgsRadioUi(false,'PAUSADA'));
+ a.addEventListener('error',()=>{rgsRadioStarted=false;rgsRadioUi(false,'ERRO DE ÁUDIO');showToast('Não foi possível carregar a transmissão da rádio.',3)});
+ rgsRadioUi(false,'OUVIR');
+}
 
 /* ============ Mundo ============ */
 function mkSnake(x,y,angle,color,name,isBot,n,arch){const segs=[];for(let i=0;i<n;i++)segs.push({x:x-Math.cos(angle)*CFG.seg*i,y:y-Math.sin(angle)*CFG.seg*i});
@@ -1008,7 +1080,7 @@ function startEvent(id){const e=EVENTS.find(x=>x.id===id)||(Math.random()<.6&&TH
 function eventTick(dt){if(!ev)return;ev.t-=dt;if(ev.id==='chuva'){ev.acc+=dt*7;while(ev.acc>=1){ev.acc--;spawnFood(Math.min(worldW-40,Math.max(40,player.x+rand(-700,700))),Math.min(worldH-40,Math.max(40,player.y+rand(-500,500))),Math.random()<.1?1:0,false)}}if(ev.t<=0){ev=null;evT=rand(60,90)*evtScale()}}
 function nextWave(){wave++;waveKills=0;addScore(100*wave);showToast(`🌊 Onda ${wave}! Meta: ${3+wave*2} ratos — mais rápidos`,3);if(wave%3===0&&player.alive){const i=bots.findIndex((b,k)=>!b.alive&&!(mpSlots[k]&&mpSlots[k].open));if(i>=0)spawnSpecial(i,evtOf().id==='noite'?2:evtOf().id==='cacadaouro'?1:1+((Math.random()*3)|0))}}
 function modeHud(){const t=[];if(mode==='survival'&&mpOnline){if(gameTime<300)t.push('⏳ Arena fecha em '+fmtTime(300-gameTime));else if(gameTime<360)t.push('🔥 Arena fechando • '+fmtTime(360-gameTime));else t.push('🔥 Zona final • último sobrevivente vence')}if(mode==='team'){const a=teamScore[0],b=teamScore[1],g=MODES.team.tgoal;t.push(`🔵 ${a} × ${b} 🔴 • meta ${g} • faltam 🔵${Math.max(0,g-a)} 🔴${Math.max(0,g-b)} • ⏱ ${fmtTime(Math.max(0,mpOnline&&ol.left>=0?ol.left:MODES.team.limit-gameTime))}`)};if(mode==='boss'&&boss&&boss.alive)t.push(`👹 Chefe ${Math.max(0,Math.round(boss.hp))}%${boss.stun>0?' • ATORDOADO!':''}`);if(mode==='infinite')t.push(`🌊 Onda ${wave} • ${waveKills}/${3+wave*2}`);{const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);if(rc)t.push('🧀 +'+rc)}if(ev)t.push(`${ev.icon} ${Math.ceil(ev.t)}s`);return t.join(' • ')}
-function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.armor--;s.shield=s.special?.12:1.5;burst(s.x,s.y,'#ffffff',14);return}if(s===player)buzz(140);s.alive=false;burst(s.x,s.y,s.color,s===player?30:20);dropFood(s);
+function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.armor--;s.shield=s.special?.12:1.5;burst(s.x,s.y,'#ffffff',14);return}if(s===player){buzz(140);sfx(reason==='wall'?'wall':'death')}s.alive=false;burst(s.x,s.y,s.color,s===player?30:20);dropFood(s);
  if(by&&by!==s){by.kills++;by.matchScore=(by.matchScore||0)+killPts();if(by===player){kills++;if(gameTime-lastKillT<=8)streakN++;else streakN=1;lastKillT=gameTime;matchStreak=Math.max(matchStreak,streakN);addScore(killPts());earn(mode==='challenge'?20:10,'eliminação');buzz(35);sfx('kill');showToast(`🐭 Você eliminou ${s.name}! +${killPts()}`);const M=MODES[mode];if(M.goal&&kills>=M.goal&&player.alive)endGame('win')}}
  if(s===leader&&by===player&&player.alive){leader=null;addScore(100);earn(15,'rei da arena');showToast('👑 Rei da arena derrubado! +100 pts • +15 🧀',3)}
  if(mode==='team'&&by&&by!==s){const a=tm(by),b=tm(s);if(a>=0&&a!==b)teamScore[a]++}
@@ -1184,7 +1256,7 @@ function olResultText(){
  if(mode==='challenge'){let k=null,best=-1;for(const q in (ol.rw||{}))if(ol.rw[q]>best){best=ol.rw[q];k=q}return k?'🏆 '+olName(k)+' venceu com '+best+' rodada(s)!':'⏱️ Tempo da sala! Ninguém fechou uma rodada.'}
  let top=null;for(const x of snakes)if(x===player||x.remote)if(!top||x.length>top.length)top=x;return top?'🏆 '+top.name+' terminou na frente (tamanho '+top.length+')!':'⏱️ Fim do tempo da sala!'}
 function olSurvivalChampionReward(){if(ol.survivalRewarded)return;ol.survivalRewarded=true;addXp(500);const paid=Math.min(3000,Math.max(0,ECO_MAX-eco.cheese));if(paid){eco.cheese+=paid;eco.earned+=paid;pushHist(paid,'campeão da sobrevivência');saveEco()}saveProg();showToast('🏆 Campeão da Sobrevivência! +500 XP e +'+paid+' 🧀',5)}
-function olEndGame(kind){if(ended)return;const txt=olResultText();mpBroadcastEnd(txt);endFx(kind);ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();$('pause').classList.add('hidden');$('emoteB').classList.add('hidden');
+function olEndGame(kind){document.body.classList.remove('rativa-playing');if(ended)return;const txt=olResultText();mpBroadcastEnd(txt);endFx(kind);ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();$('pause').classList.add('hidden');$('emoteB').classList.add('hidden');
  olFinalizeMatch(kind);if(mode==='survival'&&kind==='win'&&player&&player.alive)olSurvivalChampionReward();
  $('overLogo').textContent=mode==='survival'?'🏆🐭':'🏁🐭';$('overTitle').textContent=mode==='survival'?'Sobrevivência encerrada':'Fim do tempo da sala';$('endText').textContent=txt;
  $('overStats').innerHTML=[['Pontos',score],['Abates',kills],['Tempo',fmtTime(mode==='survival'?(ol.survivalAliveTime||0):gameTime)],['Tamanho',player.length]].map(c=>'<div><small>'+c[0]+'</small><b>'+c[1]+'</b></div>').join('');
@@ -1362,7 +1434,7 @@ function update(dt){
  lbT-=dt;if(lbT<=0){lbT=.4;refreshLb();if(mpAway)fillPause()}
  hudT-=dt;if(hudT<=0){hudT=.1;updateHud()}}
 
-function endGame(kind){if(mpOnline){if(kind==='dead'){playerRespawnAt=Date.now()+3000;return}if((kind==='time'||kind==='win')&&!(wbRun&&mpRole==='host'))return}if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
+function endGame(kind){document.body.classList.remove('rativa-playing');if(mpOnline){if(kind==='dead'){playerRespawnAt=Date.now()+3000;return}if((kind==='time'||kind==='win')&&!(wbRun&&mpRole==='host'))return}if(bossDown&&kind==='dead')kind='win';if(mpOnline&&mpRole==='host'&&kind==='dead'){onlineHostRespawn();return}endFx(kind);mpBroadcastEnd();dcEnd();
  if(ended)return;if(player.alive)refreshLb();ended=true;running=false;releaseDrag();syncBoostBtn();syncMusic();($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));
  const M=MODES[mode];
  if(mode==='challenge'&&kind==='win')score+=Math.round(M.limit-gameTime)*2;if(mode==='boss'&&kind==='win')score+=1000+Math.max(0,Math.round(240-gameTime))*5;if(mode==='team'&&kind==='win')score+=500;
@@ -1398,14 +1470,14 @@ function startGame0(m){
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
- running=true;paused=false;ended=false;mpAway=false;$('pause').classList.toggle('online-exit',!!mpOnline);$('pause').textContent=mpOnline?'SAIR':'Ⅱ';if(mpOnline)ensureOnlineExit();$('resume').textContent='CONTINUAR';$('quit').textContent=mpOnline?'VOLTAR AO MENU':'SAIR AO MENU';$('restart').classList.toggle('hidden',!!mpOnline);releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
+ running=true;document.body.classList.add('rativa-playing');paused=false;ended=false;mpAway=false;$('pause').classList.toggle('online-exit',!!mpOnline);$('pause').textContent=mpOnline?'SAIR':'Ⅱ';if(mpOnline)ensureOnlineExit();$('resume').textContent='CONTINUAR';$('quit').textContent=mpOnline?'VOLTAR AO MENU':'SAIR AO MENU';$('restart').classList.toggle('hidden',!!mpOnline);releaseDrag();pointer.dirX=1;pointer.dirY=0;$('tip').style.opacity='1';inputLock=performance.now()+300;
  ensureAudio();sfx('start');syncMusic();tryFullscreen()}
 function tryFullscreen(){if(!prefs.fullscreen)return;try{const el=document.documentElement;if(document.fullscreenElement||!el.requestFullscreen)return;const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{const o=screen.orientation;if(o&&o.lock)o.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function fillPause(){const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);const arr=snakes.filter(x=>x.alive).sort((a,b)=>(b===player?score:(b.matchScore||0))-(a===player?score:(a.matchScore||0)));const top=arr.slice(0,5).map((x,i)=>`<div style="display:flex;gap:7px;justify-content:space-between"><small>${i+1}. ${x===player?'⭐ ':''}${x.name}</small><b>${x===player?score:(x.matchScore||0)} pts</b></div>`).join('');$('pauseStats').innerHTML=[['Pontos',score],['Abates',kills],['Tempo',fmtTime(gameTime)],['Queijos','+'+rc]].map(c=>`<div><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')+`<div style="grid-column:1/-1;text-align:left;margin-top:8px"><b>🏆 TOP 5 DA PARTIDA</b>${top}</div>`}
 function mpExitOverlay(){if(!mpOnline||!running||ended||!player||!player.alive){togglePause();return}mpAway=true;paused=true;releaseDrag();player.boostActive=false;player.shield=999;fillPause();$('paused').classList.remove('hidden');$('resume').textContent='VOLTAR À PARTIDA';$('restart').classList.add('hidden');$('quit').textContent='VOLTAR AO MENU';$('pause').textContent='VOLTAR';$('pause').classList.add('online-exit');$('pause').classList.remove('hidden')}
 function mpReturnToGame(){if(!mpOnline){togglePause();return}if(!running||ended)return;paused=false;$('paused').classList.add('hidden');$('restart').classList.add('hidden');$('resume').textContent='VOLTAR À PARTIDA';$('quit').textContent='VOLTAR AO MENU';$('pause').classList.add('online-exit');$('pause').classList.remove('hidden');$('pause').textContent='SAIR';releaseDrag();mpAway=true;if(player)player.shield=999;showToast('Você voltou para a sala. Proteção por 5 segundos.',4);setTimeout(()=>{if(mpOnline&&running&&!ended){mpAway=false;if(player)player.shield=0;showToast('Proteção encerrada. Boa partida!',2)}},5000)}
 function togglePause(){if(tutOpen||!running||ended||!player.alive)return;paused=!paused;if(paused){releaseDrag();player.boostActive=false;fillPause()}$('paused').classList.toggle('hidden',!paused);$('pause').textContent=paused?'▶':'Ⅱ';if(paused)flushSave();syncBoostBtn();syncMusic()}
-function toMenu(){hideDeathPanel();mpAway=false;$('pause').classList.remove('online-exit');$('pause').classList.add('hidden');$('pause').textContent='Ⅱ';if(mpOnline&&running&&!ended&&player)olFinalizeMatch('leave');else if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound('leave')}const matchReport=(mpOnline&&mode!=='treino'&&lastGain)?{xp:lastGain.xp||0,cheese:lastGain.cheese||0,time:gameTime,score:score}:null;if(ol&&ol.inRoom)olLeaveRoom();if(mpRole)mpLeave();mpOnline=false;running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo();if(matchReport)showMatchReport(matchReport)}
+function toMenu(){document.body.classList.remove('rativa-playing');hideDeathPanel();mpAway=false;$('pause').classList.remove('online-exit');$('pause').classList.add('hidden');$('pause').textContent='Ⅱ';if(mpOnline&&running&&!ended&&player)olFinalizeMatch('leave');else if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound('leave')}const matchReport=(mpOnline&&mode!=='treino'&&lastGain)?{xp:lastGain.xp||0,cheese:lastGain.cheese||0,time:gameTime,score:score}:null;if(ol&&ol.inRoom)olLeaveRoom();if(mpRole)mpLeave();mpOnline=false;running=false;paused=false;ended=true;releaseDrag();saveStats();flushSave();syncMusic();['over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.add('hidden'),$('emoteB').classList.add('hidden'));init();ended=false;$('menu').classList.remove('hidden');menuInfo();if(matchReport)showMatchReport(matchReport)}
 
 /* ============ Menu, personalização, recordes, ajustes ============ */
 function showMatchReport(r){const old=document.getElementById('rs-match-report');if(old){if(old._countdown)clearInterval(old._countdown);old.remove()}const box=document.createElement('div');box.id='rs-match-report';box.setAttribute('role','status');box.style.cssText='position:fixed;z-index:9999;left:50%;bottom:18px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));box-sizing:border-box;padding:12px 16px;border:1px solid rgba(255,211,105,.72);border-radius:16px;background:rgba(35,18,62,.48);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.24);color:#fff8dc;opacity:.9;pointer-events:none;text-align:center;font:600 13px/1.45 system-ui,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.72)';const mins=Math.floor(r.time/60),secs=Math.floor(r.time%60);box.innerHTML='<div style="font-weight:900;font-size:15px;color:#ffe08a;margin-bottom:5px">🏆 RESUMO DA PARTIDA</div><div>⭐ +'+Math.max(0,Math.floor(r.xp))+' XP &nbsp; 🧀 +'+Math.max(0,Math.floor(r.cheese))+' &nbsp; ⏱️ '+mins+'m '+secs+'s &nbsp; 🏅 '+Math.max(0,Math.floor(r.score))+' pontos</div><div class="rs-report-countdown" style="margin-top:6px;font-size:12px;font-weight:800;color:#fff0b8">Saindo da sala em 5s…</div>';document.body.appendChild(box);let remaining=5;const countdown=box.querySelector('.rs-report-countdown');box._countdown=setInterval(()=>{remaining--;if(!box.isConnected){clearInterval(box._countdown);return}if(remaining>0){countdown.textContent='Saindo da sala em '+remaining+'s…';return}clearInterval(box._countdown);box._countdown=null;countdown.textContent='Retornando ao menu…';box.style.transition='opacity .45s ease,transform .45s ease';box.style.opacity='0';box.style.transform='translate(-50%,8px)';setTimeout(()=>box.remove(),500)},1000)}
@@ -1719,7 +1791,7 @@ canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercan
 // Puxar a aba de notificações no Android costuma só CANCELAR o toque (sem blur/visibilitychange): cancelamento de toque ou saída da tela cheia pausa.
 const autoPause=()=>{if(running&&!paused&&!ended&&player.alive)togglePause()};
 canvas.addEventListener('pointercancel',autoPause);document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)autoPause()});canvas.addEventListener('lostpointercapture',endDrag);bb.classList.toggle('left',prefs.boostLeft);
-bb.addEventListener('pointerdown',e=>{if(!running||paused)return;e.preventDefault();e.stopPropagation();bid=e.pointerId;boostHold=true;try{bb.setPointerCapture(e.pointerId)}catch(_){}});
+bb.addEventListener('pointerdown',e=>{if(!running||paused)return;e.preventDefault();e.stopPropagation();ensureAudio();sfx('boost');bid=e.pointerId;boostHold=true;try{bb.setPointerCapture(e.pointerId)}catch(_){}});
 const bUp=e=>{if(bid!==null&&e&&e.pointerId!==bid)return;bid=null;boostHold=false};
 ['pointerup','pointercancel','lostpointercapture'].forEach(n=>bb.addEventListener(n,bUp));bb.addEventListener('pointercancel',()=>autoPause());bb.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1743,8 +1815,9 @@ document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidd
 addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
 
 
-init();menuInfo();olSyncAccount();requestAnimationFrame(frame);
+init();menuInfo();olSyncAccount();rgsRadioInit();ensureAudio();syncMusic();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
 })();
-</script></body></html>
+</script><audio id="rativaRadioAudio" preload="none" playsinline></audio>
+</body></html>
