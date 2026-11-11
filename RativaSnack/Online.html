@@ -1028,7 +1028,7 @@ function mpLeave(){try{if(mpDC)mpDC.close();if(mpPC)mpPC.close()}catch(_){}mpDC=
 function mpBroadcastEnd(txt){if(mpRole!=='host')return;const em=JSON.stringify({end:1,r:txt||''});for(const c of mpConns)try{if(c.open)c.dc.send(em)}catch(_){}setTimeout(mpLeave,400)}
 function mpClientMsg(e){let m;try{m=JSON.parse(e.data)}catch(_){return}
  if(m.start&&mpRole!=='client'){mpRole='client';mpClose();startGame(ol.mode||mode);return}
- if(m.end){const w=mpRole==='client';mpLeave();if(w){toMenu();if(m.r)setTimeout(()=>gAlert(String(m.r).slice(0,200)),150)}return}
+ if(m.end){const w=mpRole==='client';if(w&&mpOnline&&running&&!ended)olFinalizeMatch('leave');mpLeave();if(w){toMenu();if(m.r)setTimeout(()=>gAlert(String(m.r).slice(0,200)),150)}return}
  if(m.st&&mpRole==='client')mpApply(m)}
 // anfitrião: os convidados controlam os ratos bots[0..2]; se um convidado cair da sala, o rato volta para a IA
 function mpAttach(){if(!mpPending||mpRole!=='host')return;mpPending=false;if(mpOnline&&player)player.name=ol.nick;for(let i=0;i<mpSlots.length;i++){if(!mpSlots[i])continue;if(!bots[i].alive)respawnBot(i);mpBind(bots[i],mpSlots[i])}}
