@@ -640,7 +640,7 @@ const START_ITEMS={shield:{n:'Escudo inicial',i:'🛡️',price:70,d:'Começa a 
  mult:{n:'Pontos ×2 inicial',i:'✖️',price:70,d:'Começa com pontos em dobro',fn:s=>{s.multT=skillVal(s,'mult','dur')}}};
 const MICON={quick:'⚡',survival:'⏳',challenge:'🎯',team:'🔵',boss:'👹',infinite:'🌊',daily:'📅',treino:'🧪',mundial:'👑'};
 /* ===== Economia de queijos (moeda) ===== */
-const ECO_MAX=1e9;let roundEarn={},ecoDirty=false,foodAcc=0;
+const ECO_MAX=1e9;let roundEarn={},ecoDirty=false,foodAcc=0,onlineCollectedCheese=0,onlineCommonAcc=0;
 function loadEco(){const o=readObj('ratoSnackEco')||{},e={cheese:numOk(o.cheese,0,ECO_MAX)?Math.floor(+o.cheese):0,earned:numOk(o.earned,0,1e12)?Math.floor(+o.earned):0,spent:numOk(o.spent,0,1e12)?Math.floor(+o.spent):0,hist:[],itemPriceStep:numOk(o.itemPriceStep,0,2)?Math.floor(+o.itemPriceStep):0};
  if(Array.isArray(o.hist))for(const h of o.hist.slice(-60))if(h&&numOk(h.d,-ECO_MAX,ECO_MAX)&&typeof h.s==='string')e.hist.push({t:numOk(h.t,0,1e15)?+h.t:0,d:Math.trunc(+h.d),s:h.s.slice(0,24),b:numOk(h.b,0,ECO_MAX)?+h.b:0});e.lv={};for(const k in SKILL_LIST)e.lv[k]=numOk(o.lv&&o.lv[k],1,SKILL_CFG.max)?Math.floor(+o.lv[k]):1;e.inv={};for(const k in START_ITEMS)e.inv[k]=numOk(o.inv&&o.inv[k],0,STOCK_MAX)?Math.floor(+o.inv[k]):0;
  e.own={skin:{},acc:{},tail:{}};const DF={skin:'liso',acc:'nenhum',tail:'normal'};
@@ -749,11 +749,11 @@ function countRound(kind){if(mode==='treino')return;if(roundCounted||!player)ret
  const before=lvlInfo(prog.xp).l,notes=[];let gain=Math.min(150,kills*10+Math.floor(foodEaten/10)+Math.floor(gameTime/20)+(kind==='win'?50:0));
  const vals={food:foodEaten,kills,size:player.length,time:Math.floor(gameTime),score,special:specialKills,powers:powersTaken,streak:matchStreak,boss:(kind==='win'&&mode==='boss')?1:0};
  for(const m of prog.missions){if(m.d)continue;const d=MPOOL.find(x=>x.id===m.id),v=vals[m.id]||0;m.p=Math.min(m.v,d.m==='sum'?m.p+v:Math.max(m.p,v));if(m.p>=m.v){m.d=1;notes.push('🎯 Missão pronta para resgatar: '+d.t(m.v))}}
- {const e=evtOf(),st=evtState();if(!st.d){const v=vals[e.key]||0;st.p=e.m==='sum'?Math.min(e.v,st.p+v):Math.min(e.v,Math.max(st.p,v));if(st.p>=e.v){st.d=1;prog.evDone++;prog.evHist.push({d:today(),id:e.id});if(prog.evHist.length>30)prog.evHist.shift();gain+=60;earn(120,'evento');notes.push('🌟 Evento do dia: +120🧀 +60 XP')}}}
+ {const e=evtOf(),st=evtState();if(!st.d){const v=vals[e.key]||0;st.p=e.m==='sum'?Math.min(e.v,st.p+v):Math.min(e.v,Math.max(st.p,v));if(st.p>=e.v){st.d=1;prog.evDone++;prog.evHist.push({d:today(),id:e.id});if(prog.evHist.length>30)prog.evHist.shift();gain+=60;if(!mpOnline)earn(120,'evento');notes.push('🌟 Evento do dia: '+(mpOnline?'+60 XP':'+120🧀 +60 XP'))}}}
  
  if(bossNotes.length){for(const n of bossNotes)notes.push(n);bossNotes.length=0}prog.bestStreak=Math.max(prog.bestStreak,matchStreak);prog.specials+=specialKills;if(kind==='win')prog.wins++;
  if(evtOf().id==='ouro'||evtOf().id==='sobrev')gain=Math.round(gain*1.5);addXp(gain);gain+=checkAch(notes);const after=lvlInfo(prog.xp).l;if(after>before)notes.push('⬆️ Nível '+after+'!');
- earn(Math.min(25,Math.floor(gameTime/20)+(score>=50?2:0)),'participação');let ch=settleEarn();if(mpOnline&&mode!=='treino'){const wanted=Math.floor((foodEaten+secretsFoundRound)/3*DIFFS[3].gain),paid=Math.min(wanted,Math.max(0,ECO_MAX-eco.cheese));if(paid>0){eco.cheese+=paid;eco.earned+=paid;pushHist(paid,'recompensa multiplayer');saveEco();ch+=paid}}prog.bestFood=Math.max(prog.bestFood,foodEaten);prog.bestCheese=Math.max(prog.bestCheese,ch);if(score>0){prog.top.push({s:score,m:mode,d:today()});prog.top.sort((a,b)=>b.s-a.s);prog.top.length=Math.min(5,prog.top.length)}saveProg();lastGain={xp:gain,notes,cheese:ch}}
+ let ch=0;if(mpOnline&&mode!=='treino'){const wanted=Math.floor(onlineCollectedCheese/3),paid=Math.min(wanted,Math.max(0,ECO_MAX-eco.cheese));if(paid>0){eco.cheese+=paid;eco.earned+=paid;pushHist(paid,'recompensa multiplayer');saveEco();ch=paid}}else{earn(Math.min(25,Math.floor(gameTime/20)+(score>=50?2:0)),'participação');ch=settleEarn()}prog.bestFood=Math.max(prog.bestFood,foodEaten);prog.bestCheese=Math.max(prog.bestCheese,ch);if(score>0){prog.top.push({s:score,m:mode,d:today()});prog.top.sort((a,b)=>b.s-a.s);prog.top.length=Math.min(5,prog.top.length)}saveProg();lastGain={xp:gain,notes,cheese:ch}}
 function menuProg(){ensureDay();const L=lvlInfo(prog.xp),hasAccount=!!(ol.id&&ol.nick);$('lvlT').textContent=(hasAccount?`Nível ${L.l} • ${L.max?'MÁXIMO 👑':L.cur+'/'+L.need+' XP'} • Conta RativaGames`:`Nível ${L.l} • ${L.max?'MÁXIMO 👑':' '+L.cur+'/'+L.need+' XP'}`)+(eco.cheese?' • 🧀 '+eco.cheese:'');$('lvlB').style.width=(L.max?100:Math.round(L.cur/L.need*100))+'%';$('daily').classList.toggle('hidden',!dailyAvail());$('evtT').textContent=evtOf().n;$('evtI').textContent=evtOf().i;$('evtDot').classList.toggle('hidden',evtState().d===1);{const T=bestTitle(),nick=hasAccount?ol.nick:(prefs.nick||'Jogador');$('nickMenu').textContent=nick+(T?' • '+T.i+' '+T.n:'');$('nickHud').textContent=nick+(T?' '+T.i:'')}}
 const evtOf=()=>DEVT[today()%DEVT.length];
 function evtState(){const t=today();if(!prog.dev||prog.dev.day!==t)prog.dev={day:t,p:0,d:0};return prog.dev}
@@ -951,7 +951,7 @@ function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  else if(f.type===7){s.pending+=3*2*dbl;pts=50;if(!s.isBot)earn(100,'Rei Queijo')}
  else if(f.type===8){s.magnetT=skillVal(s,'magnet','dur');s.magnetPow=4;pts=40;if(!s.isBot)earn(75,'Tanque')}
  else{s.multT=skillVal(s,'mult','dur');pts=15}
- if(!s.isBot){cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
+ if(!s.isBot){if(mpOnline&&s===player){if(f.type===0){if(++onlineCommonAcc>=5){onlineCommonAcc=0;onlineCollectedCheese++}}else if(f.type===1)onlineCollectedCheese+=5;else if(f.type>=2&&f.type<7)onlineCollectedCheese+=3;else if(f.type===7)onlineCollectedCheese+=100;else if(f.type===8)onlineCollectedCheese+=75}cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
 function eat(s){if(!s.alive||((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)))return;const rr=s.radius+5;
  for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)}}}
 function dropFood(s){for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}}
@@ -1060,7 +1060,7 @@ const perfTxt=()=>`FPS: ${lastFps?Math.round(lastFps):'—'} • Qualidade: ${pr
 function autoQ(dt,act){if(!act||!prefs.autoq)return;aqT+=dt;aqN++;if(aqT<4)return;const fps=aqN/aqT;lastFps=fps;aqT=0;aqN=0;if(aqCool>0){aqCool--;return}if(fps<38&&prefs.quality!=='baixa'){prefs.quality=prefs.quality==='alta'?'media':'baixa';resize();savePrefs();showToast('⚙️ Qualidade reduzida para manter a fluidez: '+prefs.quality,3);aqCool=2}}
 let secrets=[];
 function secretsInit(){secrets=[];if(mode==='boss'||mode==='treino'||mpRole==='client'||mpOnline||!player)return;for(let k=0;k<3;k++){let x,y,t=0;const inside=OBS.length&&Math.random()<.5;do{if(inside){const o=OBS[(Math.random()*OBS.length)|0];x=o.x+rand(.2,.8)*o.w;y=o.y+rand(.2,.8)*o.h}else{x=rand(B.x0+200,B.x1-200);y=rand(B.y0+200,B.y1-200)}t++}while(t<30&&(Math.hypot(x-player.x,y-player.y)<700||(!inside&&inObs(x,y,70))));secrets.push({x,y,got:0})}}
-function secretTick(){if(!secrets.length||!player||!player.alive)return;for(const q of secrets){if(q.got)continue;if(Math.hypot(q.x-player.x,q.y-player.y)<46){q.got=1;prog.secrets++;secretsFoundRound++;earn(100,'segredo');addXp(25);const left=secrets.filter(z=>!z.got).length;showToast('✨ Queijo secreto! +100 🧀 +25 XP'+(left?' • faltam '+left+' nesta arena':' • achou todos!'),3);sfx('bonus');saveProg()}}}
+function secretTick(){if(!secrets.length||!player||!player.alive)return;for(const q of secrets){if(q.got)continue;if(Math.hypot(q.x-player.x,q.y-player.y)<46){q.got=1;prog.secrets++;secretsFoundRound++;if(mpOnline)onlineCollectedCheese+=100;earn(100,'segredo');addXp(25);const left=secrets.filter(z=>!z.got).length;showToast('✨ Queijo secreto! +100 🧀 +25 XP'+(left?' • faltam '+left+' nesta arena':' • achou todos!'),3);sfx('bonus');saveProg()}}}
 function drawSecrets(wx,wy){if(!secrets.length||!player)return;for(const q of secrets){if(q.got)continue;const d=Math.hypot(q.x-player.x,q.y-player.y);if(d>340)continue;const a=Math.min(1,(340-d)/200),x=wx+q.x,y=wy+q.y,p=Math.sin(gameTime*4);ctx.globalAlpha=a;ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(x,y,12+3*p,0,6.2832);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=a*.5;ctx.strokeStyle='#ffe58a';ctx.beginPath();ctx.arc(x,y,26+5*p,0,6.2832);ctx.stroke();ctx.globalAlpha=1}}
 const ratCount=()=>Object.keys(RATS).filter(k=>!RATS[k].hid&&ratOwned(k)).length;
 const SEAS=[{id:'halloween',i:'🎃',n:'Festival de Halloween',a:1025,b:1102,food:300,kills:15,c:300,x:200,bit:4},{id:'natal',i:'🎄',n:'Natal dos Ratos',a:1215,b:1231,food:400,kills:20,c:400,x:250,bit:8},{id:'carnaval',i:'🎭',n:'Carnaval dos Ratos',a:201,b:214,food:400,kills:20,c:400,x:250,bit:16},{id:'junino',i:'🔥',n:'Festa Junina',a:605,b:630,food:400,kills:20,c:400,x:250,bit:32}];
@@ -1154,7 +1154,7 @@ function olCancel(){olLeaveRoom();ol.view=false;olHome()}
 window.addEventListener('storage',e=>{if(e.key==='ratopolis_session_token'&&(!e.newValue||e.newValue!==ol.token)){ol.token='';ol.id='';ol.nick='';if(ol.inRoom)olLeaveRoom();if(mpOnline){mpLeave();toMenu()}if(mpEl('mp')&&mpEl('mp').style.display!=='none')olHome();showToast('Sessão RativaGames encerrada.',4)}});
 let wbRun=false,wbRunId=0,wbA0=100;
 const bossNotes=[];
-function bossKilled(b){if(!mpOnline||wbRun)prog.bkv[Math.min(3,b.bv||0)]++;addScore(1000+500*(b.bv||0));b.dropMul=3;die(b,'body',player);bossDown=true;bossN++;bossWinT=30;const rr=evtOf().id==='chefes'?2:1;
+function bossKilled(b){if(mpOnline)onlineCollectedCheese+=300;if(!mpOnline||wbRun)prog.bkv[Math.min(3,b.bv||0)]++;addScore(1000+500*(b.bv||0));b.dropMul=3;die(b,'body',player);bossDown=true;bossN++;bossWinT=30;const rr=evtOf().id==='chefes'?2:1;
  if(wbRun)wbKill(b);else if(!mpOnline){prog.bossWins++;earn(300*rr,'chefe');addXp(200*rr);bossNotes.push('👹 '+b.name+' derrotado! +'+300*rr+' 🧀 +'+200*rr+' XP')}
  showToast('🧀 Colete os queijos! Valem 3x por 30 s',4);saveProg()}
 function wbPtsGet(){return prog.wbPtsId===wbRunId?prog.wbPts:0}
@@ -1346,7 +1346,7 @@ function applyRevenge(){if(!pendingRevenge)return;const r=pendingRevenge;pending
  if(b){b.rival=true;showToast('🎯 Revanche: '+b.name+' está marcado!',3)}}
 
 function startGame0(m){
- mpAway=false;secretsFoundRound=0;
+ mpAway=false;secretsFoundRound=0;onlineCollectedCheese=0;onlineCommonAcc=0;
  if(running&&!ended&&player){stats.food+=foodEaten;stats.kills+=kills;stats.time+=gameTime;countRound();saveStats()}
  if(m)mode=m;prefs.mode=mode;savePrefs();init();applyRevenge();initMode();applyStartItems();
  ['menu','over','paused','sheet'].forEach(id=>$(id).classList.add('hidden'));($('pause').classList.remove('hidden'),$('emoteB').classList.remove('hidden'));$('pause').textContent='Ⅱ';
