@@ -1573,7 +1573,7 @@ function onAct(act){setTimeout(applyControlPrefs,0);const i=act.indexOf(':'),k=a
  else if(k==='scat'&&CAT[v]){shopCat=v;shopSel=null;pgState.shop=0;pendingBuy='';shopMsg='';renderSheet('shop');{const g=document.querySelector('.shopGrid');if(g)g.scrollTop=0}return}
  else if(k==='shopgo'){const[c,id]=v.split(':');if(CAT[c]&&CAT[c][id]){shopCat=c;shopSel=id;pendingBuy='';shopMsg='';renderSheet('shop');const pn=document.querySelector('#sheet .panel');if(pn)pn.scrollTop=0}return}
  else if(k==='eqc'){const[c,id]=v.split(':');if(CAT[c]&&CAT[c][id]&&owns(c,id)){prefs[c]=id;savePrefs();shopMsg='';menuInfo();renderSheet('shop')}return}
- else if(k==='buyc'){const[c,id]=v.split(':'),key='buyc:'+v;if(pendingBuy!==key){pendingBuy=key;shopMsg='';setTimeout(()=>{if(pendingBuy===key){pendingBuy='';if(sheetName==='shop')renderSheet('shop')}},3000);renderSheet('shop');return}pendingBuy='';shopMsg=doBuyCosm(c,id);menuInfo();renderSheet('shop');return}
+ else if(k==='buyc'){const[c,id]=v.split(':');if(c==='skin'){pendingBuy='';shopMsg=doBuyCosm(c,id);menuInfo();renderSheet('shop');return}const key='buyc:'+v;if(pendingBuy!==key){pendingBuy=key;shopMsg='';setTimeout(()=>{if(pendingBuy===key){pendingBuy='';if(sheetName==='shop')renderSheet('shop')}},3000);renderSheet('shop');return}pendingBuy='';shopMsg=doBuyCosm(c,id);menuInfo();renderSheet('shop');return}
  else if(k==='pg'){const[key,d]=v.split(':');pgState[key]=(pgState[key]||0)+(+d);renderSheet(sheetName);return}
  else if(k==='acat'){achCat+=+v;const n=new Set(ACH.map(a=>a.cat)).size;achCat=(achCat+n)%n;achSel=null;renderSheet('ach');return}
  else if(k==='acol'){achCollect(v);menuInfo();renderSheet('ach');return}
