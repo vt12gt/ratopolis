@@ -1268,7 +1268,7 @@ function endGame(kind){if(mpOnline){if(kind==='dead'){playerRespawnAt=Date.now()
  const m=mode==='quick'?score:mode==='survival'?gameTime:score,prev=roundPrevBest,isRec=m>prev&&m>0;
  stats.games++;stats.kills+=kills;stats.food+=foodEaten;stats.time+=gameTime;stats.bestSize=Math.max(stats.bestSize,player.length);stats.bestKills=Math.max(stats.bestKills,kills);
  if(mode==='survival'&&isRec)stats.bestTime=gameTime;if(mode==='challenge'&&isRec)stats.bestChallenge=score;if(mode==='quick'&&isRec){bestQuick=score;bestDirty=true}if((mode==='team'||mode==='boss'||mode==='infinite'||mode==='daily')&&isRec)prog.mrec[mode]=score;
- saveStats();flushSave();if(mpOnline)syncCloudBestScore();olSaveRecord(kind);countRound(kind);
+ saveStats();flushSave();countRound(kind);olSaveRecord(kind);
  let title='Fim de jogo!',text='';
  if(kind==='win'){title='Vitória! 🏆';text=mode==='boss'?`Você derrotou o Rei Rato em ${fmtTime(gameTime)}!`:mode==='team'?teamTxt('win'):`Você eliminou ${kills} ratos em ${fmtTime(gameTime)}.`}
  else if(kind==='time'){title='Tempo esgotado!';text=mode==='team'?teamTxt('time'):`Você eliminou ${kills} de ${M.goal} ratos.`}
