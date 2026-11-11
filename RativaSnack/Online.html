@@ -478,7 +478,6 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
 #emoteW button{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
 #lb{z-index:12;pointer-events:none}
 
-@media(max-height:420px){.radio-menu-btn{height:7vh;min-height:34px}.radio-menu-btn span{font-size:2.2vh}}
 </style></head>
 <body><div id="game"><canvas id="canvas"></canvas>
 <div class="hud"><div class="top"><div class="brand">🐭 <b id="nickHud"></b></div><div class="stats">
@@ -864,7 +863,6 @@ function sfx(n){if(!ac||!prefs.sfx)return;switch(n){
  case'start':tone(330,.13,'triangle',.2,1.4);tone(494,.16,'triangle',.18,1.4,.1);tone(659,.2,'sine',.14,1.2,.2);break;
  case'boost':tone(190,.2,'sawtooth',.17,2.8);tone(520,.17,'triangle',.16,1.8,.06);break;
  case'wall':tone(150,.24,'square',.18,.45);tone(90,.28,'sawtooth',.14,.55,.08);break;
- case'radio':tone(660,.08,'sine',.12,1.2);tone(880,.1,'sine',.1,1.1,.07);break;
  case'tick':tone(660,.05,'square',.1,1);break}}
 const PENT=[0,3,5,7,10,12],BASS=[0,0,-5,-5,-3,-3,-5,-5];
 const ARCADE_MELODY=[12,15,19,22,19,15,17,15,12,15,19,24,22,19,17,15];
@@ -1509,7 +1507,7 @@ else if(name==='challenges'||name==='missions'){ensureDay();h=`<div class="mgrid
    <div class="donation-methods"><article><b>⚡ PIX</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonatePix">Doar com Pix</button></article><article><b>💳 CARTÃO</b><small>Checkout seguro Mercado Pago</small><button class="primary" id="snackDonateCard">Doar com cartão</button></article></div>
    <label class="donation-label" for="snackDonationAmount">Valor da doação (R$)</label><input id="snackDonationAmount" type="number" min="1" max="10000" step="0.01" value="5.00">
    <div class="notice" id="snackDonationNotice">As doações são voluntárias. Somente pagamentos confirmados pelo Mercado Pago entram no total público.</div>
-   <div class="donation-info"><h3>💜 Por que fazer uma doação?</h3><div class="donation-reasons"><article>🖥️ <b>Manter os servidores</b><small>Hospedagem, banco de dados, conexão e infraestrutura dos jogos.</small></article><article>🛠️ <b>Desenvolver novidades</b><small>Correções, mapas, eventos, recursos e melhorias de segurança.</small></article><article>📻 <b>Fortalecer a comunidade</b><small>Rádio, feed, chat, rankings e espaços para os jogadores.</small></article><article>🏆 <b>Incentivar competições</b><small>Eventos e campeonatos com regras e resultados transparentes.</small></article></div>
+   <div class="donation-info"><h3>💜 Por que fazer uma doação?</h3><div class="donation-reasons"><article>🖥️ <b>Manter os servidores</b><small>Hospedagem, banco de dados, conexão e infraestrutura dos jogos.</small></article><article>🛠️ <b>Desenvolver novidades</b><small>Correções, mapas, eventos, recursos e melhorias de segurança.</small></article><article>📻 <b>Fortalecer a comunidade</b><small>Feed, chat, rankings e espaços para os jogadores.</small></article><article>🏆 <b>Incentivar competições</b><small>Eventos e campeonatos com regras e resultados transparentes.</small></article></div>
    <h3>📊 Prestação de contas</h3><p>O total arrecadado é atualizado com pagamentos aprovados. A divisão abaixo é uma previsão de destinação, não comprovação de despesas ou repasses realizados.</p>
    <div class="donation-funds"><article><small>Total recebido</small><b id="snackDonationAuditTotal">—</b></article><article><small>Destinação planejada · 60%</small><b id="snackDonationPrize">—</b></article><article><small>Operação e infraestrutura · 40%</small><b id="snackDonationProject">—</b></article></div>
    <h4>Histórico semanal</h4><small id="snackDonationAuditUpdated">Aguardando dados do servidor</small><div class="donation-weeks"><div><span>Semana 1</span><i><b id="snackDonationBar1"></b></i><strong id="snackDonationWeek1">—</strong></div><div><span>Semana 2</span><i><b id="snackDonationBar2"></b></i><strong id="snackDonationWeek2">—</strong></div><div><span>Semana 3</span><i><b id="snackDonationBar3"></b></i><strong id="snackDonationWeek3">—</strong></div></div>
