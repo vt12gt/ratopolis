@@ -673,7 +673,7 @@ restoreIDB();
 const SYNC={enabled:false,endpoint:null,queue:[],push(){return false},flush(){return false}};
 
 function skillVal(s,k,f){const L=(!s||!s.isBot)?eco.lv[k]:1,a=SKILL_LIST[k][f];return a[0]+a[1]*(L-1)}
-const skillCost=L=>Math.round(SKILL_CFG.cost.base*Math.pow(SKILL_CFG.cost.growth,L));
+const skillCost=L=>{let cost=SKILL_CFG.cost.base;for(let i=0;i<L;i++)cost=Math.round(cost*SKILL_CFG.cost.growth);return cost};
 function applySkillsToCfg(){CFG.boostMax=skillVal(null,'dash','dur');CFG.boostRecharge=skillVal(null,'dash','rech')/(evtOf().id==='veloz'?2:1)}
 function buzz(ms){if(prefs.vib&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 function itemChargesLeft(){return Object.values(eco.inv).reduce((a,v)=>a+(Number(v)||0),0)}
