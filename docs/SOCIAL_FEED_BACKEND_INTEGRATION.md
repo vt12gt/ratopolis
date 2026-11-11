@@ -52,3 +52,14 @@ Disponibilizar o repositório ou o código-fonte do Worker que atende `ratopolis
 - Confirmar que visitante não consegue publicar, reagir ou comentar.
 - Confirmar que chat, mensagens privadas, voz, rádio, jogos, login e administração continuam funcionando.
 - Confirmar que falhas do Worker aparecem como erro real; nunca mostrar sucesso antes da confirmação do servidor.
+
+
+## Implementado na branch `feature/social-community` — 10/11/2026
+
+O código do Worker está presente em `workers/ratopolis-community-chat-preview.js` e recebeu handlers WebSocket para `feed_react`, `feed_comment`, `feed_comments`, `feed_delete` e `feed_report`. O histórico inicial do feed também entrega contagens de reações/comentários e o estado de reação do membro autenticado.
+
+O Worker agora recusa a emissão de ticket sem token de conta válido; a identidade e o papel continuam sendo resolvidos pelo endpoint de autenticação, nunca pelo payload do cliente. O feed também recusa publicação de visitante no servidor.
+
+A tela `index.html` passou a exibir controles de reação, comentários, denúncia e exclusão, com renderização via `textContent` para o conteúdo de usuários. Denúncias são guardadas no Durable Object, impedem denúncia duplicada pelo mesmo membro e geram auditoria/notificação para equipe online.
+
+**Pendente antes de considerar pronto:** painel de revisão de denúncias, testes automatizados/manuais em dois dispositivos, revisão de sintaxe/integração e deploy de teste. O código não foi implantado no Worker ativo.
