@@ -141,7 +141,56 @@ if(d.type==="announcement"){
  const body=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,220);if(!body)return;
  this.broadcast({type:"announcement",nickname:p.nickname,role:p.role,text:body,createdAt:now});await this.audit(p,"community_announcement_published",{text:body});return;
 }
-if(d.type==="feed_post"){const modState=(await this.ctx.storage.get("moderation"))||{};if(modState[p.playerId]?.ban){send(s,{type:"error",message:"Seu acesso à comunidade está bloqueado pela equipe."});return}const text=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);if(!text)return;const rateKey="feedRate:"+p.playerId,rate=(await this.ctx.storage.get(rateKey))||{times:[]};rate.times=(rate.times||[]).filter(t=>now-t<60000);if(rate.times.length>=3){send(s,{type:"error",message:"Você publicou muitas notícias. Aguarde um minuto."});return}rate.times.push(now);await this.ctx.storage.put(rateKey,rate);const post={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified===true,role:p.role||"guest",playerId:p.playerId,text,createdAt:now,expiresAt:now+12*60*60*1000};await this.ctx.storage.put("feedPost:"+post.id,post);this.broadcast({type:"feed_post",post});send(s,{type:"feed_post_result",ok:true,id:post.id,expiresAt:post.expiresAt});return}
+if(d.type==="feed_react"||d.type==="feed_comment"||d.type==="feed_comments"||d.type==="feed_delete"||d.type==="feed_report"){
+ if(!p.verified){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"login_required",message:"Entre na sua conta RativaGames para interagir com o feed."});return}
+ const postId=String(d.postId||"").slice(0,64),post=postId?await this.ctx.storage.get("feedPost:"+postId):null;
+ if(!post||Number(post.expiresAt||0)<=now){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"post_not_found",message:"Esta publicação não está mais disponível."});return}
+ const blocked=(await this.ctx.storage.get("moderation"))||{};
+ if(blocked[p.playerId]?.ban){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"community_banned",message:"Seu acesso à comunidade está bloqueado pela equipe."});return}
+ if(d.type==="feed_react"){
+  const emoji=String(d.emoji||"").slice(0,8),allowed=["❤️","😂","😮","👏","🔥"];
+  if(!allowed.includes(emoji)){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"invalid_reaction",message:"Reação inválida."});return}
+  const key="feedReactions:"+postId,reactions=(await this.ctx.storage.get(key))||{},members=Array.isArray(reactions[emoji])?reactions[emoji]:[],at=members.indexOf(p.playerId);
+  if(at>=0)members.splice(at,1);else members.push(p.playerId);
+  if(members.length)reactions[emoji]=members;else delete reactions[emoji];
+  await this.ctx.storage.put(key,reactions);
+  const summary=Object.fromEntries(Object.entries(reactions).map(([e,ids])=>[e,{count:ids.length,reacted:ids.includes(p.playerId)}]));
+  this.broadcast({type:"feed_reaction_update",postId,reactions:summary});
+  send(s,{type:"feed_social_result",ok:true,action:d.type,postId,reactions:summary});return;
+ }
+ if(d.type==="feed_comment"){
+  const text=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);if(!text){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"empty_comment",message:"Escreva um comentário antes de enviar."});return}
+  const rateKey="feedCommentRate:"+p.playerId,rate=(await this.ctx.storage.get(rateKey))||{times:[]};rate.times=(rate.times||[]).filter(t=>now-t<60000);
+  if(rate.times.length>=8){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"rate_limited",message:"Você comentou muitas vezes. Aguarde um minuto."});return}
+  rate.times.push(now);await this.ctx.storage.put(rateKey,rate);
+  const key="feedComments:"+postId,comments=(await this.ctx.storage.get(key))||[];
+  const comment={id:crypto.randomUUID(),postId,playerId:p.playerId,nickname:p.nickname,verified:true,text,createdAt:now};
+  comments.push(comment);await this.ctx.storage.put(key,comments.slice(-100));
+  this.broadcast({type:"feed_comment",comment});send(s,{type:"feed_social_result",ok:true,action:d.type,comment});return;
+ }
+ if(d.type==="feed_comments"){
+  const comments=(await this.ctx.storage.get("feedComments:"+postId))||[];
+  send(s,{type:"feed_comments",postId,comments:comments.slice(-100)});return;
+ }
+ if(d.type==="feed_delete"){
+  const canDelete=post.playerId===p.playerId||["spadmin","admin","moderador","gm"].includes(p.role);
+  if(!canDelete){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"permission_denied",message:"Você só pode apagar suas próprias publicações."});return}
+  await this.ctx.storage.delete("feedPost:"+postId);await this.ctx.storage.delete("feedReactions:"+postId);await this.ctx.storage.delete("feedComments:"+postId);
+  if(post.playerId!==p.playerId)await this.audit(p,"community_feed_post_deleted",{post_id:postId,author_player_key:post.playerId});
+  this.broadcast({type:"feed_post_deleted",postId});send(s,{type:"feed_social_result",ok:true,action:d.type,postId});return;
+ }
+ if(d.type==="feed_report"){
+  const reason=String(d.reason||"").slice(0,32),allowed=["spam","harassment","inappropriate","other"];
+  if(!allowed.includes(reason)){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"invalid_reason",message:"Escolha um motivo válido para a denúncia."});return}
+  const key="feedReports",reports=(await this.ctx.storage.get(key))||[];
+  if(reports.some(x=>x.postId===postId&&x.reporterPlayerId===p.playerId)){send(s,{type:"feed_social_result",ok:false,action:d.type,error:"duplicate_report",message:"Você já denunciou esta publicação."});return}
+  const report={id:crypto.randomUUID(),postId,reporterPlayerId:p.playerId,reporterNickname:p.nickname,authorPlayerId:post.playerId,authorNickname:post.nickname,reason,createdAt:now,status:"pending"};
+  reports.push(report);await this.ctx.storage.put(key,reports.slice(-500));await this.audit(p,"community_feed_post_reported",{post_id:postId,reason});
+  for(const sock of sockets())try{const a=sock.deserializeAttachment();if(["spadmin","admin","moderador"].includes(a?.role))send(sock,{type:"feed_report_notice",report:{id:report.id,postId,reason,createdAt:now}})}catch{}
+  send(s,{type:"feed_social_result",ok:true,action:d.type,postId,message:"Denúncia enviada à equipe de moderação."});return;
+ }
+}
+if(d.type==="feed_post"){if(!p.verified){send(s,{type:"error",message:"Entre na sua conta RativaGames para publicar no feed."});return}const modState=(await this.ctx.storage.get("moderation"))||{};if(modState[p.playerId]?.ban){send(s,{type:"error",message:"Seu acesso à comunidade está bloqueado pela equipe."});return}const text=String(d.text||"").replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,250);if(!text)return;const rateKey="feedRate:"+p.playerId,rate=(await this.ctx.storage.get(rateKey))||{times:[]};rate.times=(rate.times||[]).filter(t=>now-t<60000);if(rate.times.length>=3){send(s,{type:"error",message:"Você publicou muitas notícias. Aguarde um minuto."});return}rate.times.push(now);await this.ctx.storage.put(rateKey,rate);const post={id:crypto.randomUUID(),nickname:p.nickname,verified:p.verified===true,role:p.role||"guest",playerId:p.playerId,text,createdAt:now,expiresAt:now+12*60*60*1000};await this.ctx.storage.put("feedPost:"+post.id,post);this.broadcast({type:"feed_post",post});send(s,{type:"feed_post_result",ok:true,id:post.id,expiresAt:post.expiresAt});return}
 if(d.type!=="chat_message"||typeof d.text!=="string")return;
 const mod=moderation[p.playerId]||{};
 if(mod.ban){send(s,{type:"moderation_blocked",kind:"ban",message:"Seu acesso ao chat está bloqueado pela equipe."});return}
