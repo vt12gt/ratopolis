@@ -1146,6 +1146,10 @@ function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,ca
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
 const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
+const OL_ADMIN_API='https://rativasnack-admin-api-dev.juniorgmj69.workers.dev';let olPresenceTimer=0;
+async function olPresence(active=true){if(!ol.token)return;try{await fetch(OL_ADMIN_API+'/api/rativasnack/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+ol.token},body:JSON.stringify({active,room_id:ol.roomId||''}),cache:'no-store',keepalive:!active})}catch(e){}}
+function olPresenceStart(){if(olPresenceTimer)clearInterval(olPresenceTimer);olPresence(true);olPresenceTimer=setInterval(()=>{if(ol.inRoom)olPresence(true);else olPresenceStop()},20000)}
+function olPresenceStop(){if(olPresenceTimer){clearInterval(olPresenceTimer);olPresenceTimer=0}olPresence(false)}
 let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,hostType:'bot-pro',hostLabel:'Bot Pro',mode:'quick',players:[],tries:0,bye:false,view:false,survivalAliveTime:0,staffRoles:[],roomId:''};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
@@ -1164,11 +1168,11 @@ async function olConnect(){if(ol.ws&&ol.ws.readyState===1)return;const issued=aw
 function olSend(o){if(ol.ws&&ol.ws.readyState===1){ol.ws.send(JSON.stringify(o));return true}return false}
 const olRoomKey=k=>k==='mundial'?'BOSS_MUNDIAL':k==='boss'?'BOSS':String(k||'quick').toUpperCase();
 function olRejectRoom(message){ol.view=false;mpClose();toMenu();gAlert(message||'Não foi possível entrar nesta sala.');}
-async function olPlay(requestedMode=mode){await olConnect();if(requestedMode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());return false}ol.bye=false;ol.mode=requestedMode;const sent=olSend({t:'play',mode:ol.mode});if(!sent){ol.inRoom=false;throw new Error('falha_ao_enviar_modo')}ol.inRoom=true;return true}
+async function olPlay(requestedMode=mode){await olConnect();if(requestedMode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());return false}ol.bye=false;ol.mode=requestedMode;const sent=olSend({t:'play',mode:ol.mode});if(!sent){ol.inRoom=false;throw new Error('falha_ao_enviar_modo')}ol.inRoom=true;olPresenceStart();return true}
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin,hat:prefs.hat,cloth:prefs.cloth})})}
-function olLeaveRoom(){olVoiceStop();ol.roomId='';olLiveEvent=null;const eh=document.getElementById('rativaLiveEventHud');if(eh)eh.remove();if(ol.ws&&ol.ws.readyState===1&&ol.inRoom)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
+function olLeaveRoom(){olPresenceStop();olVoiceStop();ol.roomId='';olLiveEvent=null;const eh=document.getElementById('rativaLiveEventHud');if(eh)eh.remove();if(ol.ws&&ol.ws.readyState===1&&ol.inRoom)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
 function olClosed(code){olVoiceStop();if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}if(code===4003){ol.inRoom=false;olClearExpired();showToast('Sua sessão RativaGames expirou. Entre novamente no portal.',5);if(mpOnline){mpLeave();toMenu()}return}
  if(!ol.token)return;ol.tries++;if(ol.tries>12){if(ol.inRoom){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}}return}if(ol.inRoom)showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.token&&navigator.onLine!==false)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
 function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(!bots[i].alive)respawnBot(i);mpBind(bots[i],c)}}
@@ -1828,7 +1832,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventLis
 if(!prefs.nick)setTimeout(()=>showNick(true),250);$('deathExit').onclick=()=>toMenu();$('again').onclick=()=>startGame(mode);$('revenge').onclick=()=>{pendingRevenge=lastRevenge;olDoPlay()};$('toMenu').onclick=toMenu;$('reviveYes').onclick=doRevive;$('reviveNo').onclick=declineRevive;$('pause').onclick=()=>{if(mpOnline){if(paused)mpReturnToGame();else mpExitOverlay()}else togglePause()};$('resume').onclick=()=>mpOnline?mpReturnToGame():togglePause();$('restart').onclick=()=>olDoPlay();$('quit').onclick=toMenu;
 addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key&&e.key.toLowerCase()==='p'))togglePause()});
 document.addEventListener('visibilitychange',()=>{releaseDrag();if(document.hidden){flushSave();if(running&&!paused&&player.alive)togglePause();try{if(ac)ac.suspend()}catch(e){}}else{try{if(ac&&prefs.music||ac&&prefs.sfx)ac.resume()}catch(e){}}syncMusic()});
-addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',flushSave);document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
+addEventListener('blur',()=>{releaseDrag();if(running&&!paused&&!ended&&player.alive)togglePause()});addEventListener('pagehide',()=>{flushSave();olPresenceStop()});document.addEventListener('freeze',flushSave);setInterval(()=>{if(running)flushSave()},5000);
 
 
 init();menuInfo();olSyncAccount();ensureAudio();syncMusic();requestAnimationFrame(frame);
