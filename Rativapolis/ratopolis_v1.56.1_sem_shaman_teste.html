@@ -2097,13 +2097,11 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
   phaseCountdownActive=true;updateTimer();
   if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}
   if(phaseStartTimer){clearTimeout(phaseStartTimer);phaseStartTimer=null;}
-  activeMatchRole='mouse';activeShamanName='';shamanPlacementMode=null;
+  activeMatchRole='mouse';
   const overlay=document.getElementById('phaseStart');
-  const panel=document.getElementById('shamanLoadout');
   const name=document.getElementById('phaseStartName');
   const number=document.getElementById('phaseStartNumber');
   const count=document.getElementById('phaseStartCount');
-  if(panel)panel.classList.add('hidden');
   if(name)name.textContent=scenarioName(level);
   if(number)number.textContent=level+1;
   const begin=async()=>{
@@ -2111,7 +2109,6 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
     if(phaseStartTick){clearInterval(phaseStartTick);phaseStartTick=null;}
     if(phaseStartTimer){clearTimeout(phaseStartTimer);phaseStartTimer=null;}
     overlay.classList.add('hidden');
-    if(panel)panel.classList.add('hidden');
     playing=false;activeServerPhaseTicket=null;
     await startServerPhaseSession(level+1);
     if(Array.isArray(platforms)&&platforms.length&&player){
@@ -2119,8 +2116,8 @@ function showPhaseCountdown(seconds=10,skip=false,serverAssigned=false,serverSta
       player.vx=0;player.vy=0;player.onGround=true;player.supportId='solid:0';
       player.crouchTimer=0;player.facing=1;airJumpsRemaining=2;dashTimer=0;dashCooldown=0;
     }
-    activeMatchRole='mouse';activeShamanName='';shamanPlacementMode=null;
-    playing=true;clearTouchMovement();updateShamanTools();last=performance.now();
+    activeMatchRole='mouse';
+    playing=true;clearTouchMovement();last=performance.now();
     message.textContent='🐭 Corrida liberada! Pegue os queijos e leve a bolota até a toca. 🧀🌰';
   };
   if(skip){begin();return;}
