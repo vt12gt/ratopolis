@@ -931,7 +931,7 @@ function move(s,dt){
  if((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)){s.mpAwayShield=true;s.shield=999;return}
  if(s.mpAwayShield){s.mpAwayShield=false;s.shield=0}
  if(s.isBot){s.ai-=dt;if(s.ai<=0)botThink(s)}else if(pointer.down&&pointer.hasDirection){s.targetAngle=Math.atan2(pointer.dirY,pointer.dirX)}
- if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v*1.5,dt)}
+ if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v*2.5,dt)}
  const spd=s.speedBase*(s.isBot?(1+.08*threat+(mode==='infinite'?Math.min(.35,.03*wave):0))*(s.special?1:DIFFS[prefs.diff].spd):1)*(ev&&ev.id==='vento'?1.15:1)*Math.max(s.boostT>0?skillVal(s,'boost','mul'):1,s.boostActive?CFG.boostMult:1);
  s.px=s.x;s.py=s.y;s.x+=Math.cos(s.angle)*spd*EVM*dt;s.y+=Math.sin(s.angle)*spd*EVM*dt;edge(s);if(OBS.length&&obsHit(s))s.hitWall=true;
  bodyFromTrail(s);
