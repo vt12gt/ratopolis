@@ -876,7 +876,7 @@ function syncMusic(){const menuOpen=!$('menu').classList.contains('hidden');cons
 
 /* ===== Rádio Rativa Games: mesma transmissão do portal ===== */
 const RGS_RADIO_API='https://ratopolis-radio-stream.juniorgmj69.workers.dev';
-let rgsRadioState=null,rgsRadioTracks=[],rgsRadioStarted=false,rgsRadioSyncTimer=0,rgsRadioBusy=false;
+let rgsRadioState=null,rgsRadioTracks=[],rgsRadioStarted=false,rgsRadioSyncTimer=0,rgsRadioBusy=false,rgsRadioLivePc=null,rgsRadioLiveSession='',rgsRadioLiveActive=false,rgsRadioLiveBusy=false;
 function rgsRadioUi(playing,label){
  const on=!!playing,m=$('radioMenuBtn'),g=$('radioGameBtn'),st=$('radioMenuStatus');
  if(m){m.querySelector('span').textContent=on?'🔊':'📻';if(st)st.textContent=label||(on?'TOCANDO':'OUVIR')}
@@ -909,8 +909,48 @@ async function rgsRadioRefresh(){
  }catch(e){console.warn('Rádio Rativa Games:',e.message);if(!rgsRadioStarted)rgsRadioUi(false,'INDISPONÍVEL')}
  finally{rgsRadioBusy=false}
 }
+
+function rgsRadioCloseLive(){
+ if(rgsRadioLivePc){rgsRadioLivePc.ontrack=null;rgsRadioLivePc.close();rgsRadioLivePc=null}
+ rgsRadioLiveSession='';rgsRadioLiveActive=false;const a=$('rativaRadioLiveAudio');if(a){a.pause();a.srcObject=null}
+}
+function rgsRadioWaitIce(pc){
+ if(pc.iceGatheringState==='complete')return Promise.resolve();
+ return new Promise((resolve,reject)=>{let done=false;const finish=()=>{if(done||pc.iceGatheringState!=='complete')return;done=true;clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',finish);resolve()};const timer=setTimeout(()=>{if(done)return;done=true;pc.removeEventListener('icegatheringstatechange',finish);reject(new Error('A conexão de locução demorou demais.'))},20000);pc.addEventListener('icegatheringstatechange',finish);finish()});
+}
+async function rgsRadioRefreshLive(){
+ if(rgsRadioLiveBusy)return;rgsRadioLiveBusy=true;
+ try{
+  const response=await fetch(RGS_RADIO_API+'/api/live/status',{cache:'no-store'}),data=await response.json();
+  if(!response.ok||!data.ok)throw new Error(data.error||'Estado da locução indisponível');
+  const live=data.live||{};
+  if(!live.active||!live.sessionId){if(rgsRadioLiveActive||rgsRadioLivePc){rgsRadioCloseLive();if(rgsRadioStarted)await rgsRadioRefresh()}return}
+  if(rgsRadioLiveSession===live.sessionId&&rgsRadioLivePc&&rgsRadioLivePc.connectionState!=='failed'&&rgsRadioLivePc.connectionState!=='closed')return;
+  rgsRadioCloseLive();
+  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],bundlePolicy:'max-bundle'});rgsRadioLivePc=pc;rgsRadioLiveSession=live.sessionId;
+  pc.ontrack=event=>{const a=$('rativaRadioLiveAudio');a.srcObject=event.streams&&event.streams[0]?event.streams[0]:new MediaStream([event.track]);if(rgsRadioStarted)a.play().catch(()=>showToast('Toque em RÁDIO para liberar a locução ao vivo.',3))};
+  const subRes=await fetch(RGS_RADIO_API+'/api/live/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),sub=await subRes.json();
+  if(!subRes.ok||!sub.ok)throw new Error(sub.message||sub.error||'Não foi possível conectar à locução');
+  if(sub.sessionId!==rgsRadioLiveSession)throw new Error('A locução mudou durante a conexão.');
+  await pc.setRemoteDescription(sub.sessionDescription);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await rgsRadioWaitIce(pc);
+  const local=pc.localDescription;if(!local?.sdp?.startsWith('v=0')||!local.sdp.includes('m=audio ')||!local.sdp.includes('a=candidate:'))throw new Error('Resposta de áudio incompleta.');
+  const doneRes=await fetch(RGS_RADIO_API+'/api/live/subscribe/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sub.sessionId,sessionDescription:local})}),done=await doneRes.json();
+  if(!doneRes.ok||!done.ok)throw new Error(done.message||done.error||'Falha ao concluir locução');
+  rgsRadioLiveActive=true;if(!rgsRadioStarted){const music=$('rativaRadioAudio');if(!music.paused)music.pause()}
+  if(rgsRadioStarted){try{await $('rativaRadioLiveAudio').play()}catch(e){}}
+ }catch(e){console.warn('Rádio ao vivo:',e.message);if(rgsRadioLivePc&&!rgsRadioLiveActive)rgsRadioCloseLive()}
+ finally{rgsRadioLiveBusy=false}
+}
+
 async function rgsRadioToggle(){
- const audio=$('rativaRadioAudio');
+ const audio=$('rativaRadioAudio'),liveAudio=$('rativaRadioLiveAudio');
+ await rgsRadioRefreshLive();
+ if(rgsRadioLiveActive){
+  if(rgsRadioStarted&&!liveAudio.paused){rgsRadioStarted=false;liveAudio.pause();rgsRadioUi(false,'PAUSADA');return}
+  try{rgsRadioStarted=true;await liveAudio.play();rgsRadioUi(true,'🎙️ LOCUÇÃO AO VIVO');if(!rgsRadioSyncTimer)rgsRadioSyncTimer=setInterval(()=>{rgsRadioRefreshLive();rgsRadioRefresh()},8000)}
+  catch(e){rgsRadioStarted=false;showToast('A locução está conectada. Toque novamente para ouvir.',3)}
+  return;
+ }
  if(rgsRadioStarted&&!audio.paused){rgsRadioStarted=false;audio.pause();rgsRadioUi(false,'PAUSADA');return}
  try{
   const state=await rgsRadioFetchState();
@@ -923,11 +963,13 @@ async function rgsRadioToggle(){
  }catch(e){rgsRadioStarted=false;rgsRadioUi(false,'OUVIR');showToast(e.message||'Não foi possível iniciar a rádio.',4)}
 }
 function rgsRadioInit(){
- const a=$('rativaRadioAudio');if(!a)return;a.volume=.75;
+ const a=$('rativaRadioAudio'),live=$('rativaRadioLiveAudio');if(!a||!live)return;a.volume=.75;live.volume=.75;
  $('radioMenuBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
  $('radioGameBtn')?.addEventListener('click',()=>{ensureAudio();sfx('radio');rgsRadioToggle()});
  a.addEventListener('play',()=>rgsRadioUi(true,'🔴 TOCANDO'));
- a.addEventListener('pause',()=>rgsRadioUi(false,'PAUSADA'));
+ a.addEventListener('pause',()=>{if(!rgsRadioLiveActive)rgsRadioUi(false,'PAUSADA')});
+ live.addEventListener('play',()=>rgsRadioUi(true,'🎙️ LOCUÇÃO AO VIVO'));
+ live.addEventListener('pause',()=>{if(rgsRadioLiveActive)rgsRadioUi(false,'PAUSADA')});
  a.addEventListener('error',()=>{rgsRadioStarted=false;rgsRadioUi(false,'ERRO DE ÁUDIO');showToast('Não foi possível carregar a transmissão da rádio.',3)});
  rgsRadioUi(false,'OUVIR');
 }
@@ -1821,5 +1863,5 @@ init();menuInfo();olSyncAccount();rgsRadioInit();ensureAudio();syncMusic();reque
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
  CAT,owns,doBuyCosm,ensureOwn,offerRevive,doRevive,declineRevive,canRevive,reviveCost,goalTarget,goalTick,leaderGet:()=>leader,steerPlayer,updateBoost,autoPause,spawnSpecial,botTarget,menuInfo,DIFFS,DEVT,evtOf,evtState,TUT,closeTut,cleanNick,get tutOpen(){return tutOpen},CAT,SKINS,doUpgrade,doBuy,skillVal,skillCost,SKILL_CFG,START_ITEMS,SPECIALS,applySkillsToCfg,eco,earn,spend,settleEarn,SYNC,mirrorIDB,bodyFromTrail,initTrail,snapshot,get boss(){return boss},get ev(){return ev},get wave(){return wave},get teamScore(){return teamScore},startEvent,nextWave,bossTick,modeHud,tm,prog,countRound,claimDaily,ensureDay,lvlInfo,checkAch,genMissions,dailyAvail,drawPreview,applyCosmetics,refreshLb,fillEnd,setRevenge:v=>{pendingRevenge=v},get lastRevenge(){return lastRevenge},flushSave,readObj,writeKey,store,get saveFailed(){return saveFailed},get bestQuick(){return bestQuick},setBest:v=>{bestQuick=v;bestDirty=true},setHold:v=>{boostHold=v},st:()=>({running,paused,ended,gameTime,score,kills,mode,threat,dyingT,lastResult,causeText,foodEaten,bestQuick}),setThreat:v=>{threat=v},setMode:m=>{mode=m},start:startGame,die,collisions,eat,mkSnake,spawnFood,endGame,toMenu,applyFood,botThink,probeRisk,sfx,syncMusic,ensureAudio,update,togglePause,get musTimer(){return musTimer}};
 })();
-</script><audio id="rativaRadioAudio" preload="none" playsinline></audio>
+</script><audio id="rativaRadioAudio" preload="none" playsinline></audio><audio id="rativaRadioLiveAudio" autoplay playsinline></audio>
 </body></html>
