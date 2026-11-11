@@ -655,6 +655,8 @@ if(!MODES[prefs.mode])prefs.mode='quick';
 if(!(prefs.turn>=0&&prefs.turn<TURNS.length))prefs.turn=1;
 const validObj=t=>!!parseObj(t);
 const savePrefs=()=>writeKey('ratoSnackPrefs',JSON.stringify(prefs),validObj);
+// Migração de áudio: ativa a nova trilha arcade uma vez para quem já tinha a música desligada por padrão.
+if(prefs.audioMixV2!==1){prefs.music=true;prefs.audioMixV2=1;savePrefs()}
 const saveStats=()=>writeKey('ratoSnackStats',JSON.stringify(stats),validObj);
 // Recorde da partida rápida: marcado como pendente e gravado em pausa, fim, ocultar, pagehide e a cada 5 s (evita gravar a cada ponto).
 function flushSave(){if(ecoDirty)saveEco();mirrorIDB();if(!bestDirty)return;bestDirty=!writeKey('ratoSnackBest',String(bestQuick),v=>numOk(v,0,1e9))}
