@@ -1,0 +1,19 @@
+{
+  "name": "Rativa Hero — Torre dos Desafios",
+  "short_name": "Rativa Hero",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b1424",
+  "theme_color": "#0b1424",
+  "description": "Aventura offline da Rativa: enfrente monstros, evolua equipamentos e derrote chefões.",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
