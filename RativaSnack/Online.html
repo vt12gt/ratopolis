@@ -511,6 +511,7 @@ button.who{border:0;color:#fff;font-family:inherit;font-style:italic;font-weight
   <button class="b3d sq" data-sheet="challenges"><span>🎯</span>Desafios<i id="dotM" class="dot hidden"></i></button>
   <button class="b3d sq gold" data-sheet="donations"><span>💜</span>Doações</button>
   <button class="b3d sq" data-sheet="ranking"><span>🏆</span>Ranking</button>
+  <button class="b3d sq purple hidden" id="rativaStaffPanelBtn" type="button"><span>🛡️</span>PAINEL STAFF</button>
  </div>
 </div>
 <div class="m2bot">
@@ -1160,9 +1161,11 @@ function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(
 function olHostStart(){ol.survivalAliveTime=0;ol.survivalRewarded=false;mpSlots.length=0;for(const c of mpConns)if(c.open)mpSlots[Math.max(0,c.slot-1)]=c;mpRole='host';mpPending=true;mpOnline=true;ol.tally={};ol.rw={};ol.tw=[0,0];ol.survivalEntrants=ol.mode==='survival'?1+mpSlots.filter(Boolean).length:0;ol.roomStart=Date.now();ol.left=-1;mpClose();startGame(ol.mode||mode)}
 function olShowStaffPanelButton(roles){
  ol.staffRoles=Array.isArray(roles)?roles:[];
- if(!ol.staffRoles.some(role=>['founder','spadmin','gm'].includes(role)))return;
- let btn=document.getElementById('rativaStaffPanelBtn');
- if(!btn){btn=document.createElement('button');btn.id='rativaStaffPanelBtn';btn.type='button';btn.textContent='🛡️ PAINEL STAFF';btn.style.cssText='position:fixed;z-index:2147483000;right:10px;top:calc(42px + env(safe-area-inset-top));padding:8px 11px;border:1px solid #d7a6ff;border-radius:11px;background:rgba(28,15,48,.88);color:#fff;font:900 11px system-ui;box-shadow:0 0 12px #9b5ad866;pointer-events:auto';btn.addEventListener('click',olOpenStaffPanel);document.body.append(btn)}
+ const btn=document.getElementById('rativaStaffPanelBtn');
+ if(!btn)return;
+ const allowed=ol.staffRoles.some(role=>['founder','spadmin','gm'].includes(role));
+ btn.classList.toggle('hidden',!allowed);
+ if(!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',olOpenStaffPanel)}
 }
 function olOpenStaffPanel(){
  let panel=document.getElementById('rativaStaffPanel');if(panel){panel.style.display='flex';return}
