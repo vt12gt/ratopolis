@@ -2,57 +2,109 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><title>Rativa Hero — Torre dos Desafios</title>
+<meta name="theme-color" content="#0b1424"><title>Rativa Hero — Torre dos Desafios</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#172337;--gold:#ffd166;--red:#ff5c67;--blue:#55c7ff;--green:#7ce6a2}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:manipulation}body{display:grid;place-items:center;background:radial-gradient(ellipse at 50% 20%,#263a58,#0b1220 70%);color:#fff}
-#game{width:min(100vw,177.78vh);height:min(100vh,56.25vw);min-height:280px;position:relative;overflow:hidden;background:linear-gradient(#15243a 0%,#243e58 58%,#172638 100%);border:1px solid #52647b;box-shadow:0 0 50px #0009}
-header{height:12%;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5%;background:#0b1422d9;border-bottom:1px solid #ffffff20;gap:8px}
-.brand{font-weight:1000;letter-spacing:1px;color:var(--gold);font-size:clamp(13px,2.2vw,23px)}.stats{display:flex;gap:clamp(5px,1vw,14px);font-size:clamp(10px,1.5vw,16px);font-weight:800}.pill{background:#ffffff12;border:1px solid #ffffff20;padding:5px 9px;border-radius:20px;white-space:nowrap}
-#scene{height:62%;position:relative;display:flex;align-items:center;justify-content:space-around;padding:1% 4%;gap:2%;background:linear-gradient(90deg,#ffffff08 1px,transparent 1px),linear-gradient(#ffffff08 1px,transparent 1px);background-size:8% 18%}
-.tower{position:absolute;inset:0;opacity:.35;pointer-events:none;background:linear-gradient(90deg,transparent 12%,#91a6bd22 12.3%,transparent 12.8%,transparent 87%,#91a6bd22 87.3%,transparent 88%);border-bottom:8px solid #64758b}
-.fighter{width:25%;height:90%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
-.power{font-weight:1000;font-size:clamp(20px,4vw,42px);text-shadow:0 3px 5px #000;line-height:1.1}.heroPower{color:var(--blue)}.enemyPower{color:var(--red)}
-.person{width:100%;height:75%;max-width:210px;filter:drop-shadow(0 7px 5px #0008)}
-.vs{font-size:clamp(18px,3vw,34px);font-weight:1000;color:var(--gold);text-shadow:0 3px 6px #000}
-#message{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);background:#08111ddd;border:1px solid #ffffff30;border-radius:30px;padding:7px 16px;font-weight:800;font-size:clamp(10px,1.5vw,15px);white-space:nowrap;z-index:3}
-#choices{height:26%;display:flex;align-items:stretch;justify-content:center;gap:1.5%;padding:1% 3% 2%;background:#0b1422e8;border-top:1px solid #ffffff20}
-.choice{flex:1;max-width:31%;border:2px solid #ffffff2b;border-radius:14px;background:linear-gradient(145deg,#253750,#142235);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;min-width:0;cursor:pointer;font-weight:900;box-shadow:0 4px 0 #0005}
-.choice:active{transform:translateY(3px);box-shadow:none}.choice .ico{font-size:clamp(20px,4vw,38px)}.choice strong{font-size:clamp(11px,1.8vw,18px)}.choice small{font-size:clamp(9px,1.3vw,13px);opacity:.8}.enemyChoice{border-color:#ff5c6777}.buffChoice{border-color:#55c7ff77}.healChoice{border-color:#7ce6a277}
-#overlay{position:absolute;inset:0;background:#07101beF;z-index:10;display:flex;align-items:center;justify-content:center;text-align:center;padding:5%}
-.modal{max-width:560px;width:90%;background:linear-gradient(145deg,#263c58,#111d2e);border:1px solid #ffffff35;border-radius:22px;padding:clamp(14px,3vw,28px);box-shadow:0 15px 50px #0009}
-h1{margin:0 0 6px;color:var(--gold);font-size:clamp(24px,5vw,48px)}.modal p{font-size:clamp(12px,1.8vw,17px);line-height:1.4;color:#d5e2f2}
-button.main{border:0;border-radius:30px;padding:12px 28px;background:linear-gradient(90deg,#ffca57,#ff8c42);font-weight:1000;color:#172235;font-size:clamp(14px,2vw,19px);cursor:pointer}
-#toast{position:absolute;top:14%;left:50%;transform:translateX(-50%);background:#07101beF;border:1px solid #ffffff40;border-radius:12px;padding:8px 15px;z-index:5;font-weight:900;display:none;white-space:nowrap}
-@media(orientation:portrait){#game{width:100vw;height:100vh;min-height:0}#rotate{display:flex!important}}
-#rotate{display:none;position:absolute;inset:0;z-index:20;background:#08111b;align-items:center;justify-content:center;text-align:center;padding:30px;font-weight:900;font-size:20px}
+:root{color-scheme:dark;--gold:#ffd36b;--cyan:#6ee7ff;--red:#ff6575;--green:#82efad;--panel:#15243a}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080f1b;color:#fff;font-family:system-ui,Segoe UI,sans-serif;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#game{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);min-height:300px;overflow:hidden;margin:auto;background:#101d31;box-shadow:0 0 60px #000b}
+header{height:13%;min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2.2%;background:linear-gradient(90deg,#091322,#172b43);border-bottom:1px solid #ffffff22;position:relative;z-index:2}
+.brand{font-weight:1000;letter-spacing:1.4px;color:var(--gold);font-size:clamp(13px,2.1vw,23px);white-space:nowrap}.brand span{color:#fff}
+.stats{display:flex;gap:clamp(4px,.8vw,12px);align-items:center}.stat{background:#ffffff10;border:1px solid #ffffff20;border-radius:30px;padding:5px 10px;font-size:clamp(9px,1.35vw,15px);font-weight:850;white-space:nowrap}.stat b{color:var(--gold)}
+.tools{display:flex;gap:5px}.tool{border:1px solid #ffffff28;background:#ffffff10;color:white;border-radius:10px;padding:6px 9px;font-weight:800;font-size:clamp(10px,1.25vw,14px)}
+#arena{height:55%;position:relative;background:linear-gradient(#172e4b,#33536c 65%,#192b3d);overflow:hidden}
+#world{width:100%;height:100%;display:block}
+#floorLabel{position:absolute;top:3%;left:3%;font-size:clamp(10px,1.5vw,16px);font-weight:950;letter-spacing:1px;text-shadow:0 2px 5px #000;color:#ffe29b}
+#bossLabel{position:absolute;top:3%;right:3%;font-size:clamp(10px,1.5vw,16px);font-weight:950;color:#ff9ba4;text-shadow:0 2px 5px #000}
+#battleHud{position:absolute;left:50%;top:12%;transform:translateX(-50%);width:38%;text-align:center;pointer-events:none}
+.hpbar{height:10px;background:#101827;border:1px solid #ffffff66;border-radius:20px;overflow:hidden;margin:4px 0}.hpbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff596e,#ff9a65);transition:width .25s}
+#enemyTitle{font-weight:1000;font-size:clamp(12px,1.8vw,20px);text-shadow:0 2px 5px #000}
+#caption{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);padding:7px 15px;background:#081321dd;border:1px solid #ffffff33;border-radius:30px;font-weight:850;font-size:clamp(10px,1.4vw,15px);white-space:nowrap;max-width:90%;text-align:center}
+#lower{height:32%;background:linear-gradient(#101d30,#091321);border-top:1px solid #ffffff24;padding:1.1% 2.2% 1.6%;display:flex;flex-direction:column;gap:7px}
+#lowerTop{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:clamp(10px,1.3vw,14px);font-weight:900;color:#c8d8e9}
+#choices{flex:1;display:flex;gap:1.2%;min-height:0}
+.card{flex:1;min-width:0;border:1px solid #ffffff30;border-radius:14px;background:linear-gradient(145deg,#263d59,#14243a);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px;box-shadow:0 4px 0 #050b13;cursor:pointer}
+.card:active{transform:translateY(3px);box-shadow:none}.card .emoji{font-size:clamp(20px,3.6vw,38px);line-height:1.1}.card strong{font-size:clamp(10px,1.5vw,16px)}.card small{font-size:clamp(8px,1.15vw,12px);opacity:.8;text-align:center;line-height:1.2}.card.enemy{border-color:#ff687b99}.card.loot{border-color:#ffd36b99}.card.heal{border-color:#7cebad99}.card:disabled{opacity:.45;filter:grayscale(1)}
+#overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;text-align:center;padding:3%;background:radial-gradient(ellipse at 50% 40%,#233e5cF2,#07101bf5)}
+.modal{width:min(620px,92%);max-height:94%;overflow:auto;background:linear-gradient(145deg,#243d5b,#101d30);border:1px solid #ffffff40;border-radius:22px;padding:clamp(13px,2.5vw,26px);box-shadow:0 20px 70px #000c}
+h1{margin:0;color:var(--gold);font-size:clamp(23px,4.6vw,46px);letter-spacing:1px}.sub{color:#9edfff;font-weight:950;letter-spacing:3px;font-size:clamp(9px,1.2vw,13px)}
+.modal p{font-size:clamp(11px,1.55vw,16px);line-height:1.4;color:#d6e3f0;margin:8px 0}
+.main{border:0;border-radius:30px;padding:11px 24px;background:linear-gradient(90deg,#ffdb78,#ff934d);color:#172235;font-weight:1000;font-size:clamp(13px,1.7vw,18px);cursor:pointer;margin-top:7px}
+.secondary{border:1px solid #ffffff35;border-radius:20px;background:#ffffff10;color:#fff;padding:8px 14px;font-weight:800;margin:4px}
+#toast{position:absolute;z-index:8;top:15%;left:50%;transform:translateX(-50%);background:#081321ee;border:1px solid #ffffff55;border-radius:12px;padding:8px 15px;font-size:clamp(11px,1.5vw,16px);font-weight:950;display:none;white-space:nowrap;box-shadow:0 6px 20px #0008}
+#rotate{display:none;position:fixed;inset:0;z-index:30;background:#081321;color:white;align-items:center;justify-content:center;text-align:center;font-weight:950;font-size:22px;padding:30px}
+@media(orientation:portrait){#rotate{display:flex}#game{width:100vw;height:100vh}}
+@media(max-height:400px){header{min-height:34px}#lower{padding-top:2px;padding-bottom:3px;gap:3px}.stat{padding:3px 6px}.tool{padding:3px 6px}}
 </style></head>
 <body><div id="game">
-<header><div class="brand">⚔ RATIVA HERO</div><div class="stats"><span class="pill">🏰 Andar <b id="floor">1</b></span><span class="pill">🪙 <b id="coins">0</b></span><span class="pill">❤️ <b id="hp">100</b></span></div></header>
-<section id="scene"><div class="tower"></div>
-<div class="fighter"><div class="power heroPower" id="heroPower">⚡ 10</div><svg class="person" viewBox="0 0 160 220" aria-label="Herói Rativa"><circle cx="80" cy="35" r="23" fill="#f1c7a0" stroke="#182536" stroke-width="7"/><path d="M58 30 Q60 0 95 13 L106 32 Q84 20 58 30" fill="#49b9e9"/><path d="M62 63 L98 63 L111 135 L49 135 Z" fill="#1686bd" stroke="#10283b" stroke-width="7"/><path d="M60 75 L25 117 L37 126 L72 98 M99 75 L133 107 L123 119 L91 99" fill="none" stroke="#f1c7a0" stroke-width="13" stroke-linecap="round"/><path d="M65 132 L58 192 M94 132 L105 192" stroke="#d7e4ef" stroke-width="16" stroke-linecap="round"/><path d="M42 198 L66 198 M92 198 L118 198" stroke="#f3b84e" stroke-width="13" stroke-linecap="round"/><path d="M115 92 L144 35" stroke="#dce9f7" stroke-width="7" stroke-linecap="round"/><path d="M135 30 L151 16" stroke="#55c7ff" stroke-width="9" stroke-linecap="round"/></svg><b>HERÓI</b></div>
-<div class="vs">VS</div>
-<div class="fighter"><div class="power enemyPower" id="enemyPower">💀 8</div><svg class="person" viewBox="0 0 160 220" aria-label="Inimigo"><circle cx="80" cy="35" r="23" fill="#f3a18c" stroke="#521d2b" stroke-width="7"/><path d="M60 27 L73 34 M86 34 L101 27" stroke="#5a1525" stroke-width="6"/><path d="M62 63 L98 63 L111 135 L49 135 Z" fill="#d94455" stroke="#521d2b" stroke-width="7"/><path d="M60 75 L25 117 L37 126 L72 98 M99 75 L133 107 L123 119 L91 99" fill="none" stroke="#f3a18c" stroke-width="13" stroke-linecap="round"/><path d="M65 132 L58 192 M94 132 L105 192" stroke="#8e3345" stroke-width="16" stroke-linecap="round"/><path d="M42 198 L66 198 M92 198 L118 198" stroke="#4a2634" stroke-width="13" stroke-linecap="round"/><path d="M20 48 L8 20 L37 32 M122 45 L145 17 L147 51" fill="#d94455" stroke="#521d2b" stroke-width="5"/></svg><b id="enemyName">GUARDIÃO</b></div><div id="message">Escolha seu próximo movimento!</div></section>
-<div id="toast"></div><section id="choices"></section>
-<div id="overlay"><div class="modal"><h1>RATIVA HERO</h1><p>Suba a Torre dos Desafios! Escolha inimigos que consegue vencer, conquiste equipamentos e fique cada vez mais forte. Cada decisão muda sua jornada.</p><p><b>Jogo independente • Offline • Salvamento automático</b></p><button class="main" id="start">COMEÇAR A AVENTURA</button><p style="font-size:11px">Seu progresso fica salvo neste aparelho.</p></div></div>
-<div id="rotate">📱↻<br><br>Vire o celular na horizontal para jogar melhor!</div>
-</div>
+<header><div class="brand">⚔ RATIVA <span>HERO</span></div><div class="stats"><div class="stat">🏰 <b id="floor">1</b></div><div class="stat">❤️ <b id="hp">100</b></div><div class="stat">⚡ <b id="power">12</b></div><div class="stat">🪙 <b id="coins">0</b></div></div><div class="tools"><button class="tool" id="sound">🔊</button><button class="tool" id="menu">☰</button></div></header>
+<section id="arena"><canvas id="world"></canvas><div id="floorLabel">TORRE • ANDAR 1</div><div id="bossLabel"></div><div id="battleHud"><div id="enemyTitle"></div><div class="hpbar"><i id="enemyBar"></i></div></div><div id="caption">Escolha uma porta para continuar!</div></section>
+<section id="lower"><div id="lowerTop"><span id="phase">ESCOLHA SEU CAMINHO</span><span id="gear">🗡️ Lâmina simples • 🛡️ Couro</span></div><div id="choices"></div></section>
+<div id="toast"></div>
+<div id="overlay"><div class="modal"><div class="sub">UMA AVENTURA ORIGINAL</div><h1>RATIVA HERO</h1><p>Suba a Torre dos Desafios, enfrente criaturas, encontre equipamentos e conquiste poderes lendários. Cada porta muda sua jornada!</p><p>⚔️ Combate animado • 🧰 Equipamentos • 👑 Chefões • 💾 Salvamento automático offline</p><button class="main" id="start">COMEÇAR A JORNADA</button><p style="font-size:10px;opacity:.7">Protótipo independente de RativaPolis. Progresso salvo neste aparelho.</p></div></div>
+</div><div id="rotate">📱↻<br><br>Gire o celular para a horizontal para jogar!</div>
 <script>
-(()=>{const $=id=>document.getElementById(id);let s={floor:1,power:10,hp:100,maxHp:100,coins:0,weapon:0,shield:0};let enemy=8,kind='enemy',busy=false;
-const save=()=>localStorage.setItem('rativaHeroSave',JSON.stringify(s));
-const load=()=>{try{let x=JSON.parse(localStorage.getItem('rativaHeroSave'));if(x&&x.floor)s={...s,...x}}catch(e){}};
-function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1500)}
-function render(){ $('floor').textContent=s.floor;$('coins').textContent=s.coins;$('hp').textContent=s.hp;$('heroPower').textContent='⚡ '+s.power;$('enemyPower').textContent=(s.floor%10===0?'👑 ':'💀 ')+enemy;$('enemyName').textContent=s.floor%10===0?'CHEFÃO':'GUARDIÃO';}
-function makeEnemy(){enemy=Math.max(5,Math.floor(7+s.floor*2.15+Math.random()*s.floor*1.3));if(s.floor%10===0)enemy=Math.floor(enemy*2.2);render();}
-function choices(){let a=[];let e1=Math.max(3,Math.floor(enemy*.72)),e2=Math.floor(enemy*1.15+3);a.push({type:'enemy',ico:'💀',name:'Desafiar',desc:'Inimigo • poder '+e1,val:e1});a.push({type:'buff',ico:'⚔️',name:'Arma rara',desc:'+ '+Math.ceil(s.floor*2+5)+' de poder',val:Math.ceil(s.floor*2+5)});a.push({type:'heal',ico:'🛡️',name:'Poção vital',desc:'Recupera '+Math.min(35,s.maxHp-s.hp)+' de vida',val:Math.min(35,s.maxHp-s.hp)});$('choices').innerHTML='';a.forEach((c,i)=>{let b=document.createElement('button');b.className='choice '+(c.type==='enemy'?'enemyChoice':c.type==='buff'?'buffChoice':'healChoice');b.innerHTML='<span class="ico">'+c.ico+'</span><strong>'+c.name+'</strong><small>'+c.desc+'</small>';b.onclick=()=>pick(c);$('choices').appendChild(b)});}
-function next(){s.floor++;makeEnemy();render();choices();$('message').textContent='Andar '+s.floor+': escolha sua estratégia!';save();}
-function pick(c){if(busy)return;busy=true;if(c.type==='buff'){s.power+=c.val;s.coins+=3;toast('Arma aprimorada! +'+c.val+' poder');}
-else if(c.type==='heal'){let n=Math.min(35,s.maxHp-s.hp);s.hp+=n;s.coins+=2;toast(n?'Vida recuperada!':'Vida já está cheia!');}
-else{enemy=c.val;render();if(s.power+ s.weapon < enemy){s.hp-=Math.max(8,Math.ceil((enemy-s.power)*1.4)-s.shield);toast('O inimigo venceu esta rodada!');}else{s.coins+=Math.ceil(enemy/2)+5;s.power+=Math.max(1,Math.floor(enemy*.12));toast('Vitória! +' +(Math.ceil(enemy/2)+5)+' moedas');}
-if(s.floor%10===0&&s.power>=enemy){s.coins+=50;s.maxHp+=10;s.hp=Math.min(s.maxHp,s.hp+25);toast('CHEFÃO derrotado! Bônus lendário!');}
-if(s.hp<=0){s.hp=0;save();render();gameOver();busy=false;return;}}
-save();render();setTimeout(()=>{busy=false;next()},650);}
-function gameOver(){$('overlay').style.display='flex';$('overlay').innerHTML='<div class="modal"><h1>FIM DA JORNADA</h1><p>Você chegou ao andar <b>'+s.floor+'</b> e acumulou <b>'+s.coins+'</b> moedas.</p><p>Seu recorde fica salvo neste aparelho.</p><button class="main" id="restart">TENTAR NOVAMENTE</button><p><button id="reset" style="background:none;border:0;color:#b8c7d9;text-decoration:underline">Apagar progresso e recomeçar</button></p></div>';$('restart').onclick=()=>{s.hp=s.maxHp; s.power=Math.max(10,Math.floor(s.power*.7));s.floor=1;makeEnemy();$('overlay').style.display='none';render();choices();save();};$('reset').onclick=()=>{localStorage.removeItem('rativaHeroSave');s={floor:1,power:10,hp:100,maxHp:100,coins:0,weapon:0,shield:0};makeEnemy();$('overlay').style.display='none';render();choices();};}
-load();makeEnemy();render();choices();$('start').onclick=()=>{$('overlay').style.display='none';render();choices();save();};
+(()=>{'use strict';
+const $=id=>document.getElementById(id),canvas=$('world'),ctx=canvas.getContext('2d');
+const KEY='rativaHeroSave_v2';
+const fresh=()=>({floor:1,hp:100,maxHp:100,power:12,coins:0,weapon:1,armor:0,potions:2,best:1,kills:0,bosses:0,streak:0,unlocked:1,achievements:[],sound:true});
+let s=fresh(),enemy=null,mode='menu',busy=false,toastTimer=0,audio=null,particles=[],anim=0,attackTime=0,shake=0,lastTime=0;
+const weapons=[['Lâmina simples',1,'🗡️'],['Espada de aço',4,'⚔️'],['Machado rubro',8,'🪓'],['Lâmina lunar',14,'🌙'],['Espada solar',23,'☀️'],['Lâmina ancestral',36,'💠']];
+const armors=[['Couro',0],['Cota de malha',3],['Armadura real',7],['Placas dracônicas',13],['Égide ancestral',21]];
+const monsters=[['Goblin da Mina','👺',.8],['Lobo Sombrio','🐺',1],['Cavaleiro Caído','💀',1.15],['Golem de Pedra','🗿',1.35],['Demônio Rubro','👹',1.55],['Dragão Jovem','🐉',1.8]];
+const themes=[['#172e4b','#42637a','#d2a66b'],['#30213d','#74405e','#e58c67'],['#152e2b','#286052','#80b88a'],['#2d263f','#66528a','#c2a0ee'],['#35271c','#82603c','#f0c47b']];
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&v.floor)s={...fresh(),...v}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){toast('Não foi possível salvar neste aparelho')}}
+function toast(t){const el=$('toast');el.textContent=t;el.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.style.display='none',1700)}
+function sound(freq=440,dur=.08,type='sine'){if(!s.sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.06,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+dur)}catch(e){}}
+function weapon(){return weapons[Math.min(s.weapon,weapons.length-1)]}
+function armor(){return armors[Math.min(s.armor,armors.length-1)]}
+function totalPower(){return s.power+weapon()[1]}
+function updateHud(){ $('floor').textContent=s.floor;$('hp').textContent=s.hp+'/'+s.maxHp;$('power').textContent=totalPower();$('coins').textContent=s.coins;$('floorLabel').textContent='TORRE • ANDAR '+s.floor;$('gear').textContent=weapon()[2]+' '+weapon()[0]+' • 🛡️ '+armor()[0];$('sound').textContent=s.sound?'🔊':'🔇';}
+function enemyForFloor(){let boss=s.floor%10===0,idx=Math.min(monsters.length-1,Math.floor((s.floor-1)/3)%monsters.length),base=Math.floor(8+s.floor*2.1+Math.pow(s.floor,1.12)*1.25);return{name:boss?'SENHOR DA TORRE':monsters[idx][0],emoji:boss?'👑':monsters[idx][1],power:Math.floor(base*(boss?2.05:monsters[idx][2])),hp:boss?Math.floor(base*2.4):Math.floor(base*1.25),maxHp:boss?Math.floor(base*2.4):Math.floor(base*1.25),boss};}
+function setMode(m){mode=m;$('phase').textContent=m==='choice'?'ESCOLHA UMA PORTA':m==='combat'?'COMBATE EM ANDAMENTO':m==='reward'?'RECOMPENSA CONQUISTADA':'TORRE DOS DESAFIOS'}
+function buttonCard(icon,title,desc,cls,fn){const b=document.createElement('button');b.className='card '+cls;b.innerHTML='<span class="emoji">'+icon+'</span><strong>'+title+'</strong><small>'+desc+'</small>';b.onclick=fn;$('choices').appendChild(b)}
+function drawChoices(){setMode('choice');$('choices').innerHTML='';$('caption').textContent='Três caminhos. Escolha com sabedoria!';$('battleHud').style.display='none';
+const pool=[{type:'enemy',icon:'☠️',title:'Guardião',desc:'Inimigo • poder '+enemy.power,cls:'enemy'},{type:'loot',icon:'🎁',title:'Baú misterioso',desc:'Equipamento ou moedas',cls:'loot'},{type:'heal',icon:'❤️',title:'Santuário',desc:'Recupera vida e energia',cls:'heal'}];
+if(s.floor%5===0)pool[1]={type:'elite',icon:'🔥',title:'Desafio de elite',desc:'Grande risco • grande prêmio',cls:'enemy'};
+pool.forEach(c=>buttonCard(c.icon,c.title,c.desc,c.cls,()=>choose(c.type)));
+}
+function choose(type){if(busy)return;busy=true;
+if(type==='enemy'||type==='elite'){startCombat(type==='elite'?Math.floor(enemy.power*1.5):enemy.power,type==='elite');return}
+if(type==='loot'){const roll=Math.random();if(roll<.38&&s.weapon<weapons.length-1){s.weapon++;toast('Novo equipamento: '+weapon()[0]+'!');}else if(roll<.7&&s.armor<armors.length-1){s.armor++;toast('Armadura melhorada: '+armor()[0]+'!');}else{let gain=25+s.floor*7;s.coins+=gain;toast('Baú encontrado: +'+gain+' moedas!')}s.power+=Math.ceil(s.floor*.5);sound(760,.16,'triangle');}
+if(type==='heal'){let gain=Math.min(s.maxHp-s.hp,Math.ceil(s.maxHp*.35));s.hp+=gain;s.potions=Math.min(5,s.potions+1);s.coins+=5;toast('Santuário: +'+gain+' vida e +1 poção');sound(620,.18)}
+s.streak++;save();updateHud();particlesBurst(canvas.width*.5,canvas.height*.48,'#ffd36b',20);setTimeout(()=>{busy=false;advanceFloor()},650);
+}
+function startCombat(power,elite=false){enemy={...enemy,power,hp:Math.ceil(enemy.hp*(elite?1.45:1)),maxHp:Math.ceil(enemy.maxHp*(elite?1.45:1)),elite};setMode('combat');$('choices').innerHTML='';$('battleHud').style.display='block';$('enemyTitle').textContent=enemy.emoji+' '+(elite?'ELITE: ':'')+enemy.name+' • '+enemy.power;$('enemyBar').style.width='100%';$('caption').textContent='Prepare-se! Escolha como lutar.';buttonCard('⚔️','Ataque forte','Causa '+Math.max(5,Math.floor(totalPower()*1.35))+' dano','enemy',()=>playerAttack('heavy'));buttonCard('🛡️','Defender','Reduz o próximo dano','heal',()=>playerAttack('guard'));buttonCard('🧪','Usar poção','Recupera 35 de vida • '+s.potions+' restantes','loot',()=>playerAttack('potion'));busy=false;}
+function playerAttack(action){if(busy||mode!=='combat')return;if(action==='potion'&&s.potions<=0){toast('Você não tem poções!');return}busy=true;
+if(action==='potion'){let n=Math.min(35,s.maxHp-s.hp);if(n===0){toast('Sua vida já está cheia!');busy=false;return}s.hp+=n;s.potions--;toast('Poção usada: +'+n+' vida');}
+else if(action==='guard'){s.streak++;toast('Postura defensiva!');}
+else{let dmg=Math.floor(totalPower()*(1.05+Math.random()*.55));enemy.hp-=dmg;particlesBurst(canvas.width*.72,canvas.height*.55,'#ffcf6e',24);attackTime=1;shake=7;sound(180,.13,'sawtooth');toast('Golpe certeiro! '+dmg+' de dano');}
+updateHud();$('enemyBar').style.width=Math.max(0,enemy.hp/enemy.maxHp*100)+'%';
+if(enemy.hp<=0){setTimeout(victory,500);return}
+setTimeout(()=>enemyAttack(action==='guard'),650);
+}
+function enemyAttack(guard){let raw=Math.max(5,Math.floor(enemy.power*.42+Math.random()*enemy.power*.18));let dmg=Math.max(1,raw-armor()[1]-(guard?Math.ceil(raw*.65):0));s.hp=Math.max(0,s.hp-dmg);shake=5;particlesBurst(canvas.width*.28,canvas.height*.55,'#ff596d',14);sound(100,.16,'square');updateHud();toast('O inimigo atacou! -'+dmg+' vida');if(s.hp<=0){setTimeout(gameOver,600);return}busy=false;}
+function victory(){s.kills++;s.coins+=Math.floor(12+s.floor*3+(enemy.boss?90:0));s.power+=Math.max(1,Math.floor(s.floor*.22));if(enemy.boss){s.bosses++;s.coins+=100;s.maxHp+=15;s.hp=Math.min(s.maxHp,s.hp+45);toast('CHEFÃO DERROTADO! +100 moedas e vida máxima!');sound(880,.35,'triangle');}else{toast('Vitória! Recompensa recebida.');sound(700,.16,'triangle')}if(s.floor===1&&!s.achievements.includes('first'))s.achievements.push('first');if(s.kills>=10&&!s.achievements.includes('hunter'))s.achievements.push('hunter');s.best=Math.max(s.best,s.floor);save();updateHud();$('choices').innerHTML='';setMode('reward');$('caption').textContent='Inimigo derrotado!';buttonCard('➡️','Próximo andar','Continue subindo a torre','loot',()=>{if(!busy){busy=true;advanceFloor()}});busy=false;particlesBurst(canvas.width*.72,canvas.height*.5,'#ffd36b',35);}
+function advanceFloor(){s.floor++;s.best=Math.max(s.best,s.floor);enemy=enemyForFloor();updateHud();$('bossLabel').textContent=enemy.boss?'👑 CHEFÃO DO ANDAR':'';drawChoices();save();busy=false;}
+function gameOver(){$('overlay').style.display='flex';$('overlay').innerHTML='<div class="modal"><div class="sub">FIM DA EXPEDIÇÃO</div><h1>VOCÊ FOI LONGE!</h1><p>Andar alcançado: <b>'+s.floor+'</b><br>Melhor andar: <b>'+s.best+'</b><br>Monstros derrotados: <b>'+s.kills+'</b><br>Chefões vencidos: <b>'+s.bosses+'</b></p><button class="main" id="continue">VOLTAR À TORRE</button><button class="secondary" id="reset">ZERAR PROGRESSO</button></div>';$('continue').onclick=()=>{$('overlay').style.display='none';s.hp=Math.max(1,Math.ceil(s.maxHp*.65));s.floor=1;enemy=enemyForFloor();updateHud();drawChoices();save()};$('reset').onclick=()=>{if(confirm('Apagar todo o progresso salvo neste aparelho?')){s=fresh();save();$('overlay').style.display='none';enemy=enemyForFloor();updateHud();drawChoices()}};}
+function openMenu(){$('overlay').style.display='flex';$('overlay').innerHTML='<div class="modal"><div class="sub">CENTRAL DO AVENTUREIRO</div><h1>RATIVA HERO</h1><p>Melhor andar: <b>'+s.best+'</b> • Chefões: <b>'+s.bosses+'</b> • Poções: <b>'+s.potions+'</b></p><p>Arma: '+weapon()[2]+' '+weapon()[0]+'<br>Armadura: '+armor()[0]+'<br>Conquistas: '+s.achievements.length+'/2</p><button class="main" id="back">CONTINUAR JOGANDO</button><button class="secondary" id="reset">APAGAR PROGRESSO</button></div>';$('back').onclick=()=>$('overlay').style.display='none';$('reset').onclick=()=>{if(confirm('Tem certeza que deseja apagar seu progresso?')){s=fresh();save();$('overlay').style.display='none';enemy=enemyForFloor();updateHud();drawChoices()}};}
+function particlesBurst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*340,vy:(Math.random()-.7)*300,life:.5+Math.random()*.55,color,size:2+Math.random()*5});}
+function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(r.width*d));canvas.height=Math.max(1,Math.floor(r.height*d));ctx.setTransform(d,0,0,d,0,0)}
+function stick(x,y,scale,color,phase,weaponColor,enemySide=false){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);let bob=Math.sin(anim*5+phase)*3,walk=Math.sin(anim*8+phase)*.35;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#111b2a';ctx.lineWidth=13;ctx.beginPath();ctx.arc(0,-90+bob,21,0,Math.PI*2);ctx.stroke();ctx.fillStyle=color;ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=17;ctx.beginPath();ctx.moveTo(0,-68+bob);ctx.lineTo(0,-5+bob);ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=12;ctx.beginPath();ctx.moveTo(0,-55+bob);ctx.lineTo(-30+walk*18,-25+bob);ctx.moveTo(0,-55+bob);ctx.lineTo(30-walk*18,-30+bob);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-5+bob);ctx.lineTo(-20+walk*18,38);ctx.moveTo(0,-5+bob);ctx.lineTo(20-walk*18,38);ctx.stroke();ctx.strokeStyle=weaponColor;ctx.lineWidth=7;ctx.beginPath();if(enemySide){ctx.moveTo(29,-30+bob);ctx.lineTo(48,-83+bob)}else{ctx.moveTo(29,-30+bob);ctx.lineTo(52,-91+bob)}ctx.stroke();ctx.strokeStyle='#eaf7ff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(42,-78+bob);ctx.lineTo(58,-103+bob);ctx.stroke();if(!enemySide){ctx.strokeStyle='#ffd36b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-17,-72+bob);ctx.lineTo(-30,-52+bob);ctx.stroke()}ctx.restore()}
+function draw(t){const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);let th=themes[Math.floor((s.floor-1)/5)%themes.length];let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,th[0]);grad.addColorStop(.72,th[1]);grad.addColorStop(1,'#101c2b');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
+ctx.globalAlpha=.22;for(let i=0;i<8;i++){let bx=(i*w/7+Math.sin(anim*.25+i)*12)%w;ctx.fillStyle=i%2?'#d9eaff':'#050b14';ctx.fillRect(bx, h*.25+(i%3)*18, w*.07,h*.7)}ctx.globalAlpha=1;
+ctx.fillStyle='#0c1724';ctx.fillRect(0,h*.79,w,h*.21);ctx.fillStyle=th[2];ctx.fillRect(0,h*.79,w,5);
+for(let i=0;i<10;i++){ctx.fillStyle='#ffffff0b';ctx.fillRect(i*w/10,h*.81,1,h*.19)}
+let hit=attackTime>0?Math.sin(attackTime*Math.PI)*30:0;stick(w*.27+hit,h*.79,.78,'#53caff','#168',weapon()[2]==='🪓'?'#ff8b57':'#e8f5ff');if(mode!=='menu')stick(w*.73,h*.79,.78,enemy&&enemy.boss?'#ffb84d':'#ff6678','2', '#ffd2d8',true);
+if(enemy&&mode==='combat'){ctx.fillStyle='#ff6575';ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillText(enemy.emoji,w*.73,h*.19)}
+if(attackTime>0)attackTime=Math.max(0,attackTime-.04);
+if(shake>0){shake*=.88}
+particles=particles.filter(p=>p.life>0);for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();p.x+=p.vx*.016;p.y+=p.vy*.016;p.vy+=200*.016;p.life-=.018}ctx.globalAlpha=1;
+}
+function loop(t){let dt=Math.min(.04,(t-lastTime)/1000||0);lastTime=t;anim+=dt;draw(t);requestAnimationFrame(loop)}
+$('start').onclick=()=>{$('overlay').style.display='none';if(!s.floor||s.hp<=0)s=fresh();enemy=enemyForFloor();$('bossLabel').textContent=enemy.boss?'👑 CHEFÃO DO ANDAR':'';updateHud();drawChoices();save();sound(520,.12)};
+$('menu').onclick=openMenu;$('sound').onclick=()=>{s.sound=!s.sound;save();updateHud();toast(s.sound?'Som ativado':'Som desativado')};
+load();enemy=enemyForFloor();resize();window.addEventListener('resize',resize);updateHud();$('bossLabel').textContent=enemy.boss?'👑 CHEFÃO DO ANDAR':'';requestAnimationFrame(loop);
 })();
-</script><script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script></body></html>
+</script><script>if('serviceWorker'in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
+</body></html>
