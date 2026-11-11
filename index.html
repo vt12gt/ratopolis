@@ -751,24 +751,21 @@ async function showGlobalTitleAnnouncement(data){
  const codes=titles.map(t=>String(t.code||t.name||'').toLowerCase());
  if(codes.some(x=>x.includes('founder')||x.includes('fundador')))role='founder';
  if(!['founder','spadmin','gm','locutor'].includes(role)){if(!titles.length)return;role='special'}
- const configs={founder:{kicker:'♛ ENTRADA DO FUNDADOR',prefix:'♛ FUNDADOR',message:'Fundador da RativaGames',tone:'founder'},spadmin:{kicker:'✦ EQUIPE DE ADMINISTRAÇÃO',prefix:'✦ SPADMIN',message:'Tire suas dúvidas com a administração.',tone:'spadmin'},gm:{kicker:'🛡️ EQUIPE RativaGames',prefix:'🛡️ GM',message:'Tire suas dúvidas com nossa equipe.',tone:'gm'},locutor:{kicker:'🎙️ RÁDIO RativaGames',prefix:'🎙️ LOCUTOR',message:'Peça sua música!',tone:'locutor'},special:{kicker:'✦ TÍTULO ESPECIAL ✦',prefix:'✦',message:titles.map(t=>t.name||t.code||'Título Rativa').join(' · '),tone:'special'}};
+ const configs={founder:{kicker:'♛ PRESENÇA OFICIAL',prefix:'♛ FUNDADOR',message:'Fundador da RativaGames',tone:'founder'},spadmin:{kicker:'✦ EQUIPE DE ADMINISTRAÇÃO',prefix:'✦ SPADMIN',message:'Tire suas dúvidas com a administração.',tone:'spadmin'},gm:{kicker:'🛡️ EQUIPE RativaGames',prefix:'🛡️ GM',message:'Tire suas dúvidas com nossa equipe.',tone:'gm'},locutor:{kicker:'🎙️ RÁDIO RativaGames',prefix:'🎙️ LOCUTOR',message:'Peça sua música!',tone:'locutor'},special:{kicker:'✦ TÍTULO ESPECIAL ✦',prefix:'✦',message:titles.map(t=>t.name||t.code||'Título Rativa').join(' · '),tone:'special'}};
  const cfg=configs[role],nickname=String(data?.nickname||'Jogador');
  let style=document.getElementById('rativaGlobalTitleAnnouncementStyle');
  if(!style){style=document.createElement('style');style.id='rativaGlobalTitleAnnouncementStyle';style.textContent=`
  #rativaGlobalTitleAnnouncement{position:fixed;z-index:999999;top:calc(76px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(96vw,620px);pointer-events:none;animation:rativaTitleEnter .55s cubic-bezier(.2,.85,.25,1) both}
- #rativaGlobalTitleAnnouncement .rta-card{position:relative;overflow:hidden;border:1px solid var(--rta-accent);border-radius:17px;padding:17px 20px;background:linear-gradient(110deg,rgba(18,15,35,.98),rgba(48,29,82,.98),rgba(18,15,35,.98));box-shadow:0 0 20px var(--rta-glow),0 10px 35px rgba(0,0,0,.4);text-align:center;color:#fff}
- #rativaGlobalTitleAnnouncement .rta-card:before{content:'';position:absolute;inset:-80% -40%;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.24) 49%,var(--rta-glow) 51%,transparent 58%);transform:translateX(-70%);animation:rativaTitleShine 2s linear infinite}
- #rativaGlobalTitleAnnouncement .rta-kicker{position:relative;font-size:11px;font-weight:1000;letter-spacing:.18em;color:var(--rta-accent)}
- #rativaGlobalTitleAnnouncement .rta-name{position:relative;display:block;margin:4px 0;font-size:clamp(22px,6vw,31px);font-weight:1000;letter-spacing:.035em;color:#fff;text-shadow:0 0 7px #fff,0 0 15px var(--rta-accent),0 0 27px var(--rta-accent);animation:rativaNameGlow 1.2s ease-in-out infinite alternate}
- #rativaGlobalTitleAnnouncement .rta-message{position:relative;font-size:14px;font-weight:900;color:#fff;text-shadow:0 0 9px var(--rta-glow)}
+ #rativaGlobalTitleAnnouncement .rta-card{position:relative;overflow:hidden;border:1px solid var(--rta-accent);border-radius:17px;padding:15px 18px;background:linear-gradient(110deg,rgba(18,15,35,.76),rgba(48,29,82,.78),rgba(18,15,35,.76));box-shadow:0 5px 18px rgba(0,0,0,.24);text-align:center;color:#fff}
+ #rativaGlobalTitleAnnouncement .rta-kicker{position:relative;font-size:11px;font-weight:1000;letter-spacing:.14em;color:var(--rta-accent)}
+ #rativaGlobalTitleAnnouncement .rta-name{position:relative;display:block;margin:4px 0;font-size:clamp(22px,6vw,31px);font-weight:1000;letter-spacing:.035em;color:#fff;text-shadow:0 0 5px #fff,0 0 12px var(--rta-accent)}
+ #rativaGlobalTitleAnnouncement .rta-message{position:relative;font-size:14px;font-weight:900;color:#fff;text-shadow:0 0 6px var(--rta-glow)}
  #rativaGlobalTitleAnnouncement[data-role="founder"]{--rta-accent:#ffe08a;--rta-glow:rgba(255,190,55,.65)}
  #rativaGlobalTitleAnnouncement[data-role="spadmin"]{--rta-accent:#d7a6ff;--rta-glow:rgba(170,90,255,.7)}
  #rativaGlobalTitleAnnouncement[data-role="gm"]{--rta-accent:#82d8ff;--rta-glow:rgba(60,170,255,.7)}
  #rativaGlobalTitleAnnouncement[data-role="locutor"]{--rta-accent:#ff9fe3;--rta-glow:rgba(255,75,190,.7)}
  #rativaGlobalTitleAnnouncement[data-role="special"]{--rta-accent:#ffe08a;--rta-glow:rgba(255,190,55,.65)}
  @keyframes rativaTitleEnter{from{opacity:0;transform:translate(-50%,-22px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
- @keyframes rativaTitleShine{to{transform:translateX(70%)}}
- @keyframes rativaNameGlow{from{filter:brightness(.9);transform:scale(1)}to{filter:brightness(1.35);transform:scale(1.025)}}
  `;document.head.append(style)}
  let box=document.getElementById('rativaGlobalTitleAnnouncement');
  if(!box){box=document.createElement('div');box.id='rativaGlobalTitleAnnouncement';document.body.append(box)}
