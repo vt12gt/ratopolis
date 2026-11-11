@@ -575,7 +575,7 @@ function hatDraw(s,R){const h=s.hat;if(!h||h==='nenhum')return;const E=(x,y,a,b,
 const ratOwned=id=>!RATS[id]||lvlInfo(prog.xp).l>=RATS[id].lv||!!(RATS[id].ex&&((prog.ratU|(prog.dFace?64:0))&RATS[id].ex));
 function hslHex(h,sa=.85,l=.6){const a=sa*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0')};return '#'+f(0)+f(8)+f(4)}
 
-const DIFFS=[{n:'Fácil',react:1.05,vis:-20,boost:0,spd:.94,turn:5.2,hunt:.05,count:-1,gain:1},{n:'Médio',react:.78,vis:70,boost:.5,spd:1.00,turn:6.1,hunt:.22,count:0,gain:1},{n:'Difícil',react:.58,vis:135,boost:1,spd:1.06,turn:7.1,hunt:.4,count:1,gain:1.5},{n:'Pro',react:.42,vis:200,boost:1,spd:1.12,turn:8.2,hunt:.62,count:3,gain:3}];
+const DIFFS=[{n:'Fácil',react:1.15,vis:-40,boost:0,spd:.95,turn:3.4,hunt:-.1,count:-1,gain:1},{n:'Médio',react:.85,vis:60,boost:.5,spd:1.04,turn:4,hunt:.15,count:0,gain:1},{n:'Difícil',react:.65,vis:120,boost:1,spd:1.12,turn:4.5,hunt:.3,count:1,gain:1.5},{n:'Pro',react:.45,vis:180,boost:1,spd:1.18,turn:5.2,hunt:.5,count:3,gain:3}];
 const activeDiff=()=>DIFFS[mpOnline?3:prefs.diff];
 const TUT={mundial:['👑','Boss Mundial',['Abre às 10:00 e às 22:00, por 1 hora.','O Colosso tem barra de vida: bata na parede para atordoá-lo e passe pela cabeça dele.','O prêmio vale uma vez por janela, e o rato exclusivo só na primeira vitória.']],treino:['🧪','Treino',['Só 4 rivais, para praticar os controles.','Nada aqui vale queijos, XP ou recordes.','Use para testar pelagens, rostos e acessórios em ação.']],daily:['📅','Desafio diário',['A arena é a mesma para todo mundo hoje.','Você tem 2:00 para fazer o máximo de pontos.','Compare com seu recorde e volte amanhã: a arena muda.']],quick:['⚡','Partida rápida',['Coma queijos 🧀 para crescer e somar pontos.','Bater na parede ou no corpo de outro rato elimina você.','Elimine ratos menores: eles soltam queijos. Supere seu recorde!']],
  survival:['⏳','Sobrevivência',['Objetivo: ficar vivo pelo maior tempo possível.','A ameaça cresce com o tempo: mais ratos e mais rápidos.','Seu recorde é o tempo sobrevivido. Fuja dos maiores!']],
@@ -860,7 +860,7 @@ function syncMusic(){const want=!!(ac&&prefs.music&&running&&!paused&&!document.
 
 /* ============ Mundo ============ */
 function mkSnake(x,y,angle,color,name,isBot,n,arch){const segs=[];for(let i=0;i<n;i++)segs.push({x:x-Math.cos(angle)*CFG.seg*i,y:y-Math.sin(angle)*CFG.seg*i});
- return{x,y,angle,targetAngle:angle,color,name,isBot,arch,segments:segs,length:n,pending:0,growAcc:0,radius:10,speedBase:isBot?rand(174,188):190,ai:rand(.05,.3),lastAi:.2,alive:true,shield:isBot?CFG.spawnShield:1.5,boostT:0,magnetT:0,multT:0,shieldP:0,boostE:1,boostCd:0,boostActive:false,boostLock:false,turnSide:0,growT:0,tf:null,huntFor:0,huntCool:0,tfBest:1e9,tfStall:0,bad:null,badT:0,kills:0,respawnAt:0,skin:isBot&&Math.random()<.5?pickCos('skin'):'liso',acc:isBot&&Math.random()<.45?pickCos('acc'):'nenhum',tail:isBot&&Math.random()<.35?pickCos('tail'):'normal',hitWall:false,mood:rand(0,6.28),jit:rand(.9,1.1)}}
+ return{x,y,angle,targetAngle:angle,color,name,isBot,arch,segments:segs,length:n,pending:0,growAcc:0,radius:10,speedBase:isBot?rand(112,150):190,ai:rand(.05,.3),lastAi:.2,alive:true,shield:isBot?CFG.spawnShield:1.5,boostT:0,magnetT:0,multT:0,shieldP:0,boostE:1,boostCd:0,boostActive:false,boostLock:false,turnSide:0,growT:0,tf:null,huntFor:0,huntCool:0,tfBest:1e9,tfStall:0,bad:null,badT:0,kills:0,respawnAt:0,skin:isBot&&Math.random()<.5?pickCos('skin'):'liso',acc:isBot&&Math.random()<.45?pickCos('acc'):'nenhum',tail:isBot&&Math.random()<.35?pickCos('tail'):'normal',hitWall:false,mood:rand(0,6.28),jit:rand(.9,1.1)}}
 function pickCos(c){const ids=Object.keys(CAT[c]).filter(k=>!CAT[c][k][3]&&CAT[c][k][1]>0);return ids[Math.floor(Math.random()*ids.length)]}
 function spawnFood(x,y,type,drop,color,r){if(foods.length>=CFG.foodCap&&!(type>=7))return null;const f={x,y,r:r||(type?9:rand(4,7)),color:color||(type===1?'#ffd23e':type===2?'#46e6ff':type===3?'#7dff6b':type===4?'#c78bff':type===5?'#5ad1ff':type===6?'#ffb347':COLORS[(Math.random()*COLORS.length)|0]),phase:rand(0,6.28),type:type||0,drop:!!drop,dead:false};foods.push(f);return f}
 const randFood=type=>{let x,y,t=0;do{x=rand(B.x0+40,B.x1-40);y=rand(B.y0+40,B.y1-40);t++}while(t<8&&OBS.length&&inObs(x,y,24));return spawnFood(x,y,type||0,false)};
@@ -935,60 +935,29 @@ function tankAdjust(s){const t=gameTime;if(s.stT===undefined){s.stT=t;s.stx=s.x;
  if(player.alive&&s.length>=player.length*.8&&!nearRiv.some(o=>o!==player&&o.length>=s.length)){const d=Math.hypot(player.x-s.x,player.y-s.y);if(d<650&&d>40&&Math.min(s.x,worldW-s.x,s.y,worldH-s.y)>220){const lead=Math.min(.8,d/260),pa=Math.atan2(player.y+Math.sin(player.angle)*160*lead-s.y,player.x+Math.cos(player.angle)*160*lead-s.x);s.targetAngle+=diff(s.targetAngle,pa)*.4}}
  s.targetAngle+=Math.sin(t*1.3+s.seed)*.18}
 function botThink0(s){if(s.boss){s.ai=.1;return}
- const D=activeDiff(),A=ARCH[s.arch]||ARCH.guloso,T=threat,vis=560+125*T+D.vis;
- const interval=(.14-.055*T)*rand(.9,1.1)*D.react;s.ai=interval;s.lastAi=interval;s.huntCool=Math.max(0,(s.huntCool||0)-interval);
- let fx=0,fy=0,threatD=1e9,prey=null,preyD=1e9,preyScore=1e9;nearRiv.length=0;
- // Leitura tática: identifica ameaças, presas viáveis e adversários que disputam a mesma região.
- for(let k=0;k<snakes.length;k++){const o=snakes[k];if(o===s||!o.alive||(mode==='team'&&tm(o)===tm(s)))continue;
-  const dx=deltaWorld(s.x,o.x,worldW),dy=deltaWorld(s.y,o.y,worldH),d=Math.hypot(dx,dy);if(d>vis||d<1)continue;
-  const closing=Math.cos(diff(Math.atan2(dy,dx),o.angle));
-  if(d<245&&(o.length>=s.length*.88||closing>.55)){const danger=(245-d)/245*(o.length>=s.length*.95?1.35:.75);fx-=dx/d* danger*A.caution;fy-=dy/d* danger*A.caution}
-  if(o.length>=s.length*.9&&d<threatD)threatD=d;if(d<340)nearRiv.push(o);
-  const huntSkill=A.hunt+D.hunt*.8+T*.22;
-  if(huntSkill>.28&&s.huntCool<=0&&s.length>=10&&o.length<s.length*.94&&o.shield<=0&&d<Math.min(vis,620+D.vis)){
-   const value=d*(o.length<s.length*.72?.78:1.08)+(o===player?-35:0);
-   if(value<preyScore){preyScore=value;prey=o;preyD=d}}
- }
- // Escolha de comida com custo de curva, valor do poder e disputa por proximidade.
- let cur=Infinity;if(s.tf&&!s.tf.dead)cur=foodCost(s,s.tf,A,vis+100);else s.tf=null;
- let best=null,bestC=Infinity;
- for(let i=0;i<foods.length;i++){const f=foods[i];let c=foodCost(s,f,A,vis);if(!Number.isFinite(c)||c>=bestC)continue;
-  if(nearRiv.length){let crowd=1;for(const o of nearRiv){const od=Math.hypot(deltaWorld(o.x,f.x,worldW),deltaWorld(o.y,f.y,worldH));if(od<Math.hypot(deltaWorld(s.x,f.x,worldW),deltaWorld(s.y,f.y,worldH))*.72)crowd*=o.length>=s.length*.9?1.55:.82}c*=crowd}
-  if(f.type>=2)c*=.72;if(f.type===1)c*=.82;
-  if(c<bestC){bestC=c;best=f}}
- if(s.badT>0)s.badT-=interval;
- if(best&&(!s.tf||bestC<cur*.84)){if(s.tf!==best){s.tfBest=1e9;s.tfStall=0}s.tf=best}
- if(s.tf){const d=Math.hypot(deltaWorld(s.x,s.tf.x,worldW),deltaWorld(s.y,s.tf.y,worldH));if(d<s.tfBest-7){s.tfBest=d;s.tfStall=0}else s.tfStall+=interval;
-  if(s.tfStall>1.05&&d<155){s.bad=s.tf;s.badT=5.5;s.tf=null;s.tfBest=1e9;s.tfStall=0}}
- // Predição de interceptação: mira à frente da presa em vez de perseguir somente a posição atual.
+ const D=activeDiff(),A=ARCH[s.arch]||ARCH.guloso,T=threat,vis=480+110*T+D.vis,interval=(.2-.07*T)*rand(.85,1.15)*D.react;
+ s.ai=interval;s.lastAi=interval;s.huntCool-=interval;
+ let fx=0,fy=0,threatD=1e9,prey=null,preyD=1e9;nearRiv.length=0;
+ for(let k=0;k<snakes.length;k++){const o=snakes[k];if(o===s||!o.alive||(mode==='team'&&tm(o)===tm(s)))continue;const dx=o.x-s.x,dy=o.y-s.y,d=Math.hypot(dx,dy);if(d>vis||d<1)continue;
+  if(d<190){const danger=(190-d)/190*(o.length>=s.length?1.2:.6);fx-=dx/d*danger*A.caution;fy-=dy/d*danger*A.caution}
+  if(o.length>=s.length&&d<threatD)threatD=d;if(d<300)nearRiv.push(o);
+  if((A.hunt+D.hunt)*(.35+T)>=.3&&s.huntCool<=0&&s.length>=10&&o.length<s.length*.9&&o.shield<=0&&d<420+D.vis&&d<preyD){preyD=d;prey=o}}
+ // objetivo: presa (caçadores) > comida (com histerese) > vagar
  let goalAng=null,hunting=false;
- const huntSkill=A.hunt+D.hunt*.8+T*.22;
- if(prey&&huntSkill>.28&&preyD<Math.min(vis,620+D.vis)){
-  const ps=prey.speedBase*(prey.boostActive?1.5:1),mySp=s.speedBase*(s.boostActive?1.5:1);
-  const lead=clamp(preyD/Math.max(120,mySp+ps*.35),.22,1.05);
-  const px=prey.x+Math.cos(prey.angle)*ps*lead,py=prey.y+Math.sin(prey.angle)*ps*lead;
-  goalAng=Math.atan2(deltaWorld(s.y,py,worldH),deltaWorld(s.x,px,worldW));hunting=true;s.huntFor=(s.huntFor||0)+interval;
-  if(s.huntFor>4.2){s.huntCool=3.2;s.huntFor=0}
- }else{s.huntFor=0;if(s.tf)goalAng=Math.atan2(deltaWorld(s.y,s.tf.y,worldH),deltaWorld(s.x,s.tf.x,worldW))}
- // Se está ameaçado, prioriza escapar por uma rota limpa; não corre cegamente para a parede.
- const fleeing=threatD<205&&Math.hypot(fx,fy)>.01;
- const fleeAng=fleeing?Math.atan2(fy,fx):0;
- if(goalAng===null&&!fleeing){const cx=worldW*.5,cy=worldH*.5;goalAng=Math.atan2(cy-s.y,cx-s.x)+Math.sin(gameTime/2.2+s.mood)*A.wander*.8}
- const sloppy=Math.random()<.08*(1-T),far=105+45*T;
- let bestA=s.angle,bc=Infinity;
- for(let k=0;k<OFFS.length+1;k++){const off=k<OFFS.length?OFFS[k]:diff(s.angle,goalAng),a=s.angle+off;
-  // Avalia o caminho curto e a continuação, não apenas um ponto isolado.
-  let c=probeRisk(s,a,78)+probeRisk(s,a,172)*.58+headRisk(s,a)*1.15;
-  if(!sloppy)c+=probeRisk(s,a,far)*.32;
-  c+=Math.abs(off)*(1.8+D.turn*.10)-(off===0?4:0);
-  if(goalAng!==null)c-=Math.cos(diff(a,goalAng))*(hunting?24:19);
-  if(fleeing)c-=Math.cos(diff(a,fleeAng))*31;
-  if(c<bc){bc=c;bestA=a}}
- s.targetAngle=bestA;
- // Impulso com propósito: interceptar, escapar ou alcançar poder/comida próxima.
- const lowEnergy=s.boostE>.22;
- s.bHold=!!D.boost&&lowEnergy&&((hunting&&preyD<500)||(fleeing&&threatD<175)||(s.tf&&Math.hypot(s.tf.x-s.x,s.tf.y-s.y)>190&&Math.abs(diff(s.angle,goalAng||s.angle))<.38));
-}
+ let cur=Infinity;if(s.tf&&!s.tf.dead)cur=foodCost(s,s.tf,A,vis+80);else s.tf=null;
+ let best=null,bestC=Infinity;for(let i=0;i<foods.length;i++){let c=foodCost(s,foods[i],A,vis);if(c<bestC){if(nearRiv.length){const f=foods[i],ds=Math.hypot(f.x-s.x,f.y-s.y);for(const o of nearRiv)if(Math.hypot(f.x-o.x,f.y-o.y)<ds*.7)c*=o.length>=s.length*.9?1.7:.85}if(c<bestC){bestC=c;best=foods[i]}}}
+ if(s.badT>0)s.badT-=interval;
+ if(best&&(!s.tf||bestC<cur*.8)){if(s.tf!==best){s.tfBest=1e9;s.tfStall=0}s.tf=best}
+ if(s.tf){const d=Math.hypot(s.tf.x-s.x,s.tf.y-s.y);if(d<s.tfBest-8){s.tfBest=d;s.tfStall=0}else s.tfStall+=interval;
+  // não consegue chegar (órbita por causa do raio de curva): desiste desse queijo por alguns segundos
+  if(s.tfStall>1.1&&d<140){s.bad=s.tf;s.badT=5;s.tf=null;s.tfBest=1e9;s.tfStall=0}}
+ if(prey){const ps=prey.speedBase*(prey.boostActive?1.5:1),lt=Math.min(1.3,preyD/Math.max(80,s.speedBase*(s.boostActive?1.5:1))),px=prey.x+Math.cos(prey.angle)*ps*lt,py=prey.y+Math.sin(prey.angle)*ps*lt;goalAng=Math.atan2(py-s.y,px-s.x);hunting=true;s.huntFor+=interval;if(s.huntFor>3.5){s.huntCool=5;s.huntFor=0}}
+ else{s.huntFor=0;if(s.tf)goalAng=Math.atan2(s.tf.y-s.y,s.tf.x-s.x);else goalAng=s.angle+Math.sin(gameTime/1.7+s.mood)*A.wander*1.2}
+ const fleeing=threatD<170,fleeAng=Math.atan2(fy,fx),sloppy=Math.random()<.25*(1-T),far=70+60*T+30;s.bHold=!s.special&&D.boost>0&&((hunting&&preyD<340)||(fleeing&&threatD<150))&&Math.random()<.4+.6*D.boost;
+ let bestA=s.angle,bc=Infinity;const nC=OFFS.length+(goalAng!==null?1:0);
+ for(let k=0;k<nC;k++){const off=k<OFFS.length?OFFS[k]:diff(s.angle,goalAng),a=s.angle+off;let c=probeRisk(s,a,70)+headRisk(s,a);if(!sloppy)c+=probeRisk(s,a,far)*.8;
+  c+=Math.abs(off)*3-(off===0?5:0);if(goalAng!==null)c-=Math.cos(diff(a,goalAng))*16*(hunting?1.2:1);if(fleeing)c-=Math.cos(diff(a,fleeAng))*22;if(c<bc){bc=c;bestA=a}}
+ s.targetAngle=bestA}
 
 /* ============ Movimento, comida, bônus ============ */
 function addSeg(s){const t=s.segments[s.segments.length-1];s.segments.push({x:t.x,y:t.y});s.length++}
