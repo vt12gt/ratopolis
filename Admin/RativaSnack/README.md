@@ -2,7 +2,8 @@
 
 Painel administrativo próprio, separado do Admin RativaPolis e do Admin RativaGames.
 
-- Painel: https://vt12gt.github.io/RativaGames/Admin/RativaSnack/
+- Painel principal: https://vt12gt.github.io/RativaGames/Admin/RativaSnack/
+- Painel de teste com dados privados: https://vt12gt.github.io/RativaGames/Admin/RativaSnack/index-perfil-privado-teste.html
 - API administrativa: https://rativasnack-admin-api-dev.juniorgmj69.workers.dev
 - Worker: `rativasnack-admin-api-dev`
 - Banco do jogo: `rativasnack-dev-isolated`
