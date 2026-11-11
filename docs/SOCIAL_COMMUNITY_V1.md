@@ -8,8 +8,8 @@
 - Interface mobile-first, compatível com a PWA e com o tema roxo/dourado existente.
 
 ## Etapas de implementação
-1. **Feed social:** publicações, reações, comentários, compartilhamento, denúncia e exclusão/moderação. O feed atual e o envio `feed_post` pelo chat Worker são ponto de partida; validar persistência, histórico, autoria e expiração antes de ampliar.
-2. **Relacionamentos:** perfis públicos, seguir/deixar de seguir, solicitações e amizades, bloqueio e mensagens privadas. Não simular ações no navegador: cada ação precisa ser validada e persistida no servidor.
+1. **Feed social:** publicações, reações, comentários, compartilhamento, denúncia e exclusão/moderação.
+2. **Relacionamentos:** perfis públicos, seguir/deixar de seguir, solicitações e amizades, bloqueio e mensagens privadas. Cada ação deve ser validada e persistida no servidor.
 3. **Integração:** eventos de jogos, XP, níveis, títulos e conquistas publicados como atividades verificadas; notificações dentro do portal.
 4. **Administração:** fila de denúncias, remoção/ocultação de conteúdo, suspensão de contas, trilha de auditoria e permissões separadas por função.
 
@@ -22,54 +22,22 @@
 - Nunca expor e-mail, nome completo, data de nascimento, WhatsApp, token ou dados privados nos perfis públicos.
 - Não criar uma segunda tabela de usuários/contas: relacionar recursos sociais ao identificador interno da conta RativaGames.
 
-## Contrato de API a implementar no backend
-Todas as rotas abaixo devem autenticar a sessão existente e aplicar autorização no servidor.
-
-- `GET /api/social/feed?cursor=...`
-- `POST /api/social/posts`
-- `DELETE /api/social/posts/:postId` (autor ou moderador autorizado)
-- `GET /api/social/posts/:postId/comments`
-- `POST /api/social/posts/:postId/comments`
-- `POST /api/social/posts/:postId/reactions`
-- `DELETE /api/social/posts/:postId/reactions`
-- `POST /api/social/posts/:postId/reports`
-- `GET /api/social/users/:publicId`
-- `GET /api/social/users/:publicId/followers`
-- `GET /api/social/users/:publicId/following`
-- `POST /api/social/users/:publicId/follow`
-- `DELETE /api/social/users/:publicId/follow`
-- `POST /api/social/friend-requests`
-- `POST /api/social/friend-requests/:requestId/accept`
-- `POST /api/social/friend-requests/:requestId/decline`
-- `GET /api/social/friends`
-- `POST /api/social/blocks/:publicId`
-- `DELETE /api/social/blocks/:publicId`
-- `GET /api/social/notifications`
-- `POST /api/social/notifications/:notificationId/read`
-
-## Critérios de aceite
-- Visitante sem login é encaminhado à tela de entrar; nenhuma resposta social privada é exibida.
-- O login existente libera a comunidade sem novo cadastro e sem nova senha.
-- Publicações, comentários, reações, amizades e notificações continuam disponíveis em outro aparelho após novo login.
-- Ações recusadas pelo servidor mostram erro claro e não alteram a interface como se tivessem sido concluídas.
-- RativaPolis, RativaSnack, rádio, doações, ranking e administração continuam funcionando sem regressão.
-- Nenhum recurso de fórum é adicionado.
-
-
-## Estado da implementação — 10/11/2026
+## Estado da implementação — 11/11/2026
 
 - [x] Branch isolada `feature/social-community`; portal oficial preservado.
-- [x] Worker do chat localizado em `workers/ratopolis-community-chat-preview.js` no próprio repositório.
-- [x] Acesso ao Worker da comunidade restrito a sessões autenticadas da conta RativaGames.
-- [x] Feed exige autenticação no servidor, além da validação já existente no cliente.
-- [x] Reações persistidas no armazenamento do Durable Object, com alternância por membro.
-- [x] Comentários persistidos, limitados a 250 caracteres e com limite de frequência.
-- [x] Exclusão de publicação pelo autor; moderação autorizada pode remover qualquer publicação.
-- [x] Denúncias persistidas, com prevenção de duplicidade e registro de auditoria.
-- [x] Interface do feed conectada às ações de reação, comentários, exclusão e denúncia.
-- [x] Criar fila administrativa para consultar, arquivar ou remover publicações denunciadas (SpAdmin/Admin/GM/Moderador).
-- [ ] Testar dois dispositivos com contas diferentes e validar persistência após reconexão.
-- [ ] Implantar o Worker em ambiente de teste e validar o domínio/versão realmente em execução.
-- [ ] Implementar amigos/seguidores, grupos, mensagens privadas sociais e notificações de atividade.
+- [x] Worker do chat/comunidade localizado no próprio repositório.
+- [x] Ticket e publicação exigem conta autenticada, com validação no servidor.
+- [x] Reações e comentários persistidos no Durable Object.
+- [x] Exclusão pelo autor e moderação autorizada.
+- [x] Denúncias persistidas, com prevenção de duplicidade e auditoria.
+- [x] Painel administrativo com fila de denúncias do feed.
+- [x] Worker de preview implantado na Cloudflare, versão 38, sem alterar a branch `main`.
+- [ ] Portal de preview validado no navegador com a nova interface.
+- [ ] Testes reais em dois dispositivos/contas e reconexão.
+- [ ] Testes de regressão de chat, voz, rádio, jogos e administração.
+- [ ] Implementar amigos, seguidores, grupos e notificações sociais.
 
-**Importante:** os commits desta etapa estão somente na branch de teste. Nenhum deploy foi executado e o site oficial continua intacto.
+**Importante:** o Worker está implantado somente no endpoint de preview. O portal oficial e a branch `main` permanecem sem alterações. Não considerar o feed aprovado para lançamento até concluir os testes de navegador e dois dispositivos.
+
+## Próxima etapa
+Validar o portal de preview com o Worker versão 38 e executar o roteiro de aceite descrito em `docs/SOCIAL_FEED_BACKEND_INTEGRATION.md`.
