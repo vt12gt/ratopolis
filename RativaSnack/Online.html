@@ -1116,7 +1116,7 @@ function olMsg(m){
   case 'peer_leave':{const k=mpConns.findIndex(x=>x.uid===m.id);if(k>=0){const c=mpConns[k],i=mpSlots.indexOf(c);if(i>=0){if(bots[i])bots[i].alive=false;mpSlots[i]=null}mpConns.splice(k,1)}break}
   case 'in':{const c=mpConns.find(x=>x.uid===m.from);if(c)mpHostMsg(c,m.d);break}
   case 'st':if(mpRole==='client')mpClientMsg({data:m.d});break;
-  case 'end':if(mpRole==='client'){mpClientMsg({data:'{"end":1}'})}else if(ol.view){ol.view=false;olHome();olMsgSet('A sala foi encerrada.')}break;
+  case 'end':if(mpRole==='client'){if(mpOnline&&running&&!ended)olFinalizeMatch('leave');mpClientMsg({data:'{"end":1}'})}else if(ol.view){ol.view=false;olHome();olMsgSet('A sala foi encerrada.')}break;
   case 'kicked':break}}
 function onlineHostRespawn(){let x=0,y=0,t=0;do{x=rand(B.x0+260,B.x1-260);y=rand(B.y0+260,B.y1-260);t++}while(t<12&&(inObs(x,y,70)||bots.some(b=>b.alive&&Math.hypot(b.x-x,b.y-y)<400)));
  const np=mkSnake(x,y,rand(0,6.28),prefs.color,ol.nick||'Você',false,8,null);applyCosmetics(np);np.shield=3;player=np;rebuildSnakes();dyingT=0;hideDeathPanel();lastKiller=null;causeText='';score=0;kills=0;foodEaten=0;cam.x=CFG.solidWalls?camTarget(np.x,W,worldW,CFG.camMargin):np.x-W/2;cam.y=CFG.solidWalls?camTarget(np.y,H,worldH,CFG.camMargin):np.y-H/2;showToast('💀 Você caiu! Reaparecendo…',2)}
