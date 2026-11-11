@@ -1131,7 +1131,7 @@ function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,ca
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
 const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
-let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,hostType:'bot-pro',hostLabel:'Bot Pro',mode:'quick',players:[],tries:0,bye:false,view:false,survivalAliveTime:0};
+let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,hostType:'bot-pro',hostLabel:'Bot Pro',mode:'quick',players:[],tries:0,bye:false,view:false,survivalAliveTime:0,staffRoles:[]};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
 function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL;olSave()}
@@ -1158,12 +1158,34 @@ function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast
  if(!ol.token)return;ol.tries++;if(ol.tries>12){if(ol.inRoom){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}}return}if(ol.inRoom)showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.token&&navigator.onLine!==false)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
 function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(!bots[i].alive)respawnBot(i);mpBind(bots[i],c)}}
 function olHostStart(){ol.survivalAliveTime=0;ol.survivalRewarded=false;mpSlots.length=0;for(const c of mpConns)if(c.open)mpSlots[Math.max(0,c.slot-1)]=c;mpRole='host';mpPending=true;mpOnline=true;ol.tally={};ol.rw={};ol.tw=[0,0];ol.survivalEntrants=ol.mode==='survival'?1+mpSlots.filter(Boolean).length:0;ol.roomStart=Date.now();ol.left=-1;mpClose();startGame(ol.mode||mode)}
+function olShowStaffPanelButton(roles){
+ ol.staffRoles=Array.isArray(roles)?roles:[];
+ if(!ol.staffRoles.some(role=>['founder','spadmin','gm'].includes(role)))return;
+ let btn=document.getElementById('rativaStaffPanelBtn');
+ if(!btn){btn=document.createElement('button');btn.id='rativaStaffPanelBtn';btn.type='button';btn.textContent='🛡️ PAINEL STAFF';btn.style.cssText='position:fixed;z-index:2147483000;right:10px;top:calc(42px + env(safe-area-inset-top));padding:8px 11px;border:1px solid #d7a6ff;border-radius:11px;background:rgba(28,15,48,.88);color:#fff;font:900 11px system-ui;box-shadow:0 0 12px #9b5ad866;pointer-events:auto';btn.addEventListener('click',olOpenStaffPanel);document.body.append(btn)}
+}
+function olOpenStaffPanel(){
+ let panel=document.getElementById('rativaStaffPanel');if(panel){panel.style.display='flex';return}
+ panel=document.createElement('div');panel.id='rativaStaffPanel';panel.style.cssText='position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,3,12,.78);backdrop-filter:blur(5px);font-family:system-ui,sans-serif';
+ panel.innerHTML='<section style="width:min(460px,100%);padding:18px;border:1px solid #9e72c6;border-radius:18px;background:#191126;color:white;box-shadow:0 12px 45px #0009"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b style="font-size:17px;color:#e2c5ff">🛡️ Painel de avisos globais</b><button type="button" data-staff-close style="border:0;border-radius:9px;padding:7px 10px;background:#493254;color:#fff">Fechar</button></div><p style="font-size:12px;color:#c9bad5">Sua mensagem será exibida como letreiro para todos os jogadores online, em qualquer modo. Até 240 caracteres.</p><textarea id="rativaStaffMessage" maxlength="240" rows="4" placeholder="Digite o aviso para todos os jogadores..." style="box-sizing:border-box;width:100%;resize:vertical;padding:12px;border:1px solid #76538f;border-radius:10px;background:#0e0a17;color:#fff;font:14px system-ui"></textarea><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px"><small id="rativaStaffStatus" style="color:#bfa9d2">Acesso administrativo validado pelo servidor.</small><button id="rativaStaffSend" type="button" style="padding:10px 14px;border:0;border-radius:10px;background:linear-gradient(120deg,#c58aff,#8650c9);color:#160b20;font-weight:1000">PUBLICAR AVISO</button></div></section>';
+ panel.addEventListener('click',e=>{if(e.target===panel||e.target.closest('[data-staff-close]'))panel.style.display='none'});
+ panel.querySelector('#rativaStaffSend').addEventListener('click',async()=>{
+  const input=panel.querySelector('#rativaStaffMessage'),status=panel.querySelector('#rativaStaffStatus'),send=panel.querySelector('#rativaStaffSend'),message=String(input.value||'').trim();
+  if(message.length<3){status.textContent='Escreva pelo menos 3 caracteres.';return}
+  send.disabled=true;status.textContent='Publicando para todos os jogadores...';
+  try{const result=await olApi('/api/admin/announcements',{message},ol.token);if(result.s!==200||!result.ok)throw new Error(result.error||'falha_ao_publicar');status.textContent='Aviso publicado! Jogadores conectados: '+Number(result.deliveredTo||0)+'.';input.value='';}
+  catch(error){status.textContent=error.message==='permissao_insuficiente'?'Sua conta não tem autorização para publicar.':'Não foi possível publicar. Verifique sua conexão e tente novamente.'}
+  finally{send.disabled=false}
+ });
+ document.body.append(panel);panel.querySelector('#rativaStaffMessage').focus();
+}
 function olShowGlobalAnnouncement(m){
  const roles=Array.isArray(m&&m.roles)?m.roles:[];
  const nick=String(m&&m.nickname||'Jogador').slice(0,32);
  const labels={founder:'♛ FUNDADOR',spadmin:'✦ SpAdmin',gm:'🛡️ GM'};
  const queue=window.__rativaStaffTickerQueue||(window.__rativaStaffTickerQueue=[]);
- roles.forEach(role=>{if(labels[role])queue.push(labels[role]+' '+nick+' — ONLINE')});
+ if(m.kind==='manual'){queue.push('📢 AVISO RativaGames — '+String(m.message||'').slice(0,240));}
+ else roles.forEach(role=>{if(labels[role])queue.push(labels[role]+' '+nick+' — ONLINE')});
  if(window.__rativaStaffTickerRunning||!queue.length)return;
  window.__rativaStaffTickerRunning=true;
  let style=document.getElementById('rativaStaffTickerStyle');
@@ -1173,7 +1195,8 @@ function olShowGlobalAnnouncement(m){
 }
 function olMsg(m){
  switch(m.t){
-  case 'global_announcement':if(m.kind==='staff_online')olShowGlobalAnnouncement(m);break;
+  case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
+  case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
   case 'room_mode_mismatch':olRejectRoom('A conexão tentou entrar em uma sala de outro modo. Volte ao menu e tente novamente.');break;
   case 'joined':if(m.mode!==ol.mode||m.roomKey!==olRoomKey(ol.mode)){olRejectRoom('O servidor respondeu com uma sala diferente da solicitada. A entrada foi bloqueada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.hostId=m.host;ol.isHost=m.isHost;ol.hostType=m.hostType||'bot-pro';ol.hostLabel=m.hostLabel||'Bot Pro';ol.mode=ol.mode||m.mode||mode;ol.players=m.players;if(ol.view)olRoomView();break;
@@ -1710,7 +1733,7 @@ function drawSnake(s){if(!s.alive)return;const seg=s.segments,n=seg.length,R=s.r
  if(s.shieldP>0){ctx.strokeStyle='#5ad1ffcc';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,R*1.9,0,6.2832);ctx.stroke()}
  if(s===player){ctx.strokeStyle='#ffffff66';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,R*1.25,0,6.2832);ctx.stroke()}
  ctx.restore();ctx.globalAlpha=1;
- accDraw(s,hx,hy,R);ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0a0f1caa';const label=(s===leader?'👑 ':'')+(s.rival?'🎯 ':'')+(s.arch?ARCH[s.arch].i+' ':'')+s.name;ctx.strokeText(label,hx,hy-R-14);ctx.fillStyle='#f4f7ff';ctx.fillText(label,hx,hy-R-14)}
+ accDraw(s,hx,hy,R);ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#0a0f1caa';const staff=ol.players.find(p=>String(p.nick||'').toLowerCase()===String(s.name||'').toLowerCase())?.staffRole||'';const staffMeta={founder:['♛ FUNDADOR · ','#ffe08a'],spadmin:['✦ SPADMIN · ','#d7a6ff'],gm:['🛡️ GM · ','#ffe18a']}[staff];const label=(s===leader?'👑 ':'')+(s.rival?'🎯 ':'')+(s.arch?ARCH[s.arch].i+' ':'')+(staffMeta?staffMeta[0]:'')+s.name;ctx.strokeText(label,hx,hy-R-14);ctx.fillStyle=staffMeta?staffMeta[1]:'#f4f7ff';ctx.shadowColor=staffMeta?staffMeta[1]:'transparent';ctx.shadowBlur=staffMeta?10:0;ctx.fillText(label,hx,hy-R-14);ctx.shadowBlur=0}
 function drawArena(wx,wy){if(B.k>0){ctx.fillStyle='rgba(255,50,90,.30)';ctx.beginPath();ctx.rect(wx,wy,worldW,worldH);ctx.rect(wx+B.x0,wy+B.y0,B.x1-B.x0,B.y1-B.y0);ctx.fill('evenodd');ctx.strokeStyle='#ff3b5c';ctx.lineWidth=5;ctx.strokeRect(wx+B.x0,wy+B.y0,B.x1-B.x0,B.y1-B.y0)}
  for(const o of OBS){const x=wx+o.x,y=wy+o.y;if(x>W||y>H||x+o.w<0||y+o.h<0)continue;if(o.k){ctx.fillStyle='rgba(255,60,60,.38)';ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='#ff5a5a';ctx.lineWidth=3;ctx.setLineDash([12,8]);ctx.strokeRect(x,y,o.w,o.h);ctx.setLineDash([])}else{ctx.fillStyle='#4b3f7a';ctx.fillRect(x,y,o.w,o.h);ctx.strokeStyle='#b8a6ff';ctx.lineWidth=4;ctx.strokeRect(x,y,o.w,o.h)}}}
 function bossBar(t){if(mode==='boss'&&bossDown&&bossWinT>0&&running){ctx.save();ctx.textAlign='center';ctx.font='bold 16px system-ui,sans-serif';const w=Math.min(W*.7,420);ctx.fillStyle='#0a0f1ccc';ctx.fillRect((W-w)/2,52,w,wbRun?50:30);ctx.fillStyle=((t*3)|0)%2?'#ffe477':'#fff';ctx.fillText('🧀 COLETE! Queijos valem 3x — '+Math.ceil(bossWinT)+'s',W/2,73);if(wbRun){ctx.fillStyle='#fff';ctx.font='bold 13px system-ui,sans-serif';ctx.fillText('Pontos da janela: '+wbPtsGet()+' • próximo Colosso depois da contagem',W/2,94)}ctx.restore();return}
