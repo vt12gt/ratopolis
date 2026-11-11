@@ -687,7 +687,7 @@ function applyA11y(){document.body.classList.toggle('bigtxt',!!prefs.bigtxt);doc
 function applyControlPrefs(){CFG.stickDead=[4,8,14][prefs.dead];CFG.stickMax=54*SENSM[prefs.sens]*CSZ[prefs.csz];const z=Math.round(64*CSZ[prefs.csz]);bb.style.width=bb.style.height=z+'px';bb.classList.toggle('left',prefs.boostLeft)}
 function stickCenter(){const r=CFG.stickMax,m=18;return{x:r+m+50,y:H-r-m-14}}
 function ctlDown(){if(prefs.ctl==='joystick'){if(pointer.x>=W*.5)return false;const c=stickCenter();pointer.ax=c.x;pointer.ay=c.y;pointer.dirX=0;pointer.dirY=0;pointer.hasDirection=false}else{pointer.ax=pointer.x;pointer.ay=pointer.y}ctlUpdate();return true}
-function ctlUpdate(){if(prefs.ctl==='toque'){const dx=pointer.x-(player.x-cam.x),dy=pointer.y-(player.y-cam.y);if(Math.hypot(dx,dy)>26){const a=.68;pointer.dirX+=(dx-pointer.dirX)*a;pointer.dirY+=(dy-pointer.dirY)*a;pointer.hasDirection=true}}
+function ctlUpdate(){if(prefs.ctl==='toque'){const dx=pointer.x-(player.x-cam.x),dy=pointer.y-(player.y-cam.y);if(Math.hypot(dx,dy)>26){const a=.88;pointer.dirX+=(dx-pointer.dirX)*a;pointer.dirY+=(dy-pointer.dirY)*a;pointer.hasDirection=true}}
  else if(prefs.ctl==='joystick'){const dx=Math.min(pointer.x,W*.5-1)-pointer.ax,dy=pointer.y-pointer.ay;if(Math.hypot(dx,dy)>=CFG.stickDead){pointer.dirX=dx;pointer.dirY=dy;pointer.hasDirection=true}}
  else stickUpdate(pointer,pointer.x,pointer.y,CFG.stickMax,CFG.stickDead)}
 /* ===== Progressão: XP/nível, missões diárias, recompensa diária, conquistas =====
@@ -793,7 +793,7 @@ function followBody(seg,n,sp){for(let i=1;i<n;i++){const p=seg[i-1],q=seg[i],dx=
 function calcThreat(time,length,kills,near,survival){const tf=Math.min(1,time/(survival?150:240)),sz=Math.min(1,Math.max(0,length-8)/70),kk=Math.min(1,kills/8);return Math.max(0,Math.min(.95,.5*tf+.25*sz+.15*kk-.08*Math.max(0,near-2)))}
 function fmtTime(sec){const s=Math.max(0,Math.floor(sec));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 // Giro do jogador: suaviza perto do alvo, velocidade máxima fixa, e mantém o lado do giro em meia-volta (~180°).
-function steerPlayer(s,t,vmax,dt){let d=diff(s.angle,t);const ad=Math.abs(d);if(ad>2.8&&s.turnSide)d=ad*s.turnSide;else s.turnSide=d<0?-1:1;const st=Math.min(ad,vmax*dt,Math.max(ad*14*dt,vmax*dt*.3));s.angle+=(d<0?-st:st);return s.angle}
+function steerPlayer(s,t,vmax,dt){const d=diff(s.angle,t),ad=Math.abs(d);if(ad<.006){s.angle=t;return s.angle}const responsive=Math.min(vmax,Math.max(2.8,ad*10));const st=Math.min(ad,responsive*dt);s.angle+=(d<0?-st:st);return s.angle}
 // Impulso manual: gasta energia (boostMax s), recarga após boostDelay, exige boostMin para começar e soltar o botão após esvaziar.
 function updateBoost(s,dt,hold,c){if(!hold)s.boostLock=false;let on=!!hold&&!s.boostLock&&s.boostE>0&&(s.boostActive||s.boostE>=c.boostMin);
  if(on){s.boostE=Math.max(0,s.boostE-dt/c.boostMax);s.boostCd=c.boostDelay;if(s.boostE<=0){on=false;s.boostLock=true}}
@@ -931,7 +931,7 @@ function move(s,dt){
  if((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)){s.mpAwayShield=true;s.shield=999;return}
  if(s.mpAwayShield){s.mpAwayShield=false;s.shield=0}
  if(s.isBot){s.ai-=dt;if(s.ai<=0)botThink(s)}else if(pointer.down&&pointer.hasDirection){s.targetAngle=Math.atan2(pointer.dirY,pointer.dirX)}
- if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v,dt)}
+ if(s.isBot){s.angle=stepAngle(s.angle,s.targetAngle,(s.special?3.6:DIFFS[prefs.diff].turn)*dt);if(!s.special&&DIFFS[prefs.diff].boost)updateBoost(s,dt,!!s.bHold,CFG)}else{updateBoost(s,dt,boostHold,CFG);steerPlayer(s,s.targetAngle,TURNS[prefs.turn].v*1.35,dt)}
  const spd=s.speedBase*(s.isBot?(1+.08*threat+(mode==='infinite'?Math.min(.35,.03*wave):0))*(s.special?1:DIFFS[prefs.diff].spd):1)*(ev&&ev.id==='vento'?1.15:1)*Math.max(s.boostT>0?skillVal(s,'boost','mul'):1,s.boostActive?CFG.boostMult:1);
  s.px=s.x;s.py=s.y;s.x+=Math.cos(s.angle)*spd*EVM*dt;s.y+=Math.sin(s.angle)*spd*EVM*dt;edge(s);if(OBS.length&&obsHit(s))s.hitWall=true;
  bodyFromTrail(s);
