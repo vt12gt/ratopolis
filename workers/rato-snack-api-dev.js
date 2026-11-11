@@ -31,6 +31,7 @@ async function auth(r,env){
  return ensureGameUser(portal,env.DB);
 }
 async function body(r){try{return await r.json()}catch{return null}}
+function now(){return new Date().toISOString()}
 function cleanFullName(value){return String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,120)}
 function pixB64(bytes){let s='';for(const x of bytes)s+=String.fromCharCode(x);return btoa(s)}
 function pixUnb64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
