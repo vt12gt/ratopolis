@@ -1136,7 +1136,7 @@ const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
 function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL;olSave()}
 function olApplyAccount(me){ol.id=String(me.id);ol.nick=String(me.nick);ol.level=Number(me.level)||1;ol.xp=Number(me.xp)||0;prefs.nick=ol.nick;savePrefs();if(player)player.name=ol.nick;menuInfo()}
-async function olSyncAccount(){olLoad();if(!ol.token||navigator.onLine===false)return false;try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick)return false;olApplyAccount(me);return true}catch(e){return false}}
+async function olSyncAccount(){olLoad();if(!ol.token||navigator.onLine===false)return false;try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick)return false;olApplyAccount(me);try{await olConnect()}catch(e){console.warn('RativaSnack: presença global aguardando conexão',e)}return true}catch(e){return false}}
 function olSave(){try{localStorage.removeItem('ratoSnackOnline')}catch(e){}}
 function olClearExpired(){ol.token='';ol.id='';ol.nick='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}}
 const olHttp=u=>u.replace(/^ws/,'http').replace(/\/+$/,''),olWs=u=>u.replace(/^http/,'ws').replace(/\/+$/,'');
@@ -1148,18 +1148,32 @@ async function olConnect(){if(ol.ws&&ol.ws.readyState===1)return;const issued=aw
  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}if(m.t==='hello'&&!done){done=true;res()}olMsg(m)};ws.onerror=()=>{if(!done){done=true;rej(new Error('conexao'))}};ws.onclose=ev=>{if(ol.ws===ws)ol.ws=null;if(!done){done=true;rej(new Error('fechada'))}olClosed(ev.code)}})}
 function olSend(o){if(ol.ws&&ol.ws.readyState===1){ol.ws.send(JSON.stringify(o));return true}return false}
 const olRoomKey=k=>k==='mundial'?'BOSS_MUNDIAL':k==='boss'?'BOSS':String(k||'quick').toUpperCase();
-function olRejectRoom(message){const wasInRoom=ol.inRoom;ol.view=false;if(!wasInRoom){ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null}mpClose();toMenu();gAlert(message||'Não foi possível entrar nesta sala.');}
+function olRejectRoom(message){ol.view=false;mpClose();toMenu();gAlert(message||'Não foi possível entrar nesta sala.');}
 async function olPlay(requestedMode=mode){await olConnect();if(requestedMode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());return false}ol.bye=false;ol.mode=requestedMode;const sent=olSend({t:'play',mode:ol.mode});if(!sent){ol.inRoom=false;throw new Error('falha_ao_enviar_modo')}ol.inRoom=true;return true}
 function olDC(uid){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(str){olSend({t:'st',to:uid,d:str})},close(){}}}
 function olGuestDC(){return{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},send(str){olSend({t:'in',d:str})},close(){}}}
 function olHello(){olSend({t:'in',d:JSON.stringify({h:ol.nick,rat:prefs.rat,col:prefs.color,sk:prefs.skin,hat:prefs.hat,cloth:prefs.cloth})})}
-function olLeaveRoom(){if(ol.ws&&ol.ws.readyState===1)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=true;try{if(ol.ws)ol.ws.close()}catch(_){}ol.ws=null;mpConns.length=0;mpSlots.length=0}
+function olLeaveRoom(){if(ol.ws&&ol.ws.readyState===1&&ol.inRoom)olSend(ol.isHost?{t:'ctl',k:'end'}:{t:'leave'});ol.inRoom=false;ol.players=[];ol.bye=false;mpConns.length=0;mpSlots.length=0}
 function olClosed(code){if(ol.bye){ol.bye=false;return}if(code===4001){showToast('⚠️ Sua conta entrou em outro aparelho.',4);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}if(code===4003){ol.inRoom=false;olClearExpired();showToast('Sua sessão RativaGames expirou. Entre novamente no portal.',5);if(mpOnline){mpLeave();toMenu()}return}
- if(!ol.inRoom)return;ol.tries++;if(ol.tries>12){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}return}showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.inRoom)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
+ if(!ol.token)return;ol.tries++;if(ol.tries>12){if(ol.inRoom){showToast('Conexão perdida.',3);ol.inRoom=false;if(mpOnline){mpLeave();toMenu()}}return}if(ol.inRoom)showToast('📶 Conexão perdida. Reconectando…',3);setTimeout(()=>{if(ol.token&&navigator.onLine!==false)olConnect().then(()=>{ol.tries=0}).catch(()=>olClosed(1006))},Math.min(8000,1000*ol.tries))}
 function olSlotBind(c){const i=Math.max(0,c.slot-1);mpSlots[i]=c;if(bots[i]){if(!bots[i].alive)respawnBot(i);mpBind(bots[i],c)}}
 function olHostStart(){ol.survivalAliveTime=0;ol.survivalRewarded=false;mpSlots.length=0;for(const c of mpConns)if(c.open)mpSlots[Math.max(0,c.slot-1)]=c;mpRole='host';mpPending=true;mpOnline=true;ol.tally={};ol.rw={};ol.tw=[0,0];ol.survivalEntrants=ol.mode==='survival'?1+mpSlots.filter(Boolean).length:0;ol.roomStart=Date.now();ol.left=-1;mpClose();startGame(ol.mode||mode)}
+function olShowGlobalAnnouncement(m){
+ const roles=Array.isArray(m&&m.roles)?m.roles:[];
+ const nick=String(m&&m.nickname||'Jogador').slice(0,32);
+ const labels={founder:'♛ FUNDADOR',spadmin:'✦ SpAdmin',gm:'🛡️ GM'};
+ const queue=window.__rativaStaffTickerQueue||(window.__rativaStaffTickerQueue=[]);
+ roles.forEach(role=>{if(labels[role])queue.push(labels[role]+' '+nick+' — ONLINE')});
+ if(window.__rativaStaffTickerRunning||!queue.length)return;
+ window.__rativaStaffTickerRunning=true;
+ let style=document.getElementById('rativaStaffTickerStyle');
+ if(!style){style=document.createElement('style');style.id='rativaStaffTickerStyle';style.textContent='@keyframes rativaStaffTickerMove{from{transform:translateX(100vw)}to{transform:translateX(-115%)}}#rativaStaffTicker{position:fixed;z-index:2147483647;top:calc(5px + env(safe-area-inset-top));left:0;width:100vw;height:30px;overflow:hidden;display:flex;align-items:center;pointer-events:none;background:rgba(8,5,18,.08);contain:layout paint}#rativaStaffTicker span{display:inline-block;white-space:nowrap;padding-left:8px;font:1000 clamp(14px,3.2vw,19px)/1 system-ui,sans-serif;letter-spacing:.06em;color:#fff;text-shadow:0 0 3px #fff,0 0 7px #ffe28a,0 0 13px #b77aff,0 0 21px #8b5cff;will-change:transform;animation:rativaStaffTickerMove 8s linear forwards}@media(prefers-reduced-motion:reduce){#rativaStaffTicker span{animation-duration:8s}}';document.head.append(style)}
+ const next=()=>{const message=queue.shift();if(!message){window.__rativaStaffTickerRunning=false;const old=document.getElementById('rativaStaffTicker');if(old)old.remove();return}let bar=document.getElementById('rativaStaffTicker');if(!bar){bar=document.createElement('div');bar.id='rativaStaffTicker';bar.setAttribute('aria-hidden','true');document.body.append(bar)}bar.replaceChildren();const span=document.createElement('span');span.textContent=message;bar.append(span);setTimeout(()=>{bar.remove();next()},8000)};
+ next();
+}
 function olMsg(m){
  switch(m.t){
+  case 'global_announcement':if(m.kind==='staff_online')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
   case 'room_mode_mismatch':olRejectRoom('A conexão tentou entrar em uma sala de outro modo. Volte ao menu e tente novamente.');break;
   case 'joined':if(m.mode!==ol.mode||m.roomKey!==olRoomKey(ol.mode)){olRejectRoom('O servidor respondeu com uma sala diferente da solicitada. A entrada foi bloqueada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.hostId=m.host;ol.isHost=m.isHost;ol.hostType=m.hostType||'bot-pro';ol.hostLabel=m.hostLabel||'Bot Pro';ol.mode=ol.mode||m.mode||mode;ol.players=m.players;if(ol.view)olRoomView();break;
