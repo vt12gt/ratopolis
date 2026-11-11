@@ -67,7 +67,7 @@ Todas as rotas abaixo devem autenticar a sessão existente e aplicar autorizaç�
 - [x] Exclusão de publicação pelo autor; moderação autorizada pode remover qualquer publicação.
 - [x] Denúncias persistidas, com prevenção de duplicidade e registro de auditoria.
 - [x] Interface do feed conectada às ações de reação, comentários, exclusão e denúncia.
-- [ ] Criar tela/fluxo administrativo para consultar e resolver denúncias.
+- [x] Criar fila administrativa para consultar, arquivar ou remover publicações denunciadas (SpAdmin/Admin/GM/Moderador).
 - [ ] Testar dois dispositivos com contas diferentes e validar persistência após reconexão.
 - [ ] Implantar o Worker em ambiente de teste e validar o domínio/versão realmente em execução.
 - [ ] Implementar amigos/seguidores, grupos, mensagens privadas sociais e notificações de atividade.
