@@ -1,5 +1,5 @@
 /* Rativa Games — cache único do portal e dos jogos. */
-const CACHE_NAME='rativa-games-shell-v11';
+const CACHE_NAME='rativa-games-shell-v12';
 const APP_ASSETS=[
   './',
   './index.html',
