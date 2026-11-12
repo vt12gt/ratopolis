@@ -49,7 +49,7 @@ if((gameTime+((s.x||0)*.013%3))%3.4<.12){ctx.fillStyle=col;ctx.beginPath();ctx.a
  }
  function drawTail(ctx,s,cam,W,H,time,drawNormalTail){
    const gameTime=time;
-   const t=s.tail;if(!t||t==='normal'){drawNormalTail(s);return}const sg=s.segments,n=sg.length,q=sg[n-1],p=sg[Math.max(0,n-2)],px=q.x-cam.x,py=q.y-cam.y;if(px<-50||py<-50||px>W+50||py>H+50)return;const R=s.radius,ang=Math.atan2(q.y-p.y,q.x-p.x),ca=Math.cos(ang),sa=Math.sin(ang);
+   const t=s.tail;if(!t||t==='normal'){drawNormalTail(s);return true}const sg=s.segments,n=sg.length,q=sg[n-1],p=sg[Math.max(0,n-2)],px=q.x-cam.x,py=q.y-cam.y;if(px<-50||py<-50||px>W+50||py>H+50)return true;const R=s.radius,ang=Math.atan2(q.y-p.y,q.x-p.x),ca=Math.cos(ang),sa=Math.sin(ang);
  if(t==='pompom'){ctx.fillStyle='#f4f8ff';ctx.beginPath();ctx.arc(px+ca*R*.6,py+sa*R*.6,R*.62,0,6.2832);ctx.fill();ctx.fillStyle='#8fa3c466';ctx.beginPath();ctx.arc(px+ca*R*.6+2,py+sa*R*.6+2,R*.3,0,6.2832);ctx.fill()}
  else if(t==='flor'){for(let k=0;k<5;k++){const a=k*1.2566;ctx.fillStyle='#ff9ad5';ctx.beginPath();ctx.arc(px+Math.cos(a)*R*.55,py+Math.sin(a)*R*.55,R*.38,0,6.2832);ctx.fill()}ctx.fillStyle='#ffe477';ctx.beginPath();ctx.arc(px,py,R*.3,0,6.2832);ctx.fill()}
  else if(t==='estrela'||t==='coracao'){const cx=px+ca*R*1.1,cy=py+sa*R*1.1,rr=R*.95;ctx.fillStyle=t==='estrela'?'#ffd34e':'#ff5d8f';ctx.beginPath();
