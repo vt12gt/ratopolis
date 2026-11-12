@@ -1110,7 +1110,7 @@ function mpHostTick(dt){mpAcc+=dt;if(mpAcc<1/30)return;mpAcc=0;const now=Date.no
  for(let i=0;i<mpSlots.length;i++){const c=mpSlots[i],me=bots[i];if(!c||!c.open||c.dc.readyState!=='open'||!me||c.dc.bufferedAmount>65536)continue;
   const full=!c._mpLastFull||now-c._mpLastFull>=2000;if(full)c._mpLastFull=now;
   const o=[],meta=[],curFood=new Map(),fa=[],fr=[];const myId=snakes.indexOf(me);
-  for(let j=0;j<snakes.length;j++){const sn=snakes[j];if(!sn||!sn.alive)continue;const dx=sn.x-me.x,dy=sn.y-me.y;if(sn!==me&&!mpOnline&&dx*dx+dy*dy>=1690000)continue;const id=j; if(full)meta.push(mpMetaSer(sn,id));const state=mpSer(sn,Math.ceil(sn.length/70),id);if(sn===me)o.push(state);else o.push(state)}
+  for(let j=0;j<snakes.length;j++){const sn=snakes[j];if(!sn||(!sn.alive&&sn!==me))continue;const dx=sn.x-me.x,dy=sn.y-me.y;if(sn!==me&&!mpOnline&&dx*dx+dy*dy>=1690000)continue;const id=j; if(full)meta.push(mpMetaSer(sn,id));const state=mpSer(sn,Math.ceil(sn.length/70),id);if(sn===me)o.push(state);else o.push(state)}
   for(const q of foods){if(q.dead)continue;const dx=q.x-me.x,dy=q.y-me.y;if(dx*dx+dy*dy>=810000)continue;if(!q.fid)q.fid=++mpFoodSeq;const id=q.fid,old=c._foodSent&&c._foodSent.get(id),v=[id,Math.round(q.x),Math.round(q.y),q.type,Math.round(q.r),q.color];curFood.set(id,v);if(full||!old||Math.abs(old[1]-v[1])+Math.abs(old[2]-v[2])>=3||old[3]!==v[3])fa.push(v)}
   if(c._foodSent)for(const id of c._foodSent.keys())if(!curFood.has(id))fr.push(id);
   c._foodSent=curFood;
