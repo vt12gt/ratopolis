@@ -1166,7 +1166,7 @@ const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
 function olLoad(){try{ol.token=String(localStorage.getItem('ratopolis_session_token')||'')}catch(e){ol.token=''}ol.url=RATO_SERVER_URL;olSave()}
 function olApplyAccount(me){ol.id=String(me.id);ol.nick=String(me.nick);ol.level=Number(me.level)||1;ol.xp=Number(me.xp)||0;prefs.nick=ol.nick;savePrefs();if(player)player.name=ol.nick;menuInfo()}
-async function olSyncAccount(){olLoad();if(!ol.token||navigator.onLine===false)return false;try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick)return false;olApplyAccount(me);try{await olConnect()}catch(e){console.warn('RativaSnack: presença global aguardando conexão',e)}return true}catch(e){return false}}
+async function olSyncAccount(){olLoad();if(!ol.token||navigator.onLine===false)return false;try{const me=await olApi('/api/me',null,ol.token);if(me.s!==200||!me.id||!me.nick)return false;olApplyAccount(me);return true}catch(e){return false}}
 function olSave(){try{localStorage.removeItem('ratoSnackOnline')}catch(e){}}
 function olClearExpired(){ol.token='';ol.id='';ol.nick='';try{localStorage.removeItem('ratopolis_session_token')}catch(e){}}
 const olHttp=u=>u.replace(/^ws/,'http').replace(/\/+$/,''),olWs=u=>u.replace(/^http/,'ws').replace(/\/+$/,'');
