@@ -25,7 +25,7 @@
 
  // Cabeça e cauda extraídas do motor: preservam o desenho atual e recebem
  // apenas as dependências do jogo por parâmetros.
- function drawHead(ctx,s,R,c,time,drawCloth,drawExtras){
+ function drawHead(ctx,s,R,time,drawCloth,drawExtras){
    const gameTime=time;
    drawCloth(s,R);const c=RATS[s.rat]||{ear:'#ffb6c6',nose:'#ff8fa3',eye:'#172033'},col=s.color,wg=Math.sin(gameTime*4+(s.x||0)*.01)*.08,es=c.es||1;if(c.hs){ctx.save();ctx.scale(c.hs,c.hs)}
  // orelhas grandes e redondas, com interior rosa e movimento
