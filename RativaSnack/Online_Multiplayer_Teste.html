@@ -1036,7 +1036,7 @@ function dropFood(s){
    const q=s.segments[i];
    items.push({x:Math.round(q.x+rand(-5,5)),y:Math.round(q.y+rand(-5,5)),type:0,color:s.color,r:rand(5,7)});
   }
-  if(items.length)olSend({t:'world_event',event:{kind:'drops',source:s.isBot&&!s.remote?'bot':'player',items}});
+  if(items.length)olSend({t:'world_event',event:{kind:'drops',source:s.isBot&&!s.remote?'bot':'player',victimId:s.remote?String(s.remote.uid||''):String(ol.id||''),items}});
   return;
  }
  for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}
