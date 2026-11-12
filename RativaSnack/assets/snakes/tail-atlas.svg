@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="64" viewBox="0 0 384 64">
+<defs><radialGradient id="shine"><stop stop-color="#fff"/><stop offset="1" stop-color="#9ba9c8"/></radialGradient></defs>
+<g transform="translate(32 32)"><circle r="22" fill="url(#shine)"/><circle cx="5" cy="5" r="9" fill="#8fa3c4" opacity=".35"/></g>
+<g transform="translate(96 32)" fill="#ff9ad5"><ellipse cy="-12" rx="9" ry="14"/><ellipse cy="-12" rx="9" ry="14" transform="rotate(72)"/><ellipse cy="-12" rx="9" ry="14" transform="rotate(144)"/><ellipse cy="-12" rx="9" ry="14" transform="rotate(216)"/><ellipse cy="-12" rx="9" ry="14" transform="rotate(288)"/><circle r="9" fill="#ffe477"/></g>
+<g transform="translate(160 32)"><path d="M0 -25L6 -8 24 -8 10 3 15 22 0 11 -15 22 -10 3 -24 -8 -6 -8Z" fill="#ffd34e" stroke="#fff1a8" stroke-width="2"/></g>
+<g transform="translate(224 32)"><path d="M0 22C-31 3 -20 -17 -7 -15L0 -8C12 -27 32 -5 0 22Z" fill="#ff5d8f" stroke="#ffc2d5" stroke-width="2"/></g>
+<g transform="translate(288 32)"><path d="M0 24C-22 6 -11 -5 -7 -17C3 -8 5 -1 5 3C14 -7 14 -17 15 -20C31 2 17 20 0 24Z" fill="#ff8b36" stroke="#ffd34e" stroke-width="2"/><path d="M1 17C-8 7 0 0 5 -5C12 5 10 13 1 17Z" fill="#fff1a8"/></g>
+<g transform="translate(352 32)"><path d="M0 -24L6 -8 23 -8 10 3 15 21 0 11 -15 21 -10 3 -23 -8 -6 -8Z" fill="#7cecff" stroke="#fff" stroke-width="2"/><circle r="4" fill="#fff"/></g>
+</svg>
