@@ -1289,7 +1289,7 @@ function olApplyRemoteAvatar(m){
  const g=Array.isArray(a.g)?a.g.slice(0,240).map(Number):[];
  const segments=[];for(let i=0;i+1<g.length;i+=2)if(Number.isFinite(g[i])&&Number.isFinite(g[i+1]))segments.push({x:g[i],y:g[i+1]});
  if(!segments.length)segments.push({x,y});
- Object.assign(old,{x,y,tx:x,ty:y,angle:d,ta:d,px:old.x===undefined?x:old.x,py:old.y===undefined?y:old.y,length:Math.max(1,Math.min(10000,Number(a.l)||segments.length)),alive:!!a.al,radius:Math.max(4,Math.min(40,Number(a.r)||10)),color:mpC(a.c),name:String(a.n||'Jogador').slice(0,24),skin:mpS(a.sk,'liso'),acc:mpS(a.ac,'nenhum'),tail:mpS(a.ta,'normal'),rat:mpS(a.rt,'nenhum'),hat:mpS(a.ht,'nenhum'),cloth:mpS(a.cl,'nenhum'),segments,remoteRender:true,isBot:false,shield:0,special:0,boostT:0,boostActive:false});
+ Object.assign(old,{x,y,tx:x,ty:y,angle:d,ta:d,px:old.x===undefined?x:old.x,py:old.y===undefined?y:old.y,length:Math.max(1,Math.min(10000,Number(a.l)||segments.length)),alive:!!a.al,radius:Math.max(4,Math.min(40,Number(a.r)||10)),color:mpC(a.c),name:String(a.n||'Jogador').slice(0,24),skin:mpS(a.sk,'liso'),acc:mpS(a.ac,'nenhum'),tail:mpS(a.ta,'normal'),rat:mpS(a.rt,'nenhum'),hat:mpS(a.ht,'nenhum'),cloth:mpS(a.cl,'nenhum'),segments:old.segments&&old.segments.length?old.segments:segments.map(q=>({x:q.x,y:q.y})),targetSegments:segments,remoteRender:true,isBot:false,shield:0,special:0,boostT:0,boostActive:false});
  old.tx=x;old.ty=y;old.ta=d;olRemoteAvatars.set(id,old);
 }
 function olMsg(m){
@@ -1849,7 +1849,7 @@ function drawMini(){if(!(running&&player))return;const w=mm.width,h=mm.height,sx
  for(const f of foods)if(f.type>=2){mmc.fillStyle=f.color;mmc.fillRect(f.x*sx-1,f.y*sy-1,3,3)}
  for(const b of bots)if(b.alive){mmc.fillStyle=b.color;{const z=b.special?5:2.5;mmc.fillRect(b.x*sx-z/2,b.y*sy-z/2,z,z)}}
  mmc.strokeStyle='#ffffff66';mmc.strokeRect(cam.x*sx,cam.y*sy,W*sx,H*sy);if(player.alive){mmc.fillStyle='#fff';mmc.beginPath();mmc.arc(player.x*sx,player.y*sy,3,0,6.2832);mmc.fill()}}
-function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);for(const remote of olRemoteAvatars.values()){if(remote.tx!==undefined){const k=.22,dx=(remote.tx-remote.x)*k,dy=(remote.ty-remote.y)*k;remote.x+=dx;remote.y+=dy;remote.angle+=diff(remote.angle,remote.ta)*k;for(const q of remote.segments){q.x+=dx;q.y+=dy}}drawSnake(remote)}if(player)drawSnake(player);
+function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);for(const remote of olRemoteAvatars.values()){if(remote.tx!==undefined){const k=.22,dx=(remote.tx-remote.x)*k,dy=(remote.ty-remote.y)*k;remote.x+=dx;remote.y+=dy;remote.angle+=diff(remote.angle,remote.ta)*k;for(let i=0;i<remote.segments.length;i++){const q=remote.segments[i],tq=remote.targetSegments&&remote.targetSegments[i];if(tq){q.x+=(tq.x-q.x)*k;q.y+=(tq.y-q.y)*k}else{q.x+=dx;q.y+=dy}}}drawSnake(remote)}if(player)drawSnake(player);
  for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x-cam.x,p.y-cam.y,p.r,0,6.2832);ctx.fill()}ctx.globalAlpha=1;
  if(dyingT>0&&lastKiller&&lastKiller.alive){const kx=lastKiller.x-cam.x,ky=lastKiller.y-cam.y;ctx.strokeStyle='#ff5d73';ctx.lineWidth=3;ctx.beginPath();ctx.arc(kx,ky,26+4*Math.sin(t*14),0,6.2832);ctx.stroke()}
  edgeWarn(t);indicators(t);bossBar(t);drawSecrets(-cam.x,-cam.y);drawEmotes();if((mmN=(mmN+1)%3)===0)drawMini();
