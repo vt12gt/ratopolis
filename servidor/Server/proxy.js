@@ -145,7 +145,17 @@ server.on('upgrade', (req, socket, head) => {
           if (to.readyState === WebSocket.OPEN) to.pong(data);
         });
         from.on('close', (code, reason) => {
-          if (to.readyState === WebSocket.OPEN) to.close(code, reason);
+          if (to.readyState !== WebSocket.OPEN) return;
+          // 1005, 1006 e 1015 são códigos reservados: nunca podem
+          // ser enviados em um frame Close. O ws rejeita esses valores.
+          const validCode = code === 1000 || (code >= 3000 && code <= 4999);
+          try {
+            if (validCode) to.close(code, reason);
+            else to.close();
+          } catch (err) {
+            // Se o outro lado já estiver encerrando, finalize sem derrubar o gateway.
+            try { to.terminate(); } catch {}
+          }
         });
         from.on('error', () => {
           if (to.readyState === WebSocket.OPEN) to.close(1011, 'relay_error');
