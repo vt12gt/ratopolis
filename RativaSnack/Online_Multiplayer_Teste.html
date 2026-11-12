@@ -560,6 +560,7 @@ body.rativa-online #quit{display:none!important}
 <div id="lb" class="hidden"></div>
 <canvas id="mm" class="hidden" width="96" height="64"></canvas>
 <div id="rotate"><div>📱↔️ Gire o celular para jogar<small>O RativaSnack funciona na horizontal. Gire a tela para carregar a partida e os controles.</small></div></div></div>
+<script src="assets/js/snake-visuals.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('canvas');let ctx=canvas.getContext('2d');
@@ -1869,7 +1870,7 @@ function drawSnake(s){if(!s.alive)return;const seg=s.segments,n=seg.length,R=s.r
  if(s.shield>0&&!(s.shieldP>0))ctx.globalAlpha=.55+.3*Math.sin(gameTime*18);else if(s.special===2)ctx.globalAlpha=.5;if(RATS[s.rat]&&RATS[s.rat].ghost)ctx.globalAlpha=Math.min(ctx.globalAlpha,.7);
  for(let i=n-1;i>=0;i--){const q=seg[i];let px=q.x-cam.x,py=q.y-cam.y;if(px<-40||py<-40||px>W+40||py>H+40)continue;const r=R*(.56+.44*(1-i/Math.max(1,n)));if(i>0&&i<n-1){const a=seg[i+1],b=seg[i-1],an=Math.atan2(b.y-a.y,b.x-a.x)+1.5708,w=Math.sin(i*.55-gameTime*7)*r*.14;px+=Math.cos(an)*w;py+=Math.sin(an)*w}
   const sk=s.skin;if(sk==='neon'){ctx.fillStyle=s.color+'33';ctx.beginPath();ctx.arc(px,py,r*1.55,0,6.2832);ctx.fill()}
-  ctx.fillStyle=skinFill(sk,s,i,n);ctx.beginPath();ctx.arc(px,py,r,0,6.2832);ctx.fill();ratPatch(s,px,py,r,i);
+  const spriteDraw=window.RativaSnakeVisuals&&window.RativaSnakeVisuals.drawSegment(ctx,{x:px,y:py,radius:r,color:skinFill(sk,s,i,n),skin:sk,index:i,time:gameTime});if(!spriteDraw){ctx.fillStyle=skinFill(sk,s,i,n);ctx.beginPath();ctx.arc(px,py,r,0,6.2832);ctx.fill()}ratPatch(s,px,py,r,i);
   if(sk==='neon'){ctx.strokeStyle=s.color;ctx.lineWidth=2.2;ctx.beginPath();ctx.arc(px,py,r*.86,0,6.2832);ctx.stroke()}
   if(sk==='galaxia'&&i%2===0){ctx.fillStyle='#ffffffcc';ctx.beginPath();ctx.arc(px+r*.3,py-r*.25,r*.14,0,6.2832);ctx.arc(px-r*.35,py+r*.3,r*.1,0,6.2832);ctx.fill()}
   if(sk==='cristal'&&i%3===0){ctx.fillStyle='#ffffffdd';ctx.beginPath();ctx.arc(px-r*.25,py-r*.3,r*.18,0,6.2832);ctx.fill()}if(sk==='vulcao'&&i%3===1){ctx.fillStyle='#ffd34e99';ctx.beginPath();ctx.arc(px,py,r*.4,0,6.2832);ctx.fill()}if(sk==='aurora'){ctx.fillStyle='#ffffff30';ctx.beginPath();ctx.arc(px-r*.2,py-r*.25,r*.3,0,6.2832);ctx.fill()}
