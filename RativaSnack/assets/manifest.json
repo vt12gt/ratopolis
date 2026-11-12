@@ -4,7 +4,7 @@
   "spritesheets": [
     {
       "id": "snake-atlas",
-      "path": "../snakes/snake-atlas.svg",
+      "path": "snakes/snake-atlas.svg",
       "frameWidth": 64,
       "frameHeight": 64,
       "frames": {
@@ -16,10 +16,10 @@
     }
   ],
   "folders": {
-    "snakes": "../snakes/",
-    "skins": "../skins/",
-    "effects": "../effects/",
-    "sounds": "../sounds/",
-    "maps": "../maps/"
+    "snakes": "snakes/",
+    "skins": "skins/",
+    "effects": "effects/",
+    "sounds": "sounds/",
+    "maps": "maps/"
   }
 }
