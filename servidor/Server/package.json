@@ -1,12 +1,13 @@
 {
-  "name": "rativasnack-server",
-  "version": "1.0.1",
+  "name": "rativasnack-compatibility-gateway",
+  "version": "1.1.0",
   "private": true,
-  "description": "Servidor WebSocket autoritativo experimental do RativaSnack",
-  "main": "server.js",
+  "description": "Gateway HTTP/WebSocket compatível com o protocolo online existente do RativaSnack",
+  "main": "proxy.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node proxy.js",
+    "dev": "node --watch proxy.js",
+    "start:simulation": "node server.js"
   },
   "dependencies": {
     "ws": "^8.18.0"

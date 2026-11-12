@@ -1,5 +1,7 @@
 # Cliente RativaSnack
 
-O arquivo `index.html` é a cópia preservada do cliente completo.
+Este diretório mantém uma cópia integral do cliente online.
 
-**Importante:** ele continua configurado para o serviço multiplayer atual (`rato-snack-multiplayer.onrender.com`). O servidor experimental em `../Server` usa outro protocolo e ainda não substitui esse serviço. A integração será feita em uma etapa separada, sem remover os modos offline, menus ou progressão.
+O gateway `../Server/proxy.js` foi criado para encaminhar HTTP e WebSocket ao backend atual, preservando o protocolo de autenticação e salas. Depois do deploy no Render, a URL do gateway poderá ser configurada em uma cópia de teste do cliente, sem mexer no arquivo principal `RativaSnack/Online.html`.
+
+O gateway continua dependendo do backend atual (`rato-snack-multiplayer.onrender.com`); ele não é um substituto autônomo nem altera a simulação do jogo.
