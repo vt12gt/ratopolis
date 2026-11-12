@@ -1029,13 +1029,14 @@ function eat(s){if(!s.alive||((s===player&&mpOnline&&mpAway)||(s.remote&&s.remot
 function dropFood(s){
  if(mpOnline){
   // Bots só geram drops no host; jogadores geram os próprios drops.
-  if(s.isBot&&mpRole!=='host')return;
+  if(s.isBot&&!s.remote&&mpRole!=='host')return;
+  if(window.__olApplyingWorldEvent)return;
   const items=[];
   for(let i=2;i<s.segments.length;i+=2){
    const q=s.segments[i];
    items.push({x:Math.round(q.x+rand(-5,5)),y:Math.round(q.y+rand(-5,5)),type:0,color:s.color,r:rand(5,7)});
   }
-  if(items.length)olSend({t:'world_event',event:{kind:'drops',source:s.isBot?'bot':'player',items}});
+  if(items.length)olSend({t:'world_event',event:{kind:'drops',source:s.isBot&&!s.remote?'bot':'player',items}});
   return;
  }
  for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}
@@ -1062,6 +1063,12 @@ function eventTick(dt){if(!ev)return;ev.t-=dt;if(ev.id==='chuva'){ev.acc+=dt*7;w
 function nextWave(){wave++;waveKills=0;addScore(100*wave);showToast(`🌊 Onda ${wave}! Meta: ${3+wave*2} ratos — mais rápidos`,3);if(wave%3===0&&player.alive){const i=bots.findIndex((b,k)=>!b.alive&&!(mpSlots[k]&&mpSlots[k].open));if(i>=0)spawnSpecial(i,evtOf().id==='noite'?2:evtOf().id==='cacadaouro'?1:1+((Math.random()*3)|0))}}
 function modeHud(){const t=[];if(mode==='survival'&&mpOnline){if(gameTime<300)t.push('⏳ Arena fecha em '+fmtTime(300-gameTime));else if(gameTime<360)t.push('🔥 Arena fechando • '+fmtTime(360-gameTime));else t.push('🔥 Zona final • último sobrevivente vence')}if(mode==='team'){const a=teamScore[0],b=teamScore[1],g=MODES.team.tgoal;t.push(`🔵 ${a} × ${b} 🔴 • meta ${g} • faltam 🔵${Math.max(0,g-a)} 🔴${Math.max(0,g-b)} • ⏱ ${fmtTime(Math.max(0,mpOnline&&ol.left>=0?ol.left:MODES.team.limit-gameTime))}`)};if(mode==='boss'&&boss&&boss.alive)t.push(`👹 Chefe ${Math.max(0,Math.round(boss.hp))}%${boss.stun>0?' • ATORDOADO!':''}`);if(mode==='infinite')t.push(`🌊 Onda ${wave} • ${waveKills}/${3+wave*2}`);{const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);if(rc)t.push('🧀 +'+rc)}if(ev)t.push(`${ev.icon} ${Math.ceil(ev.t)}s`);return t.join(' • ')}
 function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.armor--;s.shield=s.special?.12:1.5;burst(s.x,s.y,'#ffffff',14);return}if(s===player){buzz(140);sfx(reason==='wall'?'wall':'death')}s.alive=false;burst(s.x,s.y,s.color,s===player?30:20);
+ if(mpOnline&&s===player){
+  olSend({t:'player_death',victimId:String(ol.id),killerId:by&&by.remote?String(by.remote.uid||''):''});
+ }
+ if(mpOnline&&s.remote&&mpRole==='host'){
+  olSend({t:'player_death',victimId:String(s.remote.uid||''),killerId:by===player?String(ol.id):by&&by.remote?String(by.remote.uid||''):''});
+ }
  if(mpOnline&&s.isBot&&mpRole==='host'){
   const botIndex=bots.indexOf(s);
   olSend({t:'world_event',event:{kind:'bot_death',botIndex,killerId:by===player?String(ol.id):by&&by.remote?String(by.remote.uid||''):''}});
@@ -1339,6 +1346,7 @@ function olMsg(m){
   case 'drops_spawned':olApplySharedDropMessage(m);break;
   case 'drop_claimed':olApplySharedDropMessage(m);break;
   case 'bot_death':{const bi=Number(m.botIndex);const target=bots[bi];if(target&&target.alive){const killer=String(m.killerId||'')===String(ol.id)?player:null;die(target,'online_sync',killer)}break;}
+  case 'player_death':{const victim=String(m.victimId||'');const killer=String(m.killerId||'')===String(ol.id)?player:null;window.__olApplyingWorldEvent=true;try{if(victim===String(ol.id)&&player&&player.alive)die(player,'online_sync',killer);else{const remote=olRemoteAvatars.get(victim);if(remote)remote.alive=false}}finally{window.__olApplyingWorldEvent=false}break;}
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
