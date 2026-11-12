@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "description": "Catálogo visual externo do RativaSnack",
+  "spritesheets": [
+    {
+      "id": "snake-atlas",
+      "path": "../snakes/snake-atlas.svg",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": {
+        "default": 0,
+        "neon": 1,
+        "galaxia": 2,
+        "ouro": 3
+      }
+    }
+  ],
+  "folders": {
+    "snakes": "../snakes/",
+    "skins": "../skins/",
+    "effects": "../effects/",
+    "sounds": "../sounds/",
+    "maps": "../maps/"
+  }
+}
