@@ -18,8 +18,8 @@
    if(!ctx||!s)return false;
    if(heads.ready()){
      const frame=FRAMES[s.headSkin||s.skin]??0;
-     ctx.save();ctx.drawImage(heads.im,frame*HEAD_FRAME,0,HEAD_FRAME,HEAD_FRAME,-R*1.25,-R*1.25,R*2.5,R*2.5);ctx.restore();
      if(typeof drawCloth==='function')drawCloth(s,R);
+     ctx.save();ctx.drawImage(heads.im,frame*HEAD_FRAME,0,HEAD_FRAME,HEAD_FRAME,-R*1.25,-R*1.25,R*2.5,R*2.5);ctx.restore();
      if(typeof drawExtras==='function')drawExtras(s,R,RATS[s.rat]||{});
      return true;
    }
