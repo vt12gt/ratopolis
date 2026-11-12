@@ -1160,7 +1160,7 @@ function rwHtml(){wkEnsure();const left=7-((today()+4)%7),rk=(r,d)=>d?2:r?0:1,ca
  W=WEEK.map((g,i)=>card(g.n,g.v(),g.t,prog.wkClaim>>i&1,'wkc:'+i,'+'+g.c+' 🧀 +'+g.x+' XP')).sort((a,b)=>a.k-b.k),M=MARCOS.map((m,i)=>card(m.n,m.v(),m.t,prog.mkClaim>>i&1,'mkc:'+i,'+'+m.c+' 🧀'+(m.rat?' + 🐀':''))).sort((a,b)=>a.k-b.k);
  return `<div class="mnote">🗓️ Missões da semana • faltam ${left} dia(s) • completar todas: +300 🧀 e o 🐀 Rato Dourado (na 1ª vez)</div>${W.map(x=>x.h).join('')}<div class="mnote">🏅 Marcos de vitórias, chefes e eventos • resgate único • o 10º chefe libera o 🐀 Rato Domador de Chefes</div>${M.map(x=>x.h).join('')}`}
 /* ===== Multiplayer ONLINE: conta + salas automáticas por WebSocket. Nada disso roda no modo offline. ===== */
-const RATO_SERVER_URL='https://rato-snack-multiplayer.onrender.com';
+const RATO_SERVER_URL='https://rativasnack-online-match-test.onrender.com';
 let mpOnline=false;const ol={url:RATO_SERVER_URL,token:'',id:'',nick:'',ws:null,inRoom:false,isHost:false,hostId:null,hostType:'bot-pro',hostLabel:'Bot Pro',mode:'quick',players:[],tries:0,bye:false,view:false,survivalAliveTime:0,staffRoles:[],roomId:'',authoritative:false};
 const olEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const OL_ERR={sessao_invalida:'Sua sessão RativaGames expirou. Entre novamente pelo portal.',conexao:'Não foi possível conectar ao servidor online.'};
@@ -1295,6 +1295,7 @@ function olApplyRemoteAvatar(m){
 function olMsg(m){
  switch(m.t){
   case 'avatar':olApplyRemoteAvatar(m);break;
+  case 'room_clock':ol.roomElapsedMs=Math.max(0,Number(m.elapsedMs)||0);ol.roomClockServerTime=Number(m.serverTime)||Date.now();break;
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
@@ -1906,7 +1907,7 @@ olTestHud.id='olTestHud';
 olTestHud.style.cssText='position:fixed;left:8px;bottom:8px;z-index:99999;pointer-events:none;background:#120b1de8;color:#e9ddff;border:1px solid #b58aff66;border-radius:8px;padding:6px 8px;font:10px/1.35 monospace;max-width:190px;white-space:pre-wrap';
 olTestHud.textContent='RATIVA MULTIPLAYER TEST';
 document.body.appendChild(olTestHud);
-setInterval(()=>{try{const online=!!(ol.ws&&ol.ws.readyState===1);olTestHud.textContent='RATIVA MULTIPLAYER TEST\nServidor: '+(ol.url||'—')+'\nConexão: '+(online?'ONLINE':'OFFLINE')+' | Sala: '+(ol.roomId||'—')+'\nJogadores: '+((ol.players||[]).length)+' | Cobras remotas: '+olRemoteAvatars.size+'\nPacotes: ↑'+OL_TEST_DIAG.sent+' ↓'+OL_TEST_DIAG.received+'\nAvatares: ↑'+OL_TEST_DIAG.avatarsSent+' ↓'+OL_TEST_DIAG.avatarsReceived+'\nÚltimo: '+OL_TEST_DIAG.last}catch(e){}},500);
+setInterval(()=>{try{const online=!!(ol.ws&&ol.ws.readyState===1);olTestHud.textContent='RATIVA MULTIPLAYER TEST\nServidor: '+(ol.url||'—')+'\nConexão: '+(online?'ONLINE':'OFFLINE')+' | Sala: '+(ol.roomId||'—')+'\nJogadores: '+((ol.players||[]).length)+' | Cobras remotas: '+olRemoteAvatars.size+'\nTempo da sala: '+Math.floor((Number(ol.roomElapsedMs)||0)/1000)+'s\nPacotes: ↑'+OL_TEST_DIAG.sent+' ↓'+OL_TEST_DIAG.received+'\nAvatares: ↑'+OL_TEST_DIAG.avatarsSent+' ↓'+OL_TEST_DIAG.avatarsReceived+'\nÚltimo: '+OL_TEST_DIAG.last}catch(e){}},500);
 
 init();menuInfo();olSyncAccount();ensureAudio();syncMusic();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
