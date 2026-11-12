@@ -3,7 +3,7 @@
  * da aparência dos segmentos e usa spritesheet externo com fallback vetorial.
  */
 (()=>{'use strict';
- const BASE='../snakes/snake-atlas.svg';
+ const BASE='assets/snakes/snake-atlas.svg';
  const image=new Image();
  let ready=false;
  image.onload=()=>{ready=true};
