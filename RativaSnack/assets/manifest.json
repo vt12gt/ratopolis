@@ -1,25 +1,10 @@
 {
-  "version": "1.0.0",
-  "description": "Catálogo visual externo do RativaSnack",
+  "version": "2.0.0",
+  "description": "Catálogo visual modular do RativaSnack",
   "spritesheets": [
-    {
-      "id": "snake-atlas",
-      "path": "snakes/snake-atlas.svg",
-      "frameWidth": 64,
-      "frameHeight": 64,
-      "frames": {
-        "default": 0,
-        "neon": 1,
-        "galaxia": 2,
-        "ouro": 3
-      }
-    }
+    {"id":"snake-atlas","path":"snakes/snake-atlas.svg","frameWidth":64,"frameHeight":64,"frames":{"default":0,"neon":1,"galaxia":2,"ouro":3}},
+    {"id":"head-atlas","path":"snakes/head-atlas.svg","frameWidth":96,"frameHeight":96,"frames":{"default":0,"neon":1,"galaxia":2,"ouro":3}},
+    {"id":"tail-atlas","path":"snakes/tail-atlas.svg","frameWidth":64,"frameHeight":64,"frames":{"pompom":0,"flor":1,"estrela":2,"coracao":3,"chama":4,"cristal":5}}
   ],
-  "folders": {
-    "snakes": "snakes/",
-    "skins": "skins/",
-    "effects": "effects/",
-    "sounds": "sounds/",
-    "maps": "maps/"
-  }
+  "folders":{"snakes":"snakes/","skins":"skins/","effects":"effects/","sounds":"sounds/","maps":"maps/"}
 }
