@@ -1271,8 +1271,31 @@ function olShowGlobalAnnouncement(m){
  next();
 }
 function olRelayPeer(uid){uid=String(uid||'');let c=mpConns.find(x=>String(x.uid)===uid);if(c)return c;c={uid,nick:'Jogador',open:true,slot:mpConns.length+1,dc:{get readyState(){return ol.ws&&ol.ws.readyState===1?'open':'closed'},get bufferedAmount(){return ol.ws?ol.ws.bufferedAmount:0},send(data){olSend({t:'st',to:uid,d:String(data)})},close(){this._closed=true}}};mpConns.push(c);return c}
+const olRemoteAvatars=new Map();let olAvatarClock=0;
+function olRelayAvatarTick(dt){
+ if(!mpOnline||!ol.inRoom||!player)return;
+ olAvatarClock+=dt;if(olAvatarClock<.08)return;olAvatarClock=0;
+ const seg=Array.isArray(player.segments)?player.segments:[],g=[];
+ const step=Math.max(1,Math.ceil(seg.length/90));
+ for(let i=0;i<seg.length;i+=step)g.push(Math.round(seg[i].x),Math.round(seg[i].y));
+ if(seg.length&&((seg.length-1)%step!==0)){const q=seg[seg.length-1];g.push(Math.round(q.x),Math.round(q.y))}
+ olSend({t:'avatar',a:{x:Math.round(player.x),y:Math.round(player.y),d:+(player.angle||0).toFixed(3),l:Math.max(1,Math.floor(player.length||seg.length)),al:player.alive?1:0,r:player.radius,c:player.color,n:ol.nick||prefs.nick||'Jogador',sk:player.skin||prefs.skin||'liso',ac:player.acc||'nenhum',ta:player.tail||'normal',rt:player.rat||prefs.rat||'nenhum',ht:player.hat||'nenhum',cl:player.cloth||'nenhum',g}});
+}
+function olApplyRemoteAvatar(m){
+ const id=String(m.id||'');if(!id||id===String(ol.id)||!m.a)return;
+ const a=m.a,old=olRemoteAvatars.get(id)||{};
+ const x=Number(a.x),y=Number(a.y),d=Number(a.d);
+ if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(d))return;
+ const g=Array.isArray(a.g)?a.g.slice(0,240).map(Number):[];
+ const segments=[];for(let i=0;i+1<g.length;i+=2)if(Number.isFinite(g[i])&&Number.isFinite(g[i+1]))segments.push({x:g[i],y:g[i+1]});
+ if(!segments.length)segments.push({x,y});
+ Object.assign(old,{x,y,tx:x,ty:y,angle:d,ta:d,px:old.x===undefined?x:old.x,py:old.y===undefined?y:old.y,length:Math.max(1,Math.min(10000,Number(a.l)||segments.length)),alive:!!a.al,radius:Math.max(4,Math.min(40,Number(a.r)||10)),color:mpC(a.c),name:String(a.n||'Jogador').slice(0,24),skin:mpS(a.sk,'liso'),acc:mpS(a.ac,'nenhum'),tail:mpS(a.ta,'normal'),rat:mpS(a.rt,'nenhum'),hat:mpS(a.ht,'nenhum'),cloth:mpS(a.cl,'nenhum'),segments,remoteRender:true,isBot:false,shield:0,special:0,boostT:0,boostActive:false});
+ old.tx=x;old.ty=y;old.ta=d;olRemoteAvatars.set(id,old);
+}
 function olMsg(m){
  switch(m.t){
+  case 'avatar':olApplyRemoteAvatar(m);break;
+  case 'peer_leave':olRemoteAvatars.delete(String(m.id||''));olVoiceClosePeer(String(m.id||''));break;
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
@@ -1280,7 +1303,7 @@ function olMsg(m){
   case 'joined':ol.roomId=String(m.roomId||('host:'+String(m.host||'')));if(!olRoomMatches(m)){olRejectRoom('O servidor respondeu com uma sala diferente da solicitada. A entrada foi bloqueada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.hostId=m.host;ol.isHost=m.isHost;ol.hostType=m.hostType||'bot-pro';ol.hostLabel=m.hostLabel||'Bot Pro';ol.mode=ol.mode||m.mode||mode;ol.players=m.players;if(ol.view)olRoomView();break;
   case 'roster':if(!olRoomMatches(m)){olRejectRoom('A sala online mudou de modo. Entrada cancelada.');break}ol.players=m.players;if(ol.isHost){const peers=(m.players||[]).filter(p=>String(p.id)!==String(ol.id));for(const p of peers){const q=olRelayPeer(p.id);q.nick=p.nick||'Jogador'}mpConns=mpConns.filter(q=>peers.some(p=>String(p.id)===String(q.uid)));mpSlots.length=0;for(let i=0;i<mpConns.length;i++){mpConns[i].slot=i+1;mpSlots[i]=mpConns[i];if(bots[i])mpBind(bots[i],mpConns[i])}}if(ol.view)olRoomView();break;
   case 'countdown':if(!olRoomMatches(m)){olRejectRoom('A contagem pertence a outra sala. Entrada cancelada.');break}if(ol.view)olRoomView('A partida começa em '+Math.round(m.ms/1000)+' s…');break;
-  case 'start':if(!olRoomMatches(m)){olRejectRoom('O servidor tentou iniciar uma sala diferente. Entrada cancelada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.view=false;mpClose();if(m.authoritative){ol.authoritative=false;mpOnline=true;mpPending=false;if(ol.isHost){mpConns=mpConns.filter(q=>(ol.players||[]).some(p=>String(p.id)===String(q.uid)));mpSlots.length=0;for(let i=0;i<mpConns.length;i++){mpConns[i].slot=i+1;mpSlots[i]=mpConns[i]}olHostStart()}else{mpRole='client';mpDC=olGuestDC();mpClientMsg({data:'{"start":1}'})}}else if(ol.isHost){if(mpRole!=='host')olHostStart()}else if(mpRole!=='client'){mpOnline=true;mpDC=olGuestDC();mpClientMsg({data:'{"start":1}'});olHello()}if(ol.mode==='treino')olVoiceStart();break;
+  case 'start':if(!olRoomMatches(m)){olRejectRoom('O servidor tentou iniciar uma sala diferente. Entrada bloqueada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.view=false;mpClose();ol.authoritative=false;mpOnline=true;mpPending=false;mpRole='relay';olRemoteAvatars.clear();startGame(ol.mode||mode);if(ol.mode==='treino')olVoiceStart();break;
   case 'in':if(ol.isHost&&m.from){const peer=olRelayPeer(m.from);mpHostMsg(peer,m.d||'{}')}break;
   case 'st':if(!ol.isHost&&m.from){mpClientMsg({data:String(m.d||'{}')})}break;
   case 'peer_join':{olVoiceEnsurePeer(String(m.id));if(!ol.isHost)break;let c=mpConns.find(x=>x.uid===m.id);if(!c){c={pc:null,dc:olDC(m.id),open:true,nick:m.nick,ang:0,boost:0,uid:m.id,slot:m.slot};mpConns.push(c)}c.open=true;c.nick=m.nick;c.slot=m.slot;if(mpRole==='host'&&running)olSlotBind(c);break}
@@ -1465,7 +1488,7 @@ function update(dt){
  if(!running||paused)return;
  if(mpRole==='client'){mpClientTick(dt);return}if(mpRole==='host'){mpHostTick(dt);olRoomTick()}if(!player.alive&&playerRespawnAt&&Date.now()>=playerRespawnAt&&!player.eliminated)respawnPlayerNow();secretTick();wbTick();emoTick(dt);
  if(player.alive||(olSurvivalOnline()&&olSurvivalAlive()>0))gameTime+=dt;if(mode==='survival'&&olSurvivalOnline()&&player.alive)ol.survivalAliveTime=(ol.survivalAliveTime||0)+dt;if(mode==='survival')shrinkTick(dt);bossTick(dt);
- for(let i=0;i<snakes.length;i++)move(snakes[i],dt);
+ for(let i=0;i<snakes.length;i++)move(snakes[i],dt);olRelayAvatarTick(dt);
  {const pc=Math.round(player.boostE*100);if(pc!==boostPct){boostPct=pc;bb.style.setProperty('--p',pc)}bb.classList.toggle('on',!!player.boostActive);bb.classList.toggle('cd',player.boostE<CFG.boostMin&&!player.boostActive)}
  for(let i=0;i<snakes.length;i++){const s=snakes[i];if(s.magnetT>0&&s.alive){const pw=s.magnetPow||1,RR=skillVal(s,'magnet','rad')*Math.sqrt(pw),R2=RR*RR,SP=300*pw;for(const f of foods){const dx=s.x-f.x,dy=s.y-f.y,d2=dx*dx+dy*dy;if(d2<R2&&d2>1){const d=Math.sqrt(d2),m=Math.min(d,SP*dt);f.x+=dx/d*m;f.y+=dy/d*m}}}}
  for(let i=0;i<snakes.length;i++)eat(snakes[i]);
@@ -1827,7 +1850,7 @@ function drawMini(){if(!(running&&player))return;const w=mm.width,h=mm.height,sx
  for(const f of foods)if(f.type>=2){mmc.fillStyle=f.color;mmc.fillRect(f.x*sx-1,f.y*sy-1,3,3)}
  for(const b of bots)if(b.alive){mmc.fillStyle=b.color;{const z=b.special?5:2.5;mmc.fillRect(b.x*sx-z/2,b.y*sy-z/2,z,z)}}
  mmc.strokeStyle='#ffffff66';mmc.strokeRect(cam.x*sx,cam.y*sy,W*sx,H*sy);if(player.alive){mmc.fillStyle='#fff';mmc.beginPath();mmc.arc(player.x*sx,player.y*sy,3,0,6.2832);mmc.fill()}}
-function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);if(player)drawSnake(player);
+function draw(t){background();drawFood(t);for(const b of bots)drawSnake(b);for(const remote of olRemoteAvatars.values()){if(remote.tx!==undefined){const k=.22,dx=(remote.tx-remote.x)*k,dy=(remote.ty-remote.y)*k;remote.x+=dx;remote.y+=dy;remote.angle+=diff(remote.angle,remote.ta)*k;for(const q of remote.segments){q.x+=dx;q.y+=dy}}drawSnake(remote)}if(player)drawSnake(player);
  for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x-cam.x,p.y-cam.y,p.r,0,6.2832);ctx.fill()}ctx.globalAlpha=1;
  if(dyingT>0&&lastKiller&&lastKiller.alive){const kx=lastKiller.x-cam.x,ky=lastKiller.y-cam.y;ctx.strokeStyle='#ff5d73';ctx.lineWidth=3;ctx.beginPath();ctx.arc(kx,ky,26+4*Math.sin(t*14),0,6.2832);ctx.stroke()}
  edgeWarn(t);indicators(t);bossBar(t);drawSecrets(-cam.x,-cam.y);drawEmotes();if((mmN=(mmN+1)%3)===0)drawMini();
