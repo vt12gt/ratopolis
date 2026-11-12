@@ -1,0 +1,45 @@
+PEDIDO PARA A DOLA — DIAGNÓSTICO E PRÓXIMA ETAPA DE PERFORMANCE DO RATIVASNACK
+
+Estou enviando uma cópia de teste independente do jogo: Online_Sala_Ao_Vivo_HUD_teste_dola_diagnostico.html.
+Ela foi baseada na versão otimizada anteriormente pela Dola. NÃO é o Online.html oficial.
+
+SINTOMA REAL
+- Em um celular sozinho, o jogo roda liso contra bots.
+- Quando um segundo celular entra na sala multiplayer, começa muito lag, principalmente no segundo aparelho.
+- A otimização anterior melhorou um pouco, mas não resolveu.
+- Queremos suportar futuramente 20 jogadores por sala, mas primeiro precisamos comprovar fluidez com 2 aparelhos e depois escalar.
+- O corpo completo/segmentos de cada rato é parte essencial do jogo. NÃO remover, ocultar, simplificar visualmente nem reduzir segmentos como solução.
+- Não alterar regras, pontuação, colisões, comidas, habilidades, skins, controles ou mecânicas.
+
+O QUE JÁ FOI FEITO NA CÓPIA DOLA
+- Host envia estado a 30 Hz.
+- Estados compactados em arrays.
+- Metadados em sync completo a cada 2 segundos.
+- Comidas incrementais (adições/remoções) com sync completo periódico.
+- Sequência para ignorar estados antigos.
+- Interpolação de posição/ângulo no cliente.
+- HUD/ranking reduzidos para 2 atualizações por segundo.
+- Cliente não executa a simulação geral local; host continua simulando.
+- Host pula envio se bufferedAmount da conexão ultrapassar 65.536 bytes.
+- Cópia anterior: Online_Sala_Ao_Vivo_HUD_teste_dola.html, SHA db3d8304ec1c3943a07443b872fad10268767376.
+
+NESTA CÓPIA DE DIAGNÓSTICO
+Foi acrescentado um painel visível durante o jogo para registrar FPS, papel do aparelho, estado WebSocket, fila bufferedAmount, quantidade/tamanho de mensagens RX/TX, tempo desde último RX, tamanho do último pacote, tempo de processamento de mensagem, tempo de update, tempo de desenho, quantidade de snakes, segmentos, comidas e long tasks. A instrumentação não deve ser confundida com uma medição de RTT real: não há echo/ping de aplicação confirmado no protocolo.
+
+ANÁLISE SOLICITADA
+1. Inspecione o HTML inteiro e identifique precisamente os gargalos de CPU, renderização, rede, serialização e sincronização.
+2. Verifique o Worker/backend usado por RativaSnack. Identifique se ele é somente relay WebSocket ou se já simula o mundo. Não suponha; mostre os arquivos/funções e evidências.
+3. Explique se o host atual envia estado redundante por jogador/conexão e quanto o custo cresce com 2, 5, 10 e 20 jogadores.
+4. Investigue a fila TCP/WebSocket: mensagens antigas podem ficar enfileiradas. Proponha uma estratégia latest-state-wins/coalescing segura, sem quebrar mensagens de controle e sem descartar inputs essenciais.
+5. Inspecione o loop de renderização. Verifique se objetos fora da câmera são percorridos/desenhados, se há cálculos repetidos por segmento e alocações desnecessárias. Aplique culling/cache/reuso de buffers somente quando seguro, mantendo todos os segmentos do corpo e sua aparência.
+6. Compare duas arquiteturas:
+   A) otimizar o WebSocket/relay atual;
+   B) servidor autoritativo dedicado que recebe inputs e simula movimento, colisão, comidas, mortes e pontuação.
+   Diga qual caminho é realista para 20 jogadores e o esforço necessário para portar a simulação sem duplicar regras.
+7. Se implementar mudanças, faça uma NOVA cópia de teste, preserve esta cópia de diagnóstico e o HTML oficial. Não publique no arquivo Online.html e não remova funcionalidades.
+8. Não reduza a transmissão abaixo de 20 atualizações/s. Alvo inicial 30 Hz, simulação local/servidor em 60 Hz se viável.
+9. Não declare que está fluido ou pronto para 20 jogadores sem teste real em dois celulares e teste de carga separado.
+10. Entregue relatório com: causa provável comprovada vs hipótese, métricas observadas, mudanças exatas, riscos, e roteiro de teste com 2, 5, 10 e 20 jogadores.
+
+IMPORTANTE
+Não retirar o corpo completo dos ratos. Não substituir os ratos por ícones. Não mexer no jogo oficial. Primeiro diagnosticar, depois propor/implementar mudanças isoladas e testáveis.
