@@ -1878,7 +1878,7 @@ function drawSnake(s){if(!s.alive)return;const seg=s.segments,n=seg.length,R=s.r
   ctx.fillStyle='#ffffff25';ctx.beginPath();ctx.arc(px-r*.22,py-r*.28,r*.52,0,6.2832);ctx.fill();
   if(sk==='pontos'&&i%2===0){ctx.fillStyle='#ffffffc0';ctx.beginPath();ctx.arc(px,py,r*.22,0,6.2832);ctx.fill()}}
  glowBody(s,seg,R);ratPaws(s,seg,R);if(!(window.RativaSnakeVisuals&&window.RativaSnakeVisuals.drawTail(ctx,s,cam,W,H,gameTime,ratTail)))tailDraw(s);const hx=s.x-cam.x,hy=s.y-cam.y;if(hx<-60||hy<-60||hx>W+60||hy>H+60){ctx.globalAlpha=1;return}
- ctx.save();ctx.translate(hx,hy);ctx.rotate(s.angle);ctx.save();ctx.rotate(window.RativaSnakeVisuals?window.RativaSnakeVisuals.headBob(gameTime,s.x):Math.sin(gameTime*6+(s.x||0)*.02)*.05);ctx.scale(1.3,1.3);if(!(window.RativaSnakeVisuals&&window.RativaSnakeVisuals.drawHead(ctx,s,R,RATS[s.rat]||{ear:'#ffb6c6',nose:'#ff8fa3',eye:'#172033'},gameTime,clothDraw,ratX)))ratHead(s,R);ctx.restore();
+ ctx.save();ctx.translate(hx,hy);ctx.rotate(s.angle);ctx.save();ctx.rotate(window.RativaSnakeVisuals?window.RativaSnakeVisuals.headBob(gameTime,s.x):Math.sin(gameTime*6+(s.x||0)*.02)*.05);ctx.scale(1.3,1.3);if(!(window.RativaSnakeVisuals&&window.RativaSnakeVisuals.drawHead(ctx,s,R,gameTime,clothDraw,ratX)))ratHead(s,R);ctx.restore();
  if(s.boostT>0||s.boostActive){ctx.strokeStyle='#46e6ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,R*1.5,0,6.2832);ctx.stroke()}
  if(mode==='team'){const t=tm(s);ctx.strokeStyle=t?'#ff5d73':'#4da3ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,R*1.35,0,6.2832);ctx.stroke()}
  if(s.boss&&s.phase==='aim'){ctx.save();ctx.rotate(s.dashAng-s.angle);ctx.fillStyle='#ff5d7355';ctx.fillRect(0,-R*.7,760,R*1.4);ctx.restore()}
