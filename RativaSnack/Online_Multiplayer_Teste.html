@@ -1022,8 +1022,24 @@ function applyFood(s,f){const dbl=s.growT>0?2:1;let pts=10;
  else{s.multT=skillVal(s,'mult','dur');pts=15}
  if(!s.isBot){if(mpOnline&&s===player){if(f.type===0){if(++onlineCommonAcc>=5){onlineCommonAcc=0;onlineCollectedCheese++}}else if(f.type===1)onlineCollectedCheese+=5;else if(f.type>=2&&f.type<7)onlineCollectedCheese+=3;else if(f.type===7)onlineCollectedCheese+=100;else if(f.type===8)onlineCollectedCheese+=75}cheeseFood(f);if(ev&&ev.id==='ouro')pts*=2;addScore(pts);foodEaten++;if(f.type>=2){powersTaken++;sfx('bonus');showToast(toastFor(f.type,s))}else if(f.type===1){sfx('bonus');showToast('⭐ Queijo raro! +50')}else sfx('eat')}}
 function eat(s){if(!s.alive||((s===player&&mpOnline&&mpAway)||(s.remote&&s.remote.away)))return;const rr=s.radius+5;
- for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)}}}
-function dropFood(s){for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}}
+ for(let i=foods.length-1;i>=0;i--){const f=foods[i],dx=f.x-s.x,dy=f.y-s.y,l=rr+f.r;if(dx*dx+dy*dy<l*l){
+  if(mpOnline&&f.sharedId){if(!f.claimPending){f.claimPending=true;olSend({t:'drop_claim',dropId:f.sharedId})}continue}
+  f.dead=true;foods[i]=foods[foods.length-1];foods.pop();applyFood(s,f);burst(f.x,f.y,f.color,f.type?8:3)
+ }}}
+function dropFood(s){
+ if(mpOnline){
+  // Bots só geram drops no host; jogadores geram os próprios drops.
+  if(s.isBot&&mpRole!=='host')return;
+  const items=[];
+  for(let i=2;i<s.segments.length;i+=2){
+   const q=s.segments[i];
+   items.push({x:Math.round(q.x+rand(-5,5)),y:Math.round(q.y+rand(-5,5)),type:0,color:s.color,r:rand(5,7)});
+  }
+  if(items.length)olSend({t:'world_event',event:{kind:'drops',source:s.isBot?'bot':'player',items}});
+  return;
+ }
+ for(let i=2;i<s.segments.length;i+=2){const q=s.segments[i];spawnFood(q.x+rand(-5,5),q.y+rand(-5,5),0,true,s.color,rand(5,7))}
+}
 
 /* ============ Eliminações ============ */
 function killPts(){return mode==='challenge'?CFG.challengeKillPts:CFG.killPts}
@@ -1045,7 +1061,12 @@ function startEvent(id){const e=EVENTS.find(x=>x.id===id)||(Math.random()<.6&&TH
 function eventTick(dt){if(!ev)return;ev.t-=dt;if(ev.id==='chuva'){ev.acc+=dt*7;while(ev.acc>=1){ev.acc--;spawnFood(Math.min(worldW-40,Math.max(40,player.x+rand(-700,700))),Math.min(worldH-40,Math.max(40,player.y+rand(-500,500))),Math.random()<.1?1:0,false)}}if(ev.t<=0){ev=null;evT=rand(60,90)*evtScale()}}
 function nextWave(){wave++;waveKills=0;addScore(100*wave);showToast(`🌊 Onda ${wave}! Meta: ${3+wave*2} ratos — mais rápidos`,3);if(wave%3===0&&player.alive){const i=bots.findIndex((b,k)=>!b.alive&&!(mpSlots[k]&&mpSlots[k].open));if(i>=0)spawnSpecial(i,evtOf().id==='noite'?2:evtOf().id==='cacadaouro'?1:1+((Math.random()*3)|0))}}
 function modeHud(){const t=[];if(mode==='survival'&&mpOnline){if(gameTime<300)t.push('⏳ Arena fecha em '+fmtTime(300-gameTime));else if(gameTime<360)t.push('🔥 Arena fechando • '+fmtTime(360-gameTime));else t.push('🔥 Zona final • último sobrevivente vence')}if(mode==='team'){const a=teamScore[0],b=teamScore[1],g=MODES.team.tgoal;t.push(`🔵 ${a} × ${b} 🔴 • meta ${g} • faltam 🔵${Math.max(0,g-a)} 🔴${Math.max(0,g-b)} • ⏱ ${fmtTime(Math.max(0,mpOnline&&ol.left>=0?ol.left:MODES.team.limit-gameTime))}`)};if(mode==='boss'&&boss&&boss.alive)t.push(`👹 Chefe ${Math.max(0,Math.round(boss.hp))}%${boss.stun>0?' • ATORDOADO!':''}`);if(mode==='infinite')t.push(`🌊 Onda ${wave} • ${waveKills}/${3+wave*2}`);{const rc=Object.values(roundEarn).reduce((a,b)=>a+b,0);if(rc)t.push('🧀 +'+rc)}if(ev)t.push(`${ev.icon} ${Math.ceil(ev.t)}s`);return t.join(' • ')}
-function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.armor--;s.shield=s.special?.12:1.5;burst(s.x,s.y,'#ffffff',14);return}if(s===player){buzz(140);sfx(reason==='wall'?'wall':'death')}s.alive=false;burst(s.x,s.y,s.color,s===player?30:20);dropFood(s);
+function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.armor--;s.shield=s.special?.12:1.5;burst(s.x,s.y,'#ffffff',14);return}if(s===player){buzz(140);sfx(reason==='wall'?'wall':'death')}s.alive=false;burst(s.x,s.y,s.color,s===player?30:20);
+ if(mpOnline&&s.isBot&&mpRole==='host'){
+  const botIndex=bots.indexOf(s);
+  olSend({t:'world_event',event:{kind:'bot_death',botIndex,killerId:by===player?String(ol.id):by&&by.remote?String(by.remote.uid||''):''}});
+ }
+ dropFood(s);
  if(by&&by!==s){by.kills++;by.matchScore=(by.matchScore||0)+killPts();if(by===player){kills++;if(gameTime-lastKillT<=8)streakN++;else streakN=1;lastKillT=gameTime;matchStreak=Math.max(matchStreak,streakN);addScore(killPts());earn(mode==='challenge'?20:10,'eliminação');buzz(35);sfx('kill');showToast(`🐭 Você eliminou ${s.name}! +${killPts()}`);const M=MODES[mode];if(M.goal&&kills>=M.goal&&player.alive)endGame('win')}}
  if(s===leader&&by===player&&player.alive){leader=null;addScore(100);earn(15,'rei da arena');showToast('👑 Rei da arena derrubado! +100 pts • +15 🧀',3)}
  if(mode==='team'&&by&&by!==s){const a=tm(by),b=tm(s);if(a>=0&&a!==b)teamScore[a]++}
@@ -1292,11 +1313,32 @@ function olApplyRemoteAvatar(m){
  Object.assign(old,{x,y,tx:x,ty:y,angle:d,ta:d,px:old.x===undefined?x:old.x,py:old.y===undefined?y:old.y,length:Math.max(1,Math.min(10000,Number(a.l)||segments.length)),alive:!!a.al,radius:Math.max(4,Math.min(40,Number(a.r)||10)),color:mpC(a.c),name:String(a.n||'Jogador').slice(0,24),skin:mpS(a.sk,'liso'),acc:mpS(a.ac,'nenhum'),tail:mpS(a.ta,'normal'),rat:mpS(a.rt,'nenhum'),hat:mpS(a.ht,'nenhum'),cloth:mpS(a.cl,'nenhum'),segments:old.segments&&old.segments.length?old.segments:segments.map(q=>({x:q.x,y:q.y})),targetSegments:segments,remoteRender:true,isBot:false,shield:0,special:0,boostT:0,boostActive:false});
  old.tx=x;old.ty=y;old.ta=d;olRemoteAvatars.set(id,old);
 }
+function olApplySharedDropMessage(m){
+ if(!m||!m.dropId)return;
+ if(m.t==='drops_spawned'){
+  const items=Array.isArray(m.items)?m.items:[];
+  for(const item of items){
+   if(!item||!item.id||foods.some(f=>f.sharedId===item.id))continue;
+   const f=spawnFood(Number(item.x)||0,Number(item.y)||0,Number(item.type)||0,true,String(item.color||'#ffd23e'),Number(item.r)||6);
+   if(f){f.sharedId=String(item.id);f.sharedDrop=true}
+  }
+  return;
+ }
+ if(m.t==='drop_claimed'){
+  const idx=foods.findIndex(f=>f.sharedId===m.dropId);
+  if(idx<0)return;
+  const f=foods[idx];f.dead=true;foods.splice(idx,1);
+  if(String(m.collectorId)===String(ol.id)&&player&&player.alive){applyFood(player,f);burst(f.x,f.y,f.color,f.type?8:3)}
+ }
+}
 function olMsg(m){
  switch(m.t){
   case 'avatar':olApplyRemoteAvatar(m);break;
   case 'room_clock':ol.roomElapsedMs=Math.max(0,Number(m.elapsedMs)||0);ol.roomClockServerTime=Number(m.serverTime)||Date.now();break;
   case 'match_ranking':ol.matchRanking=Array.isArray(m.ranking)?m.ranking:[];ol.matchRankingMode=String(m.mode||ol.mode||'');break;
+  case 'drops_spawned':olApplySharedDropMessage(m);break;
+  case 'drop_claimed':olApplySharedDropMessage(m);break;
+  case 'bot_death':{const bi=Number(m.botIndex);const target=bots[bi];if(target&&target.alive){const killer=String(m.killerId||'')===String(ol.id)?player:null;die(target,'online_sync',killer)}break;}
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
