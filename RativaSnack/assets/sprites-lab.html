@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#21152f">
+<title>RativaSnack — Laboratório de Sprites</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#49316c,#171020 65%);color:#fff;font:14px system-ui,sans-serif;min-height:100vh;padding:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 auto 16px;max-width:1100px}h1{font-size:clamp(20px,4vw,30px);margin:0}h1 span{color:#ffd34e}p{color:#c9b9dc;margin:4px 0 0}.actions{display:flex;gap:8px;flex-wrap:wrap}button{border:1px solid #ffffff30;background:#332249;color:#fff;border-radius:10px;padding:10px 13px;font-weight:800}button.on{background:#f4ca52;color:#281d31}
+main{max-width:1100px;margin:auto;display:grid;gap:14px}.section{background:#20162dcc;border:1px solid #ffffff20;border-radius:16px;padding:14px}.section h2{font-size:17px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}.tile{background:#130d1d;border:1px solid #ffffff16;border-radius:12px;padding:10px;text-align:center;min-width:0}.stage{height:112px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle,#38264d,#170f21);border-radius:9px}.stage canvas{width:100%;height:100%}.tile b{display:block;margin-top:8px}.tile small{color:#a997bc}.status{font:11px ui-monospace,monospace;color:#aef5d0;margin-top:10px;white-space:pre-wrap}.note{font-size:12px;color:#c7b5d8;margin-top:10px}
+@media(orientation:portrait) and (max-width:700px){body{padding:10px}.stage{height:94px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header><div><h1>🐍 RativaSnack <span>Sprites Lab</span></h1><p>Prévia independente das cabeças, caudas e animações.</p></div><div class="actions"><button id="motion" class="on">Animação: ligada</button><button id="reload">Recarregar imagens</button><button onclick="location.href='../Online_Multiplayer_Teste.html'">Abrir jogo de teste ↗</button></div></header>
+<main>
+<section class="section"><h2>🐭 Cabeças — head-atlas.svg</h2><div class="grid" id="heads"></div></section>
+<section class="section"><h2>✨ Caudas — tail-atlas.svg</h2><div class="grid" id="tails"></div></section>
+<section class="section"><h2>🟣 Corpo — snake-atlas.svg</h2><div class="grid" id="bodies"></div><div class="note">A prévia mostra os arquivos originais em seus quadros. A escala final dentro do jogo depende do tamanho da cobra e da câmera.</div></section>
+<div class="section"><b>Diagnóstico dos arquivos</b><div class="status" id="status">Carregando spritesheets…</div></div>
+</main>
+<script>
+const assets={heads:{file:'snakes/head-atlas.svg',w:96,h:96,names:['Padrão','Neon','Galáxia','Ouro'],frames:4},tails:{file:'snakes/tail-atlas.svg',w:64,h:64,names:['Pompom','Flor','Estrela','Coração','Chama','Cristal'],frames:6},bodies:{file:'snakes/snake-atlas.svg',w:64,h:64,names:['Padrão','Neon','Galáxia','Ouro'],frames:4}};
+let moving=true,images={};
+function loadAll(){images={};const lines=[];for(const [key,a] of Object.entries(assets)){const im=new Image();images[key]=im;im.onload=()=>{lines.push('✓ '+a.file+' — '+im.naturalWidth+'×'+im.naturalHeight);status.textContent=lines.join('\n')};im.onerror=()=>{lines.push('✕ Falha: '+a.file);status.textContent=lines.join('\n')};im.src=a.file+'?v='+Date.now();}}
+function makeTiles(){for(const [key,a] of Object.entries(assets)){const root=document.getElementById(key);root.innerHTML='';a.names.forEach((name,i)=>{const tile=document.createElement('div');tile.className='tile';const stage=document.createElement('div');stage.className='stage';const canvas=document.createElement('canvas');canvas.width=240;canvas.height=150;stage.append(canvas);const label=document.createElement('b');label.textContent=name;const small=document.createElement('small');small.textContent='Quadro '+(i+1);tile.append(stage,label,small);root.append(tile);tile.dataset.key=key;tile.dataset.frame=i;tile._canvas=canvas;});}}
+function render(now){for(const key of Object.keys(assets)){const a=assets[key],im=images[key];if(!im||!im.complete||!im.naturalWidth)continue;document.querySelectorAll('.tile[data-key="'+key+'"]').forEach(tile=>{const c=tile._canvas,x=c.getContext('2d'),i=Number(tile.dataset.frame);x.clearRect(0,0,c.width,c.height);x.save();if(key==='heads'){const bob=moving?Math.sin(now/330+i)*5:0;x.translate(120,75+bob);x.rotate(moving?Math.sin(now/900+i)*.05:0);x.drawImage(im,i*a.w,0,a.w,a.h,-70,-70,140,140)}else if(key==='tails'){x.translate(120,75);x.rotate(moving?Math.sin(now/500+i)*.18:0);x.drawImage(im,i*a.w,0,a.w,a.h,-54,-54,108,108)}else{x.translate(120,75);x.drawImage(im,i*a.w,0,a.w,a.h,-40,-40,80,80)}x.restore()})}requestAnimationFrame(render)}
+document.getElementById('motion').onclick=e=>{moving=!moving;e.currentTarget.classList.toggle('on',moving);e.currentTarget.textContent='Animação: '+(moving?'ligada':'desligada')};
+document.getElementById('reload').onclick=loadAll;
+makeTiles();loadAll();requestAnimationFrame(render);
+</script>
+</body>
+</html>
