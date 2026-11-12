@@ -1296,6 +1296,7 @@ function olMsg(m){
  switch(m.t){
   case 'avatar':olApplyRemoteAvatar(m);break;
   case 'room_clock':ol.roomElapsedMs=Math.max(0,Number(m.elapsedMs)||0);ol.roomClockServerTime=Number(m.serverTime)||Date.now();break;
+  case 'match_ranking':ol.matchRanking=Array.isArray(m.ranking)?m.ranking:[];ol.matchRankingMode=String(m.mode||ol.mode||'');break;
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
@@ -1907,7 +1908,7 @@ olTestHud.id='olTestHud';
 olTestHud.style.cssText='position:fixed;left:8px;bottom:8px;z-index:99999;pointer-events:none;background:#120b1de8;color:#e9ddff;border:1px solid #b58aff66;border-radius:8px;padding:6px 8px;font:10px/1.35 monospace;max-width:190px;white-space:pre-wrap';
 olTestHud.textContent='RATIVA MULTIPLAYER TEST';
 document.body.appendChild(olTestHud);
-setInterval(()=>{try{const online=!!(ol.ws&&ol.ws.readyState===1);olTestHud.textContent='RATIVA MULTIPLAYER TEST\nServidor: '+(ol.url||'—')+'\nConexão: '+(online?'ONLINE':'OFFLINE')+' | Sala: '+(ol.roomId||'—')+'\nJogadores: '+((ol.players||[]).length)+' | Cobras remotas: '+olRemoteAvatars.size+'\nTempo da sala: '+Math.floor((Number(ol.roomElapsedMs)||0)/1000)+'s\nPacotes: ↑'+OL_TEST_DIAG.sent+' ↓'+OL_TEST_DIAG.received+'\nAvatares: ↑'+OL_TEST_DIAG.avatarsSent+' ↓'+OL_TEST_DIAG.avatarsReceived+'\nÚltimo: '+OL_TEST_DIAG.last}catch(e){}},500);
+setInterval(()=>{try{const online=!!(ol.ws&&ol.ws.readyState===1);olTestHud.textContent='RATIVA MULTIPLAYER TEST\nServidor: '+(ol.url||'—')+'\nConexão: '+(online?'ONLINE':'OFFLINE')+' | Sala: '+(ol.roomId||'—')+'\nJogadores: '+((ol.players||[]).length)+' | Cobras remotas: '+olRemoteAvatars.size+'\nTempo da sala: '+Math.floor((Number(ol.roomElapsedMs)||0)/1000)+'s\nRanking: '+((ol.matchRanking||[]).slice(0,3).map((p,i)=>(i+1)+'. '+String(p.nick||'Jogador')+' '+Number(p.score||0)).join(' | ')||'aguardando resultados')+'\nPacotes: ↑'+OL_TEST_DIAG.sent+' ↓'+OL_TEST_DIAG.received+'\nAvatares: ↑'+OL_TEST_DIAG.avatarsSent+' ↓'+OL_TEST_DIAG.avatarsReceived+'\nÚltimo: '+OL_TEST_DIAG.last}catch(e){}},500);
 
 init();menuInfo();olSyncAccount();ensureAudio();syncMusic();requestAnimationFrame(frame);
 if(window.__RATO_TEST__)window.__RATO_TEST__.api={CFG,MODES,BOTS,ARCH,prefs,stats,get player(){return player},get bots(){return bots},get snakes(){return snakes},get foods(){return foods},get particles(){return particles},get cam(){return cam},get world(){return[worldW,worldH]},
