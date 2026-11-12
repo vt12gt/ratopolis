@@ -1270,6 +1270,7 @@ function olMsg(m){
   case 'staff_panel_access':if(m.allowed)olShowStaffPanelButton(m.roles||[]);break;
   case 'global_announcement':if(m.kind==='staff_online'||m.kind==='manual')olShowGlobalAnnouncement(m);break;
   case 'room_closed':olRejectRoom(m.message||wbMsg());break;
+  case 'mode_unsupported':ol.inRoom=false;olRejectRoom('Este modo ainda não está disponível no servidor de teste: '+String(m.mode||'').toUpperCase()+'.');break;
   case 'room_mode_mismatch':olRejectRoom('A conexão tentou entrar em uma sala de outro modo. Volte ao menu e tente novamente.');break;
   case 'joined':ol.roomId=String(m.roomId||('host:'+String(m.host||'')));if(m.mode!==ol.mode){olRejectRoom('O servidor respondeu com uma sala diferente da solicitada. A entrada foi bloqueada.');break}if(ol.mode==='mundial'&&!wbOpen()){olRejectRoom(wbMsg());break}ol.authoritative=!!m.authoritative;ol.hostId=m.host;ol.isHost=!!m.isHost;ol.hostType=m.authoritative?'server-authoritative':(m.hostType||'bot-pro');ol.hostLabel=m.authoritative?'Servidor Rativa':(m.hostLabel||'Bot Pro');ol.mode=ol.mode||m.mode||mode;ol.players=m.players||[];if(ol.view)olRoomView();break;
   case 'roster':if(m.mode!==ol.mode){olRejectRoom('A sala online mudou de modo. Entrada cancelada.');break}if(m.authoritative){ol.authoritative=true;ol.hostId=m.host||ol.hostId}ol.players=m.players||[];if(ol.view)olRoomView();break;
