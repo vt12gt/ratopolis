@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="64" viewBox="0 0 256 64">
+<defs>
+ <radialGradient id="body" cx="32%" cy="25%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".28" stop-color="#fff" stop-opacity=".34"/><stop offset=".7" stop-color="#111" stop-opacity=".04"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+ <pattern id="scales" width="12" height="10" patternUnits="userSpaceOnUse"><path d="M0 5 Q6 -2 12 5 Q6 12 0 5" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1.2"/></pattern>
+ <radialGradient id="glow"><stop offset=".5" stop-color="#fff" stop-opacity=".0"/><stop offset=".8" stop-color="#fff" stop-opacity=".32"/><stop offset="1" stop-color="#fff" stop-opacity=".0"/></radialGradient>
+</defs>
+<g>
+ <circle cx="32" cy="32" r="27" fill="#fff"/><circle cx="32" cy="32" r="27" fill="url(#scales)"/><circle cx="32" cy="32" r="27" fill="url(#body)"/>
+ <circle cx="96" cy="32" r="27" fill="#fff"/><circle cx="96" cy="32" r="27" fill="url(#scales)"/><circle cx="96" cy="32" r="27" fill="url(#body)"/><circle cx="96" cy="32" r="29" fill="none" stroke="#7ffcff" stroke-width="3"/><circle cx="96" cy="32" r="30" fill="url(#glow)"/>
+ <circle cx="160" cy="32" r="27" fill="#fff"/><circle cx="160" cy="32" r="27" fill="url(#scales)"/><circle cx="160" cy="32" r="27" fill="url(#body)"/><path d="M145 22l5-4m14 25l5-5m-15-20l3-3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+ <circle cx="224" cy="32" r="27" fill="#fff"/><circle cx="224" cy="32" r="27" fill="url(#scales)"/><circle cx="224" cy="32" r="27" fill="url(#body)"/><circle cx="224" cy="32" r="24" fill="none" stroke="#ffd34e" stroke-width="3"/><path d="M210 13l3-4m20 46l3 4" stroke="#fff1a8" stroke-width="3" stroke-linecap="round"/>
+</g></svg>
