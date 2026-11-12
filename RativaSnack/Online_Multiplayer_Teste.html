@@ -1069,7 +1069,7 @@ function die(s,reason,by){if(!s.alive)return;if(s.armor>0&&reason!=='wall'){s.ar
  if(mpOnline&&s.remote&&mpRole==='host'){
   olSend({t:'player_death',victimId:String(s.remote.uid||''),killerId:by===player?String(ol.id):by&&by.remote?String(by.remote.uid||''):''});
  }
- if(mpOnline&&s.isBot&&mpRole==='host'){
+ if(mpOnline&&s.isBot&&!s.remote&&mpRole==='host'){
   const botIndex=bots.indexOf(s);
   olSend({t:'world_event',event:{kind:'bot_death',botIndex,killerId:by===player?String(ol.id):by&&by.remote?String(by.remote.uid||''):''}});
  }
